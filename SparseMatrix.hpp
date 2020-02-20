@@ -101,8 +101,11 @@ public:
     ind_int nzCount() const {ind_int count=0; for(int i=0;i<spmNum;i++)count+=valList.at(i).size(); return count;}
     
     void reserveDiag(){for(int i = 0; i < dmNum; i++) diagValList.reserve(get_nloc());}
-    void reserve(std::vector<T> *pt, ind_int sizePerRow) {pt->reserve(sizePerRow * get_nloc());}
-    void reserve(std::vector<ind_int> *pt, ind_int sizePerRow){pt->reserve(sizePerRow * get_nloc());}
+    void reserve(ind_int sizePerRow, int matID) {
+        valList.at(matID).reserve(sizePerRow * get_nloc()); 
+        colList.at(matID).reserve(sizePerRow * get_nloc());
+        rowInitList.at(matID).reserve(1+get_nloc());
+    }
     void clear(){
         for (int matID = 0; matID < dmNum; matID++) diagValList[matID].clear();
         for (int matID = 0; matID < spmNum; matID++){valList[matID].clear();colList[matID].clear();rowInitList[matID].clear();}

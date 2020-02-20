@@ -416,13 +416,14 @@ public:
 };
 
 class SSOp: public SpinOperator, public SparseMatrix<dataType>{
+private:
+    Geometry *pt_lattice;
 public:
-    SSOp(ind_int totDim);
-    ~SSOp();
-    
-    void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q, int initSiteID = 0);
-    void genPairMat(Geometry* pt_lattice, Basis* pt_Basis, int siteJ, int siteI = 0);
-    void genPairMat(int kInd, Geometry* pt_lattice, Basis* pt_Basis, int rIndex);
+    SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):pt_lattice(pt_lat),\
+        SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_){}
+    ~SSOp(){}
+    // S(i)*S(i+r)
+    void genPairMat(int rIndex);
 };
 
 #endif

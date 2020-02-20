@@ -434,8 +434,9 @@ void Hubbard::genMat(){
 
 
 // generate
-void SzqOneHalf::genMat(){
+void SzkOp::genMat(){
     clear();
+    reserve(1);
     MAP rowMap;
     pushRow(&rowMap)
     // factor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
@@ -486,18 +487,50 @@ void SzqOneHalf::genMat(){
 //     * SS Correlator *
 //     *****************
 // */
-// SSOneHalf::SSOneHalf(ind_int totDim){
-//     MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
-//     MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
-//     dim = totDim;
-//     nlocmax = (dim + workerNum - 1)/workerNum;
-//     ntot = nlocmax * workerNum;
-//     startRow = workerID * nlocmax;
-//     endRow = (startRow + nlocmax)<dim?(startRow + nlocmax):dim;
-//     nloc = endRow - startRow;
-// }
+// generate matrix in subsapce labeled by kIndex for sum.r:Sr*Sr+dr, dr is labeled by rIndex
+void SSOp::genPairMat(int kIndex, Geometry* pt_lattice, Basis* pt_Basis, int rIndex){
+    VecI siteJList(pt_lattice->getOrbNum());
+    VecD coordi(3), coordr(3), coordf(3);
+    pt_lattice->getSiteR(rIndex, coordr.data());
+    for (int i = 0; i < pt_lattice->getOrbNum(); i++){
+        pt_lattice->getOrbR(i,coordi.data());
+        vecXAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), 3);
+        int siteJ;
+        if (pt_lattice->coordToOrbid(coordf.data(), siteJ)){
+            siteJList[i] = siteJ;
+        }else{
+            std::cout<<"translation position not found for orbid = "<<i<<", transVecid = "<<rIndex<<std::endl;
+            exit(1);
+        }
+    }
 
-// SSOneHalf::~SSOneHalf(){}
+    clear();
+    reserve(pt_lattice->getOrbNum()/2+1);
+    MAP rowMap;
+    pushRow(&rowMap);
+    VecI initVec(pt_lattice->getOrbNum());
+    double initNorm, finalNorm;
+    for (ind_int rowID = startRow; rowID < endRow; rowID++){
+        rowMap.clear();
+        initNorm = pt_Basis->getNorm(rowID);
+        std::vector<ind_int> finalIndList;
+        pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
+        for (int i = 0; i < finalIndList.size(); i++){
+            pt_Basis->indToVec(finalIndList[i], initVec);
+            cdouble factor = pt_lattice->expKR(pt_Basis->getkIndex(),rIndex)/pt_lattice->getSiteNum()/initNorm;
+            for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
+                int siteJ = siteJList[siteI];
+                // sz.siteI * sz.siteJ
+                szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMap);
+                // 1/2 * sm.siteI * sp.siteJ
+                spsm(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMap);
+                // 1/2 * sp.siteI * sm.siteJ
+                smsp(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMap);
+            }
+        }
+        pushRow(&rowMap);
+    }
+}
 
 // // generate Si*Sj in full hilbert space
 // void SSOneHalf::genPairMat(Geometry* pt_lattice, Basis* pt_Basis, int siteID, int initSiteID){
@@ -525,55 +558,3 @@ void SzqOneHalf::genMat(){
 //     }
 //     delete [] initVec_;
 // }
-
-// // generate matrix in subsapce labeled by kIndex for sum.r:Sr*Sr+dr, dr is labeled by rIndex
-// void SSOneHalf::genPairMat(int kIndex, Geometry* pt_lattice, Basis* pt_Basis, int rIndex){
-//     clear();
-//     rowInitList.reserve(nloc+1);
-//     colList.reserve(nloc*pt_lattice->getOrbNum()/2+nloc);
-//     valList.reserve(nloc*pt_lattice->getOrbNum()/2+nloc);
-//     MAP rowMap;
-//     MAPIT it;
-
-//     double kx = pt_lattice->KLattice_[kIndex].coord[0];
-//     double ky = pt_lattice->KLattice_[kIndex].coord[1];
-//     int drx = pt_lattice->lattice_[rIndex].coord[0];
-//     int dry = pt_lattice->lattice_[rIndex].coord[1];
-//     ind_int *finalIndList_ = new(std::nothrow) ind_int[pt_lattice->getOrbNum()]; assert(finalIndList_!=NULL);
-//     int *initVec_ = new(std::nothrow) int[pt_lattice->getOrbNum()]; assert(initVec_!=NULL);
-
-//     ind_int counter = 0;
-//     cdouble dval;
-//     double initNorm, finalNorm;
-
-//     rowInitList.push_back(counter);
-//     for (ind_int rowID = startRow; rowID < endRow; rowID++){
-//         rowMap.clear();
-//         initNorm = pt_Basis->getNorm(rowID);
-//         pt_Basis->genTranslation(pt_lattice, pt_Basis->indexList.at(rowID), finalIndList_);
-//         for (int i = 0; i < pt_lattice->getOrbNum(); i++){
-//             pt_Basis->indToVec(finalIndList_[i], initVec_);
-//             dval = 0.0;
-//             int rx = pt_lattice->lattice_[i].coord[0];
-//             int ry = pt_lattice->lattice_[i].coord[1];
-//             cdouble factor = std::exp(2*PI*CPLX_I*(kx*rx+ky*ry))/pt_lattice->getOrbNum()/initNorm;
-//             for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
-//                 int siteIDp;
-//                 BasisLat coord;
-//                 coord[0] = pt_lattice->lattice_[siteID].coord[0] + drx;
-//                 coord[1] = pt_lattice->lattice_[siteID].coord[1] + dry;
-//                 assert(pt_lattice->coordToInd(coord, siteIDp));
-//                 // sz.siteID * sz.siteIDp
-//                 szsz(siteID, siteIDp, factor, finalIndList_[i], initVec_, pt_Basis, &rowMap);
-//                 // 1/2 * sm.siteID * sp.siteIDp
-//                 spsm(siteID, siteIDp, factor/2.0, finalIndList_[i], initVec_, pt_Basis, &rowMap);
-//                 // 1/2 * sp.siteID * sm.siteIDp
-//                 smsp(siteID, siteIDp, factor/2.0, finalIndList_[i], initVec_, pt_Basis, &rowMap);
-//             }
-//         }
-//         newRow(&rowMap, counter);
-//     }
-//     delete [] initVec_;
-//     delete [] finalIndList_;
-// }
-
