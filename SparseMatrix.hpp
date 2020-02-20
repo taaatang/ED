@@ -154,12 +154,30 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
         // row partition
         case MATRIX_PARTITION::ROW_PARTITION:{
             vecAllGather(vecIn,vecBuf.data(),BaseMatrix<T>::nlocmax);
+            // initialize vecOut
             #pragma omp parallel for
-            for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) {
-                vecOut[i] = 0.0;
-                for (int j = 0; j < dmNum; j++) vecOut[i] += parameters[j]*diagValList[j][i]*vecIn[i];
+            for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] = 0.0;
+            // constant diagVal
+            if (!diagValList.at(0).empty()){
+                #pragma omp parallel for
+                for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] += diagValList[0][i]*vecIn[i];
             }
-            for (int matID = 0; matID < spmNum; matID++){
+            // time dependent diagVal
+            for (int j = 1; j < dmNum; j++){
+                #pragma omp parallel for
+                for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] += diagParameters[j]*diagValList[j][i]*vecIn[i];
+            }
+            // constant sparse matrix
+            if (!valist.at(0).empty()){
+                #pragma omp parallel for
+                for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++){
+                    for (ind_int j = rowInitList[0].at(i); j < rowInitList[0].at(i+1); j++){
+                        vecOut[i] += valList[matID].at(j) * vecBuf[colList[matID].at(j)];
+                    }
+                }
+            }
+            // time dependent sparse matrix
+            for (int matID = 1; matID < spmNum; matID++){
                 #pragma omp parallel for
                 for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++){
                     T tmp = 0.0;
