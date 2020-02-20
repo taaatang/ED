@@ -371,6 +371,7 @@ private:
     std::vector<Link<double>*> Links;
     // non-constant links
     std::vector<Link<double>*> NCLinks;
+    // V:charge transfer energy on different orbitals. U:onsite repulsion
     VecD V, U;
     Geometry *pt_lattice;
 public:
@@ -396,30 +397,23 @@ public:
     void genMatPara();
 };
 
-// class SzqOneHalf: public SpinOperator, public SparseMatrix<cdouble>{
-// public:
-//     SzqOneHalf(){};
-//     SzqOneHalf(ind_int totDim);
-// //    SzqOneHalf(ind_int rowDim, ind_int colDim);
-//     ~SzqOneHalf();
+class SzqOp: public SpinOperator, public SparseMatrix<cdouble>{
+public:
+    SzqOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2);
+    ~SzqOneHalf();
     
-//     void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q);
-//     void genMat(Geometry* pt_lattice, Basis* pt_B1, Basis* pt_B2, BasisXY q);
-// };
+    void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q);
+    void genMat(Geometry* pt_lattice, Basis* pt_B1, Basis* pt_B2, BasisXY q);
+};
 
-// class SSOneHalf: public SpinOperator, public SparseMatrix<dataType>{
-// public:
-//     SSOneHalf(){};
-//     SSOneHalf(ind_int totDim);
-//     ~SSOneHalf();
+class SSOp: public SpinOperator, public SparseMatrix<dataType>{
+public:
+    SSOp(ind_int totDim);
+    ~SSOp();
     
-//     void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q, int initSiteID = 0);
-//     void genPairMat(Geometry* pt_lattice, Basis* pt_Basis, int siteJ, int siteI = 0);
-//     void genPairMat(int kInd, Geometry* pt_lattice, Basis* pt_Basis, int rIndex);
-// };
+    void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q, int initSiteID = 0);
+    void genPairMat(Geometry* pt_lattice, Basis* pt_Basis, int siteJ, int siteI = 0);
+    void genPairMat(int kInd, Geometry* pt_lattice, Basis* pt_Basis, int rIndex);
+};
 
-
-// class Hubbard:public FermionOperator, public SparseMatrix<dataType>{
-
-// }
 #endif
