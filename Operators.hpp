@@ -398,8 +398,12 @@ public:
 };
 
 class SzqOp: public SpinOperator, public SparseMatrix<cdouble>{
+private:
+    // initial k index Ki and final k index Kf
+    int Ki, Kf;
 public:
-    SzqOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2);
+    SzqOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):\
+        SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<cdouble>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){};
     ~SzqOneHalf();
     
     void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q);
