@@ -83,30 +83,41 @@ public:
         BaseMatrix<T>(totDim_),partition(partition_),spmNum(spmNum_),dmNum(dmNum_),\
         counter(spmNum_,0),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),diagValList(dmNum_){
             parameters.resize(spmNum_);
-            diagParameters.resize(dmNum_); 
+            diagParameters.resize(dmNum_);
+            // initialize is_vecBuf status
+            switch(partition){
+                case MATRIX_PARTITION::ROW_PARTITION:
+                    if (vecBuf.size() != BaseMatrix<T>::ntot) is_vecBuf = false;
+                    break;
+                case MATRIX_PARTITION::COL_PARTITION:
+                    if (vecBuf.size() != BaseMatrix<T>::nlocmax) is_vecBuf = false;
+                    break;
+                default:break;
+            }
             // for(int i = 0; i < spmNum; i++) rowInitList.at(i).push_back(0);
         };
     ~SparseMatrix(){};
 
     ind_int nzCount() const {ind_int count=0; for(int i=0;i<spmNum;i++)count+=valList.at(i).size(); return count;}
     
+    void reserveDiag(){for(int i = 0; i < dmNum; i++) diagValList.reserve(get_nloc());}
     void reserve(std::vector<T> *pt, ind_int sizePerRow) {pt->reserve(sizePerRow * get_nloc());}
     void reserve(std::vector<ind_int> *pt, ind_int sizePerRow){pt->reserve(sizePerRow * get_nloc());}
     void clear(){
         for (int matID = 0; matID < dmNum; matID++) diagValList[matID].clear();
         for (int matID = 0; matID < spmNum; matID++){valList[matID].clear();colList[matID].clear();rowInitList[matID].clear();}
     }
-    void pushRow(std::unordered_map<ind_int,T>* rowMap, int matID=0, MATRIX_PARTITION partition = MATRIX_PARTITION::ROW_PARTITION){
+    void pushRow(std::unordered_map<ind_int,T>* rowMap, int matID=0){
         counter.at(matID) += rowMap->size();
         rowInitList[matID].push_back(counter[matID]);
         for (auto it = rowMap->begin(); it != rowMap->end(); it++){
             colList[matID].push_back(it->first);
-            switch(PARTITION){
-                case ROW_PARTITION:{
+            switch(partition){
+                case MATRIX_PARTITION::ROW_PARTITION:{
                     valList[matID].push_back(std::conj(it->second));
                     break;
                 }
-                case COL_PARTITION:{
+                case MATRIX_PARTITION::COL_PARTITION:{
                     valList[matID].push_back(it->second);
                     break;
                 }
@@ -117,10 +128,10 @@ public:
 
     void setBuf(){
         switch(partition){
-        case ROW_PARTITION:
+        case MATRIX_PARTITION::ROW_PARTITION:
             vecBuf.resize(BaseMatrix<T>::ntot);
             break;
-        case COL_PARTITION:
+        case MATRIX_PARTITION::COL_PARTITION:
             vecBuf.resize(BaseMatrix<T>::nlocmax);
             break;
         default:break;
