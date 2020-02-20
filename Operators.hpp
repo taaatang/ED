@@ -257,6 +257,7 @@ public:
     SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod=HEISENBERG, int dim = 2);
     ~SpinOperator(){};
     
+    double getSz(int siteI, VecI& initVeC) const {return szMat.at(initVec.at(siteI));}
     void szsz(int siteI, int siteJ, dataType factor, ind_int initInd, VecI& initVec, MAP* rowMap){
         ind_int colID;
         if (pt_Basis->search(initInd,colID)){
@@ -397,17 +398,21 @@ public:
     void genMatPara();
 };
 
-class SzqOp: public SpinOperator, public SparseMatrix<cdouble>{
+class SzkOp: public SpinOperator, public SparseMatrix<cdouble>{
 private:
     // initial k index Ki and final k index Kf
     int Ki, Kf;
+    Basis *pt_Bi,*pt_Bf;
+    Geometry *pt_lattice;
 public:
-    SzqOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):\
-        SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<cdouble>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){};
-    ~SzqOneHalf();
-    
-    void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q);
-    void genMat(Geometry* pt_lattice, Basis* pt_B1, Basis* pt_B2, BasisXY q);
+    SzkOp(Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1, int spindim=2):pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),\
+        SpinOperator(pt_Bi,HEISENBERG,spindim),SparseMatrix<cdouble>(pt_Bf_->getSubDim(),spmNum_){
+            Ki = pt_Bi->getkIndex();
+            Kf = pt_Bf->getkIndex();
+        };
+    ~SzkOp(){};
+    // void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q);
+    void genMat();
 };
 
 class SSOp: public SpinOperator, public SparseMatrix<dataType>{

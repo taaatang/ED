@@ -415,20 +415,8 @@ void Hubbard::genMat(){
     *******************
 */
 
-// SzqOneHalf::SzqOneHalf(ind_int totDim){
-//     MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
-//     MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
-//     dim = totDim;
-//     nlocmax = (dim + workerNum - 1)/workerNum;
-//     ntot = nlocmax * workerNum;
-//     startRow = workerID * nlocmax;
-//     endRow = (startRow + nlocmax)<dim?(startRow + nlocmax):dim;
-//     nloc = endRow - startRow;
-// }
 
-// SzqOneHalf::~SzqOneHalf(){}
-
-// void SzqOneHalf::genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q){
+// void SzkOp::genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q){
 //     clear();
 //     diagValList.reserve(nloc);
 //     cdouble dval;
@@ -445,58 +433,53 @@ void Hubbard::genMat(){
 // }
 
 
-// // generate
-// void SzqOneHalf::genMat(Geometry* pt_lattice, Basis* pt_B1, Basis* pt_B2, BasisXY q){
-//     clear();
-//     rowInitList.reserve(nloc+1);
-//     colList.reserve(nloc);
-//     valList.reserve(nloc);
-//     cdouble dval;
-//     int *initVec_ = new(std::nothrow) int[pt_lattice->getOrbNum()]; assert(initVec_!=NULL);
-//     switch(PARTITION){
-//         case ROW_PARTITION:{
-//             ind_int counter = 0;
-//             rowInitList.push_back(counter);
-//             ind_int colID;
-//             for (ind_int rowID = startRow; rowID < endRow; rowID++){
-//                 if (pt_B1->search(pt_B2->indexList.at(rowID),colID)){
-//                     dval = 0.0;
-//                     pt_B1->indToVec(pt_B1->indexList.at(colID), initVec_);
-//                     for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
-//                         dval += szMat.at(initVec_[siteID]) * std::exp(-CPLX_I * (q[0]*pt_lattice->lattice_[siteID].coordxy[0] + q[1]*pt_lattice->lattice_[siteID].coordxy[1]));
-//                     }
-//                     dval *= pt_B2->getNorm(rowID)/pt_B1->getNorm(colID);
-//                     colList.push_back(colID);
-//                     valList.push_back(dval);
-//                     counter++;
-//                 }
-//                 rowInitList.push_back(counter);
-//             }
-//             break;
-//         }
-//         case COL_PARTITION:{
-//             ind_int counter = 0;
-//             rowInitList.push_back(counter);
-//             ind_int colID;
-//             for (ind_int rowID = startRow; rowID < endRow; rowID++){
-//                 if (pt_B1->search(pt_B2->indexList.at(rowID),colID)){
-//                     dval = 0.0;
-//                     pt_B2->indToVec(pt_B2->indexList.at(rowID), initVec_);
-//                     for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
-//                         dval += szMat[initVec_[siteID]] * std::exp(-CPLX_I * (q[0]*pt_lattice->lattice_[siteID].coordxy[0] + q[1]*pt_lattice->lattice_[siteID].coordxy[1]));
-//                     }
-//                     dval *= pt_B1->getNorm(rowID)/pt_B2->getNorm(colID);
-//                     colList.push_back(colID);
-//                     valList.push_back(dval);
-//                     counter++;
-//                 }
-//                 rowInitList.push_back(counter);
-//             }
-//             break;
-//         }
-//     }
-//     delete [] initVec_;
-// }
+// generate
+void SzqOneHalf::genMat(){
+    clear();
+    MAP rowMap;
+    pushRow(&rowMap)
+    // factor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
+    VecD factor(pt_lattice->getOrbNum());
+    for (int i = 0; i < pt_lattice->getOrbNum(); i++) factor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
+    cdouble dval;
+    VecI initVec(pt_lattice->getOrbNum());
+    switch(PARTITION){
+        case ROW_PARTITION:{
+            ind_int colID;
+            for (ind_int rowID = startRow; rowID < endRow; rowID++){
+                rowMap.clear();
+                if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
+                    dval = 0.0;
+                    pt_Bi->indToVec(pt_Bi->getRepI(colID), initVec);
+                    for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
+                        dval += getSz(siteID,initVec) * factor[siteID];
+                    }
+                    dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
+                    rowMap[colID] = dval;
+                }
+                pushRow(rowMap);
+            }
+            break;
+        }
+        // col Partition need to be checked!
+        case COL_PARTITION:{
+            ind_int colID;
+            for (ind_int rowID = startRow; rowID < endRow; rowID++){
+                if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
+                    dval = 0.0;
+                    pt_Bf->indToVec(pt_Bf->getRepI(rowID), initVec);
+                    for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
+                        dval += getSz(siteID,initVec) * factor[siteID];
+                    }
+                    dval *= pt_Bi->getNorm(rowID)/pt_Bf->getNorm(colID);
+                    rowMap[colID] = dval;
+                }
+                pushRow(rowMap);
+            }
+            break;
+        }
+    }
+}
 
 // /*
 //     *****************
