@@ -517,7 +517,7 @@ void SSOp::genPairMat(int kIndex, Geometry* pt_lattice, Basis* pt_Basis, int rIn
         pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
         for (int i = 0; i < finalIndList.size(); i++){
             pt_Basis->indToVec(finalIndList[i], initVec);
-            cdouble factor = pt_lattice->expKR(pt_Basis->getkIndex(),rIndex)/pt_lattice->getSiteNum()/initNorm;
+            cdouble factor = pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
             for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
                 int siteJ = siteJList[siteI];
                 // sz.siteI * sz.siteJ
