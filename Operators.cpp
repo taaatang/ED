@@ -432,7 +432,11 @@ void Hubbard::genMat(){
 //     delete [] initVec_;
 // }
 
-
+/*
+    *********
+    * Sz(k) *
+    *********
+*/
 // generate
 void SzkOp::genMat(){
     clear();
