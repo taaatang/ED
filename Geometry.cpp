@@ -194,7 +194,7 @@ TriAngLattice::TriAngLattice(int numSites, bool PBC){
         case 27:{
             vecXAdd(6.0, a1.data(), -3.0, a2.data(), R1.data(), getDim());
             vecXAdd(3.0, a1.data(), 3.0, a2.data(), R2.data(), getDim());
-            vecXAdd(1.0/9.0, b1.data(), 1.0/9.0, b2.data(), b10.data(), getDim());
+            vecXAdd(1.0/9.0, b1.data(), -1.0/9.0, b2.data(), b10.data(), getDim());
             vecXAdd(1.0/9.0, b1.data(), 2.0/9.0, b2.data(), b20.data(), getDim());
             xlist = VecD {+0, +1, +2, +3, -1, +0, +1, +2, +3, -2, -1, 0, 1, 2, 3, -2, -1, 0, 1, 2, -2, -1, 0, 1, -2, -1, 0};
             ylist = VecD {-2, -2, -2, -2, -1, -1, -1, -1, -1, +0, +0, 0, 0, 0, 0, +1, +1, 1, 1, 1, +2, +2, 2, 2, +3, +3, 3};
