@@ -29,10 +29,11 @@
 */
 template <class T>
 class TimeEvolver: public LANCZOSIterator<T>{
-public:
+private:
     cdouble* vec;
     std::vector<cdouble> tmp1, tmp2;
     std::vector<double> U;
+public:
     TimeEvolver(){};
     TimeEvolver(cdouble* initVec, BaseMatrix<dataType> *M, int krydim):LANCZOSIterator<T>(M, krydim, ALPHA_BETA_Q){
         vec = initVec;
