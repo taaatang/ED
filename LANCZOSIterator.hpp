@@ -21,7 +21,7 @@
 
 template <class T>
 class LANCZOSIterator{
-public:
+protected:
     // local vectorsize
     BaseMatrix<T> *M_;
     LANCZOS_OPTION option;
@@ -31,10 +31,9 @@ public:
     cdouble vecNorm;
     // q_j-1, q_j, r
     cdouble *q_pre, *q, *r;
-    cdouble *vecBuf;
     // AQ = QH + residual
     cdouble *Q; 
-    
+public:
     LANCZOSIterator(){};
     LANCZOSIterator(BaseMatrix<dataType> *M, int krydim, LANCZOS_OPTION opt=LANCZOS_DEFAULT_OPTION);
     ~LANCZOSIterator();
@@ -60,17 +59,6 @@ void LANCZOSIterator<T>::init(BaseMatrix<dataType> *M, int krydim, LANCZOS_OPTIO
     q_pre = new cdouble[M_->get_nlocmax()];
     q = new cdouble[M_->get_nlocmax()];
     r = new cdouble[M->get_nlocmax()];
-    switch(PARTITION){
-        case ROW_PARTITION:{
-            vecBuf = new cdouble[M_->get_ntot()];
-            break;
-        }
-        case COL_PARTITION:{
-            vecBuf = new cdouble[M_->get_nlocmax()];
-            break;
-        }
-        default: break;
-    }
     if (option == ALPHA_BETA_Q){
         Q = new cdouble[krydim * M_->get_nloc()];
     }
@@ -81,7 +69,6 @@ LANCZOSIterator<T>::~LANCZOSIterator(){
     delete [] q_pre;
     delete [] q;
     delete [] r;
-    delete [] vecBuf;
     if (option == ALPHA_BETA_Q) delete [] Q;
 }
 
@@ -103,7 +90,7 @@ void LANCZOSIterator<T>::run(cdouble* vec){
     // Q1 = [q]
     if (option == ALPHA_BETA_Q) veqv(&Q[0], q, M_->get_nloc());
     // r = Aq
-    M_->MxV(q, r, vecBuf, PARTITION);
+    M_->MxV(q, r);
     // a1 = q^r
     vConjDotv(q, r, &result, M_->get_nloc());
     alpha.push_back(std::real(result));
@@ -125,7 +112,7 @@ void LANCZOSIterator<T>::run(cdouble* vec){
         //Qi = [Qi-1,q]
         if (option == ALPHA_BETA_Q) veqv(&Q[i*M_->get_nloc()], q, M_->get_nloc());
         // r = Aq
-        M_->MxV(q, r, vecBuf, PARTITION);
+        M_->MxV(q, r);
         //r = r - beta[i-1]*q_pre
         saxpy(r, -(cdouble)beta[i-1], q_pre, M_->get_nloc());
         //alpha[i] = q^r
