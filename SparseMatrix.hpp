@@ -128,7 +128,7 @@ public:
         }
     }
     void pushDiag(T val, int matID=0){diagVal.at(matID).push_back(val);}
-
+    void setBuf(ind_int size){vecBuf.resize(size); is_vecBuf = true;}
     void setBuf(){
         switch(partition){
         case MATRIX_PARTITION::ROW_PARTITION:
