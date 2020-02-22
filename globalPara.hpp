@@ -74,9 +74,9 @@ const int MPI_MASTER = 0;
     *****************
 */
 // cori
-const std::string ROOT_DATA_PATH = "/global/project/projectdirs/m2757/tatang"; 
+// const std::string ROOT_DATA_PATH = "/global/project/projectdirs/m2757/tatang"; 
 // sherlock
-// const std::string ROOT_DATA_PATH = "/oak/stanford/groups/tpd/tatang"; 
+const std::string ROOT_DATA_PATH = "/oak/stanford/groups/tpd/tatang"; 
 const std::string PROJECT_DATA_PATH = ROOT_DATA_PATH + "/TriAngHeis";
 /*
     ******************
