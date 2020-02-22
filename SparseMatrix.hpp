@@ -143,6 +143,8 @@ public:
     }
     void clearBuf(){vecBuf.clear(); is_vecBuf=false;}
     void MxV(T *vecIn, T *vecOut);
+    // virtual void row(int row, std::vector<MAP>& rowMAP) = 0;
+    // void parallel_construct();
 };
 
 // static members
@@ -262,4 +264,51 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
     }
 }
 
+// template <class T>
+// void SparseMatrix<T>::parallel_construct(){
+//     int threadNum;
+//     #pragma omp parallel
+//     {
+//         #pragma omp master
+//         threadNum = omp_get_num_threads();
+//     }
+    
+//     std::vector<MAP*> rowMapList(threadNum);
+//     for (int i = 0; i < threadNum; i++) {
+//         rowMapList[i] = new MAP;
+//         rowMapList[i] ->reserve(couplingNum*polarNum*pt_lattice->getOrbNum()+nloc);
+//     }
+//     std::vector<ind_int> startList(threadNum);
+    
+//     ind_int counter = 0;
+//     rowInitList.push_back(counter);
+    
+//     // calculate <R1k|H*Pk|R2k>/norm1/norm2
+//     for (ind_int rowID = startRow; rowID < endRow; rowID+=threadNum){
+//         #pragma omp parallel shared(rowMapList, startList)
+//         {   
+//             assert(omp_get_num_threads()==threadNum);
+//             int threadID = omp_get_thread_num();
+//             ind_int thRowID = rowID + threadID;
+//             bool is_row = thRowID < endRow;
+//             if (is_row) row(kIndex, couplingNum, polarNum, thRowID, rowMapList.at(threadID));
+//             #pragma omp barrier
+
+//             #pragma omp master
+//             {
+//                 for (int i = 0; (i < threadNum)&&(rowID+i<endRow); i++){
+//                     startList[i] = counter;
+//                     counter += rowMapList.at(i)->size();
+//                     rowInitList.push_back(counter);
+//                 }
+//                 colList.resize(counter);
+//                 valList.resize(counter);
+//             }
+//             #pragma omp barrier
+
+//             if (is_row) pushRow(startList[threadID], rowMapList.at(threadID));
+//         }
+//     }
+//     for (int i = 0; i < threadNum; i++) delete rowMapList[i];
+// }
 #endif

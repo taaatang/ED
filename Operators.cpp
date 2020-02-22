@@ -29,101 +29,6 @@ SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod, int dim):pt_Basis(pt
     * Hamiltonian Class *
     *********************
 */
-
-
-// #ifdef SAXPY
-//     // generate Hamiltonian in the subspacd labeled by kIndex
-//     void Heisenberg::genSubMatMap(int kIndex, int couplingNum, int polarNum){
-//         assert(couplingNum==matrix_num);
-//         if (kIndex==-1){
-//             genMat(pt_lattice, pt_Basis, couplingNum, polarNum);
-//             return;
-//         }
-//         clear();
-//         for (int matID = 0; matID < matrix_num; matID++){
-//             pt_rowInitList[matID]->reserve(nloc+1);
-//             pt_valList[matID]->reserve(nloc*polarNum*pt_lattice->getOrbNum()/2+nloc);
-//             pt_colList[matID]->reserve(nloc*polarNum*pt_lattice->getOrbNum()/2+nloc);
-//         }
-//         MAP rowMap;
-//         MAPIT it;
-
-//         std::vector<double> k(2,0.0);
-//         pt_lattice->getK(kIndex, k.data());
-//         ind_int *finalIndList_ = new(std::nothrow) ind_int[pt_lattice->getOrbNum()]; assert(finalIndList_!=NULL);
-//         int *initVec_ = new(std::nothrow) int[pt_lattice->getOrbNum()]; assert(initVec_!=NULL);
-//         ind_int counter;
-//         double initNorm, finalNorm;
-        
-//         // calculate <R1k|H*Pk|R2k>/norm1/norm2
-//         for (int couplingID = 0; couplingID < couplingNum; couplingID++){
-//             counter = 0;
-//             pt_rowInitList[couplingID]->push_back(counter);
-//             for (ind_int rowID = startRow; rowID < endRow; rowID++){
-//                 // clean map
-//                 rowMap.clear();
-//                 pt_Basis->genTranslation(pt_lattice, pt_Basis->indexList.at(rowID), finalIndList_);
-//                 initNorm = pt_Basis->getNorm(rowID);
-//                 for (int i = 0; i < pt_lattice->getOrbNum(); i++){
-//                     if (DEBUG) std::cout<<"trans vec:"<<i<<" begins..."<<std::endl;
-//                     pt_Basis->indToVec(finalIndList_[i], initVec_);
-//                     std::vector<double> r(2,0.0);
-//                     pt_lattice->getOrbR(i, r.data());
-//                     cdouble factor = std::exp(2*PI*CPLX_I*(k[0]*r[0]+k[1]*r[1]))/pt_lattice->getSiteNum()/initNorm;
-//                     for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
-//                         for (int polarID = 0; polarID < polarNum; polarID++){
-//                             int siteIDp = pt_lattice->bondMaps_[couplingID]->at(siteID).at(polarID);
-//                             // sz.siteID * sz.siteIDp
-//                             szsz(siteID, siteIDp, parameters.at(couplingID)*factor,finalIndList_[i], initVec_, pt_Basis, &rowMap);
-//                             // 1/2 * sm.siteID * sp.siteIDp
-//                             spsm(siteID, siteIDp, parameters.at(couplingID)/2.0*factor,finalIndList_[i], initVec_, pt_Basis, &rowMap);
-//                             // 1/2 * sp.siteID * sm.siteIDp
-//                             smsp(siteID, siteIDp, parameters.at(couplingID)/2.0*factor,finalIndList_[i], initVec_, pt_Basis, &rowMap);
-//                         }
-//                     }
-//                 }
-//                 newRow(couplingID, &rowMap, counter);
-//             }
-//         }
-//         delete [] initVec_;
-//         delete [] finalIndList_;
-//     }
-
-//     void Heisenberg::genMat(int couplingNum, int polarNum){
-//         clear();
-//         for (int matID = 0; matID < matrix_num; matID++){
-//             pt_rowInitList[matID]->reserve(nloc+1);
-//             pt_valList[matID]->reserve(nloc*polarNum*pt_lattice->getOrbNum()/2+nloc);
-//             pt_colList[matID]->reserve(nloc*polarNum*pt_lattice->getOrbNum()/2+nloc);
-//         }
-//         MAP rowMap;
-//         MAPIT it;
-
-//         ind_int counter;
-//         int *initVec_ = new int[pt_lattice->getOrbNum()];
-//         for (int couplingID = 0; couplingID < couplingNum; couplingID++){
-//             counter = 0;
-//             pt_rowInitList[couplingID]->push_back(counter);
-//             for (ind_int rowID = startRow; rowID < endRow; rowID++){
-//                 rowMap.clear();
-//                 pt_Basis->indToVec(pt_Basis->indexList.at(rowID), initVec_);
-//                 for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
-//                     for (int polarID = 0; polarID < polarNum; polarID++){
-//                         int siteIDp = pt_lattice->bondMaps_[couplingID]->at(siteID).at(polarID);
-//                         // sz.siteID * sz.siteIDp
-//                         szsz(siteID, siteIDp, parameters.at(couplingID), rowID, initVec_, pt_Basis, &rowMap);
-//                         // 1/2 * sm.siteID * sp.siteIDp
-//                         spsm(siteID, siteIDp, parameters.at(couplingID)/2.0, rowID, initVec_, pt_Basis, &rowMap);
-//                         // 1/2 * sp.siteID * sm.siteIDp
-//                         smsp(siteID, siteIDp, parameters.at(couplingID)/2.0, rowID, initVec_, pt_Basis, &rowMap);
-//                     }
-//                 }
-//                 newRow(couplingID, &rowMap, counter);
-//             }
-//         }
-//         delete [] initVec_;
-//     }
-// #else
 //     void Heisenberg::row(int kIndex, int couplingNum, int polarNum, ind_int rowID, MAP *rowMap){
 //         rowMap->clear();
 //         std::vector<ind_int> finalIndList(pt_lattice->getOrbNum());
@@ -232,10 +137,6 @@ SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod, int dim):pt_Basis(pt
 // generate Hamiltonian in the subspacd labeled by kIndex
 void Heisenberg::genMat(){
     int kIndex = pt_Basis->getkIndex();
-    if (kIndex==-1){
-        genMatFull();
-        return;
-    }
     clear();
     MAP rowMap;
     // initialize rowInitList
@@ -248,9 +149,9 @@ void Heisenberg::genMat(){
         std::vector<ind_int> finalIndList;
         pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
         initNorm = pt_Basis->getNorm(rowID);
-        for (int i = 0; i < pt_lattice->getSiteNum(); i++){
+        for (int i = 0; i < finalIndList.size(); i++){
             pt_Basis->indToVec(finalIndList[i], initVec);
-            cdouble factor = pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
+            cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
                 cdouble factor1 = factor * (*linkit)->getVal();
                 for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
@@ -269,9 +170,9 @@ void Heisenberg::genMat(){
 
         for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
             rowMap.clear();
-            for (int i = 0; i < pt_lattice->getSiteNum(); i++){
+            for (int i = 0; i < finalIndList.size(); i++){
                 pt_Basis->indToVec(finalIndList[i], initVec);
-                cdouble factor = pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
+                cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
                 factor *= (*linkit)->getVal();
                 for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
                     int siteID = (*bondit).at(0);
@@ -289,53 +190,6 @@ void Heisenberg::genMat(){
     }
 }
 
-void Heisenberg::genMatFull(){
-    clear();
-    // rowInitList.reserve(nloc+1);
-    // colList.reserve(nloc*couplingNum*polarNum*pt_lattice->getOrbNum()/2+nloc);
-    // valList.reserve(nloc*couplingNum*polarNum*pt_lattice->getOrbNum()/2+nloc);
-    MAP rowMap;
-    // initialize rowInitList
-    for (int i = 0; i < spmNum; i++) pushRow(&rowMap,i);
-    dataType dval;
-    VecI initVec(pt_lattice->getOrbNum());
-    for (ind_int rowID = startRow; rowID < endRow; rowID++){
-        rowMap.clear();
-        ind_int initInd = pt_Basis->getRepI(rowID);
-        pt_Basis->indToVec(initInd, initVec);
-
-        for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
-            double val = (*linkit)->getVal();
-            for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
-                int siteID = (*bondit).at(0);
-                int siteIDp = (*bondit).at(1);
-                // sz.siteID * sz.siteIDp
-                szsz(siteID, siteIDp, val, initInd, initVec, &rowMap);
-                // 1/2 * sm.siteID * sp.siteIDp
-                spsm(siteID, siteIDp, val/2.0, initInd, initVec, &rowMap);
-                // 1/2 * sp.siteID * sm.siteIDp
-                smsp(siteID, siteIDp, val/2.0, initInd, initVec, &rowMap);
-            }
-        }
-        pushRow(&rowMap);
-
-        for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
-            rowMap.clear();
-            double val = (*linkit)->getVal();
-            for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
-                int siteID = (*bondit).at(0);
-                int siteIDp = (*bondit).at(1);
-                // sz.siteID * sz.siteIDp
-                szsz(siteID, siteIDp, val, initInd, initVec, &rowMap);
-                // 1/2 * sm.siteID * sp.siteIDp
-                spsm(siteID, siteIDp, val/2.0, initInd, initVec, &rowMap);
-                // 1/2 * sp.siteID * sm.siteIDp
-                smsp(siteID, siteIDp, val/2.0, initInd, initVec, &rowMap);
-            }
-            pushRow(&rowMap, (*linkit)->getmatid());
-        }
-    }
-}
 
 void Hubbard::row(ind_int rowID, MAP* rowMap, int matID){
 

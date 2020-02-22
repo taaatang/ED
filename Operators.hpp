@@ -359,7 +359,6 @@ public:
 
     void setVal(Link<double>& link, double val){link.setVal(val); parameters.at(link.getmatid()) = val;}
     void row(int matID, int kIndex, ind_int rowID, MAP *rowMap);
-    void genMatFull();
     void genMat();
     void genMatPara();
 };
