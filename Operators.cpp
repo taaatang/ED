@@ -442,7 +442,7 @@ void SzkOp::genMat(){
     clear();
     reserve(1);
     MAP rowMap;
-    pushRow(&rowMap)
+    pushRow(&rowMap);
     // factor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
     VecD factor(pt_lattice->getOrbNum());
     for (int i = 0; i < pt_lattice->getOrbNum(); i++) factor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
@@ -462,7 +462,7 @@ void SzkOp::genMat(){
                     dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
                     rowMap[colID] = dval;
                 }
-                pushRow(rowMap);
+                pushRow(&rowMap);
             }
             break;
         }
@@ -492,7 +492,7 @@ void SzkOp::genMat(){
 //     *****************
 // */
 // generate matrix in subsapce labeled by kIndex for sum.r:Sr*Sr+dr, dr is labeled by rIndex
-void SSOp::genPairMat(int kIndex, Geometry* pt_lattice, Basis* pt_Basis, int rIndex){
+void SSOp::genPairMat(int rIndex){
     VecI siteJList(pt_lattice->getOrbNum());
     VecD coordi(3), coordr(3), coordf(3);
     pt_lattice->getSiteR(rIndex, coordr.data());
