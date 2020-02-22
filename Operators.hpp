@@ -257,7 +257,7 @@ public:
     SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod=HEISENBERG, int dim = 2);
     ~SpinOperator(){};
     
-    double getSz(int siteI, VecI& initVeC) const {return szMat.at(initVec.at(siteI));}
+    double getSz(int siteI, VecI& initVec) const {return szMat.at(initVec.at(siteI));}
     void szsz(int siteI, int siteJ, dataType factor, ind_int initInd, VecI& initVec, MAP* rowMap){
         ind_int colID;
         if (pt_Basis->search(initInd,colID)){
