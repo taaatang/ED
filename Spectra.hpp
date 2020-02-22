@@ -24,21 +24,31 @@
 #include <mpi.h>
 
 template <class T>
-class Spectra: public: LANCZOSIterator<T>{
+class SPECTRASolver: public: LANCZOSIterator<T>{
 private:
     // pointer to Hamiltonian and Operator A
     BaseMatrix<T> *H, *A;
     // ground state energy
-    double w0;
+    cdouble w0;
     // initial state
     std::vector<T> vec;
 public:
-    Spectra(BaseMatrix<T> *H_, double w0_, BaseMatrix<T> *A_, T* vec_, ind_int vecSize_, int krylovdim_):H(H_),A(A_),w0(w0_),vec(vec_),\
+    SPECTRASolver(BaseMatrix<T> *H_, double w0_, BaseMatrix<T> *A_, T* vec_, ind_int vecSize_, int krylovdim_):H(H_),A(A_),w0(w0_),vec(vec_),\
         LANCZOSIterator<T>(H_,krylovdim_){
-        A->setBuf(vecSize);
-        vec.resize(H->)
+        A->setBuf(vecSize_);
+        vec.resize(H->get_nlocmax());
+        A->MxV(vec_,vec.data());
+        H->setBuf();
     }
-    void save();
+    ~SPECTRASolver(){}
+    void compute(){run(vec.data());}
+    void save(std::string dataPath){
+        std::ofstream outfile;
+        save<cdouble>(&w0, 1, &outfile, dataPath + "/w0");
+        save<cdouble>(&(LANCZOSIterator::vecNorm), 1, &outfile, dataPath + "/vecNorm");
+        save<double>(LANCZOSIterator::alpha.data(), (int)lanczos.alpha.size(), &outfile, dataPath + "/alpha");
+        save<double>(LANCZOSIterator::beta.data(), (int)lanczos.beta.size(), &outfile, dataPath + "/beta");
+    };
 };
 
 #endif
