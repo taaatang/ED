@@ -68,7 +68,7 @@ int main(int argc, const char * argv[]) {
     N = N1 * N2;
     SquareLattice Lattice(N1,N2);
     Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
-    Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb(ORBITAL::Pzd,4,{0.0,0.0,-0.5});
+    Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
     Lattice.construct();
     // if (workerID==MPI_MASTER) Lattice.print();
     int siteDim = 2;
@@ -158,7 +158,7 @@ int main(int argc, const char * argv[]) {
             std::string dataDir = dataDirP+std::to_string(J2_num);
             if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
             // set J2 parameter
-            H.setVal(J2Link,J2);
+            // H.setVal(J2Link,J2);
             MPI_Barrier(MPI_COMM_WORLD);
         /*
             *********************************
