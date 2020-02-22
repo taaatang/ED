@@ -42,8 +42,6 @@ public:
     void run(cdouble* vec);
     // reorthogonalize
     void runReOth(cdouble* vec);
-    void save(std::string filename);
-    
 };
 
 template <class T>
