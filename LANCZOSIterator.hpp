@@ -35,10 +35,10 @@ protected:
     cdouble *Q; 
 public:
     LANCZOSIterator(){};
-    LANCZOSIterator(BaseMatrix<dataType> *M, int krydim, LANCZOS_OPTION opt=LANCZOS_DEFAULT_OPTION);
+    LANCZOSIterator(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt=LANCZOS_DEFAULT_OPTION);
     ~LANCZOSIterator();
     
-    void init(BaseMatrix<dataType> *M, int krydim, LANCZOS_OPTION opt);
+    void init(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt);
     void run(cdouble* vec);
     // reorthogonalize
     void runReOth(cdouble* vec);
@@ -47,12 +47,12 @@ public:
 };
 
 template <class T>
-LANCZOSIterator<T>::LANCZOSIterator(BaseMatrix<dataType> *M, int krydim, LANCZOS_OPTION opt){
+LANCZOSIterator<T>::LANCZOSIterator(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt){
     init(M, krydim, opt);
 }
 
 template <class T>
-void LANCZOSIterator<T>::init(BaseMatrix<dataType> *M, int krydim, LANCZOS_OPTION opt){
+void LANCZOSIterator<T>::init(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt){
     M_ = M;
     option = opt;
     krylovDim = krydim;

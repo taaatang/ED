@@ -186,7 +186,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
                 #pragma omp parallel for
                 for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++){
                     for (ind_int j = rowInitList[0].at(i); j < rowInitList[0].at(i+1); j++){
-                        vecOut[i] += valList[0].at(j) * vecBuf[colList[matID].at(j)];
+                        vecOut[i] += valList[0].at(j) * vecBuf[colList[0].at(j)];
                     }
                 }
             }

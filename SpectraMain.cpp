@@ -135,12 +135,12 @@ for(int J2_num = 0; J2_num<1; J2_num++){
             val = 0.0;
             SS.genPairMat(i);
             SS.MxV(gstate, vecTmp.data());
-            vConjDotv<dataType, dataType>(gstate, vecTmp, &val, SS.get_nloc());
+            vConjDotv<dataType, dataType>(gstate, vecTmp.data(), &val, SS.get_nloc());
             ssvals.push_back(val/Lattice.getSiteNum());
             if (workerID==MPI_MASTER) std::cout<<"SS "<<i<<" finished:"<<val<<std::endl;
         }
         // save ss(i)
-        if (workerID==MPI_MASTER) save<cdouble>(ssvals.data(), Lattice.getSiteNum(), &outfile, dataDir + "/spinspin_" + std::to_string(deg_count));
+        if (workerID==MPI_MASTER) save<cdouble>(ssvals.data(), Lattice.getSiteNum(), &outfile, dataDir + "/spinspin");
         timer.tok();
         if (workerID==MPI_MASTER) std::cout<<"SS time:"<<timer.elapse()<<" milliseconds."<<std::endl;
     }
@@ -173,7 +173,7 @@ for(int J2_num = 0; J2_num<1; J2_num++){
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
-            SPECTRASolver<dataType> spectra(&Hp, (*w0)[0], &Szq, gstate, H.get_dim(), krylovDim);
+            SPECTRASolver<dataType> spectra(&Hp, w0[0], &Szq, gstate, H.get_dim(), krylovDim);
             spectra.compute();
             // save alpha, beta
             if (workerID==MPI_MASTER){
