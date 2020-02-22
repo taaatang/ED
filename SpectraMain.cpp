@@ -42,8 +42,8 @@ int main(int argc, const char * argv[]) {
     // int Nx = 6, Ny = 6;
     // int N = Nx * Ny;
     int N = 36;
-    dataType J1 = 1.0;
-    dataType J2 = 0.0, dJ2 = 0.01;
+    double J1 = 1.0;
+    double J2 = 0.0, dJ2 = 0.01;
     int kIndex = 0; // Gamma Point
     std::ifstream infile("input.txt");
     infile>>N>>kIndex;
@@ -52,6 +52,9 @@ int main(int argc, const char * argv[]) {
     Timer timer;
 
     bool BASIS_IS_SAVED = false;
+    // data directory
+    // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
+    std::string subDir = std::to_string(N);
     std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";
@@ -113,8 +116,8 @@ for(int J2_num = 0; J2_num<1; J2_num++){
     PARPACKComplexSolver<double> PDiag(&H, nev);
     PDiag.diag();
     // Ground State
-    cdouble w0 = PDiag.getEigval();
-    std::vector<cdouble>* gstate = PDiag.getEigvec();
+    cdouble* w0 = PDiag.getEigval();
+    dataType* gstate = PDiag.getEigvec();
     MPI_Barrier(MPI_COMM_WORLD);
 /*
     *************************************
@@ -123,7 +126,7 @@ for(int J2_num = 0; J2_num<1; J2_num++){
 */
     if (COMPUTE_SS){
         timer.tik();
-        SSOp SS = SSOneHalf(&Lattice,&B);
+        SSOp SS(&Lattice,&B);
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin SS ..."<<std::endl<<"********************"<<std::endl;
         std::vector<dataType> vecTmp(SS.get_nlocmax());
         cdouble val;
@@ -132,12 +135,12 @@ for(int J2_num = 0; J2_num<1; J2_num++){
             val = 0.0;
             SS.genPairMat(i);
             SS.MxV(gstate, vecTmp.data());
-            vConjDotv<dataType, dataType>(gstate, vecTmp, &val, SS->get_nloc());
+            vConjDotv<dataType, dataType>(gstate, vecTmp, &val, SS.get_nloc());
             ssvals.push_back(val/Lattice.getSiteNum());
             if (workerID==MPI_MASTER) std::cout<<"SS "<<i<<" finished:"<<val<<std::endl;
         }
         // save ss(i)
-        if (workerID==MPI_MASTER) save<cdouble>(ssvals.data(), Lattice.N, &outfile, dataDir + "/spinspin_" + std::to_string(deg_count));
+        if (workerID==MPI_MASTER) save<cdouble>(ssvals.data(), Lattice.getSiteNum(), &outfile, dataDir + "/spinspin_" + std::to_string(deg_count));
         timer.tok();
         if (workerID==MPI_MASTER) std::cout<<"SS time:"<<timer.elapse()<<" milliseconds."<<std::endl;
     }
@@ -152,14 +155,14 @@ for(int J2_num = 0; J2_num<1; J2_num++){
         int krylovDim = 250;
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Sqw ..."<<std::endl<<"********************"<<std::endl;
         for (int kIndexf = 0; kIndexf < Lattice.getSiteNum(); kIndexf++){
-            timer.tik()
+            timer.tik();
             if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndexf<<std::endl<<"********************"<<std::endl;
             std::string basisDirp = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Basis/"+std::to_string(kIndexf);
             std::string basisfilep = basisDirp + "/basis";
             std::string normfilep = basisDirp + "/norm";
             Basis Bp = Basis(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndexf);
-            if (BASIS_IS_SAVED) {Bp->gen(basisfilep, normfilep);
-            }else{Bp->gen();}
+            if (BASIS_IS_SAVED) {Bp.gen(basisfilep, normfilep);
+            }else{Bp.gen();}
             // <Bp|Szq|B>, q = k_B - k_Bp
             SzkOp Szq(&Lattice, &B, &Bp);
             Szq.genMat();
@@ -170,7 +173,7 @@ for(int J2_num = 0; J2_num<1; J2_num++){
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
-            SPECTRASolver spectra(&Hp, w0, &Szq, gstate, H.get_dim(), krylovDim);
+            SPECTRASolver<dataType> spectra(&Hp, (*w0)[0], &Szq, gstate, H.get_dim(), krylovDim);
             spectra.compute();
             // save alpha, beta
             if (workerID==MPI_MASTER){

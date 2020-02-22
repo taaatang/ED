@@ -182,11 +182,11 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
                 for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] += diagParameters[j]*diagValList[j][i]*vecIn[i];
             }
             // constant sparse matrix
-            if (!valist.at(0).empty()){
+            if (!valList.at(0).empty()){
                 #pragma omp parallel for
                 for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++){
                     for (ind_int j = rowInitList[0].at(i); j < rowInitList[0].at(i+1); j++){
-                        vecOut[i] += valList[matID].at(j) * vecBuf[colList[matID].at(j)];
+                        vecOut[i] += valList[0].at(j) * vecBuf[colList[matID].at(j)];
                     }
                 }
             }
