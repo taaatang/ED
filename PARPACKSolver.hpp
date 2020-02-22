@@ -50,6 +50,7 @@ public:
     ~PARPACKRealSolver();
     
     T* getEigval() const {return d_pt;}
+    T* getEigvec() const {return V_pt;}
     void setNev(a_int nev);
     void setNcv(a_int ncv);
     void setMaxIter(int iterNum);
@@ -90,6 +91,7 @@ public:
     ~PARPACKComplexSolver();
 
     std::complex<T>* getEigval() const {return d_pt;}
+    std::complex<T>* getEigvec() const {return V_pt;}
     void setNev(a_int nev);
     void setNcv(a_int ncv);
     void setMaxIter(int iterNum);
