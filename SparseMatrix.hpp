@@ -108,7 +108,7 @@ public:
     }
     void clear(){
         for (int matID = 0; matID < dmNum; matID++) diagValList[matID].clear();
-        for (int matID = 0; matID < spmNum; matID++){valList[matID].clear();colList[matID].clear();rowInitList[matID].clear();}
+        for (int matID = 0; matID < spmNum; matID++){counter[matID]=0;valList[matID].clear();colList[matID].clear();rowInitList[matID].clear();}
     }
     void pushRow(std::unordered_map<ind_int,T>* rowMap, int matID=0){
         counter.at(matID) += rowMap->size();

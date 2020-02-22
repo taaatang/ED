@@ -507,7 +507,6 @@ void SSOp::genPairMat(int rIndex){
             exit(1);
         }
     }
-
     clear();
     reserve(pt_lattice->getOrbNum()/2+1);
     MAP rowMap;

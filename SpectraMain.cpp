@@ -133,10 +133,12 @@ for(int J2_num = 0; J2_num<1; J2_num++){
         std::vector<cdouble> ssvals;
         for (int i = 0; i < Lattice.getSiteNum(); i++){
             val = 0.0;
+            std::cout<<"befor SS gen..."<<std::endl
             SS.genPairMat(i);
             SS.MxV(gstate, vecTmp.data());
             vConjDotv<dataType, dataType>(gstate, vecTmp.data(), &val, SS.get_nloc());
-            ssvals.push_back(val/Lattice.getSiteNum());
+            val /= Lattice.getSiteNum();
+            ssvals.push_back(val);
             if (workerID==MPI_MASTER) std::cout<<"SS "<<i<<" finished:"<<val<<std::endl;
         }
         // save ss(i)
