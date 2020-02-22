@@ -45,7 +45,7 @@ int main(int argc, const char * argv[]) {
     double J1 = 1.0;
     double J2 = 0.0, dJ2 = 0.01;
     int kIndex = 0; // Gamma Point
-    std::ifstream infile("input.txt");
+    std::ifstream infile("spectra_input.txt");
     infile>>N>>kIndex;
     infile.close(); 
 
