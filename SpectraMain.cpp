@@ -179,7 +179,7 @@ for(int J2_num = 0; J2_num<1; J2_num++){
             if (workerID==MPI_MASTER){
                 std::string dataPath = dataDir + "/k" + std::to_string(kIndex) + "_kp" + std::to_string(kIndexf);
                 system(("mkdir -p " + dataPath).c_str());
-                spectra.save(dataPath);
+                spectra.saveData(dataPath);
             } 
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"Sqw time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
