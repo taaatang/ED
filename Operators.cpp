@@ -493,6 +493,7 @@ void SzkOp::genMat(){
 // */
 // generate matrix in subsapce labeled by kIndex for sum.r:Sr*Sr+dr, dr is labeled by rIndex
 void SSOp::genPairMat(int rIndex){
+    int kIndex = pt_Basis->getkIndex();
     VecI siteJList(pt_lattice->getOrbNum());
     VecD coordi(3), coordr(3), coordf(3);
     pt_lattice->getSiteR(rIndex, coordr.data());
@@ -520,7 +521,7 @@ void SSOp::genPairMat(int rIndex){
         pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
         for (int i = 0; i < finalIndList.size(); i++){
             pt_Basis->indToVec(finalIndList[i], initVec);
-            cdouble factor = pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
+            cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
             for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
                 int siteJ = siteJList[siteI];
                 // sz.siteI * sz.siteJ
