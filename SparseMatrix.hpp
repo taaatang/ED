@@ -102,9 +102,9 @@ public:
     
     void reserveDiag(){for(int i = 0; i < dmNum; i++) diagValList.reserve(get_nloc());}
     void reserve(ind_int sizePerRow, int matID=0) {
-        valList.at(matID).reserve(sizePerRow * get_nloc()); 
-        colList.at(matID).reserve(sizePerRow * get_nloc());
-        rowInitList.at(matID).reserve(1+get_nloc());
+        valList.at(matID).reserve(sizePerRow * BaseMatrix<T>::nloc); 
+        colList.at(matID).reserve(sizePerRow * BaseMatrix<T>::nloc);
+        rowInitList.at(matID).reserve(1+BaseMatrix<T>::nloc);
     }
     void clear(){
         for (int matID = 0; matID < dmNum; matID++) diagValList[matID].clear();

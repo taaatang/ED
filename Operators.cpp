@@ -444,7 +444,7 @@ void SzkOp::genMat(){
     MAP rowMap;
     pushRow(&rowMap);
     // factor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
-    VecD factor(pt_lattice->getOrbNum());
+    std::vector<cdouble> factor(pt_lattice->getOrbNum());
     for (int i = 0; i < pt_lattice->getOrbNum(); i++) factor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
     cdouble dval;
     VecI initVec(pt_lattice->getOrbNum());
@@ -479,7 +479,7 @@ void SzkOp::genMat(){
                     dval *= pt_Bi->getNorm(rowID)/pt_Bf->getNorm(colID);
                     rowMap[colID] = dval;
                 }
-                pushRow(rowMap);
+                pushRow(&rowMap);
             }
             break;
         }
