@@ -68,7 +68,7 @@ int main(int argc, const char * argv[]) {
     N = N1 * N2;
     SquareLattice Lattice(N1,N2);
     Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
-    Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb(:ORBITAL::Pzd,4,{0.0,0.0,-0.5});
+    Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb(ORBITAL::Pzd,4,{0.0,0.0,-0.5});
     Lattice.construct();
     // if (workerID==MPI_MASTER) Lattice.print();
     int siteDim = 2;
@@ -123,11 +123,11 @@ int main(int argc, const char * argv[]) {
         Link<double> tpyd(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Dx2y2}, -tdp_val); tpyd.addLinkVec({0.0,0.5,0.0});
 
         Link<double> tpxpz(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Pzu}, tppz_val, false); tpxpz.addLinkVec({-0.5,0.0,0.5});
-        Link<double> tpxpzp(LINK_TYPE::HOPPING, {ORBITAL::Px, ORBITAL::Pzu}, -tppz_val, false); tpxpzp.addLinkVec({0.5,0.0,0.5});
+        Link<double> tpxpzp(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Pzu}, -tppz_val, false); tpxpzp.addLinkVec({0.5,0.0,0.5});
         Link<double> tpzpx(LINK_TYPE::HOPPING_T, {ORBITAL::Pzd, ORBITAL::Px}, -tppz_val, false); tpzpx.addLinkVec({0.5,0.0,0.5});
         Link<double> tpzpxp(LINK_TYPE::HOPPING_T, {ORBITAL::Pzd, ORBITAL::Px}, tppz_val, false); tpzpxp.addLinkVec({-0.5,0.0,0.5});
         Link<double> tpypz(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Pzu}, tppz_val, false); tpxpz.addLinkVec({0.0,-0.5,0.5});
-        Link<double> tpypzp(LINK_TYPE::HOPPING, {ORBITAL::Py, ORBITAL::Pzu}, -tppz_val, false); tpypzp.addLinkVec({0.0,0.5,0.5});
+        Link<double> tpypzp(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Pzu}, -tppz_val, false); tpypzp.addLinkVec({0.0,0.5,0.5});
         Link<double> tpzpy(LINK_TYPE::HOPPING_T, {ORBITAL::Pzd, ORBITAL::Py}, -tppz_val, false); tpzpx.addLinkVec({0.0,0.5,0.5});
         Link<double> tpzpyp(LINK_TYPE::HOPPING_T, {ORBITAL::Pzd, ORBITAL::Py}, tppz_val, false); tpzpxp.addLinkVec({0.0,-0.5,0.5});
 
