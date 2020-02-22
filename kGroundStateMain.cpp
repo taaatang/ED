@@ -99,11 +99,21 @@ int main(int argc, const char * argv[]) {
             * Hamiltonian Construction *
             ****************************
         */
+            /*
+                **************
+                * HEISENBERG *
+                **************
+            */
         Link<double> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0);
         Link<double> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, false);
         J1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
         J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
 
+            /*
+                ***********
+                * HUBBARD *
+                ***********
+            */
         double tdp_val=1.13, tpp_val=0.49, tppz_val=0.3, Vd=0.0, Vp=3.24, Vpz=3.0, Ud=8.5, Up=4.1;
         Link<double> tdpx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px}, -tdp_val); tdpx.addLinkVec({0.5,0.0,0.0});
         Link<double> tdpy(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Py}, tdp_val); tdpy.addLinkVec({0.0,0.5,0.0});
@@ -148,7 +158,7 @@ int main(int argc, const char * argv[]) {
             std::string dataDir = dataDirP+std::to_string(J2_num);
             if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
             // set J2 parameter
-            // H.setVal(J2Link,J2);
+            H.setVal(J2Link,J2);
             MPI_Barrier(MPI_COMM_WORLD);
         /*
             *********************************
