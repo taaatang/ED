@@ -679,7 +679,7 @@ template <class T>
 SSOp<T>::SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_, int spindim):r(-1),pt_lattice(pt_lat), siteJList(pt_lat->getSiteNum()),\
     SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_){
     VecD coordi(3), coordr(3), coordf(3);
-    for (int rIndex = 0; rIndex < pt_lat->getSiteNum()){
+    for (int rIndex = 0; rIndex < pt_lat->getSiteNum();rIndex++){
         siteJList.at(rIndex).resize(pt_lat->getSiteNum);
         pt_lattice->getSiteR(rIndex, coordr.data());
         for (int i = 0; i < pt_lattice->getOrbNum(); i++){
@@ -701,33 +701,31 @@ void SSOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     int kIndex = pt_Basis->getkIndex();
     VecI initVec(pt_lattice->getOrbNum());
     double initNorm, finalNorm;
-    for (ind_int rowID = startRow; rowID < endRow; rowID++){
-        initNorm = pt_Basis->getNorm(rowID);
-        std::vector<ind_int> finalIndList;
-        pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
-        for (int i = 0; i < finalIndList.size(); i++){
-            pt_Basis->indToVec(finalIndList[i], initVec);
-            cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
-            for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
-                if (r > 0){
-                    int siteJ = siteJList[r][siteI];
+    initNorm = pt_Basis->getNorm(rowID);
+    std::vector<ind_int> finalIndList;
+    pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
+    for (int i = 0; i < finalIndList.size(); i++){
+        pt_Basis->indToVec(finalIndList[i], initVec);
+        cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
+        for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
+            if (r > 0){
+                int siteJ = siteJList[r][siteI];
+                // sz.siteI * sz.siteJ
+                szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMaps[0]);
+                // 1/2 * sm.siteI * sp.siteJ
+                spsm(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
+                // 1/2 * sp.siteI * sm.siteJ
+                smsp(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
+            }
+            else{
+                for (int rIndex = 0; rIndex < pt_lattice->getSiteNum(); rIndex++){
+                    int siteJ = siteJList[rIndex][siteI];
                     // sz.siteI * sz.siteJ
                     szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMaps[0]);
                     // 1/2 * sm.siteI * sp.siteJ
                     spsm(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
                     // 1/2 * sp.siteI * sm.siteJ
                     smsp(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
-                }
-                else{
-                    for (int rIndex = 0; rIndex < pt_lattice->getSiteNum(); rIndex++){
-                        int siteJ = siteJList[rIndex][siteI];
-                        // sz.siteI * sz.siteJ
-                        szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMaps[0]);
-                        // 1/2 * sm.siteI * sp.siteJ
-                        spsm(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
-                        // 1/2 * sp.siteI * sm.siteJ
-                        smsp(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
-                    }
                 }
             }
         }
@@ -771,16 +769,15 @@ void SSOp<T>::genPairMat(int rIndex){
 template <class T>
 void SzkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     ind_int colID;
-    for (ind_int rowID = startRow; rowID < endRow; rowID++){
-        if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
-            dval = 0.0;
-            pt_Bi->indToVec(pt_Bi->getRepI(colID), initVec);
-            for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
-                dval += getSz(siteID,initVec) * expFactor[siteID];
-            }
-            dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
-            rowMaps[0][colID] = dval;
+    if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
+        VecI initVec(pt_lattice->getOrbNum());
+        cdouble dval = 0.0;
+        pt_Bi->indToVec(pt_Bi->getRepI(colID), initVec);
+        for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
+            dval += getSz(siteID,initVec) * expFactor[siteID];
         }
+        dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
+        rowMaps[0][colID] = dval;
     }
 }
 template <class T>
