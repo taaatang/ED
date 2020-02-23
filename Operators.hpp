@@ -736,8 +736,8 @@ template <class T>
 void SSOp<T>::project(double s, std::vector<T>& vec){
     assert(r==-1);
     std::vector<T> tmp(vec.size());
-    double smin = double(pt_lattice.getOrbNum()%2)/2.0;
-    double smax = double(pt_lattice.getOrbNum())/2.0+0.1:
+    double smin = double(pt_lattice->getOrbNum()%2)/2.0;
+    double smax = double(pt_lattice->getOrbNum())/2.0+0.1;
     for(double si = smin; si<smax; si += 1.0){
         if (std::abs(si-s)>INFINITESIMAL){
             MxV(vec, tmp.data());
