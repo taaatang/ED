@@ -145,7 +145,7 @@ public:
     void clearBuf(){vecBuf.clear(); is_vecBuf=false;}
     void MxV(T *vecIn, T *vecOut);
     // create one row. store sparse matrixes data in corresponding rowMaps. 
-    virtual void row(int rowID, std::vector<MAP>& rowMaps) = 0;
+    virtual void row(ind_int rowID, std::vector<MAP>& rowMaps) = 0;
     // construct sparse matrix in parallel. each thread create #rowPerThread.
     void genMatPara(int rowPerThread=1);
 };
@@ -301,7 +301,7 @@ void SparseMatrix<T>::genMatPara(int rowPerThread){
             #pragma omp master
             {
                 for (int i = 0; i < threadNum; i++){
-                    for (int ii = 0; ii < spmNum) startList[i][ii] = counter[ii];
+                    for (int ii = 0; ii < spmNum; ii++) startList[i][ii] = counter[ii];
                     for (int j = 0; j < rowPerThread; j++){
                         for(int jj = 0; jj < spmNum; jj++){
                             counter[jj] += rowMapList[i*rowPerThread+j][jj].size();

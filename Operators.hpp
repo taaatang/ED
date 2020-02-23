@@ -351,8 +351,8 @@ public:
     ~Heisenberg(){};
 
     Heisenberg& pushLink(Link<double>& link){
-        if(link.isConst()) {Links.push_back(&link); link.setid(linkCount,0); linkCount++; parameters.at(0) = 1.0; }
-        else {NCLinks.push_back(&link); spmCount++; link.setid(linkCount,spmCount); linkCount++; parameters.at(spmCount) = 1.0;}
+        if(link.isConst()) {Links.push_back(&link); link.setid(linkCount,0); linkCount++; SparseMatrix<T>::parameters.at(0) = 1.0; }
+        else {NCLinks.push_back(&link); spmCount++; link.setid(linkCount,spmCount); linkCount++; SparseMatrix<T>::parameters.at(spmCount) = 1.0;}
         link.genLinkMaps(pt_lattice); 
         return *this;
     }
