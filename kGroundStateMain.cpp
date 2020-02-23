@@ -180,12 +180,16 @@ int main(int argc, const char * argv[]) {
             *********************************
     */
             PARPACKComplexSolver<double> PDiag(&H, nev);
-            std::vector<cdouble> initVec(H.get_nloc());
-            randInit<cdouble>(initVec);
-            SS.project(spin,initVec.data());
-            PDiag.setStartVec(initVec.data());
-            MPI_Barrier(MPI_COMM_WORLD);
-            PDiag.diag(spin, &SS);
+
+            // project into total spin subspace
+            // std::vector<cdouble> initVec(H.get_nloc());
+            // randInit<cdouble>(initVec);
+            // SS.project(spin,initVec.data());
+            // PDiag.setStartVec(initVec.data());
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // PDiag.diag(spin, &SS);
+            PDiag.diag();
+            
             std::vector<cdouble> stot;
             for (int i = 0; i < nev; i++){
                 stot[i] = SS.vMv(PDiag.getEigvec(i),PDiag.getEigvec(i));
