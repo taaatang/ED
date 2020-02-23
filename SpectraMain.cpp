@@ -134,7 +134,7 @@ for(int J2_num = 0; J2_num<1; J2_num++){
         for (int i = 0; i < Lattice.getSiteNum(); i++){
             val = 0.0;
             SS.setr(i);
-            SS.genMatPara(i);
+            SS.genMatPara();
             SS.MxV(gstate, vecTmp.data());
             vConjDotv<dataType, dataType>(gstate, vecTmp.data(), &val, SS.get_nloc());
             val /= Lattice.getSiteNum();

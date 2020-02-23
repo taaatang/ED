@@ -708,7 +708,7 @@ void SSOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         pt_Basis->indToVec(finalIndList[i], initVec);
         cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
         for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
-            if (r > 0){
+            if (r >= 0){
                 int siteJ = siteJList[r][siteI];
                 // sz.siteI * sz.siteJ
                 szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMaps[0]);
