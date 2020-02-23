@@ -32,22 +32,25 @@ int main(int argc, const char * argv[]) {
 */
     MPI_Init(NULL, NULL);
     Timer timer;
-    a_int nev = 5;
-    int N = 21;
+    a_int nev;
+    int N1, N2, N;
     int kIndex = -1; // Gamma Point
     double spin = 0.5;
     int rowPerThread = 1;
     bool BASIS_IS_SAVED = false;
     int kStart, kEnd, J2Start, J2End, J2Step;
     std::ifstream infile("ground_input.txt");
-    infile>>spin>>N>>kStart>>kEnd>>J2Start>>J2End>>J2Step;
+    infile>>N1>>N2>>nev;
+    N = N1 * N2;
+    int kStart = 0, kEnd = N;
+    int J2Start = 0, J2End = 101, J2Step = 1;
     infile.close();
     double J1 = 1.0;
     double J2 = 0.0, dJ2 = 0.01;
     // data directory
-    // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
-    std::string subDir = std::to_string(N);
-    std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/J2_";
+    std::string subDir = std::to_string(N1) + "by" + std::to_string(N2);
+    // std::string subDir = std::to_string(N);
+    std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
 /*
     ********************
     * MPI and OMP Info *
@@ -64,7 +67,7 @@ int main(int argc, const char * argv[]) {
     ************************************
 */
     // geometry class
-    TriAngLattice Lattice(N);
+    TriAngLattice Lattice(N1,N2);
     Lattice.addOrb({});
     // int N1 = 2, N2 = 2;
     // N = N1 * N2;
@@ -149,14 +152,14 @@ int main(int argc, const char * argv[]) {
         // H.genMatPara(rowPerThread);
         // timer.tok();
 
-        std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
+        if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
             <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
 
         timer.tik();
         SSOp<dataType> SS(&Lattice,&B);
         SS.genMatPara();
         timer.tok();
-        std::cout<<"WorkerID:"<<workerID<<". Local SS dimension:"<<SS.get_nloc()<<"/"<<SS.get_dim()<<", Local Hamiltonian non-zero elements count:"<<SS.nzCount()\
+        if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local SS dimension:"<<SS.get_nloc()<<"/"<<SS.get_dim()<<", Local Hamiltonian non-zero elements count:"<<SS.nzCount()\
             <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
 
 
@@ -166,7 +169,7 @@ int main(int argc, const char * argv[]) {
             J2 = dJ2 * J2_num;
             std::ofstream outfile;
             // data directory
-            std::string dataDir = dataDirP+std::to_string(J2_num);
+            std::string dataDir = dataDirP+"/eigs/J2_"+std::to_string(J2_num);
             if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
             // set J2 parameter
             H.setVal(J2Link,J2);
@@ -176,8 +179,6 @@ int main(int argc, const char * argv[]) {
             * Diagonalization Using PARPACK *
             *********************************
     */
-            if (workerID==MPI_MASTER) std::cout<<"Initialize PARPACK..."<<std::endl;
-    //         PARPACKRealSolver<dataType> PDiag(&H, nev);
             PARPACKComplexSolver<double> PDiag(&H, nev);
             std::vector<cdouble> initVec(H.get_nloc());
             randInit<cdouble>(initVec);
@@ -185,14 +186,15 @@ int main(int argc, const char * argv[]) {
             PDiag.setStartVec(initVec.data());
             MPI_Barrier(MPI_COMM_WORLD);
             PDiag.diag(spin, &SS);
-            // save eigen values
-            // if (workerID==MPI_MASTER){
-            //     save<dataType>(PDiag.getEigval(), nev, &outfile, dataDir + "/eigval_k" + std::to_string(kIndex));
-            // }
-            cdouble stot;
+            std::vector<cdouble> stot;
             for (int i = 0; i < nev; i++){
-                stot = SS.vMv(PDiag.getEigvec(i),PDiag.getEigvec(i));
+                stot[i] = SS.vMv(PDiag.getEigvec(i),PDiag.getEigvec(i));
                 if(workerID==MPI_MASTER)std::cout<<i<<"th eigen state total spin s(s+1) = "<<stot<<std::endl;
+            }
+            // save eigen values
+            if (workerID==MPI_MASTER){
+                save<dataType>(PDiag.getEigval(), nev, &outfile, dataDir + "/eigval_k" + std::to_string(kIndex));
+                save<cdouble>(stot.data(), nev, &outfile, dataDir + "/eigval_spin_k" + std::to_string(kIndex));
             }
             MPI_Barrier(MPI_COMM_WORLD);
         }
