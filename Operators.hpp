@@ -680,7 +680,7 @@ SSOp<T>::SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_, int spindim):r(-1),pt
     SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_){
     VecD coordi(3), coordr(3), coordf(3);
     for (int rIndex = 0; rIndex < pt_lat->getSiteNum();rIndex++){
-        siteJList.at(rIndex).resize(pt_lat->getSiteNum);
+        siteJList.at(rIndex).resize(pt_lat->getSiteNum());
         pt_lattice->getSiteR(rIndex, coordr.data());
         for (int i = 0; i < pt_lattice->getOrbNum(); i++){
             pt_lattice->getOrbR(i,coordi.data());
