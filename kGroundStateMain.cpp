@@ -192,7 +192,7 @@ int main(int argc, const char * argv[]) {
             std::vector<cdouble> stot;
             for (int i = 0; i < nev; i++){
                 stot[i] = SS.vMv(PDiag.getEigvec(i),PDiag.getEigvec(i));
-                if(workerID==MPI_MASTER)std::cout<<i<<"th eigen state total spin s(s+1) = "<<stot<<std::endl;
+                if(workerID==MPI_MASTER)std::cout<<i<<"th eigen state total spin s(s+1) = "<<stot[i]<<std::endl;
             }
             // save eigen values
             if (workerID==MPI_MASTER){
