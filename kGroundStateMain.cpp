@@ -35,11 +35,12 @@ int main(int argc, const char * argv[]) {
     a_int nev = 5;
     int N = 21;
     int kIndex = -1; // Gamma Point
+    double spin = 0.5;
     int rowPerThread = 1;
     bool BASIS_IS_SAVED = false;
     int kStart, kEnd, J2Start, J2End, J2Step;
     std::ifstream infile("ground_input.txt");
-    infile>>rowPerThread>>N>>kStart>>kEnd>>J2Start>>J2End>>J2Step;
+    infile>>spin>>N>>kStart>>kEnd>>J2Start>>J2End>>J2Step;
     infile.close();
     double J1 = 1.0;
     double J2 = 0.0, dJ2 = 0.01;
@@ -180,6 +181,7 @@ int main(int argc, const char * argv[]) {
             PARPACKComplexSolver<double> PDiag(&H, nev);
             std::vector<cdouble> initVec(H.get_nloc());
             randInit<cdouble>(initVec);
+            SS.project(spin,initVec);
             PDiag.setStartVec(initVec.data());
             MPI_Barrier(MPI_COMM_WORLD);
             PDiag.diag();

@@ -432,6 +432,7 @@ public:
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
     // S(i)*S(i+r)
     void genPairMat(int rIndex);
+    void project(double s, std::vector<T>& vec);
 };
 
 /*
@@ -731,7 +732,21 @@ void SSOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         }
     }
 }
-
+template <class T>
+void SSOp<T>::project(double s, std::vector<T>& vec){
+    assert(r==-1);
+    std::vector<T> tmp(vec.size());
+    double smin = double(pt_lattice.getOrbNum()%2)/2.0;
+    double smax = double(pt_lattice.getOrbNum())/2.0+0.1:
+    for(double si = smin; si<smax; si += 1.0){
+        if (std::abs(si-s)>INFINITESIMAL){
+            MxV(vec, tmp.data());
+            double stot = si * (si+1);
+            #pragma omp parallel for
+            for(ind_int i =0; i < vec.size();i++) vec[i] = tmp[i]-stot*vec[i];
+        }
+    }
+}
 // generate matrix in subsapce labeled by kIndex for sum.r:Sr*Sr+dr, dr is labeled by rIndex
 template <class T>
 void SSOp<T>::genPairMat(int rIndex){
@@ -825,4 +840,5 @@ void SzkOp<T>::genMat(){
         }
     }
 }
+
 #endif

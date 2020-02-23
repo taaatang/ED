@@ -17,6 +17,7 @@
 #include <iostream>
 #include <fstream>
 #include <list>
+#include <cmath>
 #include <complex>
 #include <mpi.h>
 #ifdef OMP_
