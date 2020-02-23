@@ -131,11 +131,6 @@ void Heisenberg<T>::genMat(){
     }
 }
 
-
-void Hubbard::row(ind_int rowID, MAP* rowMap, int matID){
-
-}
-
 void Hubbard::genMat(){
     int kIndex = pt_Basis->getkIndex();
     clear();
