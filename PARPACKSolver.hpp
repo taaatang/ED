@@ -98,9 +98,11 @@ public:
     void setRvec(a_int rvec);
 
     void run();
+    void run(double spin,SSOp<T>* SS)
     void run(std::complex<T>* states, int statesNum, double penalty=1000.0);
     void postRun();
     void diag();
+    void diag(double spin,SSOp<T>* SS);
 };
 
 /*
@@ -164,13 +166,29 @@ PARPACKRealSolver<T>::~PARPACKRealSolver(){
 }
 
 template <class T>
+void PARPACKRealSolver<T>::run(double spin,SSOp<T>* SS){
+    while (ido_ != 99) {
+        arpack::saupd(MCW, ido_, arpack::bmat::identity, nloc_,
+                    arpack::which::smallest_algebraic, nev_, tol_, resid_pt, ncv_,
+                    V_pt, ldv_, iparam_.data(), ipntr_.data(), workd_pt,
+                    workl_pt, lworkl_, info_);
+        SS->project(spin, &(workd_pt[ipntr_[0] - 1]));
+        M_->MxV(&(workd_pt[ipntr_[0] - 1]), &(workd_pt[ipntr_[1] - 1]));
+    }
+    // check number of ev found by arpack
+    if (iparam_[4] < nev_ /*arpack may succeed to compute more EV than expected*/ || info_ != 0) {
+        std::cout << "ERROR: iparam[4] " << iparam_[4] << ", nev " << nev_ << ", info " << info_ <<",iterations taken:"<<iparam_[2]<< std::endl;
+        exit(1);
+    }
+}
+
+template <class T>
 void PARPACKRealSolver<T>::run(){
     while (ido_ != 99) {
         arpack::saupd(MCW, ido_, arpack::bmat::identity, nloc_,
                     arpack::which::smallest_algebraic, nev_, tol_, resid_pt, ncv_,
                     V_pt, ldv_, iparam_.data(), ipntr_.data(), workd_pt,
                     workl_pt, lworkl_, info_);
-
         M_->MxV(&(workd_pt[ipntr_[0] - 1]), &(workd_pt[ipntr_[1] - 1]));
     }
     // check number of ev found by arpack
@@ -388,6 +406,28 @@ void PARPACKComplexSolver<T>::diag(){
     if (workerID==MPI_MASTER) std::cout<<"Begin PARPACK Iteration and timer started..."<<std::endl;
     timer.tik();
     run();
+    timer.tok();
+    if (workerID==MPI_MASTER) std::cout<<"INFO:"<<info_<<". Total iteration:"<<iparam_[2]<<". Total time:"<<timer.elapse()<<" milliseconds"<<std::endl;
+
+    if (workerID==MPI_MASTER) std::cout<<"Begin post processing..."<<std::endl;
+    timer.tik();
+    postRun();
+    timer.tok();
+    if (workerID==MPI_MASTER) std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" milliseconds"<<std::endl;
+    if (workerID==MPI_MASTER) {
+        std::cout<<"Eigenvalues: ";
+        for (int i = 0; i < nev_; i++) std::cout<<d_pt[i]<<", ";
+        std::cout<<std::endl;
+    }
+}
+
+template <class T>
+void PARPACKComplexSolver<T>::diag(double spin, SSOp<T>* SS){
+    Timer timer;
+    int workerID = M_->get_workerID();
+    if (workerID==MPI_MASTER) std::cout<<"Begin PARPACK Iteration and timer started..."<<std::endl;
+    timer.tik();
+    run(spin, SS);
     timer.tok();
     if (workerID==MPI_MASTER) std::cout<<"INFO:"<<info_<<". Total iteration:"<<iparam_[2]<<". Total time:"<<timer.elapse()<<" milliseconds"<<std::endl;
 

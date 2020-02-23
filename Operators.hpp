@@ -739,9 +739,9 @@ void SSOp<T>::project(double s, std::vector<T>& vec){
     double smin = double(pt_lattice->getOrbNum()%2)/2.0;
     double smax = double(pt_lattice->getOrbNum())/2.0+0.1;
     for(double si = smin; si<smax; si += 1.0){
-        if (std::abs(si-s)>INFINITESIMAL){
+        if (std::abs(si-s)>0.1){
             MxV(vec.data(), tmp.data());
-            double stot = si * (si+1);
+            double stot = si * (si+1.0);
             #pragma omp parallel for
             for(ind_int i =0; i < vec.size();i++) vec[i] = tmp[i]-stot*vec[i];
         }

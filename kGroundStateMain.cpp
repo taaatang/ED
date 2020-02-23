@@ -184,7 +184,7 @@ int main(int argc, const char * argv[]) {
             SS.project(spin,initVec);
             PDiag.setStartVec(initVec.data());
             MPI_Barrier(MPI_COMM_WORLD);
-            PDiag.diag();
+            PDiag.diag(spin, &SS);
             // save eigen values
             // if (workerID==MPI_MASTER){
             //     save<dataType>(PDiag.getEigval(), nev, &outfile, dataDir + "/eigval_k" + std::to_string(kIndex));
