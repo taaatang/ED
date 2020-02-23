@@ -12,6 +12,7 @@
 #include "globalPara.hpp"
 #include "HelperClass.hpp"
 #include "SparseMatrix.hpp"
+#include "Operators.hpp"
 #include "parpack.hpp"
 #include "utils.hpp"
 
