@@ -35,10 +35,11 @@ int main(int argc, const char * argv[]) {
     a_int nev = 4;
     int N = 21;
     int kIndex = -1; // Gamma Point
+    int rowPerThread = 1;
     bool BASIS_IS_SAVED = false;
     int kStart, kEnd, J2Start, J2End, J2Step;
     std::ifstream infile("ground_input.txt");
-    infile>>N>>kStart>>kEnd>>J2Start>>J2End>>J2Step;
+    infile>>rowPerThread>>N>>kStart>>kEnd>>J2Start>>J2End>>J2Step;
     infile.close();
     double J1 = 1.0;
     double J2 = 0.0, dJ2 = 0.01;
@@ -143,7 +144,7 @@ int main(int argc, const char * argv[]) {
         // H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py},Up);
         // H.printV();H.printU();
         // H.genMat();
-        H.genMatPara(1);
+        H.genMatPara(rowPerThread);
         timer.tok();
 
         std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
