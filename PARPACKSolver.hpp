@@ -69,7 +69,6 @@ public:
 // T is float or double
 template <class T>
 class PARPACKComplexSolver{
-public:
     MPI_Fint MCW;
 //        SparseMatrix<std::complex<T>> *M_; // pointer to the SparseMatrix object
     BaseMatrix<std::complex<T>> *M_;
@@ -85,13 +84,14 @@ public:
     std::complex<T> *rwork_pt, *workev_pt;
     a_int *select_pt;
 
-
+public:
     PARPACKComplexSolver(){};
     PARPACKComplexSolver(BaseMatrix<std::complex<T>> *M, a_int nev);
     ~PARPACKComplexSolver();
 
     std::complex<T>* getEigval() const {return d_pt;}
     std::complex<T>* getEigvec(int ithVec=0) const {return V_pt+nloc_*ithVec;}
+    void setStartVec(T* vec);
     void setNev(a_int nev);
     void setNcv(a_int ncv);
     void setMaxIter(int iterNum);
@@ -285,6 +285,15 @@ PARPACKComplexSolver<T>::PARPACKComplexSolver(BaseMatrix<std::complex<T>> *H, a_
 //     iparam_[4] = ncv_;
     iparam_[6] = 1; // Mode 1: A*x=lambda*x
     
+}
+
+template <class T>
+void PARPACKComplexSolver<T>::setStartVec(T* vec){
+    info_ = 1;
+    #pragma omp parallel for
+    for (ind_int i = 0; i < nloc_; i++){
+        resid_pt[i] = vec[i];
+    }
 }
 
 template <class T>

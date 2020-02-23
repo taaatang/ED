@@ -13,6 +13,7 @@
 #include "globalPara.hpp"
 
 #include <stdio.h>
+#include <random>
 #include <iostream>
 #include <fstream>
 #include <list>
@@ -112,7 +113,13 @@ inline int seqSign(std::vector<int>& seq){
     * Algebra *
     ***********
 */
-
+template <class T>
+inline void randInit(std::vector<T>& vec, int range=100){
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> dist(0,range);
+    for (auto it = vec.begin(); it!=vec.end();it++) *it = T(dist6(rng))/ranget;
+}
 inline void vecXAdd(int mul1, const int* input1, int mul2, const int* input2, int* output, int size){
     for (int i = 0; i < size; i++){
         output[i] = mul1 * input1[i] + mul2 * input2[i];

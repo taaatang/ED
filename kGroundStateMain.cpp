@@ -178,6 +178,9 @@ int main(int argc, const char * argv[]) {
             if (workerID==MPI_MASTER) std::cout<<"Initialize PARPACK..."<<std::endl;
     //         PARPACKRealSolver<dataType> PDiag(&H, nev);
             PARPACKComplexSolver<double> PDiag(&H, nev);
+            std::vector<cdouble> initVec(H.get_nloc());
+            randInit<cdouble>(initVec);
+            PDiag.setStartVec(initVec.data());
             MPI_Barrier(MPI_COMM_WORLD);
             PDiag.diag();
             // save eigen values
