@@ -99,11 +99,11 @@ public:
     void setRvec(a_int rvec);
 
     void run();
-    void run(double spin,SSOp<std::complex<T>>* SS);
+    void runProj(double spin,SSOp<std::complex<T>>* SS);
     void run(std::complex<T>* states, int statesNum, double penalty=1000.0);
     void postRun();
     void diag();
-    void diag(double spin,SSOp<std::complex<T>>* SS);
+    void diagProj(double spin,SSOp<std::complex<T>>* SS);
 };
 
 /*
@@ -328,7 +328,7 @@ void PARPACKComplexSolver<T>::run(){
   }
 }
 template <class T>
-void PARPACKComplexSolver<T>::run(double spin,SSOp<std::complex<T>>* SS){
+void PARPACKComplexSolver<T>::runProj(double spin,SSOp<std::complex<T>>* SS){
     while (ido_ != 99) {
         arpack::saupd(MCW, ido_, arpack::bmat::identity, nloc_,
                     arpack::which::smallest_algebraic, nev_, tol_, resid_pt, ncv_,
@@ -422,12 +422,12 @@ void PARPACKComplexSolver<T>::diag(){
 }
 
 template <class T>
-void PARPACKComplexSolver<T>::diag(double spin, SSOp<std::complex<T>>* SS){
+void PARPACKComplexSolver<T>::diagProj(double spin, SSOp<std::complex<T>>* SS){
     Timer timer;
     int workerID = M_->get_workerID();
     if (workerID==MPI_MASTER) std::cout<<"Begin PARPACK Iteration and timer started..."<<std::endl;
     timer.tik();
-    run(spin, SS);
+    runProj(spin, SS);
     timer.tok();
     if (workerID==MPI_MASTER) std::cout<<"INFO:"<<info_<<". Total iteration:"<<iparam_[2]<<". Total time:"<<timer.elapse()<<" milliseconds"<<std::endl;
 
