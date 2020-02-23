@@ -335,8 +335,8 @@ public:
     };
 };
 
-
-class Heisenberg: public SpinOperator, public SparseMatrix<dataType>{
+template <class T>
+class Heisenberg: public SpinOperator, public SparseMatrix<T>{
 private:
     // constant links
     int linkCount;
@@ -347,7 +347,7 @@ private:
     Geometry *pt_lattice;
 public:
     Heisenberg(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):\
-        SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+        SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Heisenberg(){};
 
     Heisenberg& pushLink(Link<double>& link){

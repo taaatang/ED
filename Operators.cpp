@@ -29,6 +29,7 @@ SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod, int dim):pt_Basis(pt
     * Hamiltonian Class *
     *********************
 */
+template <class T>
 void Heisenberg::row(ind_int rowID, std::vector<MAP>& rowMaps){
     int kIndex = pt_Basis->getkIndex();
     VecI initVec(pt_lattice->getOrbNum());
@@ -74,6 +75,7 @@ void Heisenberg::row(ind_int rowID, std::vector<MAP>& rowMaps){
     }
 }
 // generate Hamiltonian in the subspacd labeled by kIndex
+template <class T>
 void Heisenberg::genMat(){
     int kIndex = pt_Basis->getkIndex();
     clear();

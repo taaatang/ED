@@ -284,16 +284,16 @@ void SparseMatrix<T>::genMatPara(int rowPerThread){
     std::vector<std::vector<ind_int>> startList(threadNum);
     for (auto vec : startList) vec.resize(spmNum);
     // initialize containers
-    for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(get_nloc());
+    for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(BaseMatrix<T>::nloc);
     for(int i = 0; i < spmNum; i++) rowInitList.at(i).push_back(counter.at(i));
-    for (ind_int rowID = startRow; rowID < endRow; rowID+=rowPerIt){
+    for (ind_int rowID = BaseMatrix<T>::startRow; rowID < BaseMatrix<T>::endRow; rowID+=rowPerIt){
         #pragma omp parallel shared(rowMapList, startList, counter)
         {   
             assert(omp_get_num_threads()==threadNum);
             int threadID = omp_get_thread_num();
-            int thStart = threadID * rowPerThread
+            int thStart = threadID * rowPerThread;
             ind_int thRowStart = rowID + thStart;
-            ind_int thRowEnd = (thRowStart+rowPerThread) < endRow ? (thRowStart+rowPerThread):endRow;
+            ind_int thRowEnd = (thRowStart+rowPerThread) < BaseMatrix<T>::endRow ? (thRowStart+rowPerThread):BaseMatrix<T>::endRow;
             // clear map before construction
             for (int i = thStart; i < thStart+rowPerThread; i++) for(int j=0;j<spmNum;j++){rowMapList[i][j].clear();}
             for(ind_int thRowID = thRowStart; thRowID<thRowEnd; thRowID++) row(thRowID, rowMapList.at(thRowID - rowID));
