@@ -432,7 +432,7 @@ public:
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
     // S(i)*S(i+r)
     void genPairMat(int rIndex);
-    void project(double s, std::vector<T>& vec);
+    void project(double s, T* vec);
 };
 
 /*
