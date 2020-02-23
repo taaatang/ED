@@ -9,6 +9,7 @@
 #include "Geometry.hpp"
 #include "Basis.hpp"
 #include "utils.hpp"
+#include "HelperClass.hpp"
 
 #include <iostream>
 #include <iomanip> // std::setprecision
@@ -42,24 +43,7 @@ int main(int argc, const char * argv[]) {
     int Nx = 4, Ny = 4;
     int N = Nx * Ny;
     int kIndex = 0;
-    switch (argc){
-        case 2:
-            kIndex = atoi(argv[1]);
-            assert(workerNum==1);
-            break;
-        case 3:
-            Nx = atoi(argv[1]);
-            Ny = atoi(argv[2]);
-            N = Nx * Ny;
-            break;
-        case 4:
-            Nx = atoi(argv[1]);
-            Ny = atoi(argv[2]);
-            N = Nx * Ny;
-            kIndex = atoi(argv[3]);
-            assert(workerNum==1);
-            break;
-    }
+    Timer timer;
     
     if (workerNum > 1){
         kIndex = workerID;
@@ -80,15 +64,13 @@ int main(int argc, const char * argv[]) {
         // geometry class
         TriAngLattice Lattice(Nx,Ny);
         int siteDim = 2;
-        int dimList[] = {N/2, N/2};
+        VecI occList{N/2, N/2};
     
-        auto tic = std::chrono::system_clock::now();
-        Basis B(MODEL, siteDim, dimList, &Lattice);
-        B.gen(kIndex);
-        auto toc = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = toc - tic;
-    
-        std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.kIndex<<", size="<<B.subDim<<"/"<<B.totDim<<". Basis construction time:"<<elapsed_seconds.count()*1000<<" milliseconds."<<std::endl;
+        timer.tik();
+        Basis B(MODEL, &Lattice, occList, kIndex);
+        B.gen();
+        timer.tok();
+        std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
         B.saveBasis(basisfile, normfile);
         // check
         // std::cout<<"WorkerID"<<workerID<<", begin reading basis..."<<std::endl;
