@@ -279,11 +279,11 @@ void SparseMatrix<T>::genMatPara(int rowPerThread){
     int rowPerIt = rowPerThread * threadNum;
     // for each iteration, each thread construct spmNum*rowPerThread rowMap
     std::vector<std::vector<MAP>> rowMapList(rowPerIt);
-    for (auto mapvec : rowMapList) mapvec.resize(spmNum);
+    for (int i = 0; i < rowPerIt; i++) {rowMapList[i].resize(spmNum);}
 
     // the starting index for each thread to copy data from rowMap to colList and valList
     std::vector<std::vector<ind_int>> startList(threadNum);
-    for (auto vec : startList) vec.resize(spmNum);
+    for (int i = 0; i < threadNum; i++) startList[i].resize(spmNum);
     // initialize containers
     for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(BaseMatrix<T>::nloc);
     for(int i = 0; i < spmNum; i++) rowInitList.at(i).push_back(counter.at(i));
