@@ -98,7 +98,7 @@ public:
     void setRvec(a_int rvec);
 
     void run();
-    void run(double spin,SSOp<T>* SS)
+    void run(double spin,SSOp<complex<T>>* SS)
     void run(std::complex<T>* states, int statesNum, double penalty=1000.0);
     void postRun();
     void diag();
@@ -163,23 +163,6 @@ PARPACKRealSolver<T>::~PARPACKRealSolver(){
     delete [] z_pt;
     delete [] resid_pt;
     delete [] select_pt;
-}
-
-template <class T>
-void PARPACKRealSolver<T>::run(double spin,SSOp<T>* SS){
-    while (ido_ != 99) {
-        arpack::saupd(MCW, ido_, arpack::bmat::identity, nloc_,
-                    arpack::which::smallest_algebraic, nev_, tol_, resid_pt, ncv_,
-                    V_pt, ldv_, iparam_.data(), ipntr_.data(), workd_pt,
-                    workl_pt, lworkl_, info_);
-        SS->project(spin, &(workd_pt[ipntr_[0] - 1]));
-        M_->MxV(&(workd_pt[ipntr_[0] - 1]), &(workd_pt[ipntr_[1] - 1]));
-    }
-    // check number of ev found by arpack
-    if (iparam_[4] < nev_ /*arpack may succeed to compute more EV than expected*/ || info_ != 0) {
-        std::cout << "ERROR: iparam[4] " << iparam_[4] << ", nev " << nev_ << ", info " << info_ <<",iterations taken:"<<iparam_[2]<< std::endl;
-        exit(1);
-    }
 }
 
 template <class T>
@@ -343,6 +326,22 @@ void PARPACKComplexSolver<T>::run(){
     exit(1);
   }
 }
+template <class T>
+void PARPACKComplexSolver<T>::run(double spin,SSOp<std::complex<T>>* SS){
+    while (ido_ != 99) {
+        arpack::saupd(MCW, ido_, arpack::bmat::identity, nloc_,
+                    arpack::which::smallest_algebraic, nev_, tol_, resid_pt, ncv_,
+                    V_pt, ldv_, iparam_.data(), ipntr_.data(), workd_pt,
+                    workl_pt, lworkl_, info_);
+        SS->project(spin, &(workd_pt[ipntr_[0] - 1]));
+        M_->MxV(&(workd_pt[ipntr_[0] - 1]), &(workd_pt[ipntr_[1] - 1]));
+    }
+    // check number of ev found by arpack
+    if (iparam_[4] < nev_ /*arpack may succeed to compute more EV than expected*/ || info_ != 0) {
+        std::cout << "ERROR: iparam[4] " << iparam_[4] << ", nev " << nev_ << ", info " << info_ <<",iterations taken:"<<iparam_[2]<< std::endl;
+        exit(1);
+    }
+}
 
 // project out solved eigen states
 template <class T>
@@ -422,7 +421,7 @@ void PARPACKComplexSolver<T>::diag(){
 }
 
 template <class T>
-void PARPACKComplexSolver<T>::diag(double spin, SSOp<T>* SS){
+void PARPACKComplexSolver<T>::diag(double spin, SSOp<std::complex<T>>* SS){
     Timer timer;
     int workerID = M_->get_workerID();
     if (workerID==MPI_MASTER) std::cout<<"Begin PARPACK Iteration and timer started..."<<std::endl;
