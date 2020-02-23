@@ -269,6 +269,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
 
 template <class T>
 void SparseMatrix<T>::genMatPara(int rowPerThread){
+    clear();
     int threadNum;
     #pragma omp parallel
     {

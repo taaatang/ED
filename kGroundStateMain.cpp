@@ -142,7 +142,7 @@ int main(int argc, const char * argv[]) {
         // H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp);
         // H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py},Up);
         // H.printV();H.printU();
-        H.genMat();
+        // H.genMat();
         H.genMatPara(1);
         timer.tok();
 
