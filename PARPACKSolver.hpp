@@ -99,11 +99,11 @@ public:
     void setRvec(a_int rvec);
 
     void run();
-    void runProj(double spin,SSOp<std::complex<T>>* SS);
+    void run(double spin,SSOp<std::complex<T>>* SS);
     void run(std::complex<T>* states, int statesNum, double penalty=1000.0);
     void postRun();
     void diag();
-    void diagProj(double spin,SSOp<std::complex<T>>* SS);
+    void diag(double spin,SSOp<std::complex<T>>* SS);
 };
 
 /*
@@ -328,12 +328,12 @@ void PARPACKComplexSolver<T>::run(){
   }
 }
 template <class T>
-void PARPACKComplexSolver<T>::runProj(double spin,SSOp<std::complex<T>>* SS){
+void PARPACKComplexSolver<T>::run(double spin,SSOp<std::complex<T>>* SS){
     while (ido_ != 99) {
-        arpack::saupd(MCW, ido_, arpack::bmat::identity, nloc_,
-                    arpack::which::smallest_algebraic, nev_, tol_, resid_pt, ncv_,
-                    V_pt, ldv_, iparam_.data(), ipntr_.data(), workd_pt,
-                    workl_pt, lworkl_, info_);
+        arpack::naupd(MCW, ido_, arpack::bmat::identity, nloc_,
+                  arpack::which::smallest_realpart, nev_, tol_, resid_pt, ncv_,
+                  V_pt, ldv_, iparam_.data(), ipntr_.data(), workd_pt,
+                  workl_pt, lworkl_, rwork_pt, info_);
         SS->project(spin, &(workd_pt[ipntr_[0] - 1]));
         M_->MxV(&(workd_pt[ipntr_[0] - 1]), &(workd_pt[ipntr_[1] - 1]));
     }
@@ -422,12 +422,12 @@ void PARPACKComplexSolver<T>::diag(){
 }
 
 template <class T>
-void PARPACKComplexSolver<T>::diagProj(double spin, SSOp<std::complex<T>>* SS){
+void PARPACKComplexSolver<T>::diag(double spin, SSOp<std::complex<T>>* SS){
     Timer timer;
     int workerID = M_->get_workerID();
     if (workerID==MPI_MASTER) std::cout<<"Begin PARPACK Iteration and timer started..."<<std::endl;
     timer.tik();
-    runProj(spin, SS);
+    run(spin, SS);
     timer.tok();
     if (workerID==MPI_MASTER) std::cout<<"INFO:"<<info_<<". Total iteration:"<<iparam_[2]<<". Total time:"<<timer.elapse()<<" milliseconds"<<std::endl;
 
