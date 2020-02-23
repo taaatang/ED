@@ -91,7 +91,7 @@ public:
 
     std::complex<T>* getEigval() const {return d_pt;}
     std::complex<T>* getEigvec(int ithVec=0) const {return V_pt+nloc_*ithVec;}
-    void setStartVec(T* vec);
+    void setStartVec(std::complex<T>* vec);
     void setNev(a_int nev);
     void setNcv(a_int ncv);
     void setMaxIter(int iterNum);
@@ -288,7 +288,7 @@ PARPACKComplexSolver<T>::PARPACKComplexSolver(BaseMatrix<std::complex<T>> *H, a_
 }
 
 template <class T>
-void PARPACKComplexSolver<T>::setStartVec(T* vec){
+void PARPACKComplexSolver<T>::setStartVec(std::complex<T>* vec){
     info_ = 1;
     #pragma omp parallel for
     for (ind_int i = 0; i < nloc_; i++){
