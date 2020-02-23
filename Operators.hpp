@@ -481,11 +481,11 @@ void Heisenberg<T>::genMat(){
     clear();
     MAP rowMap;
     // initialize rowInitList
-    for (int i = 0; i < spmNum; i++) pushRow(&rowMap,i);
+    for (int i = 0; i < SparseMatrix<T>::spmNum; i++) SparseMatrix<T>::pushRow(&rowMap,i);
     VecI initVec(pt_lattice->getOrbNum());
     double initNorm, finalNorm;
     // calculate <R1k|H*Pk|R2k>/norm1/norm2
-    for (ind_int rowID = startRow; rowID < endRow; rowID++){
+    for (ind_int rowID = SparseMatrix<T>::startRow; rowID < SparseMatrix<T>::endRow; rowID++){
         rowMap.clear();
         std::vector<ind_int> finalIndList;
         pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
@@ -507,7 +507,7 @@ void Heisenberg<T>::genMat(){
                 }
             }
         }
-        pushRow(&rowMap);
+        SparseMatrix<T>::pushRow(&rowMap);
 
         for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
             rowMap.clear();
@@ -526,7 +526,7 @@ void Heisenberg<T>::genMat(){
                     smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
                 }
             }
-            pushRow(&rowMap, (*linkit)->getmatid());
+            SparseMatrix<T>::pushRow(&rowMap, (*linkit)->getmatid());
         }
     }
 }
