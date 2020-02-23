@@ -72,7 +72,7 @@ int main(int argc, const char * argv[]) {
     Lattice.construct();
     // if (workerID==MPI_MASTER) Lattice.print();
     int siteDim = 2;
-    VecI occList{2, 2};
+    VecI occList{N/2, N-N/2};
     ind_int fullDim=0, totDim=0;
     // scan kIndex
     for (int kIndex = kStart;  kIndex < kEnd; kIndex++){
