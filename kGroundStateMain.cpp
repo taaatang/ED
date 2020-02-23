@@ -38,7 +38,6 @@ int main(int argc, const char * argv[]) {
     double spin = 0.5;
     int rowPerThread = 1;
     bool BASIS_IS_SAVED = false;
-    int kStart, kEnd, J2Start, J2End, J2Step;
     std::ifstream infile("ground_input.txt");
     infile>>N1>>N2>>nev;
     N = N1 * N2;
@@ -189,7 +188,7 @@ int main(int argc, const char * argv[]) {
             // MPI_Barrier(MPI_COMM_WORLD);
             // PDiag.diag(spin, &SS);
             PDiag.diag();
-            
+
             std::vector<cdouble> stot;
             for (int i = 0; i < nev; i++){
                 stot[i] = SS.vMv(PDiag.getEigvec(i),PDiag.getEigvec(i));
