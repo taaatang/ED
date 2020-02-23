@@ -478,7 +478,7 @@ void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
 template <class T>
 void Heisenberg<T>::genMat(){
     int kIndex = pt_Basis->getkIndex();
-    clear();
+    SparseMatrix<T>::clear();
     MAP rowMap;
     // initialize rowInitList
     for (int i = 0; i < SparseMatrix<T>::spmNum; i++) SparseMatrix<T>::pushRow(&rowMap,i);
