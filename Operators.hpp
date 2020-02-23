@@ -424,4 +424,111 @@ public:
     void genPairMat(int rIndex);
 };
 
+/*
+    *********************
+    * Hamiltonian Class *
+    *********************
+*/
+template <class T>
+void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
+    int kIndex = pt_Basis->getkIndex();
+    VecI initVec(pt_lattice->getOrbNum());
+    double initNorm, finalNorm;
+    std::vector<ind_int> finalIndList;
+    pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
+    initNorm = pt_Basis->getNorm(rowID);
+    for (int i = 0; i < finalIndList.size(); i++){
+        pt_Basis->indToVec(finalIndList[i], initVec);
+        cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
+        for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+            cdouble factor1 = factor * (*linkit)->getVal();
+            for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                int siteID = (*bondit).at(0);
+                int siteIDp = (*bondit).at(1);
+                // sz.siteID * sz.siteIDp
+                szsz(siteID, siteIDp, factor1, finalIndList[i], initVec, &rowMaps[0]);
+                // 1/2 * sm.siteID * sp.siteIDp
+                spsm(siteID, siteIDp, factor1/2.0, finalIndList[i], initVec, &rowMaps[0]);
+                // 1/2 * sp.siteID * sm.siteIDp
+                smsp(siteID, siteIDp, factor1/2.0, finalIndList[i], initVec, &rowMaps[0]);
+            }
+        }
+    }
+
+    for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
+        for (int i = 0; i < finalIndList.size(); i++){
+            pt_Basis->indToVec(finalIndList[i], initVec);
+            cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
+            factor *= (*linkit)->getVal();
+            for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                int siteID = (*bondit).at(0);
+                int siteIDp = (*bondit).at(1);
+                int matID = (*linkit)->getmatid();
+                // sz.siteID * sz.siteIDp
+                szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMaps[matID]);
+                // 1/2 * sm.siteID * sp.siteIDp
+                spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
+                // 1/2 * sp.siteID * sm.siteIDp
+                smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
+            }
+        }
+    }
+}
+// generate Hamiltonian in the subspacd labeled by kIndex
+template <class T>
+void Heisenberg<T>::genMat(){
+    int kIndex = pt_Basis->getkIndex();
+    clear();
+    MAP rowMap;
+    // initialize rowInitList
+    for (int i = 0; i < spmNum; i++) pushRow(&rowMap,i);
+    VecI initVec(pt_lattice->getOrbNum());
+    double initNorm, finalNorm;
+    // calculate <R1k|H*Pk|R2k>/norm1/norm2
+    for (ind_int rowID = startRow; rowID < endRow; rowID++){
+        rowMap.clear();
+        std::vector<ind_int> finalIndList;
+        pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
+        initNorm = pt_Basis->getNorm(rowID);
+        for (int i = 0; i < finalIndList.size(); i++){
+            pt_Basis->indToVec(finalIndList[i], initVec);
+            cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
+            for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+                cdouble factor1 = factor * (*linkit)->getVal();
+                for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                    int siteID = (*bondit).at(0);
+                    int siteIDp = (*bondit).at(1);
+                    // sz.siteID * sz.siteIDp
+                    szsz(siteID, siteIDp, factor1, finalIndList[i], initVec, &rowMap);
+                    // 1/2 * sm.siteID * sp.siteIDp
+                    spsm(siteID, siteIDp, factor1/2.0, finalIndList[i], initVec, &rowMap);
+                    // 1/2 * sp.siteID * sm.siteIDp
+                    smsp(siteID, siteIDp, factor1/2.0, finalIndList[i], initVec, &rowMap);
+                }
+            }
+        }
+        pushRow(&rowMap);
+
+        for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
+            rowMap.clear();
+            for (int i = 0; i < finalIndList.size(); i++){
+                pt_Basis->indToVec(finalIndList[i], initVec);
+                cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
+                factor *= (*linkit)->getVal();
+                for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                    int siteID = (*bondit).at(0);
+                    int siteIDp = (*bondit).at(1);
+                    // sz.siteID * sz.siteIDp
+                    szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMap);
+                    // 1/2 * sm.siteID * sp.siteIDp
+                    spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
+                    // 1/2 * sp.siteID * sm.siteIDp
+                    smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
+                }
+            }
+            pushRow(&rowMap, (*linkit)->getmatid());
+        }
+    }
+}
+
 #endif
