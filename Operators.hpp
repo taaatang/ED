@@ -769,7 +769,7 @@ void SSOp<T>::genPairMat(int rIndex){
 }
 
 template <class T>
-void SzkOp<T>::void row(ind_int rowID, std::vector<MAP>& rowMaps){
+void SzkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     ind_int colID;
     for (ind_int rowID = startRow; rowID < endRow; rowID++){
         if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
