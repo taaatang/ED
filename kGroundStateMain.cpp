@@ -132,7 +132,7 @@ int main(int argc, const char * argv[]) {
         Link<double> tpzpyp(LINK_TYPE::HOPPING_T, {ORBITAL::Pzd, ORBITAL::Py}, tppz_val, false); tpzpxp.addLinkVec({0.0,-0.5,0.5});
 
         timer.tik();
-        Heisenberg H(&Lattice, &B, 2);
+        Heisenberg<dataType> H(&Lattice, &B, 2);
         H.pushLink(J1Link).pushLink(J2Link);
         // if (workerID==MPI_MASTER){J1Link.print(); J2Link.print();}
         // Hubbard H(&Lattice, &B, 1);
