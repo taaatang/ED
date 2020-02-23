@@ -270,9 +270,9 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
 
 template <class T>
 cdouble SparseMatrix<T>::vMv(T *vecL, T *vecR){
-    std::vector<T> vecTmp(BaseMarix<T>::nlocmax);
+    std::vector<T> vecTmp(BaseMatrix<T>::nlocmax);
     cdouble val=0.0;
-    SS.MxV(vecR, vecTmp.data());
+    MxV(vecR, vecTmp.data());
     vConjDotv<T, T>(vecL, vecTmp.data(), &val, BaseMatrix<T>::nloc);
     return val;
 }
