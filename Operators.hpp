@@ -428,7 +428,7 @@ private:
 public:
     SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2);
     ~SSOp(){}
-    void setr(int r_){assert(r_<pt_lattice->getSiteNum();r=r_;}
+    void setr(int r_){assert(r_<pt_lattice->getSiteNum());r=r_;}
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
     // S(i)*S(i+r)
     void genPairMat(int rIndex);
