@@ -189,7 +189,7 @@ int main(int argc, const char * argv[]) {
             // PDiag.diag(spin, &SS);
             PDiag.diag();
 
-            std::vector<cdouble> stot;
+            std::vector<cdouble> stot(nev);
             for (int i = 0; i < nev; i++){
                 stot[i] = SS.vMv(PDiag.getEigvec(i),PDiag.getEigvec(i));
                 if(workerID==MPI_MASTER)std::cout<<i<<"th eigen state total spin s(s+1) = "<<stot[i]<<std::endl;
