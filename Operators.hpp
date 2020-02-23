@@ -735,7 +735,7 @@ void SSOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
 template <class T>
 void SSOp<T>::project(double s, T* vec){
     assert(r==-1);
-    double stot = s*(s+1)
+    double stot = s*(s+1);
     std::vector<T> tmp(BaseMatrix<T>::get_nloc());
     double smin = double(pt_lattice->getOrbNum()%2)/2.0;
     double smax = double(pt_lattice->getOrbNum())/2.0+0.1;
