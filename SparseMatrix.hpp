@@ -144,6 +144,7 @@ public:
     }
     void clearBuf(){vecBuf.clear(); is_vecBuf=false;}
     void MxV(T *vecIn, T *vecOut);
+    cdouble vMv(T *vecL, T *vecR);
     // create one row. store sparse matrixes data in corresponding rowMaps. 
     virtual void row(ind_int rowID, std::vector<MAP>& rowMaps) = 0;
     // construct sparse matrix in parallel. each thread create #rowPerThread.
@@ -267,6 +268,14 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
     }
 }
 
+template <class T>
+cdouble SparseMatrix<T>::vMv(T *vecL, T *vecR){
+    std::vector<T> vecTmp(BaseMarix<T>::nlocmax);
+    cdouble val=0.0;
+    SS.MxV(vecR, vecTmp.data());
+    vConjDotv<T, T>(vecL, vecTmp.data(), &val, BaseMatrix<T>::nloc);
+    return val;
+}
 template <class T>
 void SparseMatrix<T>::genMatPara(int rowPerThread){
     clear();
