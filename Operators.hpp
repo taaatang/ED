@@ -735,15 +735,16 @@ void SSOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
 template <class T>
 void SSOp<T>::project(double s, T* vec){
     assert(r==-1);
+    double stot = s*(s+1)
     std::vector<T> tmp(BaseMatrix<T>::get_nloc());
     double smin = double(pt_lattice->getOrbNum()%2)/2.0;
     double smax = double(pt_lattice->getOrbNum())/2.0+0.1;
     for(double si = smin; si<smax; si += 1.0){
         if (std::abs(si-s)>0.1){
             MxV(vec, tmp.data());
-            double stot = si * (si+1.0);
+            double stoti = si * (si+1.0);
             #pragma omp parallel for
-            for(ind_int i =0; i < BaseMatrix<T>::get_nloc();i++) vec[i] = tmp[i]-stot*vec[i];
+            for(ind_int i =0; i < BaseMatrix<T>::get_nloc();i++) vec[i] = (tmp[i]-stoti*vec[i])/(stot-stoti);
         }
     }
 }
