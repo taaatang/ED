@@ -84,6 +84,7 @@ public:
         counter(spmNum_,0),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),diagValList(dmNum_){
             parameters.resize(spmNum_);
             diagParameters.resize(dmNum_);
+            // for(int i = 0; i < dmNum; i++) diagValList.resize(get_nloc());
             // initialize is_vecBuf status
             switch(partition){
                 case MATRIX_PARTITION::ROW_PARTITION:
@@ -143,8 +144,10 @@ public:
     }
     void clearBuf(){vecBuf.clear(); is_vecBuf=false;}
     void MxV(T *vecIn, T *vecOut);
-    // virtual void row(int row, std::vector<MAP>& rowMAP) = 0;
-    // void parallel_construct();
+    // create one row. store sparse matrixes data in corresponding rowMaps. 
+    virtual void row(int rowID, std::vector<MAP>& rowMaps) = 0;
+    // construct sparse matrix in parallel. each thread create #rowPerThread.
+    void genMatPara(int rowPerThread=1);
 };
 
 // static members
@@ -264,51 +267,74 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
     }
 }
 
-// template <class T>
-// void SparseMatrix<T>::parallel_construct(){
-//     int threadNum;
-//     #pragma omp parallel
-//     {
-//         #pragma omp master
-//         threadNum = omp_get_num_threads();
-//     }
-    
-//     std::vector<MAP*> rowMapList(threadNum);
-//     for (int i = 0; i < threadNum; i++) {
-//         rowMapList[i] = new MAP;
-//         rowMapList[i] ->reserve(couplingNum*polarNum*pt_lattice->getOrbNum()+nloc);
-//     }
-//     std::vector<ind_int> startList(threadNum);
-    
-//     ind_int counter = 0;
-//     rowInitList.push_back(counter);
-    
-//     // calculate <R1k|H*Pk|R2k>/norm1/norm2
-//     for (ind_int rowID = startRow; rowID < endRow; rowID+=threadNum){
-//         #pragma omp parallel shared(rowMapList, startList)
-//         {   
-//             assert(omp_get_num_threads()==threadNum);
-//             int threadID = omp_get_thread_num();
-//             ind_int thRowID = rowID + threadID;
-//             bool is_row = thRowID < endRow;
-//             if (is_row) row(kIndex, couplingNum, polarNum, thRowID, rowMapList.at(threadID));
-//             #pragma omp barrier
+template <class T>
+void SparseMatrix<T>::genMatPara(int rowPerThread){
+    int threadNum;
+    #pragma omp parallel
+    {
+        #pragma omp master
+        threadNum = omp_get_num_threads();
+    }
+    int rowPerIt = rowPerThread * threadNum;
+    // for each iteration, each thread construct spmNum*rowPerThread rowMap
+    std::vector<std::vector<MAP>> rowMapList(rowPerIt);
+    for (auto mapvec : rowMapList) mapvec.resize(spmNum);
 
-//             #pragma omp master
-//             {
-//                 for (int i = 0; (i < threadNum)&&(rowID+i<endRow); i++){
-//                     startList[i] = counter;
-//                     counter += rowMapList.at(i)->size();
-//                     rowInitList.push_back(counter);
-//                 }
-//                 colList.resize(counter);
-//                 valList.resize(counter);
-//             }
-//             #pragma omp barrier
-
-//             if (is_row) pushRow(startList[threadID], rowMapList.at(threadID));
-//         }
-//     }
-//     for (int i = 0; i < threadNum; i++) delete rowMapList[i];
-// }
+    // the starting index for each thread to copy data from rowMap to colList and valList
+    std::vector<std::vector<ind_int>> startList(threadNum);
+    for (auto vec : startList) vec.resize(spmNum);
+    // initialize containers
+    for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(get_nloc());
+    for(int i = 0; i < spmNum; i++) rowInitList.at(i).push_back(counter.at(i));
+    for (ind_int rowID = startRow; rowID < endRow; rowID+=rowPerIt){
+        #pragma omp parallel shared(rowMapList, startList, counter)
+        {   
+            assert(omp_get_num_threads()==threadNum);
+            int threadID = omp_get_thread_num();
+            int thStart = threadID * rowPerThread
+            ind_int thRowStart = rowID + thStart;
+            ind_int thRowEnd = (thRowStart+rowPerThread) < endRow ? (thRowStart+rowPerThread):endRow;
+            // clear map before construction
+            for (int i = thStart; i < thStart+rowPerThread; i++) for(int j=0;j<spmNum;j++){rowMapList[i][j].clear();}
+            for(ind_int thRowID = thRowStart; thRowID<thRowEnd; thRowID++) row(thRowID, rowMapList.at(thRowID - rowID));
+            #pragma omp barrier
+            #pragma omp master
+            {
+                for (int i = 0; i < threadNum; i++){
+                    for (int ii = 0; ii < spmNum) startList[i][ii] = counter[ii];
+                    for (int j = 0; j < rowPerThread; j++){
+                        for(int jj = 0; jj < spmNum; jj++){
+                            counter[jj] += rowMapList[i*rowPerThread+j][jj].size();
+                            rowInitList[jj].push_back(counter[jj]);
+                        }
+                    }
+                }
+                for (int i = 0; i < spmNum; i++){
+                    colList[i].resize(counter[i]);
+                    valList[i].resize(counter[i]);
+                }   
+            }
+            #pragma omp barrier
+            std::vector<int> count_tmp(spmNum);
+            for (int i = thStart; i < thStart + rowPerThread; i++){
+                for (int j = 0; j < spmNum; j++){
+                    for (auto it = rowMapList[i][j].begin(); it != rowMapList[i][j].end(); it++){
+                        colList[j].at(startList[threadID][j]+count_tmp[j]) = it->first;
+                        switch(PARTITION){
+                            case ROW_PARTITION:{
+                                valList[j].at(startList[threadID][j]+count_tmp[j]) = std::conj(it->second);
+                                break;
+                            }
+                            case COL_PARTITION:{
+                                valList[j].at(startList[threadID][j]+count_tmp[j]) = it->second;
+                                break;
+                            }
+                        }
+                        count_tmp[j]++;
+                    }
+                }
+            }
+        }
+    }
+}
 #endif

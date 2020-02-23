@@ -358,9 +358,8 @@ public:
     }
 
     void setVal(Link<double>& link, double val){link.setVal(val); parameters.at(link.getmatid()) = val;}
-    void row(int matID, int kIndex, ind_int rowID, MAP *rowMap);
+    void row(ind_int rowID, std::vector<MAP>& rowMaps);
     void genMat();
-    void genMatPara();
 };
 
 class Hubbard: public FermionOperator, public SparseMatrix<dataType>{
@@ -391,10 +390,8 @@ public:
     void printU() const {std::cout<<"U:"<<std::endl;for(auto it=U.begin();it!=U.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
     double diagVal(VecI occ, VecI docc) const {double val=0.0; for(int i=0;i<pt_lattice->getUnitOrbNum();i++)val += occ.at(i)*V.at(i)+docc.at(i)*U.at(i);return val;}
     void setVal(Link<double>& link, double val){link.setVal(val); parameters.at(link.getmatid()) = val;}
-    void row(ind_int rowID, MAP *rowMap, int matID=0);
-    void genMatFull();
+    void row(ind_int rowID, std::vector<MAP>& rowMaps){};
     void genMat();
-    void genMatPara();
 };
 
 class SzkOp: public SpinOperator, public SparseMatrix<cdouble>{
@@ -410,6 +407,7 @@ public:
             Kf = pt_Bf->getkIndex();
         };
     ~SzkOp(){};
+    void row(ind_int rowID, std::vector<MAP>& rowMaps){};
     // void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q);
     void genMat();
 };
@@ -421,6 +419,7 @@ public:
     SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):pt_lattice(pt_lat),\
         SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_){}
     ~SSOp(){}
+    void row(ind_int rowID, std::vector<MAP>& rowMaps){};
     // S(i)*S(i+r)
     void genPairMat(int rIndex);
 };
