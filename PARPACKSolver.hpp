@@ -98,7 +98,7 @@ public:
     void setRvec(a_int rvec);
 
     void run();
-    void run(double spin,SSOp<complex<T>>* SS)
+    void run(double spin,SSOp<std::complex<T>>* SS);
     void run(std::complex<T>* states, int statesNum, double penalty=1000.0);
     void postRun();
     void diag();
