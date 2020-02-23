@@ -91,9 +91,9 @@ int main(int argc, const char * argv[]) {
     Link<double> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, false);
     J1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
     J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
-    Heisenberg H(&Lattice, &B, 2);
+    Heisenberg<dataType> H(&Lattice, &B, 2);
     H.pushLink(J1Link).pushLink(J2Link);
-    H.genMat();
+    H.genMatPara();
     timer.tok();
     std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
             <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
@@ -126,14 +126,15 @@ for(int J2_num = 0; J2_num<1; J2_num++){
 */
     if (COMPUTE_SS){
         timer.tik();
-        SSOp SS(&Lattice,&B);
+        SSOp<dataType> SS(&Lattice,&B);
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin SS ..."<<std::endl<<"********************"<<std::endl;
         std::vector<dataType> vecTmp(SS.get_nlocmax());
         cdouble val;
         std::vector<cdouble> ssvals;
         for (int i = 0; i < Lattice.getSiteNum(); i++){
             val = 0.0;
-            SS.genPairMat(i);
+            SS.setr(i);
+            SS.genMatPara(i);
             SS.MxV(gstate, vecTmp.data());
             vConjDotv<dataType, dataType>(gstate, vecTmp.data(), &val, SS.get_nloc());
             val /= Lattice.getSiteNum();
@@ -165,11 +166,11 @@ for(int J2_num = 0; J2_num<1; J2_num++){
             if (BASIS_IS_SAVED) {Bp.gen(basisfilep, normfilep);
             }else{Bp.gen();}
             // <Bp|Szq|B>, q = k_B - k_Bp
-            SzkOp Szq(&Lattice, &B, &Bp);
-            Szq.genMat();
-            Heisenberg Hp(&Lattice, &Bp, 2);
+            SzkOp<dataType> Szq(&Lattice, &B, &Bp);
+            Szq.genMatPara();
+            Heisenberg<dataType> Hp(&Lattice, &Bp, 2);
             Hp.pushLink(J1Link).pushLink(J2Link);
-            Hp.genMat();
+            Hp.genMatPara();
             Hp.setVal(J2Link, J2);
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;

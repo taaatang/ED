@@ -362,6 +362,7 @@ public:
     void genMat();
 };
 
+template <class T>
 class Hubbard: public FermionOperator, public SparseMatrix<dataType>{
 private:
     // constant links
@@ -390,36 +391,45 @@ public:
     void printU() const {std::cout<<"U:"<<std::endl;for(auto it=U.begin();it!=U.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
     double diagVal(VecI occ, VecI docc) const {double val=0.0; for(int i=0;i<pt_lattice->getUnitOrbNum();i++)val += occ.at(i)*V.at(i)+docc.at(i)*U.at(i);return val;}
     void setVal(Link<double>& link, double val){link.setVal(val); parameters.at(link.getmatid()) = val;}
-    void row(ind_int rowID, std::vector<MAP>& rowMaps){};
+    void row(ind_int rowID, std::vector<MAP>& rowMaps);
     void genMat();
 };
 
+template <class T>
 class SzkOp: public SpinOperator, public SparseMatrix<cdouble>{
 private:
     // initial k index Ki and final k index Kf
     int Ki, Kf;
     Basis *pt_Bi,*pt_Bf;
     Geometry *pt_lattice;
+    std::vector<cdouble> expFactor;
 public:
-    SzkOp(Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1, int spindim=2):pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),\
+    SzkOp(Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1, int spindim=2):pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
         SpinOperator(pt_Bi,HEISENBERG,spindim),SparseMatrix<cdouble>(pt_Bf_->getSubDim(),spmNum_){
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
+            // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
+            for (int i = 0; i < pt_lattice->getSiteNum(); i++) expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
         };
     ~SzkOp(){};
-    void row(ind_int rowID, std::vector<MAP>& rowMaps){};
+    void row(ind_int rowID, std::vector<MAP>& rowMaps);
     // void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q);
     void genMat();
 };
 
-class SSOp: public SpinOperator, public SparseMatrix<dataType>{
+// correlator:Si*Si+r
+// can also be used to construct total spin operator: S^2
+template <class T>
+class SSOp: public SpinOperator, public SparseMatrix<T>{
 private:
     Geometry *pt_lattice;
+    int r;
+    std::vector<VecI> siteJList;
 public:
-    SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):pt_lattice(pt_lat),\
-        SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_){}
+    SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2);
     ~SSOp(){}
-    void row(ind_int rowID, std::vector<MAP>& rowMaps){};
+    void setr(int r_){assert(r_<pt_lattice->getSiteNum();r=r_;}
+    void row(ind_int rowID, std::vector<MAP>& rowMaps);
     // S(i)*S(i+r)
     void genPairMat(int rIndex);
 };
@@ -456,6 +466,7 @@ void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     }
 
     for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
+        int matID = (*linkit)->getmatid();
         for (int i = 0; i < finalIndList.size(); i++){
             pt_Basis->indToVec(finalIndList[i], initVec);
             cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
@@ -463,7 +474,6 @@ void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
             for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
                 int siteID = (*bondit).at(0);
                 int siteIDp = (*bondit).at(1);
-                int matID = (*linkit)->getmatid();
                 // sz.siteID * sz.siteIDp
                 szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMaps[matID]);
                 // 1/2 * sm.siteID * sp.siteIDp
@@ -531,4 +541,291 @@ void Heisenberg<T>::genMat(){
     }
 }
 
+template <class T>
+void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
+    VecI initVec(pt_lattice->getOrbNum()), initVecp(pt_lattice->getOrbNum());
+    /*
+        *****************
+        * Constant Part *
+        * ***************
+    */
+    // diagonal part. occupancy and double-occ
+    VecI occ, docc;
+    ind_int initInd = pt_Basis->getRepI(rowID);
+    pt_Basis->indToVec(initInd, initVec, initVecp);
+    pt_lattice->orbOCC(initVec, initVecp, occ, docc);
+    double val = diagVal(occ,docc);
+    cdouble diag_val = 0.0;
+    // off diagonal part
+    std::vector<ind_int> finalIndList;
+    std::vector<cdouble> factorList;
+    pt_Basis->genTranslation(rowID, finalIndList, factorList);
+    for (int i = 0; i < finalIndList.size(); i++){
+        pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
+        if(finalIndList[i]==initInd)diag_val += val*factorList[i];
+        for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+            cdouble factor = factorList.at(i) * (*linkit)->getVal();
+            for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                int siteI = (*bondit).at(0);
+                int siteJ = (*bondit).at(1);
+                // cp.siteI * cm.siteJ
+                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMaps[0]);
+                cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], initVec, initVecp, &rowMaps[0]);
+                cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMaps[0]);
+                cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], initVec, initVecp, &rowMaps[0]);   
+            }
+        }
+    }
+    diag(rowID,diag_val,&rowMaps[0]);
+
+    /*
+        ***********************
+        * Time Dependent Part *
+        * *********************
+    */
+    for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
+        int matID = (*linkit)->getmatid();
+        for (int i = 0; i < finalIndList.size(); i++){
+            pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
+            cdouble factor = factorList.at(i) * (*linkit)->getVal();
+            for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                int siteID = (*bondit).at(0);
+                int siteIDp = (*bondit).at(1);
+                // cm.siteID * cp.siteIDp
+                cpcm(SPIN::SPIN_UP, siteID, siteIDp, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
+                cpcm(SPIN::SPIN_UP, siteIDp, siteID, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
+                cpcm(SPIN::SPIN_DOWN, siteID, siteIDp, factor, finalIndList[i], initVec, initVecp, &rowMap[matID]);
+                cpcm(SPIN::SPIN_DOWN, siteIDp, siteID, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]); 
+            }
+        }
+    }
+}
+
+template <class T>
+void Hubbard<T>::genMat(){
+    int kIndex = pt_Basis->getkIndex();
+    clear();
+    MAP rowMap;
+    // initialize rowInitList
+    for (int i = 0; i < spmNum; i++) pushRow(&rowMap,i);
+    VecI initVec(pt_lattice->getOrbNum()), initVecp(pt_lattice->getOrbNum());
+    for (ind_int rowID = startRow; rowID < endRow; rowID++){
+        /*
+            *****************
+            * Constant Part *
+            * ***************
+        */
+        rowMap.clear();
+        // diagonal part. occupancy and double-occ
+        VecI occ, docc;
+        ind_int initInd = pt_Basis->getRepI(rowID);
+        pt_Basis->indToVec(initInd, initVec, initVecp);
+        pt_lattice->orbOCC(initVec, initVecp, occ, docc);
+        double val = diagVal(occ,docc);
+        cdouble diag_val = 0.0;
+        // off diagonal part
+        std::vector<ind_int> finalIndList;
+        std::vector<cdouble> factorList;
+        pt_Basis->genTranslation(rowID, finalIndList, factorList);
+        for (int i = 0; i < finalIndList.size(); i++){
+            pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
+            if(finalIndList[i]==initInd)diag_val += val*factorList[i];
+            for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+                cdouble factor = factorList.at(i) * (*linkit)->getVal();
+                for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                    int siteI = (*bondit).at(0);
+                    int siteJ = (*bondit).at(1);
+                    // cp.siteI * cm.siteJ
+                    cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMap);
+                    cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], initVec, initVecp, &rowMap);
+                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMap);
+                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], initVec, initVecp, &rowMap);   
+                }
+            }
+        }
+        diag(rowID,diag_val,&rowMap);
+        pushRow(&rowMap);
+
+        /*
+            ***********************
+            * Time Dependent Part *
+            * *********************
+        */
+        for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
+            rowMap.clear();
+            for (int i = 0; i < finalIndList.size(); i++){
+                pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
+                cdouble factor = factorList.at(i) * (*linkit)->getVal();
+                for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                    int siteID = (*bondit).at(0);
+                    int siteIDp = (*bondit).at(1);
+                    // cm.siteID * cp.siteIDp
+                    cpcm(SPIN::SPIN_UP, siteID, siteIDp, factor, finalIndList[i], initVec, initVecp, &rowMap);
+                    cpcm(SPIN::SPIN_UP, siteIDp, siteID, factor, finalIndList[i], initVec, initVecp, &rowMap);
+                    cpcm(SPIN::SPIN_DOWN, siteID, siteIDp, factor, finalIndList[i], initVec, initVecp, &rowMap);
+                    cpcm(SPIN::SPIN_DOWN, siteIDp, siteID, factor, finalIndList[i], initVec, initVecp, &rowMap); 
+                }
+            }
+            pushRow(&rowMap, (*linkit)->getmatid());
+        }
+    }
+}
+/*
+    ********************
+    * Correlator Class *
+    ********************
+*/
+template <class T>
+SSOp<T>::SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_, int spindim):r(-1),pt_lattice(pt_lat), siteJList(pt_lat->getSiteNum()),\
+    SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_){
+    VecD coordi(3), coordr(3), coordf(3);
+    for (int rIndex = 0; rIndex < pt_lat->getSiteNum()){
+        siteJList.at(rIndex).resize(pt_lat->getSiteNum);
+        pt_lattice->getSiteR(rIndex, coordr.data());
+        for (int i = 0; i < pt_lattice->getOrbNum(); i++){
+            pt_lattice->getOrbR(i,coordi.data());
+            vecXAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), 3);
+            int siteJ;
+            if (pt_lattice->coordToOrbid(coordf.data(), siteJ)){
+                siteJList.at(rIndex).at(i) = siteJ;
+            }else{
+                std::cout<<"translation position not found for orbid = "<<i<<", transVecid = "<<rIndex<<std::endl;
+                exit(1);
+            }
+        }
+    }
+}
+
+template <class T>
+void SSOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
+    int kIndex = pt_Basis->getkIndex();
+    VecI initVec(pt_lattice->getOrbNum());
+    double initNorm, finalNorm;
+    for (ind_int rowID = startRow; rowID < endRow; rowID++){
+        initNorm = pt_Basis->getNorm(rowID);
+        std::vector<ind_int> finalIndList;
+        pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
+        for (int i = 0; i < finalIndList.size(); i++){
+            pt_Basis->indToVec(finalIndList[i], initVec);
+            cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
+            for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
+                if (r > 0){
+                    int siteJ = siteJList[r][siteI];
+                    // sz.siteI * sz.siteJ
+                    szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMaps[0]);
+                    // 1/2 * sm.siteI * sp.siteJ
+                    spsm(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
+                    // 1/2 * sp.siteI * sm.siteJ
+                    smsp(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
+                }
+                else{
+                    for (int rIndex = 0; rIndex < pt_lattice->getSiteNum(); rIndex++){
+                        int siteJ = siteJList[rIndex][siteI];
+                        // sz.siteI * sz.siteJ
+                        szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMaps[0]);
+                        // 1/2 * sm.siteI * sp.siteJ
+                        spsm(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
+                        // 1/2 * sp.siteI * sm.siteJ
+                        smsp(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// generate matrix in subsapce labeled by kIndex for sum.r:Sr*Sr+dr, dr is labeled by rIndex
+template <class T>
+void SSOp<T>::genPairMat(int rIndex){
+    assert(rIndex>0 and rIndex<pt_lattice->getSiteNum());
+    r = rIndex;
+    int kIndex = pt_Basis->getkIndex();
+    clear();
+    reserve(pt_lattice->getOrbNum()/2+1);
+    MAP rowMap;
+    pushRow(&rowMap);
+    VecI initVec(pt_lattice->getOrbNum());
+    double initNorm, finalNorm;
+    for (ind_int rowID = startRow; rowID < endRow; rowID++){
+        rowMap.clear();
+        initNorm = pt_Basis->getNorm(rowID);
+        std::vector<ind_int> finalIndList;
+        pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
+        for (int i = 0; i < finalIndList.size(); i++){
+            pt_Basis->indToVec(finalIndList[i], initVec);
+            cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
+            for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
+                int siteJ = siteJList[rIndex][siteI];
+                // sz.siteI * sz.siteJ
+                szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMap);
+                // 1/2 * sm.siteI * sp.siteJ
+                spsm(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMap);
+                // 1/2 * sp.siteI * sm.siteJ
+                smsp(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMap);
+            }
+        }
+        pushRow(&rowMap);
+    }
+}
+
+template <class T>
+void SzkOp<T>::void row(ind_int rowID, std::vector<MAP>& rowMaps){
+    ind_int colID;
+    for (ind_int rowID = startRow; rowID < endRow; rowID++){
+        if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
+            dval = 0.0;
+            pt_Bi->indToVec(pt_Bi->getRepI(colID), initVec);
+            for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
+                dval += getSz(siteID,initVec) * expFactor[siteID];
+            }
+            dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
+            rowMaps[0][colID] = dval;
+        }
+    }
+}
+template <class T>
+void SzkOp<T>::genMat(){
+    clear();
+    reserve(1);
+    MAP rowMap;
+    pushRow(&rowMap);
+    cdouble dval;
+    VecI initVec(pt_lattice->getOrbNum());
+    switch(PARTITION){
+        case ROW_PARTITION:{
+            ind_int colID;
+            for (ind_int rowID = startRow; rowID < endRow; rowID++){
+                rowMap.clear();
+                if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
+                    dval = 0.0;
+                    pt_Bi->indToVec(pt_Bi->getRepI(colID), initVec);
+                    for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
+                        dval += getSz(siteID,initVec) * expFactor[siteID];
+                    }
+                    dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
+                    rowMap[colID] = dval;
+                }
+                pushRow(&rowMap);
+            }
+            break;
+        }
+        // col Partition need to be checked!
+        case COL_PARTITION:{
+            ind_int colID;
+            for (ind_int rowID = startRow; rowID < endRow; rowID++){
+                if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
+                    dval = 0.0;
+                    pt_Bf->indToVec(pt_Bf->getRepI(rowID), initVec);
+                    for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
+                        dval += getSz(siteID,initVec) * expFactor[siteID];
+                    }
+                    dval *= pt_Bi->getNorm(rowID)/pt_Bf->getNorm(colID);
+                    rowMap[colID] = dval;
+                }
+                pushRow(&rowMap);
+            }
+            break;
+        }
+    }
+}
 #endif

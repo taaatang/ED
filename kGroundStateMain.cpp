@@ -100,21 +100,21 @@ int main(int argc, const char * argv[]) {
             * Hamiltonian Construction *
             ****************************
         */
-            /*
-                **************
-                * HEISENBERG *
-                **************
-            */
+        /*
+            **************
+            * HEISENBERG *
+            **************
+        */
         Link<double> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0);
         Link<double> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, false);
         J1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
         J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
 
-            /*
-                ***********
-                * HUBBARD *
-                ***********
-            */
+        /*
+            ***********
+            * HUBBARD *
+            ***********
+        */
         double tdp_val=1.13, tpp_val=0.49, tppz_val=0.3, Vd=0.0, Vp=3.24, Vpz=3.0, Ud=8.5, Up=4.1;
         Link<double> tdpx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px}, -tdp_val); tdpx.addLinkVec({0.5,0.0,0.0});
         Link<double> tdpy(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Py}, tdp_val); tdpy.addLinkVec({0.0,0.5,0.0});
@@ -136,14 +136,13 @@ int main(int argc, const char * argv[]) {
         Heisenberg<dataType> H(&Lattice, &B, 2);
         H.pushLink(J1Link).pushLink(J2Link);
         // if (workerID==MPI_MASTER){J1Link.print(); J2Link.print();}
-        // Hubbard H(&Lattice, &B, 1);
+        // Hubbard<dataType> H(&Lattice, &B, 1);
         // H.pushLink(tdpx).pushLink(tdpy).pushLink(tpxd).pushLink(tpxpy).pushLink(tpxpyp).pushLink(tpyd);
         // H.pushLink(tpxpz).pushLink(tpxpzp).pushLink(tpzpx).pushLink(tpzpxp).pushLink(tpypz).pushLink(tpypzp).pushLink(tpzpy).pushLink(tpzpyp);
         // tdpx.print();tdpy.print();tpxd.print();tpxpy.print();tpxpyp.print();tpyd.print();
         // H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp);
         // H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py},Up);
         // H.printV();H.printU();
-        // H.genMat();
         H.genMatPara(rowPerThread);
         timer.tok();
 
