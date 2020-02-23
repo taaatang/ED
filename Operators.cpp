@@ -205,7 +205,7 @@ SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod, int dim):pt_Basis(pt
 //         }
 //         pushRow(&rowMap);
 //     }
-}
+// }
 
 // void SzkOp::genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q){
 //     clear();
