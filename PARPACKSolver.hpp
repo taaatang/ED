@@ -102,7 +102,7 @@ public:
     void run(std::complex<T>* states, int statesNum, double penalty=1000.0);
     void postRun();
     void diag();
-    void diag(double spin,SSOp<T>* SS);
+    void diag(double spin,SSOp<std::complex<T>>* SS);
 };
 
 /*

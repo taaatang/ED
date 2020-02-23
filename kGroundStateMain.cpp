@@ -181,7 +181,7 @@ int main(int argc, const char * argv[]) {
             PARPACKComplexSolver<double> PDiag(&H, nev);
             std::vector<cdouble> initVec(H.get_nloc());
             randInit<cdouble>(initVec);
-            SS.project(spin,initVec);
+            SS.project(spin,initVec.data());
             PDiag.setStartVec(initVec.data());
             MPI_Barrier(MPI_COMM_WORLD);
             PDiag.diag(spin, &SS);
