@@ -37,7 +37,7 @@ int main(int argc, const char * argv[]) {
     int kIndex = -1; // Gamma Point
     bool BASIS_IS_SAVED = false;
     int kStart, kEnd, J2Start, J2End, J2Step;
-    std::ifstream infile("input.txt");
+    std::ifstream infile("ground_input.txt");
     infile>>N>>kStart>>kEnd>>J2Start>>J2End>>J2Step;
     infile.close();
     double J1 = 1.0;
@@ -132,18 +132,18 @@ int main(int argc, const char * argv[]) {
         Link<double> tpzpyp(LINK_TYPE::HOPPING_T, {ORBITAL::Pzd, ORBITAL::Py}, tppz_val, false); tpzpxp.addLinkVec({0.0,-0.5,0.5});
 
         timer.tik();
-        // Heisenberg H(&Lattice, &B, 2);
-        // H.pushLink(J1Link).pushLink(J2Link);
+        Heisenberg H(&Lattice, &B, 2);
+        H.pushLink(J1Link).pushLink(J2Link);
         // if (workerID==MPI_MASTER){J1Link.print(); J2Link.print();}
-        Hubbard H(&Lattice, &B, 1);
-        H.pushLink(tdpx).pushLink(tdpy).pushLink(tpxd).pushLink(tpxpy).pushLink(tpxpyp).pushLink(tpyd);
-        H.pushLink(tpxpz).pushLink(tpxpzp).pushLink(tpzpx).pushLink(tpzpxp).pushLink(tpypz).pushLink(tpypzp).pushLink(tpzpy).pushLink(tpzpyp);
+        // Hubbard H(&Lattice, &B, 1);
+        // H.pushLink(tdpx).pushLink(tdpy).pushLink(tpxd).pushLink(tpxpy).pushLink(tpxpyp).pushLink(tpyd);
+        // H.pushLink(tpxpz).pushLink(tpxpzp).pushLink(tpzpx).pushLink(tpzpxp).pushLink(tpypz).pushLink(tpypzp).pushLink(tpzpy).pushLink(tpzpyp);
         // tdpx.print();tdpy.print();tpxd.print();tpxpy.print();tpxpyp.print();tpyd.print();
-        H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp);
-        H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py},Up);
+        // H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp);
+        // H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py},Up);
         // H.printV();H.printU();
         H.genMat();
-        // H.genSubMatMapPara(kIndex, 2, 3);
+        H.genMatPara(1);
         timer.tok();
 
         std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
