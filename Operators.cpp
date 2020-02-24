@@ -38,11 +38,12 @@ void Nocc::genMat(){
 }
 double Nocc::count(ORBITAL orbital, dataType* vec){
     int id = pt_lattice->getOrbID(orbital);
-    double sum = 0.0;
-    #pragma omp parallel for reduction(+:sum)
+    double sum = 0.0, part_sum = 0.0;
+    #pragma omp parallel for reduction(+:part_sum)
     for(int_int i = 0; i < BaseMatrix<int>::nloc; i++){
-        sum += diagValList[id][i]*(std::real(vec[i])*std::real(vec[i])+std::imag(vec[i])*std::imag(vec[i]));
+        part_sum += diagValList[id][i]*(std::real(vec[i])*std::real(vec[i])+std::imag(vec[i])*std::imag(vec[i]));
     }
+    MPI_Allreduce(&part_sum, &sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD)
     return sum;
 }
 // void Hubbard::genMat(){
