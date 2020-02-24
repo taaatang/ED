@@ -109,6 +109,10 @@ inline int seqSign(std::vector<int>& seq){
     return -1;
 }
 
+// Gaussian Pulse
+inline double GaussPulse(double t, double amp, double sigma, double freq){
+    return amp*std::exp(-t*t/sigma/sigma)*std::cos(freq*t);
+}
 /*
     ***********
     * Algebra *
