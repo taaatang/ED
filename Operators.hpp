@@ -380,7 +380,7 @@ private:
     VecD V, U;
     Geometry *pt_lattice;
 public:
-    Hubbard(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):occLists(pt_lat->getUnitOrbNum());V(pt_lat->getUnitOrbNum()), U(pt_lat->getUnitOrbNum()),\
+    Hubbard(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):V(pt_lat->getUnitOrbNum()), U(pt_lat->getUnitOrbNum()),\
         FermionOperator(pt_Ba),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){
             for (int i = 0; i < pt_lat->getUnitOrbNum(); i++) occLists.at(i).resize(BaseMatrix<T>::nloc);
         }
@@ -415,7 +415,7 @@ private:
     Geometry* pt_lattice;
     Basis* pt_Basis;
 public:
-    Nocc(Geometr *pt_lat, Basis *pt_Ba);
+    Nocc(Geometry *pt_lat, Basis *pt_Ba);
     ~Nocc(){}
 
     void row(ind_int rowID, std::vector<MAP>& rowMaps){};
@@ -708,7 +708,7 @@ inline void Nocc::row(ind_int rowID){
     ind_int initInd = pt_Basis->getRepI(rowID);
     pt_Basis->indToVec(initInd, initVec, initVecp);
     pt_lattice->orbOCC(initVec, initVecp, occ);
-    ind_int loc_rowID = rowID - BaseMatrix<T>::startRow;
+    ind_int loc_rowID = rowID - BaseMatrix<int>::startRow;
     for (int i = 0; i < pt_lattice->getOrbNum(); i++) diagValList[i][loc_rowID] = occ[i];
 }
 /*

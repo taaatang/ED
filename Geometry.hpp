@@ -132,7 +132,7 @@ public:
     bool coordToOrbid(double* coord, int &orbid, double tol = 1e-8) const;
     // orbital occupancy count
     void orbOCC(VecI& vec, VecI& occ) const {occ = VecI(getUnitOrbNum(),0); for(int i = 0; i < getOrbNum(); i++) if(vec[i]) occ.at(orbs.at(i).id) += 1;};
-    void orbOCC(VecI& vecu, VecI& vecd, vecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); i++){if(vecu[i])occ.at(orbs.at(i).orbid) += 1;if(vecd[i])occ.at(orbs.at(i).orbid) += 1;}}
+    void orbOCC(VecI& vecu, VecI& vecd, VecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); i++){if(vecu[i])occ.at(orbs.at(i).orbid) += 1;if(vecd[i])occ.at(orbs.at(i).orbid) += 1;}}
     void orbOCC(VecI& vecu, VecI& vecd, VecI& occ, VecI& docc) const {
         occ = VecI(getUnitOrbNum(),0); docc = VecI(getUnitOrbNum(),0);
         for(int i = 0; i < getOrbNum(); i++) {
