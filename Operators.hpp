@@ -145,10 +145,7 @@ protected:
 public:
     FermionOperator(Basis* pt_Ba, LATTICE_MODEL mod=LATTICE_MODEL::HUBBARD):pt_Basis(pt_Ba),model(mod){};
     ~FermionOperator(){};
-
     void diag(ind_int rowID, dataType factor, MAP* rowMap){
-        double finalNorm = pt_Basis->getNorm(rowID);
-        factor /= finalNorm; 
         auto it = rowMap->find(rowID);
         if (it == rowMap->end()){
             (*rowMap)[rowID] = factor;
@@ -383,8 +380,10 @@ private:
     VecD V, U;
     Geometry *pt_lattice;
 public:
-    Hubbard(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):V(pt_lat->getUnitOrbNum()), U(pt_lat->getUnitOrbNum()),\
-        FermionOperator(pt_Ba),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+    Hubbard(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):occLists(pt_lat->getUnitOrbNum());V(pt_lat->getUnitOrbNum()), U(pt_lat->getUnitOrbNum()),\
+        FermionOperator(pt_Ba),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){
+            for (int i = 0; i < pt_lat->getUnitOrbNum(); i++) occLists.at(i).resize(BaseMatrix<T>::nloc);
+        }
     ~Hubbard(){};
 
     Hubbard& pushLink(Link<T>& link){
@@ -409,6 +408,20 @@ public:
     void setVal(int matID, T val){parameters.at(matID) = val;}
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
     void genMat();
+};
+
+class Nocc: public SparseMatrix<int>{
+private:
+    Geometry* pt_lattice;
+    Basis* pt_Basis;
+public:
+    Nocc(Geometr *pt_lat, Basis *pt_Ba);
+    ~Nocc(){}
+
+    void row(ind_int rowID, std::vector<MAP>& rowMaps){};
+    inline void row(ind_int rowID);
+    void genMat();
+    double count(ORBITAL orbital, dataType* vec);
 };
 
 template <class T>
@@ -573,14 +586,12 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     pt_Basis->indToVec(initInd, initVec, initVecp);
     pt_lattice->orbOCC(initVec, initVecp, occ, docc);
     double val = diagVal(occ,docc);
-    cdouble diag_val = 0.0;
     // off diagonal part
     std::vector<ind_int> finalIndList;
     std::vector<cdouble> factorList;
     pt_Basis->genTranslation(rowID, finalIndList, factorList);
     for (int i = 0; i < finalIndList.size(); i++){
         pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
-        if(finalIndList[i]==initInd)diag_val += val*factorList[i];
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
             int matID = (*linkit)->getmatid();
             int matIDp = matID; if ((*linkit)->isOrdered()) matIDp++;
@@ -596,7 +607,7 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
             }
         }
     }
-    diag(rowID,diag_val,&rowMaps[0]);
+    diag(rowID,val,&rowMaps[0]);
 
     /*
         ***********************
@@ -689,6 +700,16 @@ void Hubbard<T>::genMat(){
             pushRow(&rowMap, (*linkit)->getmatid());
         }
     }
+}
+inline void Nocc::row(ind_int rowID){
+    VecI initVec(pt_lattice->getOrbNum()), initVecp(pt_lattice->getOrbNum());
+    // diagonal part. occupancy
+    VecI occ;
+    ind_int initInd = pt_Basis->getRepI(rowID);
+    pt_Basis->indToVec(initInd, initVec, initVecp);
+    pt_lattice->orbOCC(initVec, initVecp, occ);
+    ind_int loc_rowID = rowID - BaseMatrix<T>::startRow;
+    for (int i = 0; i < pt_lattice->getOrbNum(); i++) diagValList[i][loc_rowID] = occ[i];
 }
 /*
     ********************

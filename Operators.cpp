@@ -29,6 +29,22 @@ SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod, int dim):pt_Basis(pt
     * Hamiltonian Class *
     *********************
 */
+Nocc::Nocc(Geometr *pt_lat, Basis *pt_Ba):pt_lattice(pt_lat),pt_Basis(pt_Ba),SparseMatrix<int>(pt_Ba->getSubDim(),0,pt_lat->getUnitOrbNum()){
+    for(int i = 0; i < pt_lat->getUnitOrbNum(); i++) diagValList.resize(BaseMatrix<T>::nloc);
+}
+void Nocc::genMat(){
+    #pragma omp parallel for
+    for(ind_int rowID = BaseMatrix<int>::startRow; rowID < BaseMatrix<int>::endRow; rowID++) row(rowID);
+}
+double Nocc::count(ORBITAL orbital, dataType* vec){
+    int id = pt_lattice->getOrbID(orbital);
+    double sum = 0.0;
+    #pragma omp parallel for reduction(+:sum)
+    for(int_int i = 0; i < BaseMatrix<int>::nloc; i++){
+        sum += diagValList[id][i]*(std::real(vec[i])*std::real(vec[i])+std::imag(vec[i])*std::imag(vec[i]));
+    }
+    return sum;
+}
 // void Hubbard::genMat(){
 //     int kIndex = pt_Basis->getkIndex();
 //     clear();
