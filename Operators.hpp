@@ -349,12 +349,12 @@ public:
     ~Heisenberg(){};
 
     Heisenberg& pushLink(Link<T>& link, int matID = 0){
-        if(matID==0) {assert(link.isConst()); Links.push_back(&link); link.setid(linkCount,matID); linkCount++; SparseMatrix<T>::parameters.at(matID) = 1.0;}
-        else {assert(!link.isConst()); Links.push_back(&link);link.setid(linkCount,matID); linkCount++; SparseMatrix<T>::parameters.at(matID) = 1.0;}
+        if(matID==0) {assert(link.isConst()); Links.push_back(&link); link.setid(linkCount,matID); linkCount++;}
+        else {assert(!link.isConst()); Links.push_back(&link);link.setid(linkCount,matID); linkCount++;}
         link.genLinkMaps(pt_lattice); 
         return *this;
     }
-    Heisenberg& pushLinks(std::vector<Link<T>> Links){
+    Heisenberg& pushLinks(std::vector<Link<T>> &Links){
         assert(spmCount<SparseMatrix<T>::spmNum);
         for (int i = 0; i < Links.size(); i++) pushLink(Links[i], spmCount);
         spmCount++;
@@ -385,12 +385,12 @@ public:
     ~Hubbard(){};
 
     Hubbard& pushLink(Link<T>& link, int matID){
-        if(matID==0) {assert(link.isConst()); Links.push_back(&link); link.setid(linkCount,matID); linkCount++; SparseMatrix<T>::parameters.at(matID) = 1.0;}
-        else {assert(!link.isConst()); Links.push_back(&link);link.setid(linkCount,matID); linkCount++; SparseMatrix<T>::parameters.at(matID) = 1.0;}
+        if(matID==0) {assert(link.isConst()); Links.push_back(&link); link.setid(linkCount,matID); linkCount++;}
+        else {assert(!link.isConst()); Links.push_back(&link);link.setid(linkCount,matID); linkCount++;}
         link.genLinkMaps(pt_lattice); 
         return *this;
     }
-    Hubbard& pushLinks(std::vector<Link<T>> Links){
+    Hubbard& pushLinks(std::vector<Link<T>>& Links){
         assert(spmCount<SparseMatrix<T>::spmNum);
         for (int i = 0; i < Links.size(); i++) pushLink(Links[i], spmCount);
         if (Links.at(0).isOrdered()) spmCount += 2;
@@ -592,7 +592,8 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
             int matID = (*linkit)->getmatid();
-            int matIDp = matID; if ((*linkit)->isOrdered()) matIDp++;
+            int matIDp = matID; 
+            if ((*linkit)->isOrdered()) matIDp++;
             cdouble factor = factorList.at(i) * (*linkit)->getVal();
             for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
                 int siteI = (*bondit).at(0);
