@@ -66,7 +66,7 @@ public:
     int getLinkVecNum() const {return LinkVecs.size();}
     // is this a const link or time dependent link
     bool isConst() const {return is_Const;}
-    bool isOrderd() const {return is_Ordered;}
+    bool isOrdered() const {return is_Ordered;}
     // begin/end iterator for LinkList
     std::vector<VecI>::iterator begin() {return LinkList.begin();}
     std::vector<VecI>::iterator end() {return LinkList.end();}
@@ -381,12 +381,10 @@ private:
     Geometry *pt_lattice;
 public:
     Hubbard(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):V(pt_lat->getUnitOrbNum()), U(pt_lat->getUnitOrbNum()),\
-        FermionOperator(pt_Ba),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){
-            for (int i = 0; i < pt_lat->getUnitOrbNum(); i++) occLists.at(i).resize(BaseMatrix<T>::nloc);
-        }
+        FermionOperator(pt_Ba),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Hubbard(){};
 
-    Hubbard& pushLink(Link<T>& link){
+    Hubbard& pushLink(Link<T>& link, int matID){
         if(matID==0) {assert(link.isConst()); Links.push_back(&link); link.setid(linkCount,matID); linkCount++; SparseMatrix<T>::parameters.at(matID) = 1.0;}
         else {assert(!link.isConst()); Links.push_back(&link);link.setid(linkCount,matID); linkCount++; SparseMatrix<T>::parameters.at(matID) = 1.0;}
         link.genLinkMaps(pt_lattice); 
