@@ -35,26 +35,21 @@ private:
     std::vector<double> U;
 public:
     TimeEvolver(){};
-    TimeEvolver(cdouble* initVec, BaseMatrix<dataType> *M, int krydim):LANCZOSIterator<T>(M, krydim, ALPHA_BETA_Q){
-        vec = initVec;
-        tmp1.resize(krydim);
-        tmp2.resize(krydim);
-        U.resize(krydim*krydim);
-    };
+    TimeEvolver(cdouble* initVec, BaseMatrix<dataType> *M, int krydim):LANCZOSIterator<T>(M,krydim,ALPHA_BETA_Q),vec(initVec),tmp1(krydim),tmp2(krydim),U(krydim*krydim){};
     ~TimeEvolver(){};
-
     // time evolve one step
-    void runStep(double expFac);
+    void evolve(double expFac);
 };
 
 template <class T>
-void TimeEvolver<T>::runStep(double expFac){
+void TimeEvolver<T>::evolve(double expFac){
     LANCZOSIterator<T>::run(vec);
     // Tri = Z*Diag*Z^
     diagTri(&(LANCZOSIterator<T>::alpha), &(LANCZOSIterator<T>::beta), &U);
     #pragma omp parallel for
     for (int i = 0; i < LANCZOSIterator<T>::krylovDim; i++){
         tmp1[i] = std::exp(CPLX_I*expFac*LANCZOSIterator<T>::alpha.at(i))*U[i*LANCZOSIterator<T>::krylovDim];
+        tmp2[i] = 0.0;
     } 
     #pragma omp parallel for
     for (int i = 0; i < LANCZOSIterator<T>::krylovDim; i++){
