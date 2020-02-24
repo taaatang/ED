@@ -395,7 +395,7 @@ public:
         for (int i = 0; i < Links.size(); i++) pushLink(Links[i], spmCount);
         if (Links.at(0).isOrdered()) spmCount += 2;
         else spmCount++;
-        assert(spmCount<SparseMatrix<T>::spmNum);
+        assert(spmCount<=SparseMatrix<T>::spmNum);
         return *this;
     }
     Hubbard& pushV(std::vector<ORBITAL> orbList, double val){for(auto it=orbList.begin();it!=orbList.end();it++)V.at(pt_lattice->getOrbID(*it))=val;return *this;}
