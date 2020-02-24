@@ -67,7 +67,7 @@ int main(int argc, const char * argv[]){
         **********************
     */
     timer.tik();
-    Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
+    Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex);
     B.gen();
     timer.tok();
     fullDim = B.getTotDim(); totDim += B.getSubDim();
@@ -102,7 +102,7 @@ int main(int argc, const char * argv[]){
     Link<dataType> tpzpyp(LINK_TYPE::HOPPING_T, {ORBITAL::Pzd, ORBITAL::Py}, tppz_val, NotConst, isOrdered); tpzpxp.addLinkVec({0.0,-0.5,0.5});
 
     timer.tik();
-    Hubbard<dataType> H(&Lattice, &B, 1);
+    Hubbard<dataType> H(&Lattice, &B, 3);
     H.pushLinks({tdpx,tdpy,tpxd,tpxpy,tpxpyp,tpyd});
     H.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
     H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp).pushV({ORBITAL::Pzu, ORBITAL::Pzd},Vpz);
