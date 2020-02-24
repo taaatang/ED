@@ -210,6 +210,10 @@ inline void vConjDotv(T1* vconj, T2* v, cdouble* result, ind_int size){
 }
 
 /* MPI all gather */
+inline void vecAllGather(int *vec, int *vec_tot, ind_int nloc) {
+    MPI_Allgather(vec, nloc, MPI_INT, vec_tot, nloc, MPI_INT, MPI_COMM_WORLD);
+}
+
 inline void vecAllGather(double *vec, double *vec_tot, ind_int nloc) {
     MPI_Allgather(vec, nloc, MPI_DOUBLE, vec_tot, nloc, MPI_DOUBLE, MPI_COMM_WORLD);
 }
@@ -219,6 +223,10 @@ inline void vecAllGather(cdouble *vec, cdouble *vec_tot, ind_int nloc) {
 }
 
 /* MPI reduce */
+inline void vecReduce(int *vec_part, int *vec_tot, int nloc, int pidx) {
+    MPI_Reduce(vec_part, vec_tot, nloc, MPI_INT, MPI_SUM, pidx, MPI_COMM_WORLD);
+}
+
 inline void vecReduce(double *vec_part, double *vec_tot, int nloc, int pidx) {
     MPI_Reduce(vec_part, vec_tot, nloc, MPI_DOUBLE, MPI_SUM, pidx, MPI_COMM_WORLD);
 }
