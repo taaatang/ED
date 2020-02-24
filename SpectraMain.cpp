@@ -87,12 +87,12 @@ int main(int argc, const char * argv[]) {
         ****************************
     */
     timer.tik();
-    Link<double> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0);
-    Link<double> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, false);
+    Link<dataType> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0);
+    Link<dataType> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, false);
     J1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
     J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
     Heisenberg<dataType> H(&Lattice, &B, 2);
-    H.pushLink(J1Link).pushLink(J2Link);
+    H.pushLinks({J1Link}).pushLinks({J2Link});
     H.genMatPara();
     timer.tok();
     std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
@@ -107,7 +107,7 @@ for(int J2_num = 0; J2_num<1; J2_num++){
     std::string dataDir = PROJECT_DATA_PATH+"/"+ subDir +"/kSpace/Spectra/J2_"+std::to_string(J2_num);
     if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
     if (workerID==MPI_MASTER) std::cout<<"**********************"<<std::endl<<"Begin J2 = "<<J2<<std::endl<<"*************************"<<std::endl;
-    H.setVal(J2Link,J2);
+    H.setVal(J2Link.getmatid(),J2);
     /*
         *********************************
         * Diagonalization Using PARPACK *

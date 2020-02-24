@@ -66,6 +66,7 @@ public:
     int getLinkVecNum() const {return LinkVecs.size();}
     // is this a const link or time dependent link
     bool isConst() const {return is_Const;}
+    bool isOrderd() const {return is_Ordered;}
     // begin/end iterator for LinkList
     std::vector<VecI>::iterator begin() {return LinkList.begin();}
     std::vector<VecI>::iterator end() {return LinkList.end();}
@@ -341,36 +342,43 @@ private:
     // constant links
     int linkCount;
     int spmCount;
-    std::vector<Link<double>*> Links;
+    std::vector<Link<T>*> Links;
     // non-constant links
-    std::vector<Link<double>*> NCLinks;
+    std::vector<Link<T>*> NCLinks;
     Geometry *pt_lattice;
 public:
     Heisenberg(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):\
         SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Heisenberg(){};
 
-    Heisenberg& pushLink(Link<double>& link){
-        if(link.isConst()) {Links.push_back(&link); link.setid(linkCount,0); linkCount++; SparseMatrix<T>::parameters.at(0) = 1.0; }
-        else {NCLinks.push_back(&link); spmCount++; link.setid(linkCount,spmCount); linkCount++; SparseMatrix<T>::parameters.at(spmCount) = 1.0;}
+    Heisenberg& pushLink(Link<T>& link, int matID = 0){
+        if(matID==0) {assert(link.isConst()); Links.push_back(&link); link.setid(linkCount,matID); linkCount++; SparseMatrix<T>::parameters.at(matID) = 1.0;}
+        else {assert(!link.isConst()); Links.push_back(&link);link.setid(linkCount,matID); linkCount++; SparseMatrix<T>::parameters.at(matID) = 1.0;}
         link.genLinkMaps(pt_lattice); 
         return *this;
     }
+    Heisenberg& pushLinks(std::vector<Link<T>> Links){
+        assert(spmCount<SparseMatrix<T>::spmNum);
+        for (int i = 0; i < Links.size(); i++) pushLink(Links[i], spmCount);
+        spmCount++;
+        assert(spmCount<=SparseMatrix<T>::spmNum);
+        return *this;
+    }
 
-    void setVal(Link<double>& link, double val){link.setVal(val); parameters.at(link.getmatid()) = val;}
+    void setVal(Link<T>& link, double T){link.setVal(val); parameters.at(link.getmatid()) = val;}
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
     void genMat();
 };
 
 template <class T>
-class Hubbard: public FermionOperator, public SparseMatrix<dataType>{
+class Hubbard: public FermionOperator, public SparseMatrix<T>{
 private:
     // constant links
     int linkCount;
     int spmCount;
-    std::vector<Link<double>*> Links;
+    std::vector<Link<T>*> Links;
     // non-constant links
-    std::vector<Link<double>*> NCLinks;
+    std::vector<Link<T>*> NCLinks;
     // V:charge transfer energy on different orbitals. U:onsite repulsion
     VecD V, U;
     Geometry *pt_lattice;
@@ -379,10 +387,18 @@ public:
         FermionOperator(pt_Ba),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Hubbard(){};
 
-    Hubbard& pushLink(Link<double>& link){
-        if(link.isConst()) {Links.push_back(&link); link.setid(linkCount,0); linkCount++; parameters.at(0) = 1.0; }
-        else {NCLinks.push_back(&link); spmCount++; link.setid(linkCount,spmCount); linkCount++; parameters.at(spmCount) = 1.0;}
+    Hubbard& pushLink(Link<T>& link){
+        if(matID==0) {assert(link.isConst()); Links.push_back(&link); link.setid(linkCount,matID); linkCount++; SparseMatrix<T>::parameters.at(matID) = 1.0;}
+        else {assert(!link.isConst()); Links.push_back(&link);link.setid(linkCount,matID); linkCount++; SparseMatrix<T>::parameters.at(matID) = 1.0;}
         link.genLinkMaps(pt_lattice); 
+        return *this;
+    }
+    Hubbard& pushLinks(std::vector<Link<T>> Links){
+        assert(spmCount<SparseMatrix<T>::spmNum);
+        for (int i = 0; i < Links.size(); i++) pushLink(Links[i], spmCount);
+        if (Links.at(0).isOrdered()) spmCount += 2;
+        else spmCount++;
+        assert(spmCount<SparseMatrix<T>::spmNum);
         return *this;
     }
     Hubbard& pushV(std::vector<ORBITAL> orbList, double val){for(auto it=orbList.begin();it!=orbList.end();it++)V.at(pt_lattice->getOrbID(*it))=val;return *this;}
@@ -390,7 +406,7 @@ public:
     void printV() const {std::cout<<"V:"<<std::endl;for(auto it=V.begin();it!=V.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
     void printU() const {std::cout<<"U:"<<std::endl;for(auto it=U.begin();it!=U.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
     double diagVal(VecI occ, VecI docc) const {double val=0.0; for(int i=0;i<pt_lattice->getUnitOrbNum();i++)val += occ.at(i)*V.at(i)+docc.at(i)*U.at(i);return val;}
-    void setVal(Link<double>& link, double val){link.setVal(val); parameters.at(link.getmatid()) = val;}
+    void setVal(int matID, T val){parameters.at(matID) = val;}
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
     void genMat();
 };
@@ -452,38 +468,39 @@ void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         pt_Basis->indToVec(finalIndList[i], initVec);
         cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+            int matID = (*linkit)->getmatid();
             cdouble factor1 = factor * (*linkit)->getVal();
             for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
                 int siteID = (*bondit).at(0);
                 int siteIDp = (*bondit).at(1);
                 // sz.siteID * sz.siteIDp
-                szsz(siteID, siteIDp, factor1, finalIndList[i], initVec, &rowMaps[0]);
+                szsz(siteID, siteIDp, factor1, finalIndList[i], initVec, &rowMaps[matID]);
                 // 1/2 * sm.siteID * sp.siteIDp
-                spsm(siteID, siteIDp, factor1/2.0, finalIndList[i], initVec, &rowMaps[0]);
+                spsm(siteID, siteIDp, factor1/2.0, finalIndList[i], initVec, &rowMaps[matID]);
                 // 1/2 * sp.siteID * sm.siteIDp
-                smsp(siteID, siteIDp, factor1/2.0, finalIndList[i], initVec, &rowMaps[0]);
+                smsp(siteID, siteIDp, factor1/2.0, finalIndList[i], initVec, &rowMaps[matID]);
             }
         }
     }
 
-    for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
-        int matID = (*linkit)->getmatid();
-        for (int i = 0; i < finalIndList.size(); i++){
-            pt_Basis->indToVec(finalIndList[i], initVec);
-            cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
-            factor *= (*linkit)->getVal();
-            for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
-                int siteID = (*bondit).at(0);
-                int siteIDp = (*bondit).at(1);
-                // sz.siteID * sz.siteIDp
-                szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMaps[matID]);
-                // 1/2 * sm.siteID * sp.siteIDp
-                spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
-                // 1/2 * sp.siteID * sm.siteIDp
-                smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
-            }
-        }
-    }
+    // for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
+    //     int matID = (*linkit)->getmatid();
+    //     for (int i = 0; i < finalIndList.size(); i++){
+    //         pt_Basis->indToVec(finalIndList[i], initVec);
+    //         cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
+    //         factor *= (*linkit)->getVal();
+    //         for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+    //             int siteID = (*bondit).at(0);
+    //             int siteIDp = (*bondit).at(1);
+    //             // sz.siteID * sz.siteIDp
+    //             szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMaps[matID]);
+    //             // 1/2 * sm.siteID * sp.siteIDp
+    //             spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
+    //             // 1/2 * sp.siteID * sm.siteIDp
+    //             smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
+    //         }
+    //     }
+    // }
 }
 // generate Hamiltonian in the subspacd labeled by kIndex
 template <class T>
@@ -565,15 +582,17 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
         if(finalIndList[i]==initInd)diag_val += val*factorList[i];
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+            int matID = (*linkit)->getmatid();
+            int matIDp = matID; if ((*linkit)->isOrdered()) matIDp++;
             cdouble factor = factorList.at(i) * (*linkit)->getVal();
             for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
                 int siteI = (*bondit).at(0);
                 int siteJ = (*bondit).at(1);
                 // cp.siteI * cm.siteJ
-                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMaps[0]);
-                cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], initVec, initVecp, &rowMaps[0]);
-                cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMaps[0]);
-                cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], initVec, initVecp, &rowMaps[0]);   
+                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
+                cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], initVec, initVecp, &rowMaps[matIDp]);
+                cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
+                cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], initVec, initVecp, &rowMaps[matIDp]);   
             }
         }
     }
@@ -584,22 +603,22 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         * Time Dependent Part *
         * *********************
     */
-    for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
-        int matID = (*linkit)->getmatid();
-        for (int i = 0; i < finalIndList.size(); i++){
-            pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
-            cdouble factor = factorList.at(i) * (*linkit)->getVal();
-            for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
-                int siteID = (*bondit).at(0);
-                int siteIDp = (*bondit).at(1);
-                // cm.siteID * cp.siteIDp
-                cpcm(SPIN::SPIN_UP, siteID, siteIDp, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
-                cpcm(SPIN::SPIN_UP, siteIDp, siteID, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
-                cpcm(SPIN::SPIN_DOWN, siteID, siteIDp, factor, finalIndList[i], initVec, initVecp, &rowMap[matID]);
-                cpcm(SPIN::SPIN_DOWN, siteIDp, siteID, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]); 
-            }
-        }
-    }
+    // for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
+    //     int matID = (*linkit)->getmatid();
+    //     for (int i = 0; i < finalIndList.size(); i++){
+    //         pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
+    //         cdouble factor = factorList.at(i) * (*linkit)->getVal();
+    //         for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+    //             int siteID = (*bondit).at(0);
+    //             int siteIDp = (*bondit).at(1);
+    //             // cm.siteID * cp.siteIDp
+    //             cpcm(SPIN::SPIN_UP, siteID, siteIDp, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
+    //             cpcm(SPIN::SPIN_UP, siteIDp, siteID, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
+    //             cpcm(SPIN::SPIN_DOWN, siteID, siteIDp, factor, finalIndList[i], initVec, initVecp, &rowMap[matID]);
+    //             cpcm(SPIN::SPIN_DOWN, siteIDp, siteID, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]); 
+    //         }
+    //     }
+    // }
 }
 
 template <class T>

@@ -108,13 +108,13 @@ int main(int argc, const char * argv[]) {
             * HEISENBERG *
             **************
         */
-        Link<double> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0);
-        Link<double> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, false);
+        Link<dataType> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0);
+        Link<dataType> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, false);
         J1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
         J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
         timer.tik();
         Heisenberg<dataType> H(&Lattice, &B, 2);
-        H.pushLink(J1Link).pushLink(J2Link);
+        H.pushLinks({J1Link}).pushLinks({J2Link});
         H.genMatPara(rowPerThread);
         timer.tok();
         /*
@@ -171,7 +171,7 @@ int main(int argc, const char * argv[]) {
             std::string dataDir = dataDirP+"/eigs/J2_"+std::to_string(J2_num);
             if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
             // set J2 parameter
-            H.setVal(J2Link,J2);
+            H.setVal(J2Link.getmatid(),J2);
             MPI_Barrier(MPI_COMM_WORLD);
         /*
             *********************************
