@@ -48,7 +48,7 @@ SpectraMain.o:SpectraMain.cpp
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) -c SpectraMain.cpp
 
 timeTest.o:timeTest.cpp
-	$(CXX) $(CXXFLAGS) -c timeTest.cpp
+	$(CXX) $(CXXFLAGS) $(ARPACKHD) -c timeTest.cpp
 
 #globalClass.o:globalClass.cpp
 #	$(CXX) $(CXXFLAGS) -c globalClass.cpp
