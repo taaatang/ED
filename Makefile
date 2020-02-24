@@ -33,8 +33,8 @@ kGroundState.out:kGroundStateMain.o Geometry.o Basis.o Operators.o utils.o
 Spectra.out:SpectraMain.o Geometry.o Basis.o Operators.o utils.o
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) -lparpack SpectraMain.o Geometry.o Basis.o Operators.o utils.o -o Spectra.out
 
-timeTest.out:timeTest.o algebra.o utils.o
-	$(CXX) $(CXXFLAGS) timeTest.o algebra.o utils.o -o timeTest.out $(MKLLINK)
+timeTest.out:timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o
+	$(CXX) $(CXXFLAGS) timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o -o timeTest.out $(MKLLINK)
 #main.o:main.cpp
 #	$(CXX) $(CXXFLAGS) $(ARPACKHD) -c main.cpp
 

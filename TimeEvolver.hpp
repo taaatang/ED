@@ -30,13 +30,15 @@
 template <class T>
 class TimeEvolver: public LANCZOSIterator<T>{
 private:
-    cdouble* vec;
+    T* vec;
     std::vector<cdouble> tmp1, tmp2;
     std::vector<double> U;
 public:
     TimeEvolver(){};
-    TimeEvolver(cdouble* initVec, BaseMatrix<dataType> *M, int krydim):LANCZOSIterator<T>(M,krydim,ALPHA_BETA_Q),vec(initVec),tmp1(krydim),tmp2(krydim),U(krydim*krydim){};
+    TimeEvolver(T* initVec, BaseMatrix<dataType> *M, int krydim):LANCZOSIterator<T>(M,krydim,ALPHA_BETA_Q),vec(initVec),tmp1(krydim),tmp2(krydim),U(krydim*krydim){};
     ~TimeEvolver(){};
+
+    T* getVec(){return vec;}
     // time evolve one step
     void evolve(double expFac);
 };

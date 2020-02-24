@@ -116,8 +116,21 @@ int main(int argc, const char * argv[]){
     * Time Evolution *
     ******************
 */
-    int krydim = 25;
-    TimeEvolver<cdouble> evolver(gstate, &H, krydim);
-    test.runStep(expFac);
+    int krydim = 15;
+    double dt = 0.01;
+    int tsteps = 100;
+    double t0 = dt*(tsteps/2);
+    double amp = 0.5, sigma = dt*(tsteps/5), freq = 1.5;
+    TimeEvolver<cdouble> Tevol(gstate, &H, krydim);
+    Nocc occ(&Lattice, &B); occ.genMat();
+    for(int tstep = 0; tstep < tsteps; t++){
+        double t = dt * tstep;
+        double A = GaussPulse(t,amp,sigma,freq);
+        cdouble factor = std::exp(CPLX_I*A);
+        H.setVal(tpxpz.getmatid(),factor);
+        H.setVal(tpxpz.getmatid()+1,std::conj(factor));
+        Tevol.evolve(-dt);
+        if(workerID==MPI_MASTER) std::cout<<"time step: "<<t<<", d orbital occ:"<<occ.count(ORBITAL::Dx2y2,Tevol.getVec())<<std::endl;
+    }
     return 0;
 }
