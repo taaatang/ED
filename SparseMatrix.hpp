@@ -74,10 +74,10 @@ protected:
     std::vector<std::vector<T>> valList;
     std::vector<std::vector<ind_int>> colList, rowInitList;
     std::vector<ind_int> counter; // counter[i] is the current number of non-zero elements of i-th sparse matrix
-    std::vector<T> diagParameters;
-    std::vector<T> parameters;
-    static std::vector<T> vecBuf;
-    static bool is_vecBuf;
+    std::vector<T> diagParameters; // diagParameters[i]*diagValList[i]. parameter for i-th diagonal matrix
+    std::vector<T> parameters; // parameters[i]*valList[i]. parameter for i-th sparse matrix
+    static std::vector<T> vecBuf; // common buffer for matrix vector multiplication
+    static bool is_vecBuf; // common status of the buffer. true means the buffer has been allocated.
 public:
     SparseMatrix(ind_int totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0, MATRIX_PARTITION partition_ = MATRIX_PARTITION::ROW_PARTITION):\
         BaseMatrix<T>(totDim_),partition(partition_),spmNum(spmNum_),dmNum(dmNum_),\
