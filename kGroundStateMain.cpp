@@ -48,8 +48,8 @@ int main(int argc, const char * argv[]) {
     double J1 = 1.0;
     double J2 = 0.0, dJ2 = 0.01;
     // data directory
-    std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
-    // std::string subDir = std::to_string(N);
+    // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
+    std::string subDir = std::to_string(N);
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
 /*
     ********************
