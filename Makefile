@@ -1,11 +1,11 @@
 # -*- Makefile -*-
 
 ### Cori
-# CXX = CC
-# CXXFLAGS = -O3 -DMKL_ILP64 -mkl -Wall -Bdynamic -qopenmp
+CXX = CC
+CXXFLAGS = -O3 -DMKL_ILP64 -mkl -Wall -Bdynamic -qopenmp
 ### Sherlock
-CXX = mpiicpc
-CXXFLAGS = -O3 -std=c++14 -DMKL_ILP64 -mkl -Wall -Bdynamic -qopenmp
+# CXX = mpiicpc
+# CXXFLAGS = -O3 -std=c++14 -DMKL_ILP64 -mkl -Wall -Bdynamic -qopenmp
 
 # MKLLINK = -lpthread -lm -ldl
 MKLLINK = -lpthread -lm -ldl
