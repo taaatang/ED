@@ -139,12 +139,12 @@ int main(int argc, const char * argv[]){
     Nocc occ(&Lattice, &B); 
     occ.genMat();
     for(int tstep = 0; tstep < tsteps; tstep++){
-        t = dt * tstep;
+        t = dt * tstep - t0;
         double A = GaussPulse(t,amp,sigma,freq);
         cdouble factor = std::exp(CPLX_I*A);
         std::cout<<"time step:"<<tstep<<". begin setting H(t)..."<<std::endl;
-        H.setVal(tpxpz.getmatid(),factor);
-        H.setVal(tpxpz.getmatid()+1,std::conj(factor));
+        H.setVal(1,factor);
+        H.setVal(2,std::conj(factor));
         std::cout<<"begin time evolve..."<<std::endl;
         Tevol.evolve(-dt);
         std::cout<<"finish time evolve..."<<std::endl;
