@@ -348,15 +348,16 @@ public:
         SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Heisenberg(){};
 
-    Heisenberg& pushLink(Link<T> link, int matID = 0){
-        if(matID==0) {assert(link.isConst()); Links.push_back(link); link.setid(linkCount,matID); linkCount++;}
-        else {assert(!link.isConst()); Links.push_back(link);link.setid(linkCount,matID); linkCount++;}
-        link.genLinkMaps(pt_lattice); 
+    Heisenberg& pushLink(Link<T> link, int matID){
+        if(matID==0)assert(link.isConst());
+        else assert(!link.isConst());
+        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); 
+        linkCount++;
         return *this;
     }
-    Heisenberg& pushLinks(std::vector<Link<T>> Links){
+    Heisenberg& pushLinks(std::vector<Link<T>> Links_){
         assert(spmCount<SparseMatrix<T>::spmNum);
-        for (int i = 0; i < Links.size(); i++) pushLink(Links[i], spmCount);
+        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], spmCount);
         spmCount++;
         assert(spmCount<=SparseMatrix<T>::spmNum);
         return *this;
@@ -385,15 +386,16 @@ public:
     ~Hubbard(){};
 
     Hubbard& pushLink(Link<T> link, int matID){
-        if(matID==0) {assert(link.isConst()); Links.push_back(link); link.setid(linkCount,matID); linkCount++;}
-        else {assert(!link.isConst()); Links.push_back(link);link.setid(linkCount,matID); linkCount++;}
-        link.genLinkMaps(pt_lattice); 
+        if(matID==0)assert(link.isConst());
+        else assert(!link.isConst());
+        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); 
+        linkCount++;
         return *this;
     }
-    Hubbard& pushLinks(std::vector<Link<T>> Links){
+    Hubbard& pushLinks(std::vector<Link<T>> Links_){
         assert(spmCount<SparseMatrix<T>::spmNum);
-        for (int i = 0; i < Links.size(); i++) pushLink(Links[i], spmCount);
-        if (Links.at(0).isOrdered()) spmCount += 2;
+        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], spmCount);
+        if (Links_.at(0).isOrdered()) spmCount += 2;
         else spmCount++;
         assert(spmCount<=SparseMatrix<T>::spmNum);
         return *this;
