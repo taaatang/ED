@@ -24,7 +24,6 @@
     #include <omp.h>
 #endif
 
-
 int main(int argc, const char * argv[]) {
 /*
     ****************************
