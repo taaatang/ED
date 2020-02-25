@@ -24,7 +24,6 @@
     #include <omp.h>
 #endif
 
-
 int main(int argc, const char * argv[]) {
 /*
     ****************************
@@ -38,7 +37,7 @@ int main(int argc, const char * argv[]) {
     int kIndex = -1; // Gamma Point
     double spin = 0.5;
     int rowPerThread = 1;
-    bool BASIS_IS_SAVED = false;
+    bool BASIS_IS_SAVED = true;
     std::ifstream infile("ground_input.txt");
     infile>>N>>nev;
     // infile>>Nx>>Ny>nev;
