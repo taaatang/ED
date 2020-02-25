@@ -46,6 +46,8 @@ int main(int argc, const char * argv[]) {
     std::ifstream infile("basis_input.txt");
     infile>>N;
     infile.close(); 
+    std::string subDir = "/"+std::to_string(N)
+    // std::string subDir = "/"+std::to_string(Nx)+"by"+std::to_string(Ny)
     int kIndex = 0;
     Timer timer;
     
@@ -55,7 +57,7 @@ int main(int argc, const char * argv[]) {
 
     if (kIndex < N){
         // create data path
-        std::string dataDir = PROJECT_DATA_PATH+"/"+std::to_string(Nx)+"by"+std::to_string(Ny)+"/kSpace/Basis/"+std::to_string(kIndex);
+        std::string dataDir = PROJECT_DATA_PATH+ subDir +"/kSpace/Basis/"+std::to_string(kIndex);
         system(("mkdir -p " + dataDir).c_str());
         std::string basisfile = dataDir + "/basis";
         std::string normfile = dataDir + "/norm";
