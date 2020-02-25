@@ -46,7 +46,7 @@ int main(int argc, const char * argv[]) {
     std::ifstream infile("basis_input.txt");
     infile>>N;
     infile.close(); 
-    std::string subDir = "/"+std::to_string(N)
+    std::string subDir = "/"+std::to_string(N);
     // std::string subDir = "/"+std::to_string(Nx)+"by"+std::to_string(Ny)
     int kIndex = 0;
     Timer timer;
