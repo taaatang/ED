@@ -593,7 +593,7 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
             int matID = (*linkit).getmatid();
             int matIDp = matID; 
-            if ((*linkit)->isOrdered()) matIDp++;
+            if ((*linkit).isOrdered()) matIDp++;
             cdouble factor = factorList.at(i) * (*linkit).getVal();
             for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                 int siteI = (*bondit).at(0);
