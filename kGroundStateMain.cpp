@@ -162,8 +162,8 @@ int main(int argc, const char * argv[]) {
 
         // scan J2
         for (int J2_num = J2Start; J2_num < J2End; J2_num += J2Step){
-            if (workerID==MPI_MASTER) std::cout<<"**********************"<<std::endl<<"Begin J2 = "<<J2<<std::endl<<"*************************"<<std::endl;
             J2 = dJ2 * J2_num;
+            if (workerID==MPI_MASTER) std::cout<<"**********************"<<std::endl<<"Begin J2 = "<<J2<<std::endl<<"*************************"<<std::endl;
             std::ofstream outfile;
             // data directory
             std::string dataDir = dataDirP+"/eigs/J2_"+std::to_string(J2_num);
