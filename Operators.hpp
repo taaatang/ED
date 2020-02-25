@@ -363,7 +363,7 @@ public:
         return *this;
     }
 
-    void setVal(Link<T>& link, double T){link.setVal(val); (SparseMatrix<T>::parameters).at(link.getmatid()) = val;}
+    void setVal(int matID, double val){(SparseMatrix<T>::parameters).at(matID) = val;}
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
     void genMat();
 };
