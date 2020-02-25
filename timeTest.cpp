@@ -137,16 +137,17 @@ int main(int argc, const char * argv[]){
     double amp = 0.5, sigma = dt*(tsteps/5), freq = 1.5;
     TimeEvolver<cdouble> Tevol(gstate, &H, krydim);
     Nocc occ(&Lattice, &B); 
-    std::cout<<"begin gen occ ..."<<std::endl;
     occ.genMat();
-    std::cout<<"before for loop ..."<<std::endl;
     for(int tstep = 0; tstep < tsteps; tstep++){
         t = dt * tstep;
         double A = GaussPulse(t,amp,sigma,freq);
         cdouble factor = std::exp(CPLX_I*A);
+        std::cout<<"time step:"<<tstep<<". begin setting H(t)..."<<std::endl;
         H.setVal(tpxpz.getmatid(),factor);
         H.setVal(tpxpz.getmatid()+1,std::conj(factor));
+        std::cout<<"begin time evolve..."<<std::endl;
         Tevol.evolve(-dt);
+        std::cout<<"finish time evolve..."<<std::endl;
         if(workerID==MPI_MASTER) std::cout<<"time step: "<<t<<", d orbital occ:"<<occ.count(ORBITAL::Dx2y2,Tevol.getVec())<<std::endl;
     }
     return 0;
