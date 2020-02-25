@@ -479,9 +479,9 @@ void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         pt_Basis->indToVec(finalIndList[i], initVec);
         cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
-            int matID = (*linkit)->getmatid();
-            cdouble factor1 = factor * (*linkit)->getVal();
-            for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+            int matID = (*linkit).getmatid();
+            cdouble factor1 = factor * (*linkit).getVal();
+            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                 int siteID = (*bondit).at(0);
                 int siteIDp = (*bondit).at(1);
                 // sz.siteID * sz.siteIDp
@@ -533,8 +533,8 @@ void Heisenberg<T>::genMat(){
             pt_Basis->indToVec(finalIndList[i], initVec);
             cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
-                cdouble factor1 = factor * (*linkit)->getVal();
-                for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                cdouble factor1 = factor * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                     int siteID = (*bondit).at(0);
                     int siteIDp = (*bondit).at(1);
                     // sz.siteID * sz.siteIDp
@@ -553,8 +553,8 @@ void Heisenberg<T>::genMat(){
             for (int i = 0; i < finalIndList.size(); i++){
                 pt_Basis->indToVec(finalIndList[i], initVec);
                 cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(kIndex,i)/pt_lattice->getSiteNum()/initNorm;
-                factor *= (*linkit)->getVal();
-                for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                factor *= (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                     int siteID = (*bondit).at(0);
                     int siteIDp = (*bondit).at(1);
                     // sz.siteID * sz.siteIDp
@@ -591,11 +591,11 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     for (int i = 0; i < finalIndList.size(); i++){
         pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
-            int matID = (*linkit)->getmatid();
+            int matID = (*linkit).getmatid();
             int matIDp = matID; 
             if ((*linkit)->isOrdered()) matIDp++;
-            cdouble factor = factorList.at(i) * (*linkit)->getVal();
-            for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+            cdouble factor = factorList.at(i) * (*linkit).getVal();
+            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                 int siteI = (*bondit).at(0);
                 int siteJ = (*bondit).at(1);
                 // cp.siteI * cm.siteJ
@@ -661,8 +661,8 @@ void Hubbard<T>::genMat(){
             pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
             if(finalIndList[i]==initInd)diag_val += val*factorList[i];
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
-                cdouble factor = factorList.at(i) * (*linkit)->getVal();
-                for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                cdouble factor = factorList.at(i) * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                     int siteI = (*bondit).at(0);
                     int siteJ = (*bondit).at(1);
                     // cp.siteI * cm.siteJ
@@ -685,8 +685,8 @@ void Hubbard<T>::genMat(){
             rowMap.clear();
             for (int i = 0; i < finalIndList.size(); i++){
                 pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
-                cdouble factor = factorList.at(i) * (*linkit)->getVal();
-                for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
+                cdouble factor = factorList.at(i) * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                     int siteID = (*bondit).at(0);
                     int siteIDp = (*bondit).at(1);
                     // cm.siteID * cp.siteIDp
