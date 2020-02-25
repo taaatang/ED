@@ -51,7 +51,7 @@ int main(int argc, const char * argv[]) {
 
     Timer timer;
 
-    bool BASIS_IS_SAVED = false;
+    bool BASIS_IS_SAVED = true;
     // data directory
     // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
     std::string subDir = std::to_string(N);
@@ -98,7 +98,7 @@ int main(int argc, const char * argv[]) {
     std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
             <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
 
-for(int J2_num = 0; J2_num<1; J2_num++){
+for(int J2_num = 0; J2_num<101; J2_num++){
     J2 = dJ2 * J2_num;
     std::ofstream outfile;
     // data directory
@@ -152,7 +152,7 @@ for(int J2_num = 0; J2_num<1; J2_num++){
     **************************************
 */
     if (COMPUTE_SQW){
-        int krylovDim = 250;
+        int krylovDim = 400;
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Sqw ..."<<std::endl<<"********************"<<std::endl;
         for (int kIndexf = 0; kIndexf < Lattice.getSiteNum(); kIndexf++){
             timer.tik();

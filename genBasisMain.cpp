@@ -40,8 +40,12 @@ int main(int argc, const char * argv[]) {
     * Input And Initialization *
     ****************************
 */
-    int Nx = 4, Ny = 4;
-    int N = Nx * Ny;
+    // int Nx = 4, Ny = 4;
+    // int N = Nx * Ny;
+    int N;
+    std::ifstream infile("basis_input.txt");
+    infile>>N;
+    infile.close(); 
     int kIndex = 0;
     Timer timer;
     
@@ -62,7 +66,7 @@ int main(int argc, const char * argv[]) {
         ************************************
     */
         // geometry class
-        TriAngLattice Lattice(Nx,Ny);
+        TriAngLattice Lattice(N);
         Lattice.addOrb({});
         Lattice.construct();
         int siteDim = 2;

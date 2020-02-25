@@ -33,21 +33,22 @@ int main(int argc, const char * argv[]) {
     MPI_Init(NULL, NULL);
     Timer timer;
     a_int nev;
-    int N1, N2, N;
+    int Nx, Ny, N;
     int kIndex = -1; // Gamma Point
     double spin = 0.5;
     int rowPerThread = 1;
     bool BASIS_IS_SAVED = false;
     std::ifstream infile("ground_input.txt");
-    infile>>N1>>N2>>nev;
-    N = N1 * N2;
-    int kStart = 0, kEnd = N;
-    int J2Start = 0, J2End = 101, J2Step = 1;
+    infile>>N>>nev;
+    // infile>>Nx>>Ny>nev;
+    // N = Nx * Ny;
     infile.close();
+    int kStart = 0, kEnd = N;
+    int J2Start = 0, J2End = 101, J2Step = 2;
     double J1 = 1.0;
     double J2 = 0.0, dJ2 = 0.01;
     // data directory
-    std::string subDir = std::to_string(N1) + "by" + std::to_string(N2);
+    std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
     // std::string subDir = std::to_string(N);
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
 /*
@@ -66,11 +67,9 @@ int main(int argc, const char * argv[]) {
     ************************************
 */
     // geometry class
-    TriAngLattice Lattice(N1,N2);
+    TriAngLattice Lattice(N);
     Lattice.addOrb({});
-    // int N1 = 2, N2 = 2;
-    // N = N1 * N2;
-    // SquareLattice Lattice(N1,N2);
+    // SquareLattice Lattice(Nx,Ny);
     // Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
     // Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
     Lattice.construct();

@@ -144,10 +144,11 @@ enum MATRIX_PARTITION {ROW_PARTITION, COL_PARTITION};
 const MATRIX_PARTITION PARTITION = ROW_PARTITION;
 // const MATRIX_PARTITION PARTITION = COL_PARTITION;
 /*
+ (No longer used!)
  Max Matrix Number hold in one sparse matrix object:
  sum.parameter[i]*Mi,i=0...MAX_MATRIX_NUM-1
  */
-const int MAX_MATRIX_NUM = 2;
+// const int MAX_MATRIX_NUM = 2;
 
 /*
     *****************
@@ -157,7 +158,7 @@ const int MAX_MATRIX_NUM = 2;
 // MAX parpack iterations
 const int PARPACK_MAXITERATION = 5000;
 //MIN and MAX ncv
-const int PARPACK_MINNCV = 3;
+const int PARPACK_MINNCV = 15;
 // const int PARPACK_MAXNCV = 500;
 
 /*
