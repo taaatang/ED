@@ -63,11 +63,13 @@ int main(int argc, const char * argv[]) {
     */
         // geometry class
         TriAngLattice Lattice(Nx,Ny);
+        Lattice.addOrb({});
+        Lattice.construct();
         int siteDim = 2;
         VecI occList{N/2, N/2};
     
         timer.tik();
-        Basis B(MODEL, &Lattice, occList, kIndex);
+        Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
         B.gen();
         timer.tok();
         std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
