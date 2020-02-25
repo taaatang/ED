@@ -43,6 +43,7 @@ public:
     void evolve(double expFac);
 };
 
+// vec = exp(i*expFac*H)*vec
 template <class T>
 void TimeEvolver<T>::evolve(double expFac){
     LANCZOSIterator<T>::run(vec);
