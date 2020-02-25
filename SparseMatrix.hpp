@@ -82,7 +82,7 @@ public:
     SparseMatrix(ind_int totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0, MATRIX_PARTITION partition_ = MATRIX_PARTITION::ROW_PARTITION):\
         BaseMatrix<T>(totDim_),partition(partition_),spmNum(spmNum_),dmNum(dmNum_),parameters(spmNum,1.0),diagParameters(dmNum,1.0),\
         counter(spmNum_,0),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),diagValList(dmNum_){
-            for(int i = 0; i < dmNum; i++) diagValList[i].resize(get_nloc());
+            for(int i = 0; i < dmNum; i++) diagValList[i].resize(BaseMatrix<T>::nloc);
             // initialize is_vecBuf status
             switch(partition){
                 case MATRIX_PARTITION::ROW_PARTITION:
