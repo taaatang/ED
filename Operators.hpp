@@ -339,22 +339,22 @@ private:
     // constant links
     int linkCount;
     int spmCount;
-    std::vector<Link<T>*> Links;
+    std::vector<Link<T>> Links;
     // non-constant links
-    std::vector<Link<T>*> NCLinks;
+    std::vector<Link<T>> NCLinks;
     Geometry *pt_lattice;
 public:
     Heisenberg(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):\
         SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Heisenberg(){};
 
-    Heisenberg& pushLink(Link<T>& link, int matID = 0){
-        if(matID==0) {assert(link.isConst()); Links.push_back(&link); link.setid(linkCount,matID); linkCount++;}
-        else {assert(!link.isConst()); Links.push_back(&link);link.setid(linkCount,matID); linkCount++;}
+    Heisenberg& pushLink(Link<T> link, int matID = 0){
+        if(matID==0) {assert(link.isConst()); Links.push_back(link); link.setid(linkCount,matID); linkCount++;}
+        else {assert(!link.isConst()); Links.push_back(link);link.setid(linkCount,matID); linkCount++;}
         link.genLinkMaps(pt_lattice); 
         return *this;
     }
-    Heisenberg& pushLinks(std::vector<Link<T>> &Links){
+    Heisenberg& pushLinks(std::vector<Link<T>> Links){
         assert(spmCount<SparseMatrix<T>::spmNum);
         for (int i = 0; i < Links.size(); i++) pushLink(Links[i], spmCount);
         spmCount++;
@@ -362,7 +362,7 @@ public:
         return *this;
     }
 
-    void setVal(Link<T>& link, double T){link.setVal(val); parameters.at(link.getmatid()) = val;}
+    void setVal(Link<T>& link, double T){link.setVal(val); (SparseMatrix<T>::parameters).at(link.getmatid()) = val;}
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
     void genMat();
 };
@@ -373,9 +373,9 @@ private:
     // constant links
     int linkCount;
     int spmCount;
-    std::vector<Link<T>*> Links;
+    std::vector<Link<T>> Links;
     // non-constant links
-    std::vector<Link<T>*> NCLinks;
+    std::vector<Link<T>> NCLinks;
     // V:charge transfer energy on different orbitals. U:onsite repulsion
     VecD V, U;
     Geometry *pt_lattice;
@@ -384,13 +384,13 @@ public:
         FermionOperator(pt_Ba),SparseMatrix<dataType>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Hubbard(){};
 
-    Hubbard& pushLink(Link<T>& link, int matID){
-        if(matID==0) {assert(link.isConst()); Links.push_back(&link); link.setid(linkCount,matID); linkCount++;}
-        else {assert(!link.isConst()); Links.push_back(&link);link.setid(linkCount,matID); linkCount++;}
+    Hubbard& pushLink(Link<T> link, int matID){
+        if(matID==0) {assert(link.isConst()); Links.push_back(link); link.setid(linkCount,matID); linkCount++;}
+        else {assert(!link.isConst()); Links.push_back(link);link.setid(linkCount,matID); linkCount++;}
         link.genLinkMaps(pt_lattice); 
         return *this;
     }
-    Hubbard& pushLinks(std::vector<Link<T>>& Links){
+    Hubbard& pushLinks(std::vector<Link<T>> Links){
         assert(spmCount<SparseMatrix<T>::spmNum);
         for (int i = 0; i < Links.size(); i++) pushLink(Links[i], spmCount);
         if (Links.at(0).isOrdered()) spmCount += 2;
@@ -403,7 +403,7 @@ public:
     void printV() const {std::cout<<"V:"<<std::endl;for(auto it=V.begin();it!=V.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
     void printU() const {std::cout<<"U:"<<std::endl;for(auto it=U.begin();it!=U.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
     double diagVal(VecI occ, VecI docc) const {double val=0.0; for(int i=0;i<pt_lattice->getUnitOrbNum();i++)val += occ.at(i)*V.at(i)+docc.at(i)*U.at(i);return val;}
-    void setVal(int matID, T val){parameters.at(matID) = val;}
+    void setVal(int matID, T val){(SparseMatrix<T>::parameters).at(matID) = val;}
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
     void genMat();
 };
