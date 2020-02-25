@@ -710,7 +710,7 @@ inline void Nocc::row(ind_int rowID){
     pt_Basis->indToVec(initInd, initVec, initVecp);
     pt_lattice->orbOCC(initVec, initVecp, occ);
     ind_int loc_rowID = rowID - BaseMatrix<int>::startRow;
-    for (int i = 0; i < pt_lattice->getOrbNum(); i++) diagValList[i][loc_rowID] = occ[i];
+    for (int i = 0; i < pt_lattice->getOrbNum(); i++) {std::cout<<"diagValList size:"<<diagValList[i].size()<<std::endl;diagValList[i][loc_rowID] = occ[i];}
 }
 /*
     ********************
