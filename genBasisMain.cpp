@@ -72,7 +72,7 @@ int main(int argc, const char * argv[]) {
         Lattice.addOrb({});
         Lattice.construct();
         int siteDim = 2;
-        VecI occList{N/2, N/2};
+        VecI occList{N/2, N - N/2};
     
         timer.tik();
         Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
