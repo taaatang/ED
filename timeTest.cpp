@@ -136,7 +136,10 @@ int main(int argc, const char * argv[]){
     double t, t0=dt*(tsteps/2);
     double amp = 0.5, sigma = dt*(tsteps/5), freq = 1.5;
     TimeEvolver<cdouble> Tevol(gstate, &H, krydim);
-    Nocc occ(&Lattice, &B); occ.genMat();
+    Nocc occ(&Lattice, &B); 
+    std::cout<<"begin gen occ ..."<<std::endl;
+    occ.genMat();
+    std::cout<<"before for loop ..."<<std::endl;
     for(int tstep = 0; tstep < tsteps; tstep++){
         t = dt * tstep;
         double A = GaussPulse(t,amp,sigma,freq);
