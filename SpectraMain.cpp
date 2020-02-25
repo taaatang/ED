@@ -169,9 +169,9 @@ for(int J2_num = 0; J2_num<1; J2_num++){
             SzkOp<dataType> Szq(&Lattice, &B, &Bp);
             Szq.genMatPara();
             Heisenberg<dataType> Hp(&Lattice, &Bp, 2);
-            Hp.pushLink(J1Link).pushLink(J2Link);
+            Hp.pushLinks({J1Link}).pushLinks({J2Link});
             Hp.genMatPara();
-            Hp.setVal(J2Link, J2);
+            Hp.setVal(1, J2);
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
