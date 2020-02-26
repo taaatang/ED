@@ -66,6 +66,7 @@ protected:
     int Norb_enlg; // Number of orbitals in the enlarged Lattice (Used for mapping Site interacting with boundary Site back to Lattice).
     bool is_PBC; // Boundary condition
     std::vector<std::vector<int>> TransList; // Nsite*Norb. TransList[r][orbid] is the orbid' obtained by translating orbid by a vector r.
+    PointGroup PG;
     std::vector<std::vector<int>> PointGroupList; 
     std::vector<std::vector<cdouble>> CharacterList;
     
