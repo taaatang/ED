@@ -15,6 +15,6 @@ for i in 11
      cd ${dir}
      rm -rf job.out
      rm -rf job.err
-     sbatch run.sh
+     sbatch ${script}
      cd ../../
     done
