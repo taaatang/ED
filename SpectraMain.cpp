@@ -75,7 +75,7 @@ int main(int argc, const char * argv[]) {
     int siteDim = 2;
     VecI occList{N/2, N-N/2};
     Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
-    std::cout<<"begin construc basis..."<<std::endl;
+    if (workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
     if (BASIS_IS_SAVED) B.gen(basisfile, normfile);
     else B.gen();
     timer.tok();
