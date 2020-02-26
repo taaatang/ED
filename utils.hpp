@@ -276,7 +276,7 @@ inline void read(T *d_pt, int size, std::ifstream *f_pt, std::string filename){
     if (f_pt->is_open()){
         f_pt->read(reinterpret_cast<char*>(d_pt), size * sizeof(T));
         f_pt->close();
-        std::cout<<"Data loaded from "<<filename<<std::endl;
+        // std::cout<<"Data loaded from "<<filename<<std::endl;
     }else{
         std::cout<<filename<<" failed to open!"<<std::endl;
         exit(1);
@@ -289,7 +289,7 @@ inline void read(T *d_pt, ind_int size, std::ifstream *f_pt, std::string filenam
     if (f_pt->is_open()){
         f_pt->read(reinterpret_cast<char*>(d_pt), size * sizeof(T));
         f_pt->close();
-        std::cout<<"Data loaded from "<<filename<<std::endl;
+        // std::cout<<"Data loaded from "<<filename<<std::endl;
     }else{
         std::cout<<filename<<" failed to open!"<<std::endl;
         exit(1);
@@ -308,7 +308,7 @@ inline void read(std::vector<T> *d_pt, std::string filename){
         d_pt->resize(size/sizeof(T));
         infile.read(reinterpret_cast<char*>(d_pt->data()), size);
         infile.close();
-        std::cout<<"Data loaded from "<<filename<<std::endl;
+        // std::cout<<"Data loaded from "<<filename<<std::endl;
     }else{
         std::cout<<filename<<" failed to open!"<<std::endl;
         exit(1);
