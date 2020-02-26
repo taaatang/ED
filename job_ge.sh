@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+env=env.sh
+# set environment
+cwd=$(pwd)
+cd ~
+source ./${env}
+cd ${cwd}
+
 N1=3
 keyword=N2
 app=Spectra.out
