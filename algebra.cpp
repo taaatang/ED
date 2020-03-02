@@ -36,9 +36,5 @@ void MKL::create(sparse_matrix_t A, ind_int dim, std::vector<MKL_INT>& rowInitLi
 void MKL::destroy(sparse_matrix_t A){mkl_sparse_destroy(A);}
 
 void MKL::MxV(sparse_matrix_t A, MKL_Complex16* vin, MKL_Complex16* vout, MKL_Complex16 alpha, MKL_Complex16 beta){
-    struct matrix_descr descrA;
-    descrA.type = SPARSE_MATRIX_TYPE_GENERAL;
-    descrA.mode = SPARSE_FILL_MODE_LOWER;
-    descrA.diag = SPARSE_DIAG_UNIT;
     mkl_sparse_z_mv(SPARSE_OPERATION_NON_TRANSPOSE, alpha, A, MKL::descrA, vin, beta, vout);
 }
