@@ -24,11 +24,6 @@
 /*
     LARPACK eigen solver for a real symmetric tridiagonal matrix
 */
-struct matrix_descr descrA;
-descrA.type = SPARSE_MATRIX_TYPE_GENERAL;
-descrA.mode = SPARSE_FILL_MODE_LOWER;
-descrA.diag = SPARSE_DIAG_UNIT;
-
 namespace MKL{
     void diagTri(std::vector<double>* a, std::vector<double>* b, std::vector<double>* U);
 
