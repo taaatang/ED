@@ -28,10 +28,10 @@ genBasis.out:genBasisMain.o Geometry.o Basis.o utils.o
 	$(CXX) $(CXXFLAGS) $(LIBRARY) genBasisMain.o Geometry.o Basis.o utils.o -o genBasis.out
     
 kGroundState.out:kGroundStateMain.o Geometry.o Basis.o Operators.o utils.o
-	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) -lparpack kGroundStateMain.o Geometry.o Basis.o Operators.o utils.o -o kGroundState.out
+	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) -lparpack kGroundStateMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o kGroundState.out
 
 Spectra.out:SpectraMain.o Geometry.o Basis.o Operators.o utils.o
-	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) -lparpack SpectraMain.o Geometry.o Basis.o Operators.o utils.o -o Spectra.out
+	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) -lparpack SpectraMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o Spectra.out
 
 timeTest.out:timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) -lparpack timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o -o timeTest.out $(MKLLINK)
