@@ -709,8 +709,8 @@ inline void Nocc::row(ind_int rowID){
     ind_int initInd = pt_Basis->getRepI(rowID);
     pt_Basis->indToVec(initInd, initVec, initVecp);
     pt_lattice->orbOCC(initVec, initVecp, occ);
-    ind_int loc_rowID = rowID - BaseMatrix<int>::startRow;
-    for (int i = 0; i < pt_lattice->getUnitOrbNum(); i++) {SparseMatrix<int>::diagValList[i][loc_rowID] = occ[i];}
+    ind_int loc_rowID = rowID - BaseMatrix<cdouble>::startRow;
+    for (int i = 0; i < pt_lattice->getUnitOrbNum(); i++) {SparseMatrix<cdouble>::diagValList[i][loc_rowID] = occ[i];}
 }
 /*
     ********************
