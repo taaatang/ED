@@ -28,7 +28,7 @@
     * Hamiltonian Model Type *
     **************************
 */
-enum PointGroup {NONE,D6, C6, D4, C4, D3, C3}
+enum PointGroup {NONE,D6, C6, D4, C4, D3, C3};
 enum ORBITAL {SINGLE, Dx2y2, Px, Py, Pzu, Pzd, TypeA, TypeB};
 enum LATTICE_MODEL {HUBBARD,t_J,HEISENBERG};
 enum LINK_TYPE {SUPER_EXCHANGE_J, CHIRAL_K, HOPPING_T, CHARGE_TRANSFER_V, HUBBARD_U};
