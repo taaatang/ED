@@ -29,19 +29,19 @@ SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod, int dim):pt_Basis(pt
     * Hamiltonian Class *
     *********************
 */
-Nocc::Nocc(Geometry *pt_lat, Basis *pt_Ba):pt_lattice(pt_lat),pt_Basis(pt_Ba),SparseMatrix<int>(pt_Ba->getSubDim(),0,pt_lat->getUnitOrbNum()){
-    for(int i = 0; i < pt_lat->getUnitOrbNum(); i++) diagValList.resize(BaseMatrix<int>::nloc);
+Nocc::Nocc(Geometry *pt_lat, Basis *pt_Ba):pt_lattice(pt_lat),pt_Basis(pt_Ba),SparseMatrix<cdouble>(pt_Ba->getSubDim(),0,pt_lat->getUnitOrbNum()){
+    for(int i = 0; i < pt_lat->getUnitOrbNum(); i++) diagValList.resize(BaseMatrix<cdouble>::nloc);
 }
 void Nocc::genMat(){
     #pragma omp parallel for
-    for(ind_int rowID = BaseMatrix<int>::startRow; rowID < BaseMatrix<int>::endRow; rowID++) row(rowID);
+    for(ind_int rowID = BaseMatrix<cdouble>::startRow; rowID < BaseMatrix<cdouble>::endRow; rowID++) row(rowID);
 }
 double Nocc::count(ORBITAL orbital, dataType* vec){
     int id = pt_lattice->getOrbID(orbital);
     double sum = 0.0, part_sum = 0.0;
     #pragma omp parallel for reduction(+:part_sum)
-    for(ind_int i = 0; i < BaseMatrix<int>::nloc; i++){
-        part_sum += diagValList[id][i]*(std::real(vec[i])*std::real(vec[i])+std::imag(vec[i])*std::imag(vec[i]));
+    for(ind_int i = 0; i < BaseMatrix<cdouble>::nloc; i++){
+        part_sum += std::real(diagValList[id][i])*(std::real(vec[i])*std::real(vec[i])+std::imag(vec[i])*std::imag(vec[i]));
     }
     MPI_Allreduce(&part_sum, &sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     return sum;

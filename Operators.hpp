@@ -410,7 +410,7 @@ public:
     void genMat();
 };
 
-class Nocc: public SparseMatrix<int>{
+class Nocc: public SparseMatrix<cdouble>{
 private:
     Geometry* pt_lattice;
     Basis* pt_Basis;
