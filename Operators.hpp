@@ -636,12 +636,12 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
 template <class T>
 void Hubbard<T>::genMat(){
     int kIndex = pt_Basis->getkIndex();
-    clear();
+    SparseMatrix<T>::clear();
     MAP rowMap;
     // initialize rowInitList
-    for (int i = 0; i < spmNum; i++) pushRow(&rowMap,i);
+    for (int i = 0; i < spmNum; i++) SparseMatrix<T>::pushRow(&rowMap,i);
     VecI initVec(pt_lattice->getOrbNum()), initVecp(pt_lattice->getOrbNum());
-    for (ind_int rowID = startRow; rowID < endRow; rowID++){
+    for (ind_int rowID = BaseMatrix<T>::startRow; rowID < BaseMatrix<T>::endRow; rowID++){
         /*
             *****************
             * Constant Part *
@@ -676,7 +676,7 @@ void Hubbard<T>::genMat(){
             }
         }
         diag(rowID,diag_val,&rowMap);
-        pushRow(&rowMap);
+        SparseMatrix<T>::pushRow(&rowMap);
 
         /*
             ***********************
@@ -698,7 +698,7 @@ void Hubbard<T>::genMat(){
                     cpcm(SPIN::SPIN_DOWN, siteIDp, siteID, factor, finalIndList[i], initVec, initVecp, &rowMap); 
                 }
             }
-            pushRow(&rowMap, (*linkit)->getmatid());
+            SparseMatrix<T>::pushRow(&rowMap, (*linkit).getmatid());
         }
     }
 }
