@@ -9,6 +9,7 @@
 #define SparseMatrix_hpp
 
 #include "globalPara.hpp"
+#include "algebra.hpp"
 #include "utils.hpp"
 #include "mpi.h"
 #ifdef OMP_
@@ -78,27 +79,18 @@ protected:
     std::vector<T> parameters; // parameters[i]*valList[i]. parameter for i-th sparse matrix
     static std::vector<T> vecBuf; // common buffer for matrix vector multiplication
     static bool is_vecBuf; // common status of the buffer. true means the buffer has been allocated.
+#ifdef _MKL_
+    std::vector<sparse_matrix_t> A;
+#endif
 public:
-    SparseMatrix(ind_int totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0, MATRIX_PARTITION partition_ = MATRIX_PARTITION::ROW_PARTITION):\
-        BaseMatrix<T>(totDim_),partition(partition_),spmNum(spmNum_),dmNum(dmNum_),parameters(spmNum,1.0),diagParameters(dmNum,1.0),\
-        counter(spmNum_,0),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),diagValList(dmNum_){
-            for(int i = 0; i < dmNum; i++) diagValList[i].resize(BaseMatrix<T>::nloc);
-            // initialize is_vecBuf status
-            switch(partition){
-                case MATRIX_PARTITION::ROW_PARTITION:
-                    if (vecBuf.size() != BaseMatrix<T>::ntot) is_vecBuf = false;
-                    break;
-                case MATRIX_PARTITION::COL_PARTITION:
-                    if (vecBuf.size() != BaseMatrix<T>::nlocmax) is_vecBuf = false;
-                    break;
-                default:break;
-            }
-            // for(int i = 0; i < spmNum; i++) rowInitList.at(i).push_back(0);
-        };
-    ~SparseMatrix(){};
+    SparseMatrix(ind_int totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0, MATRIX_PARTITION partition_ = MATRIX_PARTITION::ROW_PARTITION);
+    ~SparseMatrix(){
+#ifdef _MKL_
+        for(int i = 0; i < spmNum; i++) MKL::destroy(A.at(i));
+#endif
+    };
 
-    ind_int nzCount() const {ind_int count=0; for(int i=0;i<spmNum;i++)count+=valList.at(i).size(); return count;}
-    
+    ind_int nzCount() const {ind_int count=0; for(int i=0;i<spmNum;i++)count+=valList.at(i).size(); return count;}    
     void reserveDiag(){for(int i = 0; i < dmNum; i++) diagValList.reserve(get_nloc());}
     void reserve(ind_int sizePerRow, int matID=0) {
         valList.at(matID).reserve(sizePerRow * BaseMatrix<T>::nloc); 
@@ -163,6 +155,31 @@ bool SparseMatrix<T>::is_vecBuf = false;
     *****************************
 */
 /*
+    Constructor
+*/
+template <class T>
+SparseMatrix::SparseMatrix(ind_int totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0, MATRIX_PARTITION partition_ = MATRIX_PARTITION::ROW_PARTITION):\
+    BaseMatrix<T>(totDim_),partition(partition_),spmNum(spmNum_),dmNum(dmNum_),parameters(spmNum,1.0),diagParameters(dmNum,1.0),\
+    counter(spmNum_,0),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),diagValList(dmNum_){
+    for(int i = 0; i < dmNum; i++) diagValList[i].resize(BaseMatrix<T>::nloc);
+    // initialize is_vecBuf status
+    switch(partition){
+        case MATRIX_PARTITION::ROW_PARTITION:
+            if (vecBuf.size() != BaseMatrix<T>::ntot) is_vecBuf = false;
+            break;
+        case MATRIX_PARTITION::COL_PARTITION:
+            if (vecBuf.size() != BaseMatrix<T>::nlocmax) is_vecBuf = false;
+            break;
+        default:break;
+    }
+        // for(int i = 0; i < spmNum; i++) rowInitList.at(i).push_back(0);
+#ifdef _MKL_
+    A.resize(spmNum);
+#endif
+}
+
+
+/*
  Version 2. M = a1*M1 + a2*M2 + ...
  */
 template <class T>
@@ -189,6 +206,9 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
                 }
             }
             // off-diagonal part
+        #ifdef _MKL_
+            for (int i = 0; i < spmNum; i++){MKL::MxV(A.at(i),vecIn,vecOut,parameters.at(i));}
+        #else
             if (spmNum>0){
                 // constant sparse matrix
                 if (!valList.at(0).empty()){
@@ -211,6 +231,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
                     }
                 }
             }
+        #endif
             break;
         }
         // column partition need modification !!! 
@@ -344,5 +365,8 @@ void SparseMatrix<T>::genMatPara(int rowPerThread){
             }
         }
     }
+#ifdef _MKL_
+    for (int i = 0; i < spmNum; i++) MKL::create(A.at(i), BaseMatrix<T>::dim, rowInitList.at(i), colList.at(i), valList.at(i));
+#endif
 }
 #endif

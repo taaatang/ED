@@ -8,11 +8,33 @@
 
 #include "algebra.hpp"
 
-void diagTri(std::vector<double>* a, std::vector<double>* b, std::vector<double>* U){
+/*
+    MKL diagonalize a tridiagonal matrix.
+    input: 
+        a: diagonal elemants
+        b: subdiagonal elements
+    output: 
+        a: eigenvalues
+        U(COL_MAJOR): eigen vectors
+*/
+void MKL::diagTri(std::vector<double>* a, std::vector<double>* b, std::vector<double>* U){
     // std::cout<<"alpha size:"<<a->size()<<", beta size:"<<b->size()<<std::endl;
     int dim = a->size();
     assert(b->size()>=(dim-1));
     assert(U->size()>=(dim*dim));
     // double symmetric triangular eigen divide and conquer algorithm
     LAPACKE_dstedc(LAPACK_COL_MAJOR, 'I', dim, a->data(), b->data(), U->data(), dim);
+}
+
+void MKL::create(sparse_matrix_t A, ind_int dim, std::vector<MKL_INT>& rowInitList, std::vector<MKL_INT>& colList, std::vector<MKL_Complex16>& valList, MKL_INT mvNum){
+    mkl_sparse_z_create_csr(&A, 0, rowInitList.size()-1, dim, rowInitList.data(), rowInitList.data()+1, colList.data(), valList.data());
+    mkl_sparse_set_mv_hint(A, SPARSE_OPERATION_NON_TRANSPOSE, SPARSE_MATRIX_TYPE_GENERAL, mvNum);
+    mkl_sparse_set_memory_hint(A, SPARSE_MEMORY_NONE);
+    mkl_sparse_optimize(A);
+}
+
+void MKL::destroy(sparse_matrix_t A){mkl_sparse_destroy(A);}
+
+void MKL::MxV(sparse_matrix_t A, MKL_Complex16* vin, MKL_Complex16* vout, MKL_Complex16 alpha, MKL_Complex16 beta){
+    mkl_sparse_z_mv(SPARSE_OPERATION_NON_TRANSPOSE, alpha, A, SPARSE_MATRIX_TYPE_GENERAL, vin, beta, vout);
 }
