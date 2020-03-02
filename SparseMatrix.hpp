@@ -366,7 +366,7 @@ void SparseMatrix<T>::genMatPara(int rowPerThread){
         }
     }
 #ifdef _MKL_
-    for (int i = 0; i < spmNum; i++) MKL::create(A.at(i), BaseMatrix<T>::dim, rowInitList.at(i), colList.at(i), valList.at(i));
+    for (int i = 0; i < spmNum; i++) MKL::create(A.at(i), BaseMatrix<T>::nloc, BaseMatrix<T>::dim, rowInitList.at(i), colList.at(i), valList.at(i));
 #endif
 }
 #endif

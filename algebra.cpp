@@ -26,12 +26,12 @@ void MKL::diagTri(std::vector<double>* a, std::vector<double>* b, std::vector<do
     LAPACKE_dstedc(LAPACK_COL_MAJOR, 'I', dim, a->data(), b->data(), U->data(), dim);
 }
 
-void MKL::create(sparse_matrix_t& A, ind_int dim, std::vector<MKL_INT>& rowInitList, std::vector<MKL_INT>& colList, std::vector<MKL_Complex16>& valList, MKL_INT mvNum){
+void MKL::create(sparse_matrix_t& A, ind_int rows, ind_int cols, std::vector<MKL_INT>& rowInitList, std::vector<MKL_INT>& colList, std::vector<MKL_Complex16>& valList, MKL_INT mvNum){
     struct matrix_descr descrA;
     descrA.type = SPARSE_MATRIX_TYPE_GENERAL;
     descrA.mode = SPARSE_FILL_MODE_LOWER;
     descrA.diag = SPARSE_DIAG_UNIT;
-    mkl_sparse_z_create_csr(&A, SPARSE_INDEX_BASE_ZERO, rowInitList.size()-1, dim, rowInitList.data(), rowInitList.data()+1, colList.data(), valList.data());
+    mkl_sparse_z_create_csr(&A, SPARSE_INDEX_BASE_ZERO, rows, cols, rowInitList.data(), rowInitList.data()+1, colList.data(), valList.data());
     mkl_sparse_set_mv_hint(A, SPARSE_OPERATION_NON_TRANSPOSE, descrA, mvNum);
     mkl_sparse_set_memory_hint(A, SPARSE_MEMORY_NONE);
     mkl_sparse_optimize(A);
