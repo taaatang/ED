@@ -207,7 +207,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
             }
             // off-diagonal part
         #ifdef _MKL_
-            for (int i = 0; i < spmNum; i++){MKL::MxV(A.at(i),vecIn,vecOut,parameters.at(i));}
+            for (int i = 0; i < spmNum; i++){MKL::MxV(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
         #else
             if (spmNum>0){
                 // constant sparse matrix
