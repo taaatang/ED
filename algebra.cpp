@@ -26,6 +26,15 @@ void MKL::diagTri(std::vector<double>* a, std::vector<double>* b, std::vector<do
     LAPACKE_dstedc(LAPACK_COL_MAJOR, 'I', dim, a->data(), b->data(), U->data(), dim);
 }
 
+
+void MKL::MxV(const MKL_INT& rows, const MKL_INT& cols, const MKL_Complex16& alpha, const std::vector<MKL_Complex16>& val, const std::vector<MKL_INT>& colIndx, const std::vector<MKL_INT>& rowIndx , const MKL_Complex16 *vecIn , const MKL_Complex16& beta , MKL_Complex16 *vecOut){
+    char transa = 'N';
+    char matdescra[6];
+    matdescra[0] = 'G'; //general
+    matdescra[3] = 'C'; //zero-based indexing
+    mkl_zcsrmv (&transa, &rows, &cols, &alpha , matdescra , val.data() , colIndx.data() , rowIndx.data() , rowIndx.data()+1 , vecIn , &beta , vecOut)
+}
+
 void MKL::create(sparse_matrix_t& A, ind_int rows, ind_int cols, std::vector<MKL_INT>& rowInitList, std::vector<MKL_INT>& colList, std::vector<MKL_Complex16>& valList, MKL_INT mvNum){
     struct matrix_descr descrA;
     descrA.type = SPARSE_MATRIX_TYPE_GENERAL;
@@ -37,8 +46,9 @@ void MKL::create(sparse_matrix_t& A, ind_int rows, ind_int cols, std::vector<MKL
 
 void MKL::destroy(sparse_matrix_t& A){mkl_sparse_destroy(A);}
 
-void MKL::MxV(sparse_matrix_t& A, MKL_Complex16* vin, MKL_Complex16* vout, MKL_Complex16 alpha, MKL_Complex16 beta){
+void MKL::MxV2(sparse_matrix_t& A, MKL_Complex16* vin, MKL_Complex16* vout, MKL_Complex16 alpha, MKL_Complex16 beta){
     struct matrix_descr descrA;
     descrA.type = SPARSE_MATRIX_TYPE_GENERAL;
     mkl_sparse_z_mv(SPARSE_OPERATION_NON_TRANSPOSE, alpha, A, descrA, vin, beta, vout);
 }
+
