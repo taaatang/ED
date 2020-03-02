@@ -32,7 +32,7 @@ void MKL::MxV(const MKL_INT& rows, const MKL_INT& cols, const MKL_Complex16& alp
     char matdescra[6];
     matdescra[0] = 'G'; //general
     matdescra[3] = 'C'; //zero-based indexing
-    mkl_zcsrmv (&transa, &rows, &cols, &alpha , matdescra , val.data() , colIndx.data() , rowIndx.data() , rowIndx.data()+1 , vecIn , &beta , vecOut)
+    mkl_zcsrmv (&transa, &rows, &cols, &alpha , matdescra , val.data() , colIndx.data() , rowIndx.data() , rowIndx.data()+1 , vecIn , &beta , vecOut);
 }
 
 void MKL::create(sparse_matrix_t& A, ind_int rows, ind_int cols, std::vector<MKL_INT>& rowInitList, std::vector<MKL_INT>& colList, std::vector<MKL_Complex16>& valList, MKL_INT mvNum){
