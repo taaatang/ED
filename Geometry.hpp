@@ -123,6 +123,7 @@ public:
     int getSiteid(int id) const {return orbs.at(id).siteid;}
     // exp(i*2pi*k*r)
     cdouble expKR(int kid, int siteid) const {if (kid==-1) return 1.0; return std::exp(2*PI*CPLX_I*(KLattice.at(kid).coord[0]*Lattice.at(siteid).coord[0] + KLattice.at(kid).coord[1]*Lattice.at(siteid).coord[1]));}
+    cdouble getChi(int PGRepInd, int OpInd) const {return CharacterList.at(PGRepInd).at(OpInd);}
     // Lattice name
     std::string getName() const {return name;}
     // number of unit cell
@@ -133,6 +134,9 @@ public:
     int getOrbNum() const {return Norb;}
     // return the id' obtained by translate id by r
     int getOrbTran(int r, int id) const {return TransList.at(r).at(id);}
+    // return number of ireps of the point group
+    int getPGRepNum() const {return CharacterList.size();}
+    int getPGOpNum(int PGRepInd) const {return CharacterList.at(PGRepInd).size();}
     // return the id' obtained by transform id by r-th Point Group Element
     int getOrbPG(int r, int id) const {return PGList.at(r).at(id);}
     // a1-a2 coord -> orbid

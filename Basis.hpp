@@ -37,6 +37,7 @@ class Basis{
     // option: 0->Hubbard, 1->t-J, 2->Heisenberg
     LATTICE_MODEL model;
     int kIndex; // default initial value kIndex=-1 ==> full hilbertspace
+    int PGRepIndex; // default -1 -> do not use point group symm
     int siteDim; // Hilbert Space dimension of a single Site
     ind_int totDim; // Total Hilbert Space dimension
     ind_int subDim; // Total subspace dimension
@@ -67,8 +68,8 @@ class Basis{
 
 public:  
     // occList contains occupation number on each site dimension
-    Basis():model(MODEL), kIndex(-1){};
-    Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kInd=-1, int siteD=2);
+    Basis():model(MODEL), kIndex(-1), PGRepIndex(-1){};
+    Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kInd=-1, int PGRepInd = -1, int siteD=2);
     ~Basis(){};
 
     int getkIndex() const {return kIndex;}
@@ -87,12 +88,12 @@ public:
     ind_int getTotDim() const {return totDim;}
     ind_int getSubDim() const {return subDim;}
     
-    double getNorm(ind_int ind) const {
+    double getNorm(ind_int rowid) const {
         if (kIndex==-1) return 1.0;
         #ifdef KEEP_BASIS_NORM
-            return normList.at(ind);
+            return normList.at(rowid);
         #else
-            return kNorm(kIndex, indexList.at(ind), pt_lattice);
+            return Norm(kIndex, indexList.at(rowid), pt_lattice);
         #endif
     };
     
@@ -115,15 +116,15 @@ public:
     bool search(pairIndex pairInd, ind_int &ind) const;
     // apply all translation operations to a Basis vec indexed by ind.
     // finalInd contains all resulting basis indexes.
-    void genTranslation(ind_int ind, std::vector<ind_int>& finalInd) const;
-    void genTranslation(ind_int ind, std::vector<ind_int>& finalInd, std::vector<cdouble>& factorList) const;
+    void genSymm(ind_int ind, std::vector<ind_int>& finalInd) const;
+    void genSymm(ind_int ind, std::vector<ind_int>& finalInd, std::vector<cdouble>& factorList) const;
     
     // judge if a basis vec belongs to k-subspace rep vecs
     // rep: smallest index and norm!=0
-    bool isKRep(ind_int initInd, double& norm) const;
+    bool isRep(ind_int initInd, double& norm) const;
     
     // calculate the norm of |rk>
-    double kNorm(ind_int initInd) const;
+    double Norm(ind_int initInd) const;
     
     // I/O
     void saveBasis(std::string basisfile);
