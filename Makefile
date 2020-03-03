@@ -5,7 +5,7 @@ MKLLINK = -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROO
 ### Cori
 CXX = CC
 CXXFLAGS = -O3 $(MKLFLAG) -Wall -Bdynamic -qopenmp
-CXXFLAGS = -O3 -DMKL_ILP64 -mkl -Wall -Bdynamic -qopenmp
+# CXXFLAGS = -O3 -DMKL_ILP64 -mkl -Wall -Bdynamic -qopenmp
 ### Sherlock
 # CXX = mpiicpc
 # CXXFLAGS = -O3 -std=c++14 $(MKLFLAG) -Wall -Bdynamic -qopenmp
