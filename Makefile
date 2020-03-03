@@ -39,7 +39,7 @@ Spectra.out:SpectraMain.o Geometry.o Basis.o Operators.o utils.o algebra.o
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) -lparpack SpectraMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o Spectra.out
 
 timeTest.out:timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o
-	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) -lparpack timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o -o timeTest.out $(MKLLINK)
+	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o -o timeTest.out $(MKLLINK) -lparpack
 #main.o:main.cpp
 #	$(CXX) $(CXXFLAGS) $(ARPACKHD) -c main.cpp
 
