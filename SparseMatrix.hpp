@@ -85,9 +85,9 @@ protected:
 public:
     SparseMatrix(ind_int totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0, MATRIX_PARTITION partition_ = MATRIX_PARTITION::ROW_PARTITION);
     ~SparseMatrix(){
-// #ifdef _MKL_
-//         for(int i = 0; i < spmNum; i++) MKL::destroy(A.at(i));
-// #endif
+#ifdef _MKL_
+        for(int i = 0; i < spmNum; i++) MKL::destroy(A.at(i));
+#endif
     };
 
     ind_int nzCount() const {ind_int count=0; for(int i=0;i<spmNum;i++)count+=valList.at(i).size(); return count;}    
@@ -207,8 +207,8 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
             }
             // off-diagonal part
         #ifdef _MKL_
-            // for (int i = 0; i < spmNum; i++){MKL::MxV2(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
-            for (int i = 0; i < spmNum; i++){MKL::MxV(BaseMatrix<T>::nloc, BaseMatrix<T>::dim,parameters.at(i),valList.at(i),colList.at(i),rowInitList.at(i),vecBuf.data(),vecOut);}
+            for (int i = 0; i < spmNum; i++){MKL::MxV2(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
+            // for (int i = 0; i < spmNum; i++){MKL::MxV(BaseMatrix<T>::nloc, BaseMatrix<T>::dim,parameters.at(i),valList.at(i),colList.at(i),rowInitList.at(i),vecBuf.data(),vecOut);}
         #else
             if (spmNum>0){
                 // constant sparse matrix
@@ -366,8 +366,8 @@ void SparseMatrix<T>::genMatPara(int rowPerThread){
             }
         }
     }
-// #ifdef _MKL_
-//     for (int i = 0; i < spmNum; i++) MKL::create(A.at(i), BaseMatrix<T>::nloc, BaseMatrix<T>::dim, rowInitList.at(i), colList.at(i), valList.at(i));
-// #endif
+#ifdef _MKL_
+    for (int i = 0; i < spmNum; i++) MKL::create(A.at(i), BaseMatrix<T>::nloc, BaseMatrix<T>::dim, rowInitList.at(i), colList.at(i), valList.at(i));
+#endif
 }
 #endif
