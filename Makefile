@@ -1,6 +1,7 @@
 # -*- Makefile -*-
 
 MKLFLAG = -DMKL_ILP64 -I${MKLROOT}/include
+# --start-group ... --end-group: resolving circular dependences between several libraries
 MKLLINK = -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm -ldl
 ### Cori
 CXX = CC
@@ -33,10 +34,10 @@ genBasis.out:genBasisMain.o Geometry.o Basis.o utils.o
 	$(CXX) $(CXXFLAGS) $(LIBRARY) genBasisMain.o Geometry.o Basis.o utils.o -o genBasis.out
     
 kGroundState.out:kGroundStateMain.o Geometry.o Basis.o Operators.o utils.o algebra.o
-	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) -lparpack kGroundStateMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o kGroundState.out
+	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY)  kGroundStateMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o kGroundState.out -lparpack
 
 Spectra.out:SpectraMain.o Geometry.o Basis.o Operators.o utils.o algebra.o
-	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) -lparpack SpectraMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o Spectra.out
+	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY)  SpectraMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o Spectra.out -lparpack
 
 timeTest.out:timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o -o timeTest.out $(MKLLINK) -lparpack
