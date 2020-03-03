@@ -1,23 +1,21 @@
 # -*- Makefile -*-
 
 MKLFLAG = -DMKL_ILP64 -I${MKLROOT}/include
-# --start-group ... --end-group: resolving circular dependences between several libraries
+# --start-group ... --end-group: resolving circular dependences between several libraries. -Wl:pass options to the linker
 MKLLINK = -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm -ldl
+
 ### Cori
 CXX = CC
-CXXFLAGS = -O3 $(MKLFLAG) -Wall -Bdynamic -qopenmp
-# CXXFLAGS = -O3 -DMKL_ILP64 -mkl -Wall -Bdynamic -qopenmp
+CXXFLAGS = -O3 $(MKLFLAG) -w3 -qopenmp
+
 ### Sherlock
 # CXX = mpiicpc
 # CXXFLAGS = -O3 -std=c++14 $(MKLFLAG) -Wall -Bdynamic -qopenmp
+
 # CXXFLAGS = -O3 -std=c++14 -DMKL_ILP64 -mkl -Wall -Bdynamic -qopenmp
-
-
-# MKLLINK = -lpthread -lm -ldl
-# MKLLINK = -lpthread -lm -ldl
 #CXXFLAGS = -O3 -no-prec-div -fp-model fast=2 -xHost -qopenmp
 #CXXFLAGS = -O3 -Wall -Bdynamic -fopenmp
-#PARPACKLIB = -L/global/homes/t/tatang/lib64
+
 ARPACKHD = -I$(ARPACKINC)
 LIBRARY = -L$(ARPACKLIB) 
 
