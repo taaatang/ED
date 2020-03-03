@@ -230,6 +230,6 @@ int main(int argc, const char * argv[]){
     };
 
     printf( "---------------------------------------------------\n" );
-
+    MPI_Finalize();
     return 0;
 }
