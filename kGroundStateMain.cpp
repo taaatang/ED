@@ -35,16 +35,17 @@ int main(int argc, const char * argv[]) {
     a_int nev;
     int Nx, Ny, N;
     int kIndex = -1; // Gamma Point
+    int PGRepIndex = -1;
     double spin = 0.5;
     int rowPerThread = 1;
     bool BASIS_IS_SAVED = true;
     std::ifstream infile("ground_input.txt");
-    infile>>N>>nev;
+    infile>>N>>PGRepIndex>>nev;
     // infile>>Nx>>Ny>nev;
     // N = Nx * Ny;
     infile.close();
-    int kStart = 0, kEnd = N;
-    int J2Start = 0, J2End = 101, J2Step = 2;
+    int kStart = 0, kEnd = 1;
+    int J2Start = 0, J2End = 1, J2Step = 2;
     double J1 = 1.0;
     double J2 = 0.0, dJ2 = 0.01;
     // data directory
@@ -89,7 +90,7 @@ int main(int argc, const char * argv[]) {
             **********************
         */
         timer.tik();
-        Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
+        Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex, PGRepIndex);
         if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
         if (BASIS_IS_SAVED) B.gen(basisfile, normfile);
         else B.gen();

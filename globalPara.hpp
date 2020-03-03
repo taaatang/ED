@@ -74,7 +74,7 @@ const int MPI_MASTER = 0;
     *****************
 */
 // cori
-const std::string ROOT_DATA_PATH = "/global/project/projectdirs/m2757/tatang"; 
+const std::string ROOT_DATA_PATH = "/global/project/projectdirs/m2757/tatang/test"; 
 // sherlock
 // const std::string ROOT_DATA_PATH = "/oak/stanford/groups/tpd/tatang"; 
 const std::string PROJECT_DATA_PATH = ROOT_DATA_PATH + "/TriAngHeis";
@@ -158,7 +158,7 @@ const MATRIX_PARTITION PARTITION = ROW_PARTITION;
 // MAX parpack iterations
 const int PARPACK_MAXITERATION = 5000;
 //MIN and MAX ncv
-const int PARPACK_MINNCV = 15;
+const int PARPACK_MINNCV = 3;
 // const int PARPACK_MAXNCV = 500;
 
 /*
