@@ -3,12 +3,12 @@
 MKLFLAG = -DMKL_ILP64 -I${MKLROOT}/include
 MKLLINK = -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm -ldl
 ### Cori
-CXX = CC
-CXXFLAGS = -O3 $(MKLFLAG) -Wall -Bdynamic -qopenmp
+# CXX = CC
+# CXXFLAGS = -O3 $(MKLFLAG) -Wall -Bdynamic -qopenmp
 # CXXFLAGS = -O3 -DMKL_ILP64 -mkl -Wall -Bdynamic -qopenmp
 ### Sherlock
-# CXX = mpiicpc
-# CXXFLAGS = -O3 -std=c++14 $(MKLFLAG) -Wall -Bdynamic -qopenmp
+CXX = mpiicpc
+CXXFLAGS = -O3 -std=c++14 $(MKLFLAG) -Wall -Bdynamic -qopenmp
 # CXXFLAGS = -O3 -std=c++14 -DMKL_ILP64 -mkl -Wall -Bdynamic -qopenmp
 
 
