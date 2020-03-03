@@ -17,7 +17,7 @@ CXXFLAGS = -O3 $(MKLFLAG) -w3 -qopenmp
 #CXXFLAGS = -O3 -Wall -Bdynamic -fopenmp
 
 ARPACKHD = -I$(ARPACKINC)
-LIBRARY = -L$(ARPACKLIB) 
+LIBRARY = -L$(ARPACKLIB)
 
 all:genBasis.out kGroundState.out Spectra.out
 .PHONY: all
@@ -32,10 +32,10 @@ genBasis.out:genBasisMain.o Geometry.o Basis.o utils.o
 	$(CXX) $(CXXFLAGS) $(LIBRARY) genBasisMain.o Geometry.o Basis.o utils.o -o genBasis.out
     
 kGroundState.out:kGroundStateMain.o Geometry.o Basis.o Operators.o utils.o algebra.o
-	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY)  kGroundStateMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o kGroundState.out -lparpack
+	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY)  kGroundStateMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o kGroundState.out $(MKLLINK) -lparpack
 
 Spectra.out:SpectraMain.o Geometry.o Basis.o Operators.o utils.o algebra.o
-	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY)  SpectraMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o Spectra.out -lparpack
+	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY)  SpectraMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o Spectra.out $(MKLLINK) -lparpack
 
 timeTest.out:timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o -o timeTest.out $(MKLLINK) -lparpack
