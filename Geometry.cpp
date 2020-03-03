@@ -448,7 +448,10 @@ TriAngLattice::TriAngLattice(int N1, int N2, bool PBC){
     ******************
 */
 SquareLattice::SquareLattice(int N1, int N2, bool PBC){
-    if(N1==N2) PG = PointGroup::D4;
+    if(N1==N2) {
+        PG = PointGroup::D4;
+        center = {double(N1-1)/2.0, double(N2-1)/2.0, 0.0};
+    }
     is_PBC = PBC;
     Nsite = N1 * N2;
     name = "Square"+std::to_string(N1)+"x"+std::to_string(N2);
