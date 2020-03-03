@@ -27,7 +27,8 @@ void MKL::diagTri(std::vector<double>* a, std::vector<double>* b, std::vector<do
 }
 
 
-void MKL::MxV(const MKL_INT& rows, const MKL_INT& cols, const MKL_Complex16& alpha, const std::vector<MKL_Complex16>& val, const std::vector<MKL_INT>& colIndx, const std::vector<MKL_INT>& rowIndx , const MKL_Complex16 *vecIn , const MKL_Complex16& beta , MKL_Complex16 *vecOut){
+void MKL::MxV(const MKL_INT& rows, const MKL_INT& cols, const MKL_Complex16& alpha, const std::vector<MKL_Complex16>& val, const std::vector<MKL_INT>& colIndx, const std::vector<MKL_INT>& rowIndx , const MKL_Complex16 *vecIn, MKL_Complex16 *vecOut){
+    MKL_Complex16 beta = 1.0;
     char transa = 'N';
     char matdescra[6];
     matdescra[0] = 'G'; //general
