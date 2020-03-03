@@ -161,8 +161,8 @@ public:
     void setPBC(bool PBC){is_PBC = PBC;}
     void setName(std::string s){name = s;}
     // generate translation map for all r. TransList.at(r).at(id) = id->r
-    bool rotate(int orbid, int orbidf) const;
-    bool reflect(int orbid, int orbidf) const;
+    bool rotate(int orbid, int& orbidf) const;
+    bool reflect(int orbid, int& orbidf) const;
     void genPGList();
     void genTransList();
     // construct Lattice, KLattice, orbs, enlg_orbs and TransList

@@ -50,7 +50,7 @@ void Geometry::genTransList(){
     }
 }
 
-bool Geometry::rotate(int orbid, int orbidf) const {
+bool Geometry::rotate(int orbid, int& orbidf) const {
     VecD coordi(3), coordr(3), coordrp(3), coordf(3);
     getOrbR(orbid,coordi.data());
     vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
@@ -87,7 +87,7 @@ bool Geometry::rotate(int orbid, int orbidf) const {
     return coordToOrbid(coordf.data(), orbidf);
 }
 
-bool Geometry::reflect(int orbid, int orbidf) const {
+bool Geometry::reflect(int orbid, int& orbidf) const {
     VecD coordi(3), coordr(3), coordrp(3), coordf(3);
     getOrbR(orbid,coordi.data());
     vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
