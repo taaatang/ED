@@ -70,7 +70,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //         // off diagonal part
 //         std::vector<ind_int> finalIndList;
 //         std::vector<cdouble> factorList;
-//         pt_Basis->genTranslation(rowID, finalIndList, factorList);
+//         pt_Basis->genSymm(rowID, finalIndList, factorList);
 //         for (int i = 0; i < finalIndList.size(); i++){
 //             pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
 //             if(finalIndList[i]==initInd)diag_val += val*factorList[i];
@@ -206,7 +206,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //         rowMap.clear();
 //         initNorm = pt_Basis->getNorm(rowID);
 //         std::vector<ind_int> finalIndList;
-//         pt_Basis->genTranslation(pt_Basis->getRepI(rowID), finalIndList);
+//         pt_Basis->genSymm(pt_Basis->getRepI(rowID), finalIndList);
 //         for (int i = 0; i < finalIndList.size(); i++){
 //             pt_Basis->indToVec(finalIndList[i], initVec);
 //             cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
