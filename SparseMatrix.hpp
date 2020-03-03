@@ -173,9 +173,9 @@ SparseMatrix<T>::SparseMatrix(ind_int totDim_ , int spmNum_ , int dmNum_, MATRIX
         default:break;
     }
         // for(int i = 0; i < spmNum; i++) rowInitList.at(i).push_back(0);
-// #ifdef _MKL_
-//     A.resize(spmNum);
-// #endif
+#ifdef _MKL_
+    A.resize(spmNum);
+#endif
 }
 
 
