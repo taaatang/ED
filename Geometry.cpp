@@ -50,6 +50,148 @@ void Geometry::genTransList(){
     }
 }
 
+bool Geometry::rotate(int orbid, int orbidf) const {
+    VecD coordi(3), coordr(3), coordrp(3), coordf(3);
+    getOrbR(orbid,coordi.data());
+    vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
+    switch(PG){
+        case PointGroup::D3: case PointGroup::C3:
+            /*
+                a1->a2,a2->-a1-a2
+                x1*a1 + x2*a2 -> x1*a2 + x2*(-a1-a2) = -x2*a1 + (x1-x2)*a2
+            */
+            coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]-coordr[1]; coordrp[2] = coordr[2];
+            break;
+        case PointGroup::D4: case PointGroup::C4:
+            /*
+                a1->a2,a2->-a1
+                x1*a1 + x2*a2 -> x1*a2 + x2*(-a1) = -x2*a1 + x1*a2
+            */
+            coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]; coordrp[2] = coordr[2];
+            break;
+        case PointGroup::D6: case PointGroup::C6:
+            /*
+                a1->a2,a2->a2-a1
+                x1*a1 + x2*a2 -> x1*a2 + x2*(a2-a1) = -x2*a1 + (x1+x2)*a2
+            */
+            coordrp[0] = -coordr[1]; coordrp[1] = coordr[0] + coordr[1]; coordrp[2] = coordr[2];  
+            break;
+        case PointGroup::NONE:
+            return false;
+            break;
+        default:
+            return false;
+            break;   
+    }
+    vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
+    return coordToOrbid(coordf.data(), orbidf);
+}
+
+bool Geometry::reflect(int orbid, int orbidf) const {
+    VecD coordi(3), coordr(3), coordrp(3), coordf(3);
+    getOrbR(orbid,coordi.data());
+    vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
+    switch(PG){
+        case PointGroup::D3:
+            /*
+                a1->a1,a2->-a1-a2
+                x1*a1 + x2*a2 -> x1*a1 + x2*(-a1-a2) = (x1-x2)*a1 + (-x2)*a2
+            */
+            coordrp[0] = coordr[0]-coordr[1]; coordrp[1] = -coordr[1]; coordrp[2] = coordr[2];
+            break;
+        case PointGroup::D4:
+            /*
+                a1->a1,a2->-a2
+                x1*a1 + x2*a2 -> x1*a2 + x2*(-a1) = -x2*a1 + x1*a2
+            */
+            coordrp[0] = coordr[0]; coordrp[1] = -coordr[1]; coordrp[2] = coordr[2];
+            break;
+        case PointGroup::D6:
+            /*
+                a1->a1,a2->a1-a2
+                x1*a1 + x2*a2 -> x1*a1 + x2*(a1-a2) = (x1+x2)*a1 + (-x2)*a2
+            */
+            coordrp[0] = coordr[0]+coordr[1]; coordrp[1] = -coordr[1]; coordrp[2] = coordr[2];  
+            break;
+        case PointGroup::NONE: case PointGroup::C3: case PointGroup::C4: case PointGroup::C6:
+            return false;
+            break;
+        default:
+            return false;
+            break;   
+    }
+    vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
+    return coordToOrbid(coordf.data(), orbidf);
+}
+
+void Geometry::genPGList(){
+    int PGdeg;
+    cdouble e,ez; // conjugate pair
+    switch(PG){
+        case PointGroup::D3: 
+            PGdeg = 3; 
+            e = std::exp(CPLX_I*2.0*PI/3.0);
+            ez =  std::exp(-CPLX_I*2.0*PI/3.0);
+            //                E,  R1, R2, z, zR1, zR2
+            CharacterList = {{1,  1,  1,  1,  1,  1},//A1:R=1,z=1
+                             {1,  1,  1, -1, -1, -1},//A2:R=1,z=-1
+                             {1,  e, ez},//Ea:R=e
+                             {1, ez, e} //Eb:R=ez
+                            };
+            break;
+        case PointGroup::D4: 
+            PGdeg = 4; 
+            e = std::exp(CPLX_I*2.0*PI/4.0);
+            ez =  std::exp(-CPLX_I*2.0*PI/4.0);
+            //                E,  R1, R2, R3, z, zR1, zR2, zR3
+            CharacterList = {{1,  1,  1,  1,  1,  1,  1,   1},//A1:R=1,z=1
+                             {1,  1,  1,  1, -1, -1, -1,  -1},//A2:R=1,z=-1
+                             {1, -1,  1, -1,  1, -1,  1,  -1},//B1:R=-1,z=1
+                             {1, -1,  1, -1, -1,  1, -1,   1},//B2:R=-1,z=-1
+                             {1,  e, -1, ez},//Ea:R=e,inv=-1
+                             {1, ez, -1,  e} //Eb:R=ez,inv=-1
+                            };
+            break;
+        case PointGroup::D6: 
+            PGdeg = 6;
+            e = std::exp(CPLX_I*2.0*PI/6.0);
+            ez =  std::exp(-CPLX_I*2.0*PI/6.0);
+            //                E,  R1, R2, R3, R4, R5, z, zR1, zR2, zR3, zR4, zR5
+            CharacterList = {{1,  1,  1,  1,  1,  1,  1,  1,  1,   1,   1,   1},//A1:R=1,z=1
+                             {1,  1,  1,  1,  1,  1, -1, -1, -1,  -1,  -1,  -1},//A2:R=1,z=-1
+                             {1, -1,  1, -1,  1, -1,  1, -1,  1,  -1,   1,  -1},//B1:R=-1,z=1
+                             {1, -1,  1, -1,  1, -1, -1,  1, -1,   1,  -1,   1},//B2:R=-1,z=-1
+                             {1,  e,-ez, -1, -e, ez},//E1a:R=e,inv=-1
+                             {1, ez, -e, -1,-ez,  e},//E1b:R=e^5,inv=-1
+                             {1, -ez,-e,  1,-ez, -e},//E2a:R=e^2,inv=1
+                             {1, -e,-ez,  1, -e, -ez} //E2b:R=e^4,inv=1
+                            };
+            break;
+        default: PGdeg = 0; break;
+    }
+    PGList.resize(PGdeg*2);
+    if(PGdeg>0){
+        for(int orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);
+        int orbid, orbidf;
+        // rotation
+        for(int i = 1; i < PGdeg; i++){
+            for(int j = 0; j < getOrbNum(); j++){
+                orbid = PGList.at(i-1).at(j);
+                if(rotate(orbid,orbidf)) PGList.at(i).push_back(orbidf);
+                else{std::cout<<"rotation of orbital:"<<orbid<<" not found!"<<std::endl; exit(1);}
+            }
+        }
+        // reflection
+        for(int i = PGdeg; i < 2*PGdeg; i++){
+            for(int j = 0; j < getOrbNum(); j++){
+                orbid = PGList.at(i-PGdeg).at(j);
+                if(reflect(orbid,orbidf)) PGList.at(i).push_back(orbidf);
+                else{std::cout<<"reflection of orbital:"<<orbid<<" not found!"<<std::endl; exit(1);}
+            }
+        }
+    }
+}
+
 void Geometry::construct(){
     Norb = Nsite * unitSite.size();
     Norb_enlg = is_PBC?Norb*TranVecs.size():Norb;
@@ -92,7 +234,7 @@ void Geometry::construct(){
         // generate transformation matrix for translation operation
         genTransList();
     } 
-
+    if(PG != PointGroup::NONE) genPGList();
     // return resources no longer needed
     xlist.clear(); ylist.clear(); zlist.clear();
     kxlist.clear(); kylist.clear(); kzlist.clear();
@@ -132,11 +274,23 @@ void Geometry::printTrans() const {
     }
     std::cout<<std::endl;
 }
+void Geometry::printPG() const {
+    std::cout<<"Point Group Transformation List:"<<std::endl;
+    for (int r = 0; r < PGList.size(); r++){
+        std::cout<<"PG("<<r<<"):"<<std::endl;
+        for (int i = 0; i < PGList[r].size(); i++){
+            std::cout<<getOrbPG(r,i)<<" ";
+        }
+        std::cout<<std::endl;
+    }
+    std::cout<<std::endl;
+}
 void Geometry::print() const {
     printLattice();
     printOrbs();
     printTrans();
     printKLattice();
+    printPG();
 }
 
 /*
@@ -147,6 +301,7 @@ void Geometry::print() const {
 
 //constructor with T x D6 Symm
 TriAngLattice::TriAngLattice(int numSites, bool PBC){
+    PG = PointGroup::D6;
     is_PBC = PBC;
     Nsite = numSites;
     name = "TriAng_D6_N"+std::to_string(Nsite);
@@ -293,6 +448,7 @@ TriAngLattice::TriAngLattice(int N1, int N2, bool PBC){
     ******************
 */
 SquareLattice::SquareLattice(int N1, int N2, bool PBC){
+    if(N1==N2) PG = PointGroup::D4;
     is_PBC = PBC;
     Nsite = N1 * N2;
     name = "Square"+std::to_string(N1)+"x"+std::to_string(N2);

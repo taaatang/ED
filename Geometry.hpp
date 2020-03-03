@@ -67,7 +67,7 @@ protected:
     bool is_PBC; // Boundary condition
     std::vector<std::vector<int>> TransList; // Nsite*Norb. TransList[r][orbid] is the orbid' obtained by translating orbid by a vector r.
     PointGroup PG;
-    std::vector<std::vector<int>> PointGroupList; 
+    std::vector<std::vector<int>> PGList; 
     std::vector<std::vector<cdouble>> CharacterList;
     
     // a1, a2 Lattice basis. ax, ay the corresponding values of Lattice basis in xy coordinates
@@ -81,12 +81,16 @@ protected:
 
     VecD xlist, ylist, zlist, kxlist, kylist, kzlist;
 
+    // rotation and reflection center
+    VecD center;
+
     std::vector<Site> Lattice; // A vector of Site in the Lattice
     std::vector<Site> KLattice; // Dual K space Lattice
     std::vector<Orbital> unitSite, orbs, enlgOrbs; // vectos of orbitals and orbitals in enlarged Lattice
 
 public:
-    Geometry(int dim_=3):dim(dim_), Nsite(0), Norb(0), Norb_enlg(0), is_PBC(true){
+    Geometry(int dim_=3):dim(dim_), Nsite(0), Norb(0), Norb_enlg(0), is_PBC(true), PG(PointGroup::NONE){
+        center = VecD{0.0,0.0,0.0};
         a1 = VecD{1.0,0.0,0.0}; a2 = VecD{0.0,1.0,0.0}; a3 = VecD{0.0,0.0,1.0};
         ax.resize(dim,0.0); ay.resize(dim,0.0); az.resize(dim,0.0);
         R1.resize(dim,0.0); R2.resize(dim,0.0); R3.resize(dim,0.0);
@@ -129,6 +133,8 @@ public:
     int getOrbNum() const {return Norb;}
     // return the id' obtained by translate id by r
     int getOrbTran(int r, int id) const {return TransList.at(r).at(id);}
+    // return the id' obtained by transform id by r-th Point Group Element
+    int getOrbPG(int r, int id) const {return PGList.at(r).at(id);}
     // a1-a2 coord -> orbid
     bool coordToOrbid(double* coord, int &orbid, double tol = 1e-8) const;
     // orbital occupancy count
@@ -149,11 +155,15 @@ public:
     void printKLattice() const;
     void printOrbs() const;
     void printTrans() const;
+    void printPG() const;
     void print() const;
-
+    
     void setPBC(bool PBC){is_PBC = PBC;}
     void setName(std::string s){name = s;}
     // generate translation map for all r. TransList.at(r).at(id) = id->r
+    bool rotate(int orbid, int orbidf) const;
+    bool reflect(int orbid, int orbidf) const;
+    void genPGList();
     void genTransList();
     // construct Lattice, KLattice, orbs, enlg_orbs and TransList
     void construct();
