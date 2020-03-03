@@ -22,7 +22,7 @@ LIBRARY = -L$(ARPACKLIB)
 all:genBasis.out kGroundState.out Spectra.out
 .PHONY: all
 
-test: timeTest.out
+test: timeTest.out geometryTest.out
 .PHONY: test
 
 #ED:main.o globalClass.o utils.o
@@ -39,6 +39,8 @@ Spectra.out:SpectraMain.o Geometry.o Basis.o Operators.o utils.o algebra.o
 
 timeTest.out:timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o -o timeTest.out $(MKLLINK) -lparpack
+geometryTest.out:geometryTest.o Geometry.o utils.o
+	$(CXX) $(CXXFLAGS) Geometry.o utils.o -o geometryTest.out
 #main.o:main.cpp
 #	$(CXX) $(CXXFLAGS) $(ARPACKHD) -c main.cpp
 
@@ -53,6 +55,8 @@ SpectraMain.o:SpectraMain.cpp
 
 timeTest.o:timeTest.cpp
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) -c timeTest.cpp
+geometryTest.o:geometryTest.cpp
+	$(CXX) $(CXXFLAGS) -c geometryTest.cpp
 
 #globalClass.o:globalClass.cpp
 #	$(CXX) $(CXXFLAGS) -c globalClass.cpp
