@@ -50,9 +50,86 @@ void Geometry::genTransList(){
     }
 }
 
+// bool Geometry::rotate(int orbid, int& orbidf) const {
+//     VecD coordi(3), coordr(3), coordrp(3), coordf(3);
+//     getOrbR(orbid,coordi.data());
+//     vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
+//     switch(PG){
+//         case PointGroup::D3: case PointGroup::C3:
+//             /*
+//                 a1->a2,a2->-a1-a2
+//                 x1*a1 + x2*a2 -> x1*a2 + x2*(-a1-a2) = -x2*a1 + (x1-x2)*a2
+//             */
+//             coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]-coordr[1]; coordrp[2] = coordr[2];
+//             break;
+//         case PointGroup::D4: case PointGroup::C4:
+//             /*
+//                 a1->a2,a2->-a1
+//                 x1*a1 + x2*a2 -> x1*a2 + x2*(-a1) = -x2*a1 + x1*a2
+//             */
+//             coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]; coordrp[2] = coordr[2];
+//             break;
+//         case PointGroup::D6: case PointGroup::C6:
+//             /*
+//                 a1->a2,a2->a2-a1
+//                 x1*a1 + x2*a2 -> x1*a2 + x2*(a2-a1) = -x2*a1 + (x1+x2)*a2
+//             */
+//             coordrp[0] = -coordr[1]; coordrp[1] = coordr[0] + coordr[1]; coordrp[2] = coordr[2];  
+//             break;
+//         case PointGroup::NONE:
+//             return false;
+//             break;
+//         default:
+//             return false;
+//             break;   
+//     }
+//     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
+//     return coordToOrbid(coordf.data(), orbidf);
+// }
+
+// bool Geometry::reflect(int orbid, int& orbidf) const {
+//     VecD coordi(3), coordr(3), coordrp(3), coordf(3);
+//     getOrbR(orbid,coordi.data());
+//     vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
+//     switch(PG){
+//         case PointGroup::D3:
+//             /*
+//                 a1->a1,a2->-a1-a2
+//                 x1*a1 + x2*a2 -> x1*a1 + x2*(-a1-a2) = (x1-x2)*a1 + (-x2)*a2
+//             */
+//             coordrp[0] = coordr[0]-coordr[1]; coordrp[1] = -coordr[1]; coordrp[2] = coordr[2];
+//             break;
+//         case PointGroup::D4:
+//             /*
+//                 a1->a1,a2->-a2
+//                 x1*a1 + x2*a2 -> x1*a2 + x2*(-a1) = -x2*a1 + x1*a2
+//             */
+//             coordrp[0] = coordr[0]; coordrp[1] = -coordr[1]; coordrp[2] = coordr[2];
+//             break;
+//         case PointGroup::D6:
+//             /*
+//                 a1->a1,a2->a1-a2
+//                 x1*a1 + x2*a2 -> x1*a1 + x2*(a1-a2) = (x1+x2)*a1 + (-x2)*a2
+//             */
+//             coordrp[0] = coordr[0]+coordr[1]; coordrp[1] = -coordr[1]; coordrp[2] = coordr[2];  
+//             break;
+//         case PointGroup::NONE: case PointGroup::C3: case PointGroup::C4: case PointGroup::C6:
+//             return false;
+//             break;
+//         default:
+//             return false;
+//             break;   
+//     }
+//     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
+//     return coordToOrbid(coordf.data(), orbidf);
+// }
+
 bool Geometry::rotate(int orbid, int& orbidf) const {
     VecD coordi(3), coordr(3), coordrp(3), coordf(3);
-    getOrbR(orbid,coordi.data());
+    VecD orbRi(3), orbRd(3), orbRf(3);
+    getOrbR(orbid, orbRi.data());
+    getSiteR(getSiteid(orbid),coordi.data());
+    vecXAdd(1.0, orbRi.data(), -1.0, coordi.data(), orbRd.data(), dim);
     vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
     switch(PG){
         case PointGroup::D3: case PointGroup::C3:
@@ -84,12 +161,16 @@ bool Geometry::rotate(int orbid, int& orbidf) const {
             break;   
     }
     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
-    return coordToOrbid(coordf.data(), orbidf);
+    vecXAdd(1.0, coordf.data(), 1.0, orbRd.data(). orbRf.data(), dim);
+    return coordToOrbid(orbRf.data(), orbidf);
 }
 
 bool Geometry::reflect(int orbid, int& orbidf) const {
     VecD coordi(3), coordr(3), coordrp(3), coordf(3);
-    getOrbR(orbid,coordi.data());
+    VecD orbRi(3), orbRd(3), orbRf(3);
+    getOrbR(orbid, orbRi.data());
+    getSiteR(getSiteid(orbid),coordi.data());
+    vecXAdd(1.0, orbRi.data(), -1.0, coordi.data(), orbRd.data(), dim);
     vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
     switch(PG){
         case PointGroup::D3:
@@ -121,7 +202,8 @@ bool Geometry::reflect(int orbid, int& orbidf) const {
             break;   
     }
     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
-    return coordToOrbid(coordf.data(), orbidf);
+    vecXAdd(1.0, coordf.data(), 1.0, orbRd.data(). orbRf.data(), dim);
+    return coordToOrbid(orbRf.data(), orbidf);
 }
 
 void Geometry::genPGList(){
