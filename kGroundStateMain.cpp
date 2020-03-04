@@ -169,8 +169,8 @@ int main(int argc, const char * argv[]) {
             std::string dataDir = dataDirP+"/eigs/J2_"+std::to_string(J2_num);
             if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
             // set J2 parameter
-            H.setVal(1,J2);
-            MPI_Barrier(MPI_COMM_WORLD);
+            // H.setVal(1,J2);
+            // MPI_Barrier(MPI_COMM_WORLD);
         /*
             *********************************
             * Diagonalization Using PARPACK *
