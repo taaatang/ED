@@ -161,7 +161,7 @@ bool Geometry::rotate(int orbid, int& orbidf) const {
             break;   
     }
     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
-    vecXAdd(1.0, coordf.data(), 1.0, orbRd.data(). orbRf.data(), dim);
+    vecXAdd(1.0, coordf.data(), 1.0, orbRd.data(), orbRf.data(), dim);
     return coordToOrbid(orbRf.data(), orbidf);
 }
 
@@ -202,7 +202,7 @@ bool Geometry::reflect(int orbid, int& orbidf) const {
             break;   
     }
     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
-    vecXAdd(1.0, coordf.data(), 1.0, orbRd.data(). orbRf.data(), dim);
+    vecXAdd(1.0, coordf.data(), 1.0, orbRd.data(), orbRf.data(), dim);
     return coordToOrbid(orbRf.data(), orbidf);
 }
 
