@@ -152,12 +152,12 @@ int main(int argc, const char * argv[]) {
         if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
             <<". Construction time:"<<timer.elapse()<<"ms."<<std::endl;
 
-        timer.tik();
-        SSOp<dataType> SS(&Lattice,&B);
-        SS.genMatPara();
-        timer.tok();
-        if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local SS dimension:"<<SS.get_nloc()<<"/"<<SS.get_dim()<<", Local Hamiltonian non-zero elements count:"<<SS.nzCount()\
-            <<". Construction time:"<<timer.elapse()<<"ms."<<std::endl;
+        // timer.tik();
+        // SSOp<dataType> SS(&Lattice,&B);
+        // SS.genMatPara();
+        // timer.tok();
+        // if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local SS dimension:"<<SS.get_nloc()<<"/"<<SS.get_dim()<<", Local Hamiltonian non-zero elements count:"<<SS.nzCount()\
+        //     <<". Construction time:"<<timer.elapse()<<"ms."<<std::endl;
 
 
         // scan J2
