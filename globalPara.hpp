@@ -158,7 +158,7 @@ const MATRIX_PARTITION PARTITION = ROW_PARTITION;
 // MAX parpack iterations
 const int PARPACK_MAXITERATION = 5000;
 //MIN and MAX ncv
-const int PARPACK_MINNCV = 3;
+const int PARPACK_MINNCV = 5;
 // const int PARPACK_MAXNCV = 500;
 
 /*
