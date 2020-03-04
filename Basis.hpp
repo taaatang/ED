@@ -73,6 +73,7 @@ public:
     ~Basis(){};
 
     int getkIndex() const {return kIndex;}
+    int getPGIndex() const {return PGRepIndex;}
     ind_int getRepI(ind_int ind) const {if(kIndex==-1 and model!=LATTICE_MODEL::HEISENBERG)return ind; return indexList.at(ind);}
     ind_int getmul(int orbid) const {return mul.at(orbid);}
     // generate full hilbertspace basis;
