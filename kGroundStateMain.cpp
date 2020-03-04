@@ -38,7 +38,7 @@ int main(int argc, const char * argv[]) {
     int PGRepIndex = -1;
     double spin = 0.5;
     int rowPerThread = 1;
-    bool BASIS_IS_SAVED = true;
+    bool BASIS_IS_SAVED = false;
     std::ifstream infile("ground_input.txt");
     infile>>N>>PGRepIndex>>nev;
     // infile>>Nx>>Ny>nev;
