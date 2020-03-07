@@ -211,7 +211,7 @@ void Geometry::genPGList(){
     cdouble e,ez; // conjugate pair
     switch(PG){
         case PointGroup::D3: 
-            PGdeg = 3; 
+            PGdeg = 6; 
             e = std::exp(CPLX_I*2.0*PI/3.0);
             ez =  std::exp(-CPLX_I*2.0*PI/3.0);
             //                E,  R1, R2, z, zR1, zR2
@@ -222,7 +222,7 @@ void Geometry::genPGList(){
                             };
             break;
         case PointGroup::D4: 
-            PGdeg = 4; 
+            PGdeg = 8; 
             e = std::exp(CPLX_I*2.0*PI/4.0);
             ez =  std::exp(-CPLX_I*2.0*PI/4.0);
             //                E,  R1, R2, R3, z, zR1, zR2, zR3
@@ -234,8 +234,14 @@ void Geometry::genPGList(){
                              {1, ez, -1,  e} //Eb:R=ez,inv=-1
                             };
             break;
+        case PointGroup::D4m: 
+            PGdeg = 2;
+        //                    E, ZR
+            CharacterList = {{1, 1},    //A1
+                             {1, -1}};  //A2
+            break;
         case PointGroup::D6: 
-            PGdeg = 6;
+            PGdeg = 12;
             e = std::exp(CPLX_I*2.0*PI/6.0);
             ez =  std::exp(-CPLX_I*2.0*PI/6.0);
             //                E,  R1, R2, R3, R4, R5, z, zR1, zR2, zR3, zR4, zR5
@@ -251,26 +257,38 @@ void Geometry::genPGList(){
             break;
         default: PGdeg = 0; break;
     }
-    PGList.resize(PGdeg*2);
-    if(PGdeg>0){
-        for(int orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);
-        int orbid, orbidf;
-        // rotation
-        for(int i = 1; i < PGdeg; i++){
-            for(int j = 0; j < getOrbNum(); j++){
-                orbid = PGList.at(i-1).at(j);
-                if(rotate(orbid,orbidf)) PGList.at(i).push_back(orbidf);
-                else{std::cout<<"rotation of orbital:"<<orbid<<" not found!"<<std::endl; exit(1);}
+    PGList.resize(PGdeg);
+    switch (PG){
+        case PointGroup::D3: case PointGroup::D4: case PointGroup::D6:
+            for(int orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);
+            int orbid, orbidf;
+            // rotation
+            for(int i = 1; i < PGdeg/2; i++){
+                for(int j = 0; j < getOrbNum(); j++){
+                    orbid = PGList.at(i-1).at(j);
+                    if(rotate(orbid,orbidf)) PGList.at(i).push_back(orbidf);
+                    else{std::cout<<"rotation of orbital:"<<orbid<<" not found!"<<std::endl; exit(1);}
+                }
             }
-        }
-        // reflection
-        for(int i = PGdeg; i < 2*PGdeg; i++){
-            for(int j = 0; j < getOrbNum(); j++){
-                orbid = PGList.at(i-PGdeg).at(j);
-                if(reflect(orbid,orbidf)) PGList.at(i).push_back(orbidf);
-                else{std::cout<<"reflection of orbital:"<<orbid<<" not found!"<<std::endl; exit(1);}
+            // reflection
+            for(int i = PGdeg/2; i < PGdeg; i++){
+                for(int j = 0; j < getOrbNum(); j++){
+                    orbid = PGList.at(i-PGdeg/2).at(j);
+                    if(reflect(orbid,orbidf)) PGList.at(i).push_back(orbidf);
+                    else{std::cout<<"reflection of orbital:"<<orbid<<" not found!"<<std::endl; exit(1);}
+                }
             }
-        }
+            break;
+        case PointGroup::D4m:
+            for(int orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);
+            int orbid, orbidf;
+            // reflection * rotation
+            for(int orbid = 0; orbid < getOrbNum(); orbid++){
+                int orbtmp;
+                if(rotate(orbid,orbtmp)) if(reflect(orbtmp,orbidf)) PGList.at(1).push_back(orbidf);
+            }
+            break;
+        default: break;
     }
 }
 
@@ -531,7 +549,11 @@ TriAngLattice::TriAngLattice(int N1, int N2, bool PBC){
 */
 SquareLattice::SquareLattice(int N1, int N2, bool PBC){
     if(N1==N2) {
-        PG = PointGroup::D4;
+        if(getUnitOrbNum()==1){
+            PG = PointGroup::D4;
+        }else{
+            PG = PointGroup::D4m;
+        }
         center = {double(N1-1)/2.0, double(N2-1)/2.0, 0.0};
     }
     is_PBC = PBC;
