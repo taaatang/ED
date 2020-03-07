@@ -258,10 +258,10 @@ void Geometry::genPGList(){
         default: PGdeg = 0; break;
     }
     PGList.resize(PGdeg);
+    int orbid, orbidf;
     switch (PG){
         case PointGroup::D3: case PointGroup::D4: case PointGroup::D6:
-            for(int orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);
-            int orbid, orbidf;
+            for(orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);    
             // rotation
             for(int i = 1; i < PGdeg/2; i++){
                 for(int j = 0; j < getOrbNum(); j++){
@@ -281,7 +281,6 @@ void Geometry::genPGList(){
             break;
         case PointGroup::D4m:
             for(int orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);
-            int orbid, orbidf;
             // reflection * rotation
             for(int orbid = 0; orbid < getOrbNum(); orbid++){
                 int orbtmp;
