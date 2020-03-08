@@ -334,41 +334,6 @@ public:
 };
 
 template <class T>
-class Heisenberg: public SpinOperator, public SparseMatrix<T>{
-private:
-    // constant links
-    int linkCount;
-    int spmCount;
-    std::vector<Link<T>> Links;
-    // non-constant links
-    std::vector<Link<T>> NCLinks;
-    Geometry *pt_lattice;
-public:
-    Heisenberg(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):\
-        SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
-    ~Heisenberg(){};
-
-    Heisenberg& pushLink(Link<T> link, int matID){
-        if(matID==0)assert(link.isConst());
-        else assert(!link.isConst());
-        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); 
-        linkCount++;
-        return *this;
-    }
-    Heisenberg& pushLinks(std::vector<Link<T>> Links_){
-        assert(spmCount<SparseMatrix<T>::spmNum);
-        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], spmCount);
-        spmCount++;
-        assert(spmCount<=SparseMatrix<T>::spmNum);
-        return *this;
-    }
-
-    void setVal(int matID, double val){(SparseMatrix<T>::parameters).at(matID) = val;}
-    void row(ind_int rowID, std::vector<MAP>& rowMaps);
-    void genMat();
-};
-
-template <class T>
 class Hubbard: public FermionOperator, public SparseMatrix<T>{
 private:
     // constant links
@@ -410,6 +375,30 @@ public:
     void genMat();
 };
 
+class Current: public FermionOperator, public SparseMatrix<cdouble>{
+    int linkCount;
+    int spmCount;
+    std::vector<Link<double>> Links;
+    Geometry *pt_lattice;
+public:
+    Current(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1):FermionOperator(pt_Ba),SparseMatrix<cdouble>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+    ~Current(){};
+    Current& pushLink(Link<double> link, int matID){
+        if(matID==0)assert(link.isConst());
+        else assert(!link.isConst());
+        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); 
+        linkCount++;
+        return *this;
+    }
+    Current& pushLinks(std::vector<Link<double>> Links_){
+        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], 0);
+        spmCount++;
+        assert(spmCount<=SparseMatrix<cdouble>::spmNum);
+        return *this;
+    }
+    void row(ind_int rowID, std::vector<MAP>& rowMaps);
+};
+
 class Nocc: public SparseMatrix<cdouble>{
 private:
     Geometry* pt_lattice;
@@ -423,6 +412,42 @@ public:
     void genMat();
     double count(ORBITAL orbital, dataType* vec);
 };
+
+template <class T>
+class Heisenberg: public SpinOperator, public SparseMatrix<T>{
+private:
+    // constant links
+    int linkCount;
+    int spmCount;
+    std::vector<Link<T>> Links;
+    // non-constant links
+    std::vector<Link<T>> NCLinks;
+    Geometry *pt_lattice;
+public:
+    Heisenberg(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):\
+        SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+    ~Heisenberg(){};
+
+    Heisenberg& pushLink(Link<T> link, int matID){
+        if(matID==0)assert(link.isConst());
+        else assert(!link.isConst());
+        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); 
+        linkCount++;
+        return *this;
+    }
+    Heisenberg& pushLinks(std::vector<Link<T>> Links_){
+        assert(spmCount<SparseMatrix<T>::spmNum);
+        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], spmCount);
+        spmCount++;
+        assert(spmCount<=SparseMatrix<T>::spmNum);
+        return *this;
+    }
+
+    void setVal(int matID, double val){(SparseMatrix<T>::parameters).at(matID) = val;}
+    void row(ind_int rowID, std::vector<MAP>& rowMaps);
+    void genMat();
+};
+
 
 template <class T>
 class SzkOp: public SpinOperator, public SparseMatrix<cdouble>{
@@ -556,11 +581,6 @@ void Heisenberg<T>::genMat(){
 template <class T>
 void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     VecI initVec(pt_lattice->getOrbNum()), initVecp(pt_lattice->getOrbNum());
-    /*
-        *****************
-        * Constant Part *
-        * ***************
-    */
     // diagonal part. occupancy and double-occ
     VecI occ, docc;
     ind_int initInd = pt_Basis->getRepI(rowID);

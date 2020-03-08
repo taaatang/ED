@@ -29,6 +29,32 @@ SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod, int dim):pt_Basis(pt
     * Hamiltonian Class *
     *********************
 */
+void Current::row(ind_int rowID, std::vector<MAP>& rowMaps){
+    VecI initVec(pt_lattice->getOrbNum()), initVecp(pt_lattice->getOrbNum());
+    ind_int initInd = pt_Basis->getRepI(rowID);
+    pt_Basis->indToVec(initInd, initVec, initVecp);
+    // off diagonal part
+    std::vector<ind_int> finalIndList;
+    std::vector<cdouble> factorList;
+    pt_Basis->genSymm(rowID, finalIndList, factorList);
+    for (int i = 0; i < finalIndList.size(); i++){
+        pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
+        for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+            int matID = (*linkit).getmatid();
+            cdouble factor = CPLX_I * factorList.at(i) * (*linkit).getVal();
+            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                int siteI = (*bondit).at(0);
+                int siteJ = (*bondit).at(1);
+                // cp.siteI * cm.siteJ
+                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
+                cpcm(SPIN::SPIN_UP, siteJ, siteI, -factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
+                cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
+                cpcm(SPIN::SPIN_DOWN, siteJ, siteI, -factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);   
+            }
+        }
+    }
+}
+
 Nocc::Nocc(Geometry *pt_lat, Basis *pt_Ba):pt_lattice(pt_lat),pt_Basis(pt_Ba),SparseMatrix<cdouble>(pt_Ba->getSubDim(),0,pt_lat->getUnitOrbNum()){
     for(int i = 0; i < pt_lat->getUnitOrbNum(); i++) diagValList.resize(BaseMatrix<cdouble>::nloc);
 }
