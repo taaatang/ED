@@ -123,89 +123,24 @@ bool Geometry::reflect(int orbid, int& orbidf) const {
     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
     return coordToOrbid(coordf.data(), orbidf);
 }
-
-// bool Geometry::rotate(int orbid, int& orbidf) const {
-//     VecD coordi(3), coordr(3), coordrp(3), coordf(3);
-//     VecD orbRi(3), orbRd(3), orbRf(3);
-//     getOrbR(orbid, orbRi.data());
-//     getSiteR(getSiteid(orbid),coordi.data());
-//     vecXAdd(1.0, orbRi.data(), -1.0, coordi.data(), orbRd.data(), dim);
-//     vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
-//     switch(PG){
-//         case PointGroup::D3: case PointGroup::C3:
-//             /*
-//                 a1->a2,a2->-a1-a2
-//                 x1*a1 + x2*a2 -> x1*a2 + x2*(-a1-a2) = -x2*a1 + (x1-x2)*a2
-//             */
-//             coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]-coordr[1]; coordrp[2] = coordr[2];
-//             break;
-//         case PointGroup::D4: case PointGroup::C4:
-//             /*
-//                 a1->a2,a2->-a1
-//                 x1*a1 + x2*a2 -> x1*a2 + x2*(-a1) = -x2*a1 + x1*a2
-//             */
-//             coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]; coordrp[2] = coordr[2];
-//             break;
-//         case PointGroup::D6: case PointGroup::C6:
-//             /*
-//                 a1->a2,a2->a2-a1
-//                 x1*a1 + x2*a2 -> x1*a2 + x2*(a2-a1) = -x2*a1 + (x1+x2)*a2
-//             */
-//             coordrp[0] = -coordr[1]; coordrp[1] = coordr[0] + coordr[1]; coordrp[2] = coordr[2];  
-//             break;
-//         case PointGroup::NONE:
-//             return false;
-//             break;
-//         default:
-//             return false;
-//             break;   
-//     }
-//     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
-//     vecXAdd(1.0, coordf.data(), 1.0, orbRd.data(), orbRf.data(), dim);
-//     return coordToOrbid(orbRf.data(), orbidf);
-// }
-
-// bool Geometry::reflect(int orbid, int& orbidf) const {
-//     VecD coordi(3), coordr(3), coordrp(3), coordf(3);
-//     VecD orbRi(3), orbRd(3), orbRf(3);
-//     getOrbR(orbid, orbRi.data());
-//     getSiteR(getSiteid(orbid),coordi.data());
-//     vecXAdd(1.0, orbRi.data(), -1.0, coordi.data(), orbRd.data(), dim);
-//     vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
-//     switch(PG){
-//         case PointGroup::D3:
-//             /*
-//                 a1->a1,a2->-a1-a2
-//                 x1*a1 + x2*a2 -> x1*a1 + x2*(-a1-a2) = (x1-x2)*a1 + (-x2)*a2
-//             */
-//             coordrp[0] = coordr[0]-coordr[1]; coordrp[1] = -coordr[1]; coordrp[2] = coordr[2];
-//             break;
-//         case PointGroup::D4:
-//             /*
-//                 a1->a1,a2->-a2
-//                 x1*a1 + x2*a2 -> x1*a2 + x2*(-a1) = -x2*a1 + x1*a2
-//             */
-//             coordrp[0] = coordr[0]; coordrp[1] = -coordr[1]; coordrp[2] = coordr[2];
-//             break;
-//         case PointGroup::D6:
-//             /*
-//                 a1->a1,a2->a1-a2
-//                 x1*a1 + x2*a2 -> x1*a1 + x2*(a1-a2) = (x1+x2)*a1 + (-x2)*a2
-//             */
-//             coordrp[0] = coordr[0]+coordr[1]; coordrp[1] = -coordr[1]; coordrp[2] = coordr[2];  
-//             break;
-//         case PointGroup::NONE: case PointGroup::C3: case PointGroup::C4: case PointGroup::C6:
-//             return false;
-//             break;
-//         default:
-//             return false;
-//             break;   
-//     }
-//     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
-//     vecXAdd(1.0, coordf.data(), 1.0, orbRd.data(), orbRf.data(), dim);
-//     return coordToOrbid(orbRf.data(), orbidf);
-// }
-
+bool Geometry::mirror(int orbid, int& orbidf) const {
+    VecD coordi(3), coordr(3), coordrp(3), coordf(3);
+    getOrbR(orbid,coordi.data());
+    vecXAdd(1.0, coordi.data(), -1.0, center.data(), coordr.data(), dim);
+    switch(PG){
+        case PointGroup::D4m5:
+            /*
+                a1->a1, a2->a2, a3->-a3
+            */
+            coordrp[0] = coordr[0]; coordrp[1] = coordr[1]; coordrp[2] = -coordr[2];
+            break;
+        default:
+            return false;
+            break;   
+    }
+    vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
+    return coordToOrbid(coordf.data(), orbidf);
+}
 void Geometry::genPGList(){
     int PGdeg;
     cdouble e,ez; // conjugate pair
@@ -236,7 +171,13 @@ void Geometry::genPGList(){
             break;
         case PointGroup::D4m: 
             PGdeg = 2;
-        //                    E, ZR
+        //                    E, Z*R
+            CharacterList = {{1, 1},    //A1
+                             {1, -1}};  //A2
+            break;
+        case PointGroup::D4m5: 
+            PGdeg = 2;
+        //                    E, M*Z*R
             CharacterList = {{1, 1},    //A1
                              {1, -1}};  //A2
             break;
@@ -280,11 +221,19 @@ void Geometry::genPGList(){
             }
             break;
         case PointGroup::D4m:
-            for(int orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);
+            for(orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);
             // reflection * rotation
-            for(int orbid = 0; orbid < getOrbNum(); orbid++){
+            for(orbid = 0; orbid < getOrbNum(); orbid++){
                 int orbtmp;
                 if(rotate(orbid,orbtmp)) if(reflect(orbtmp,orbidf)) PGList.at(1).push_back(orbidf);
+            }
+            break;
+        case PointGroup::D4m5:
+            for(orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);
+            // reflection * rotation
+            for(orbid = 0; orbid < getOrbNum(); orbid++){
+                int orbtmp1, orbtmp2;
+                if(rotate(orbid,orbtmp1)) if(reflect(orbtmp1,orbtmp2)) if(mirror(orbtmp2,orbidf)) PGList.at(1).push_back(orbidf);
             }
             break;
         default: break;
@@ -293,7 +242,10 @@ void Geometry::genPGList(){
 
 void Geometry::construct(){
     if (PG==PointGroup::D4){
-        if(getUnitOrbNum()>1) PG=PointGroup::D4m;
+        if(getUnitOrbNum()==1) PG=PointGroup::D4;
+        else if(getUnitOrbNum()==3) PG=PointGroup::D4m;
+        else if(getUnitOrbNum()==5) PG=PointGroup::D4m5;
+        else PG=PointGroup::NONE;
     }
     Norb = Nsite * unitSite.size();
     Norb_enlg = is_PBC?Norb*TranVecs.size():Norb;

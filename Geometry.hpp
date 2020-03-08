@@ -167,6 +167,7 @@ public:
     // generate translation map for all r. TransList.at(r).at(id) = id->r
     bool rotate(int orbid, int& orbidf) const;
     bool reflect(int orbid, int& orbidf) const;
+    bool mirror(int orbid, int& orbidf) const;
     void genPGList();
     void genTransList();
     // construct Lattice, KLattice, orbs, enlg_orbs and TransList
