@@ -19,7 +19,7 @@ CXXFLAGS = -O3 $(MKLFLAG) -w2 -qopenmp
 ARPACKHD = -I$(ARPACKINC)
 LIBRARY = -L$(ARPACKLIB)
 
-all:genBasis.out kGroundState.out Spectra.out
+all:genBasis.out kGroundState.out Spectra.out HubbardSpec.out
 .PHONY: all
 
 test: timeTest.out geometryTest.out
@@ -36,6 +36,8 @@ kGroundState.out:kGroundStateMain.o Geometry.o Basis.o Operators.o utils.o algeb
 
 Spectra.out:SpectraMain.o Geometry.o Basis.o Operators.o utils.o algebra.o
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY)  SpectraMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o Spectra.out $(MKLLINK) -lparpack
+HubbardSpec.out:HubbardSpecMain.o Geometry.o Basis.o Operators.o utils.o algebra.o
+	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY)  HubbardSpecMain.o Geometry.o Basis.o Operators.o algebra.o utils.o -o HubbardSpec.out $(MKLLINK) -lparpack
 
 timeTest.out:timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) $(LIBRARY) timeTest.o algebra.o utils.o Basis.o Geometry.o Operators.o -o timeTest.out $(MKLLINK) -lparpack
@@ -52,6 +54,9 @@ kGroundStateMain.o:kGroundStateMain.cpp
 	
 SpectraMain.o:SpectraMain.cpp
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) -c SpectraMain.cpp
+
+HubbardSpecMain.o:HubbardSpecMain.cpp
+	$(CXX) $(CXXFLAGS) $(ARPACKHD) -c HubbardSpecMain.cpp
 
 timeTest.o:timeTest.cpp
 	$(CXX) $(CXXFLAGS) $(ARPACKHD) -c timeTest.cpp
