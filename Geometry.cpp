@@ -62,7 +62,7 @@ bool Geometry::rotate(int orbid, int& orbidf) const {
             */
             coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]-coordr[1]; coordrp[2] = coordr[2];
             break;
-        case PointGroup::D4: case PointGroup::C4:
+        case PointGroup::D4: case PointGroup::D4m: case PointGroup::D4m5: case PointGroup::C4:
             /*
                 a1->a2,a2->-a1
                 x1*a1 + x2*a2 -> x1*a2 + x2*(-a1) = -x2*a1 + x1*a2
@@ -99,7 +99,7 @@ bool Geometry::reflect(int orbid, int& orbidf) const {
             */
             coordrp[0] = coordr[0]-coordr[1]; coordrp[1] = -coordr[1]; coordrp[2] = coordr[2];
             break;
-        case PointGroup::D4:
+        case PointGroup::D4: case PointGroup::D4m: case PointGroup::D4m5:
             /*
                 a1->a1,a2->-a2
                 x1*a1 + x2*a2 -> x1*a2 + x2*(-a1) = -x2*a1 + x1*a2
