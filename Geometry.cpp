@@ -292,6 +292,9 @@ void Geometry::genPGList(){
 }
 
 void Geometry::construct(){
+    if (PG==PointGroup::D4){
+        if(getUnitOrbNum()>1) PG=PointGroup::D4m;
+    }
     Norb = Nsite * unitSite.size();
     Norb_enlg = is_PBC?Norb*TranVecs.size():Norb;
     assert(Nsite>0 and Norb>0 and Norb_enlg>=Norb);
@@ -548,11 +551,7 @@ TriAngLattice::TriAngLattice(int N1, int N2, bool PBC){
 */
 SquareLattice::SquareLattice(int N1, int N2, bool PBC){
     if(N1==N2) {
-        if(getUnitOrbNum()==1){
-            PG = PointGroup::D4;
-        }else{
-            PG = PointGroup::D4m;
-        }
+        PG = PointGroup::D4;
         center = {double(N1-1)/2.0, double(N2-1)/2.0, 0.0};
     }
     is_PBC = PBC;
