@@ -128,7 +128,6 @@ int main(int argc, const char * argv[]) {
 
     if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
         <<". Construction time:"<<timer.elapse()<<"ms."<<std::endl;
-    std::ofstream outfile;
 /*
     *********************************
     * Diagonalization Using PARPACK *
