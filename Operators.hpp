@@ -384,8 +384,6 @@ public:
     Current(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1):FermionOperator(pt_Ba),SparseMatrix<cdouble>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Current(){};
     Current& pushLink(Link<cdouble> link, int matID){
-        if(matID==0)assert(link.isConst());
-        else assert(!link.isConst());
         Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); 
         linkCount++;
         return *this;
