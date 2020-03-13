@@ -20,6 +20,7 @@ public:
 
     void tik(){tik_ = std::chrono::system_clock::now(); is_tok = false;}
     void tok(){tok_ = std::chrono::system_clock::now(); is_tok = true;}
+    // return duration in unit of ms
     double elapse(){
         if (!is_tok) tok();
         duration_ = tok_ - tik_;
