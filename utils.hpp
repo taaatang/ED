@@ -315,4 +315,31 @@ inline void read(std::vector<T> *d_pt, std::string filename){
     }
 }
 
+/*
+    ******************
+    * Bit Operations *
+    * ****************
+*/
+inline ind_int bitMask(int pos){
+    return ind_int{1}<<pos;
+}
+inline bool bitTest(ind_int n, int pos){
+    return (n>>pos) & ind_int{1};
+}
+inline void bitSet(ind_int& n, int pos){
+    n |= bitMask(pos);
+}
+inline void bitFlip(ind_int& n, int pos){
+    n ^= bitMask(pos);
+}
+inline ind_int bitCount(ind_int& n, const VecI& idxs){
+    ind_int sum = 0;
+    for(auto it=idxs.begin(); it!=idxs.end(); it++) sum += n>>(*it) & ind_int{1};
+    return sum; 
+}
+inline void bitPrint(ind_int n, int range){
+    for(int pos=range-1;pos>=0;pos--)std::cout<<((n>>pos) & ind_int{1});
+    std::cout<<std::endl;
+}
+
 #endif 
