@@ -76,6 +76,7 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
 
     // default full hilbert space
     subDim = totDim;
+    locDim = subDim;
     // initialize mul
     for (int i = 0; i < N; i++) mul.push_back(pow((ind_int) siteDim, (ind_int) (N - i - 1)));   
 }
@@ -263,6 +264,15 @@ void Basis::gen(std::string basisfile, std::string normfile){
     
     normList.clear();
     read<double>(&normList, normfile);
+    assert(normList.size()==indexList.size());
+}
+void Basis::gen(std::string basisfile, std::string normfile, int workerID, int workerNum){
+    indexList.clear();
+    read<ind_int>(&indexList, basisfile, workerID, workerNum);
+    locDim = indexList.size();
+    
+    normList.clear();
+    read<double>(&normList, normfile, workerID, workerNum);
     assert(normList.size()==indexList.size());
 }
 

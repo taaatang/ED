@@ -41,6 +41,7 @@ class Basis{
     int siteDim; // Hilbert Space dimension of a single Site
     ind_int totDim; // Total Hilbert Space dimension
     ind_int subDim; // Total subspace dimension
+    ind_int locDim; // Local stored dimension
     ind_int fDim, sDim;
     // N sites for vec, Np sites for vecp
     int N, Np, Nocc, Npocc; 
@@ -97,6 +98,8 @@ public:
     // construct k-subspace basis/norm from reps loaded from file
     void gen(std::string basisfile);
     void gen(std::string basisfile, std::string normfile);
+    // distributed basis
+    void gen(std::string basisfile, std::string normfile, int workerID, int workerNum);
     
     int getSiteDim() const {return siteDim;}
     ind_int getTotDim() const {return totDim;}

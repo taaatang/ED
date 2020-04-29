@@ -315,6 +315,31 @@ inline void read(std::vector<T> *d_pt, std::string filename){
     }
 }
 
+template <class T>
+inline void read(std::vector<T> *d_pt, std::string filename, int workerID, int workerNum){
+    std::ifstream infile;
+    infile.open(filename, std::ios::in|std::ios::binary);
+    if (infile.is_open()){
+        int el_size = sizeof(T)
+        infile.seekg(0, infile.end);
+        ind_int size = infile.tellg();
+        infile.seekg(0, infile.beg);
+        assert((size % el_size)==0);
+        ind_int dim = size/el_size;
+        ind_int nlocmax = (dim + workerNum - 1)/workerNum;
+        ind_int startRow = workerID * nlocmax;
+        ind_int endRow = (startRow + nlocmax)<dim?(startRow + nlocmax):dim;
+        ind_int nloc = endRow - startRow;
+        infile.seekg(startRow*el_size, infile.beg);
+        d_pt->resize(nloc);
+        infile.read(reinterpret_cast<char*>(d_pt->data()), nloc*el_size);
+        infile.close();
+        // std::cout<<"Data loaded from "<<filename<<std::endl;
+    }else{
+        std::cout<<filename<<" failed to open!"<<std::endl;
+        exit(1);
+    }
+}
 /*
     ******************
     * Bit Operations *
