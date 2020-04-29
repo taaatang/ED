@@ -341,5 +341,10 @@ inline void bitPrint(ind_int n, int range){
     for(int pos=range-1;pos>=0;pos--)std::cout<<((n>>pos) & ind_int{1});
     std::cout<<std::endl;
 }
+// From Yao's code
+inline UnsignedType nextLexicographicalNumber(UnsignedType x) {
+    UnsignedType t = (x | (x - 1)) + 1; //find pivot position and set it to 1
+    return t | ((((t & -t) / (x & -x)) >> 1) - 1); //reverse bits after the pivot
+}
 
 #endif 

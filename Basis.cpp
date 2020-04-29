@@ -140,20 +140,10 @@ void Basis::genFull(){
             counter = 0;
             VecI initVec(N), initVecp(N);
             for (ind_int i = 0; i < fDim; i++){
-                indToVec(fIndexList.at(i), initVec);
                 for (ind_int j = 0; j < sDim; j++){
-                    indToVec(sIndexList.at(j), initVec);
-                    bool no_double_occp = true;
-                    for (int n = 0; n < N; n++){
-                        if ((initVec.at(n) + initVecp.at(n)) > 1){
-                            no_double_occp = false;
-                            break;
-                        }
-                    }
-                    if (no_double_occp){
-                        indexList.push_back(i * sDim + j);
-                        counter++;
-                    } 
+                    if(fIndexList.at(i) & sIndexList.at(j)) continue;
+                    indexList.push_back(i * sDim + j);
+                    counter++;
                 }
             }
             assert(totDim==counter);
@@ -431,48 +421,39 @@ bool Basis::isRep(ind_int initInd, double& norm) const {
     // smallest index in the cycle?
     switch(model){
         case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::t_J:{
-            VecI initVec(N), initVecp(N), finalVec(N), finalVecp(N), finalVec1(N), finalVecp1(N);;
-            pairIndex pairInd = std::make_pair(fIndexList.at(initInd/sDim), sIndexList.at(initInd%sDim));
-            indToVec(pairInd, initVec, initVecp);
+            pairIndex pairRepI;
+            getRepI(initInd,pairRepI);
             // project out double occp
-            if (model==LATTICE_MODEL::t_J){
-                for (int i = 0; i < pt_lattice->getOrbNum(); i++){
-                    if (initVec.at(i) + initVecp.at(i) > 1) return false;
-                }
+            if (model==LATTICE_MODEL::t_J and (pairRepI.first & pairRepI.second)){
+                return false;
             }
             if(PGRepIndex==-1){
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    pairIndex pairRepIp{0,0};
                     for (int i = 0; i < pt_lattice->getOrbNum(); i++){
-                        finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
+                        if(bitTest(pairRepI.first,i))bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));
                     }
-                    ind_int fInd = vecToInd(finalVec);
-                    if (pairInd.first > fInd) return false;
-                    else if (pairInd.first == fInd){
+                    if (pairRepI.first > pairRepIp.first) return false;
+                    else if (pairRepI.first == pairRepIp.first){
                         for (int j = 0; j < pt_lattice->getOrbNum(); j++){
-                            finalVecp.at(pt_lattice->getOrbTran(r,j)) = initVecp.at(j);                            
+                            if(bitTest(pairRepI.second,j))bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,j));                            
                         }
-                        if (pairInd.second > vecToInd(finalVecp)) return false;
+                        if (pairRepI.second > pairRepIp.second) return false;
                     }
                 }
             }else{
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
-                    for (int i = 0; i < pt_lattice->getOrbNum(); i++){
-                        finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
-                    }
                     for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
+                        pairIndex pairRepIp{0,0};
                         for (int i = 0; i < pt_lattice->getOrbNum();i++){
-                            finalVec1.at(pt_lattice->getOrbPG(p,i)) = finalVec.at(i);
+                            if(bitTest(pairRepI.first,i))bitSet(pairRepIp.first,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
                         }
-                        ind_int fInd = vecToInd(finalVec1);
-                        if (pairInd.first > fInd) return false;
-                        else if (pairInd.first == fInd){
-                            for (int j = 0; j < pt_lattice->getOrbNum(); j++){
-                                finalVecp.at(pt_lattice->getOrbTran(r,j)) = initVecp.at(j);                            
+                        if (pairRepI.first > pairRepIp.first) return false;
+                        else if (pairRepI.first == pairRepIp.first){
+                            for (int i = 0; i < pt_lattice->getOrbNum(); i++){
+                                if(bitTest(pairRepI.second,i))bitSet(pairRepIp.second,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));                      
                             }
-                            for (int j = 0; j < pt_lattice->getOrbNum();j++){
-                                finalVecp1.at(pt_lattice->getOrbPG(p,j)) = finalVecp.at(j);
-                            }
-                            if (pairInd.second > vecToInd(finalVecp1)) return false;
+                            if (pairRepI.second > pairRepIp.second) return false;
                         }
                     }    
                 }
@@ -480,26 +461,48 @@ bool Basis::isRep(ind_int initInd, double& norm) const {
             break;
         }
         case LATTICE_MODEL::HEISENBERG:{
-            VecI initVec(N), finalVec(N), finalVec1(N);
-            indToVec(initInd, initVec);
-            if(PGRepIndex==-1){
-                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
-                    for(int i = 0; i < pt_lattice->getOrbNum(); i++){
-                        finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
-                    }
-                    if (initInd > vecToInd(finalVec)) return false;
-                }
-            }else{
-                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
-                    for(int i = 0; i < pt_lattice->getOrbNum(); i++){
-                        finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
-                    }
-                    for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
-                        for (int i = 0; i < pt_lattice->getOrbNum();i++){
-                            finalVec1.at(pt_lattice->getOrbPG(p,i)) = finalVec.at(i);
+            if(siteDim>2){
+                VecI initVec(N), finalVec(N), finalVec1(N);
+                indToVec(initInd, initVec);
+                if(PGRepIndex==-1){
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for(int i = 0; i < pt_lattice->getOrbNum(); i++){
+                            finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
                         }
-                        if (initInd > vecToInd(finalVec1)) return false;
-                    }        
+                        if (initInd > vecToInd(finalVec)) return false;
+                    }
+                }else{
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for(int i = 0; i < pt_lattice->getOrbNum(); i++){
+                            finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
+                        }
+                        for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
+                            for (int i = 0; i < pt_lattice->getOrbNum();i++){
+                                finalVec1.at(pt_lattice->getOrbPG(p,i)) = finalVec.at(i);
+                            }
+                            if (initInd > vecToInd(finalVec1)) return false;
+                        }        
+                    }
+                }
+            }
+            else if(siteDim==2){
+                ind_int repIp{0};
+                if(PGRepIndex==-1){
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for(int i = 0; i < pt_lattice->getOrbNum(); i++){
+                            if(bitTest(initInd,i))bitSet(repIp,pt_lattice->getOrbTran(r,i));
+                        }
+                        if (initInd > repIp) return false;
+                    }
+                }else{
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
+                            for (int i = 0; i < pt_lattice->getOrbNum();i++){
+                                if(bitTest(initInd,i))bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i));
+                            }
+                            if (initInd > repIp) return false;
+                        }        
+                    }
                 }
             }
             break;
@@ -590,31 +593,45 @@ double Basis::Norm(ind_int initInd) const {
 
 // For a given ind, apply translation symmetry, return all the resulting indexes in finalInd
 void Basis::genSymm(ind_int ind, std::vector<ind_int>& finalInd) const {
+    /*
+        ind is repInt for Heisenberg model
+        ind is the idx for pairRepI of Hubbard model
+    */
     if (kIndex == -1){finalInd.push_back(ind);return;}
     switch(model){
         case HUBBARD:case t_J:{
-            VecI veci(N), vecpi(N), vecf(N), vecpf(N);
-            pairIndex pairInd = std::make_pair(fIndexList.at(ind/sDim), sIndexList.at(ind%sDim));
-            indToVec(pairInd, veci, vecpi);
+            pairIndex repI;
+            getRepI(ind,repI);
             for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                pairIndex repIp{0,0};
                 for(int i = 0; i < N; i++){
-                    vecf.at(pt_lattice->getOrbTran(r,i)) = veci.at(i);
-                    vecpf.at(pt_lattice->getOrbTran(r,i)) = vecpi.at(i);
+                    if(bitTest(repI.first,i)) bitSet(repIp.first,pt_lattice->getOrbTran(r,i));
+                    if(bitTest(repI.second,i)) bitSet(repIp.second,pt_lattice->getOrbTran(r,i));
                 }
-                pairIndex pairInd = vecToInd(vecf, vecpf);
-                finalInd.push_back(search(pairInd));
+                finalInd.push_back(search(repIp));
             }
             break;
         }
 
         case HEISENBERG:{
-            VecI veci(N), vecf(N);
-            indToVec(ind, veci);
-            for (int r = 0; r < pt_lattice->getSiteNum(); r++){
-                for(int i = 0; i<N; i++){
-                    vecf.at(pt_lattice->getOrbTran(r,i)) = veci.at(i);
+            if(siteDim==2){
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    ind_int indp{0};
+                    for(int i = 0; i<N; i++){
+                        if(bitTest(ind,i))bitSet(indp,pt_lattice->getOrbTran(r,i));
+                    }
+                    finalInd.push_back(indp);
                 }
-                finalInd.push_back(vecToInd(vecf));
+            }
+            else{
+                VecI veci(N), vecf(N);
+                indToVec(ind, veci);
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    for(int i = 0; i<N; i++){
+                        vecf.at(pt_lattice->getOrbTran(r,i)) = veci.at(i);
+                    }
+                    finalInd.push_back(vecToInd(vecf));
+                }
             }
             break;
         }
@@ -628,44 +645,39 @@ void Basis::genSymm(ind_int ind, std::vector<ind_int>& finalInd) const {
 }
 
 void Basis::genSymm(ind_int rowid, std::vector<ind_int>& finalInd, std::vector<cdouble>& factorList) const {
-    ind_int repInd = getRepI(rowid);
-    if (kIndex == -1){finalInd.push_back(repInd); factorList.push_back(1.0);return;}
+    ind_int repI = getRepI(rowid);
+    if (kIndex == -1){finalInd.push_back(repI); factorList.push_back(1.0);return;}
     cdouble initNorm = getNorm(rowid);
     switch(model){
         case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::t_J:{
-            VecI initVec(N), initVecp(N), finalVec(N), finalVecp(N);
-            pairIndex pairInd = std::make_pair(fIndexList.at(repInd/sDim), sIndexList.at(repInd%sDim));
-            indToVec(pairInd, initVec, initVecp);
+            pairIndex pairRepI;
+            getRepI(repI,pairRepI);
             VecI seq, seqp;
             if(PGRepIndex==-1){
                 initNorm *= pt_lattice->getSiteNum();
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    pairIndex pairRepIp{0,0};
                     seq.clear();
                     seqp.clear();
                     for(int i = 0; i < pt_lattice->getOrbNum(); i++){
-                        finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
-                        finalVecp.at(pt_lattice->getOrbTran(r,i)) = initVecp.at(i);
-                        if (initVec.at(i)==1) seq.push_back(pt_lattice->getOrbTran(r,i));
-                        if (initVecp.at(i)==1) seqp.push_back(pt_lattice->getOrbTran(r,i));
+                        if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));}
+                        if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seqp.push_back(pt_lattice->getOrbTran(r,i));}
                     }
-                    pairIndex pairInd = vecToInd(finalVec, finalVecp);
-                    finalInd.push_back(search(pairInd));
+                    finalInd.push_back(search(pairRepIp));
                     factorList.push_back(pt_lattice->expKR(kIndex,r)/initNorm*seqSign(seq) * seqSign(seqp));
                 }
             }else{
                 initNorm *= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     for(int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
+                        pairIndex pairRepIp{0,0};
                         seq.clear();
                         seqp.clear();
                         for(int i = 0; i < pt_lattice->getOrbNum(); i++){
-                            finalVec.at(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i))) = initVec.at(i);
-                            finalVecp.at(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i))) = initVecp.at(i);
-                            if (initVec.at(i)==1) seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
-                            if (initVecp.at(i)==1) seqp.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
+                            if(bitTest(pairRepI.first,i)){bitSet(pairRepIp.first,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                            if(bitTest(pairRepI.second,i)){bitSet(pairRepIp.second,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seqp.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
                         } 
-                        pairIndex pairInd = vecToInd(finalVec, finalVecp);
-                        finalInd.push_back(search(pairInd));
+                        finalInd.push_back(search(pairRepIp));
                         factorList.push_back(pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p)/initNorm*seqSign(seq) * seqSign(seqp));
                     }
                 }
@@ -674,29 +686,57 @@ void Basis::genSymm(ind_int rowid, std::vector<ind_int>& finalInd, std::vector<c
         }
 
         case LATTICE_MODEL::HEISENBERG:{
-            VecI initVec(N), finalVec(N);
-            indToVec(repInd, initVec);
-            if(PGRepIndex==-1){
-                initNorm *= pt_lattice->getSiteNum();
-                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
-                    for(int i = 0; i < N; i++){
-                        finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
-                    }
-                    finalInd.push_back(vecToInd(finalVec));
-                    factorList.push_back(pt_lattice->expKR(kIndex,r)/initNorm);
-                }
-            }else{
-                initNorm *= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);
-                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
-                    for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
-                        for(int i = 0; i < N; i++){
-                            finalVec.at(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i))) = initVec.at(i);
+            if(siteDim==2){
+                if(PGRepIndex==-1){
+                    initNorm *= pt_lattice->getSiteNum();
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        ind_int repIp{0};
+                        for(int i = 0; i < pt_lattice->getOrbNum();; i++){
+                            if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbTran(r,i));
                         }
-                        finalInd.push_back(vecToInd(finalVec));
-                        factorList.push_back(pt_lattice->expKR(kIndex,r)* pt_lattice->getChi(PGRepIndex,p)/initNorm);
+                        finalInd.push_back(repIp);
+                        factorList.push_back(pt_lattice->expKR(kIndex,r)/initNorm);
+                    }
+                }else{
+                    initNorm *= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
+                            ind_int repIp{0};
+                            for(int i = 0; i < pt_lattice->getOrbNum(); i++){
+                                if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
+                            }
+                            finalInd.push_back(repIp);
+                            factorList.push_back(pt_lattice->expKR(kIndex,r)* pt_lattice->getChi(PGRepIndex,p)/initNorm);
+                        }
                     }
                 }
             }
+            else{
+                VecI initVec(N), finalVec(N);
+                indToVec(repI, initVec);
+                if(PGRepIndex==-1){
+                    initNorm *= pt_lattice->getSiteNum();
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for(int i = 0; i < N; i++){
+                            finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
+                        }
+                        finalInd.push_back(vecToInd(finalVec));
+                        factorList.push_back(pt_lattice->expKR(kIndex,r)/initNorm);
+                    }
+                }else{
+                    initNorm *= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
+                            for(int i = 0; i < N; i++){
+                                finalVec.at(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i))) = initVec.at(i);
+                            }
+                            finalInd.push_back(vecToInd(finalVec));
+                            factorList.push_back(pt_lattice->expKR(kIndex,r)* pt_lattice->getChi(PGRepIndex,p)/initNorm);
+                        }
+                    }
+                }
+            }
+
             break;
         }
         

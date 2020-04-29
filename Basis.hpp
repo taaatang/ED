@@ -62,7 +62,7 @@ class Basis{
      t-J model:vec:0 for spin-up 1 for spin-down. vecp: 0 for occupied, 1 for holes
      Hubbard:vec:1 for spin-up electron. vecp: 1 for spin-down electrons
      */
-    mutable std::vector<int> vec, vecp;
+    mutable std::vector<int> vec, vecp; // mutable:can be modified in const function
     // Multipliers. Basis vec index = sum(i):vec(i)*mul(i)
     std::vector<ind_int> mul;
 
@@ -74,10 +74,23 @@ public:
 
     int getkIndex() const {return kIndex;}
     int getPGIndex() const {return PGRepIndex;}
-    ind_int getRepI(ind_int ind) const {if(kIndex==-1 and model!=LATTICE_MODEL::HEISENBERG)return ind; return indexList.at(ind);}
+
+    // Rep integer access
+    /*
+        For Heisenberg model:
+             repI is the binary represnetation of the spin configurations
+        For Hubbard model,:
+            repI=fidx*sDim+sidx. fIndexList[fidx] and sIndexList[sidx] are corresponding binary representations of
+            spin-up and spin-down occupations.
+            pairRepI = (fIndexList[fidx], sIndexList[sidx])
+    */
+    ind_int getRepI(ind_int idx) const {if(kIndex==-1 and model!=LATTICE_MODEL::HEISENBERG)return idx; return indexList.at(idx);}
+    void getRepI(ind_int idx, ind_int& repI) const {repI = indexList.at(idx);}
+    void getRepI(ind_int idx, pairIndex& pairRepI) const {pairRepI.first = fIndexList.at(idx/sDim); pairRepI.second = sIndexList.at(idx%sDim);}
+    
     ind_int getmul(int orbid) const {return mul.at(orbid);}
-    // generate full hilbertspace basis;
     void initStartVec() const;
+    // generate full hilbertspace basis;
     void genFull();
     // construc k-subspace basis. need lattice to know symmetry operations
     void gen();
@@ -107,14 +120,20 @@ public:
     void indToVec(ind_int index, VecI& v) const;
     void indToVec(pairIndex pairInd, VecI& v, VecI& vp) const;
     void indToVec(ind_int index, VecI& v, VecI& vp) const;
-    
+
     // Binary search the position of index in indexList
     ind_int search(ind_int index, const std::vector<ind_int> &indList) const;
     ind_int search(ind_int index) const;
-    ind_int search(pairIndex pairInd) const;
+    ind_int search(pairIndex pairInd) const;//search full hilbert space
     bool search(ind_int index, ind_int &ind, const std::vector<ind_int> &indList) const;
     bool search(ind_int index, ind_int &ind) const;
-    bool search(pairIndex pairInd, ind_int &ind) const;
+    bool search(pairIndex pairInd, ind_int &ind) const;//search current symm sector subspace
+
+    /*
+        ************
+        * Symmetry *
+        * **********
+    */
     // apply all translation operations to a Basis vec indexed by ind.
     // finalInd contains all resulting basis indexes.
     void genSymm(ind_int ind, std::vector<ind_int>& finalInd) const;
@@ -132,4 +151,4 @@ public:
     void saveBasis(std::string basisfile, std::string normfile);
 };
 
-#endif
+#endif // Basis_hpp
