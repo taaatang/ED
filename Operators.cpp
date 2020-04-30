@@ -13,7 +13,7 @@
     * Spin Operators Class *
     ************************
 */
-SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod, int dim):pt_Basis(pt_Ba),model(mod),spinDim(dim){
+SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod):pt_Basis(pt_Ba),model(mod),spinDim(pt_Ba->getSiteDim()){
     double s = (double)(spinDim - 1)/2.0;
     double m = s;
     for (int i = 0; i < spinDim; i++){
@@ -30,15 +30,11 @@ SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod, int dim):pt_Basis(pt
     *********************
 */
 void Current::row(ind_int rowID, std::vector<MAP>& rowMaps){
-    VecI initVec(pt_lattice->getOrbNum()), initVecp(pt_lattice->getOrbNum());
-    ind_int initInd = pt_Basis->getRepI(rowID);
-    pt_Basis->indToVec(initInd, initVec, initVecp);
     // off diagonal part
     std::vector<ind_int> finalIndList;
     std::vector<cdouble> factorList;
     pt_Basis->genSymm(rowID, finalIndList, factorList);
     for (int i = 0; i < finalIndList.size(); i++){
-        pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
             int matID = (*linkit).getmatid();
             cdouble factor = CPLX_I * factorList.at(i) * (*linkit).getVal();
@@ -46,10 +42,10 @@ void Current::row(ind_int rowID, std::vector<MAP>& rowMaps){
                 int siteI = (*bondit).at(0);
                 int siteJ = (*bondit).at(1);
                 // cp.siteI * cm.siteJ
-                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
-                cpcm(SPIN::SPIN_UP, siteJ, siteI, -factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
-                cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);
-                cpcm(SPIN::SPIN_DOWN, siteJ, siteI, -factor, finalIndList[i], initVec, initVecp, &rowMaps[matID]);   
+                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                cpcm(SPIN::SPIN_UP, siteJ, siteI, -factor, finalIndList[i], &rowMaps[matID]);
+                cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                cpcm(SPIN::SPIN_DOWN, siteJ, siteI, -factor, finalIndList[i], &rowMaps[matID]);   
             }
         }
     }

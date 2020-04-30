@@ -85,7 +85,10 @@ public:
             spin-up and spin-down occupations.
             pairRepI = (fIndexList[fidx], sIndexList[sidx])
     */
+    // rowidx->repI
     ind_int getRepI(ind_int idx) const {if(kIndex==-1 and model!=LATTICE_MODEL::HEISENBERG)return idx; return indexList.at(idx);}
+    // repI->pairRepI
+    pairIndex getPairRepI(ind_int repInd) const {return std::make_pair(fIndexList.at(repInd/sDim), sIndexList.at(repInd%sDim));}
     void getRepI(ind_int idx, ind_int& repI) const {repI = indexList.at(idx);}
     void getRepI(ind_int idx, pairIndex& pairRepI) const {pairRepI.first = fIndexList.at(idx/sDim); pairRepI.second = sIndexList.at(idx%sDim);}
     
@@ -114,7 +117,6 @@ public:
         #endif
     };
     
-    pairIndex getpair(ind_int repInd) const {return std::make_pair(fIndexList.at(repInd/sDim), sIndexList.at(repInd%sDim));}
     // vec to Basis index
     ind_int vecToInd(VecI& v) const;
     pairIndex vecToInd(VecI& v, VecI& vp) const;

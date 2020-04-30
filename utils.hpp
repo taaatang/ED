@@ -373,4 +373,12 @@ inline UnsignedType nextLexicographicalNumber(UnsignedType x) {
     return t | ((((t & -t) / (x & -x)) >> 1) - 1); //reverse bits after the pivot
 }
 
+inline void MapPush(MAP* map_pt, ind_int key, dataType val){
+    auto it = map_pt->find(key);
+    if (it == map_pt->end()){
+        (*map_pt)[key] = val;
+    }else{
+        it->second += val;
+    }
+}
 #endif 
