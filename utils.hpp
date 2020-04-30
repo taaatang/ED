@@ -320,7 +320,7 @@ inline void read(std::vector<T> *d_pt, std::string filename, int workerID, int w
     std::ifstream infile;
     infile.open(filename, std::ios::in|std::ios::binary);
     if (infile.is_open()){
-        int el_size = sizeof(T)
+        int el_size = sizeof(T);
         infile.seekg(0, infile.end);
         ind_int size = infile.tellg();
         infile.seekg(0, infile.beg);

@@ -508,7 +508,7 @@ bool Basis::isRep(ind_int initInd, double& norm) const {
                     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                         for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
                             for (int i = 0; i < pt_lattice->getOrbNum();i++){
-                                if(bitTest(initInd,i))bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i));
+                                if(bitTest(initInd,i)) bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
                             }
                             if (initInd > repIp) return false;
                         }        
@@ -701,7 +701,7 @@ void Basis::genSymm(ind_int rowid, std::vector<ind_int>& finalInd, std::vector<c
                     initNorm *= pt_lattice->getSiteNum();
                     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                         ind_int repIp{0};
-                        for(int i = 0; i < pt_lattice->getOrbNum();; i++){
+                        for(int i = 0; i < pt_lattice->getOrbNum(); i++){
                             if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbTran(r,i));
                         }
                         finalInd.push_back(repIp);
