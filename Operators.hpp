@@ -467,7 +467,7 @@ private:
     Geometry *pt_lattice;
 public:
     Heisenberg(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):\
-        SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+        SpinOperator(pt_Ba,HEISENBERG),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Heisenberg(){};
 
     Heisenberg& pushLink(Link<T> link, int matID){
@@ -501,7 +501,7 @@ private:
     std::vector<cdouble> expFactor;
 public:
     SzkOp(Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1, int spindim=2):pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
-        SpinOperator(pt_Bi,HEISENBERG,spindim),SparseMatrix<cdouble>(pt_Bf_->getSubDim(),spmNum_){
+        SpinOperator(pt_Bi,HEISENBERG),SparseMatrix<cdouble>(pt_Bf_->getSubDim(),spmNum_){
             assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
@@ -763,7 +763,7 @@ inline void Nocc::row(ind_int rowID){
 */
 template <class T>
 SSOp<T>::SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_, int spindim):r(-1),pt_lattice(pt_lat), siteJList(pt_lat->getSiteNum()),\
-    SpinOperator(pt_Ba,HEISENBERG,spindim),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_){
+    SpinOperator(pt_Ba,HEISENBERG),SparseMatrix<T>(pt_Ba->getSubDim(),spmNum_){
     VecD coordi(3), coordr(3), coordf(3);
     for (int rIndex = 0; rIndex < pt_lat->getSiteNum();rIndex++){
         siteJList.at(rIndex).resize(pt_lat->getSiteNum());
