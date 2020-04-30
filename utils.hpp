@@ -213,11 +213,9 @@ inline void vConjDotv(T1* vconj, T2* v, cdouble* result, ind_int size){
 inline void vecAllGather(int *vec, int *vec_tot, ind_int nloc) {
     MPI_Allgather(vec, nloc, MPI_INT, vec_tot, nloc, MPI_INT, MPI_COMM_WORLD);
 }
-
 inline void vecAllGather(double *vec, double *vec_tot, ind_int nloc) {
     MPI_Allgather(vec, nloc, MPI_DOUBLE, vec_tot, nloc, MPI_DOUBLE, MPI_COMM_WORLD);
 }
-
 inline void vecAllGather(cdouble *vec, cdouble *vec_tot, ind_int nloc) {
     MPI_Allgather(vec, nloc, MPI_DOUBLE_COMPLEX, vec_tot, nloc, MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD);
 }
@@ -226,16 +224,40 @@ inline void vecAllGather(cdouble *vec, cdouble *vec_tot, ind_int nloc) {
 inline void vecReduce(int *vec_part, int *vec_tot, int nloc, int pidx) {
     MPI_Reduce(vec_part, vec_tot, nloc, MPI_INT, MPI_SUM, pidx, MPI_COMM_WORLD);
 }
-
 inline void vecReduce(double *vec_part, double *vec_tot, int nloc, int pidx) {
     MPI_Reduce(vec_part, vec_tot, nloc, MPI_DOUBLE, MPI_SUM, pidx, MPI_COMM_WORLD);
 }
-
 inline void vecReduce(cdouble *vec_part, cdouble *vec_tot, int nloc, int pidx) {
     MPI_Reduce(vec_part, vec_tot, nloc, MPI_DOUBLE_COMPLEX, MPI_SUM, pidx, MPI_COMM_WORLD);
 }
 
+/* MPI all to all */
+inline void MPI_Alltoall(long long *sendBuff, long long *recBuff,int count){
+    MPI_Alltoall(sendBuff,count,MPI_LONG_LONG,recBuff,count,MPI_LONG_LONG,MPI_COMM_WORLD);
+}
+inline void MPI_Alltoall(unsigned long long *sendBuff, unsigned long long *recBuff,int count){
+    MPI_Alltoall(sendBuff,count,MPI_UNSIGNED_LONG_LONG,recBuff,count,MPI_UNSIGNED_LONG_LONG,MPI_COMM_WORLD);
+}
+inline void MPI_Alltoall(double *sendBuff, double *recBuff,int count){
+    MPI_Alltoall(sendBuff,count,MPI_DOUBLE,recBuff,count,MPI_DOUBLE,MPI_COMM_WORLD);
+}
+inline void MPI_Alltoall(cdouble *sendBuff, cdouble *recBuff,int count){
+    MPI_Alltoall(sendBuff,count,MPI_DOUBLE_COMPLEX,recBuff,count,MPI_DOUBLE_COMPLEX,MPI_COMM_WORLD);
+}
 
+/* MPI all to all v */
+inline void MPI_Alltoallv(long long *sendBuff,int *sendCounts,int *sdispls,long long *recBuff, int *recCounts, int *rdispls){
+    MPI_Alltoallv(sendBuff,sendCounts,sdispls,MPI_LONG_LONG,recBuff,recCounts, rdispls,MPI_LONG_LONG,MPI_COMM_WORLD);
+}
+inline void MPI_Alltoallv(unsigned long long *sendBuff,int *sendCounts,int *sdispls,unsigned long long *recBuff, int *recCounts, int *rdispls){
+    MPI_Alltoallv(sendBuff,sendCounts,sdispls,MPI_UNSIGNED_LONG_LONG,recBuff,recCounts, rdispls,MPI_UNSIGNED_LONG_LONG,MPI_COMM_WORLD);
+}
+inline void MPI_Alltoallv(double *sendBuff,int *sendCounts,int *sdispls,double *recBuff, int *recCounts, int *rdispls){
+    MPI_Alltoallv(sendBuff,sendCounts,sdispls,MPI_DOUBLE,recBuff,recCounts, rdispls,MPI_DOUBLE,MPI_COMM_WORLD);
+}
+inline void MPI_Alltoallv(cdouble *sendBuff,int *sendCounts,int *sdispls,cdouble *recBuff, int *recCounts, int *rdispls){
+    MPI_Alltoallv(sendBuff,sendCounts,sdispls,MPI_DOUBLE_COMPLEX,recBuff,recCounts, rdispls,MPI_DOUBLE_COMPLEX,MPI_COMM_WORLD);
+}
 /*
     *******
     * I/O *
