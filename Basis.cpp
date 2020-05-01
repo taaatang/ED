@@ -29,6 +29,7 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
     Np = N;
     Nocc = occList.at(0);
     Npocc = occList.at(1);
+    initStartVec();
     switch(model){
         case LATTICE_MODEL::HUBBARD:
             assert(Nocc<=N);
@@ -72,13 +73,12 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
             break;
         default:break;
     }
-    initStartVec();
-    gendcmp();
     // default full hilbert space
     subDim = totDim;
     locDim = subDim;
     // initialize mul
-    for (int i = 0; i < N; i++) mul.push_back(pow((ind_int) siteDim, (ind_int) (N - i - 1)));   
+    for (int i = 0; i < N; i++) mul.push_back(pow((ind_int) siteDim, (ind_int) (N - i - 1)));  
+    gendcmp(); 
 }
 void Basis::initStartVec() const {
     vec.clear();
@@ -163,7 +163,7 @@ void Basis::genFull(){
     }  
 }
 void Basis::gendcmp(){
-    if(model==HUBBARD or model==t_J){
+    if(model==LATTICE_MODEL::HUBBARD || model==LATTICE_MODEL::t_J){
         fIndexList.clear();
         sIndexList.clear();
         fIndexList.reserve(fDim);
