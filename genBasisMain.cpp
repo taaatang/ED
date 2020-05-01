@@ -40,14 +40,13 @@ int main(int argc, const char * argv[]) {
     * Input And Initialization *
     ****************************
 */
-    // int Nx = 4, Ny = 4;
-    // int N = Nx * Ny;
-    int N;
+    int N, Nx, Ny;
     std::ifstream infile("basis_input.txt");
-    infile>>N;
+    infile>>Nx>>Ny;
     infile.close(); 
-    std::string subDir = "/"+std::to_string(N);
-    // std::string subDir = "/"+std::to_string(Nx)+"by"+std::to_string(Ny)
+    N = Nx * Ny;
+    // std::string subDir = "/"+std::to_string(N);
+    std::string subDir = "/"+std::to_string(Nx)+"by"+std::to_string(Ny);
     int kIndex = 0;
     Timer timer;
     
@@ -67,15 +66,17 @@ int main(int argc, const char * argv[]) {
         * Lattice and Basis Initialization *
         ************************************
     */
-        // geometry class
-        TriAngLattice Lattice(N);
-        Lattice.addOrb({});
+        SquareLattice Lattice(Nx,Ny);
+        Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
+        Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
+        // TriAngLattice Lattice(N);
+        // Lattice.addOrb({});
         Lattice.construct();
         int siteDim = 2;
         VecI occList{N/2, N - N/2};
     
         timer.tik();
-        Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
+        Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex);
         B.gen();
         timer.tok();
         std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
