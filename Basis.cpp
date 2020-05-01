@@ -270,7 +270,11 @@ void Basis::gen(std::string basisfile, std::string normfile, int workerID, int w
     indexList.clear();
     read<ind_int>(&indexList, basisfile, workerID, workerNum);
     locDim = indexList.size();
-    
+    MPI_Allreduce(&locDim, &subDim, 1);
+    repIStartList.resize(workerNum);
+    repIEndList.resize(workerNum);
+    MPI_Allgather(&indexList.front(), repIStartList.data(),1);
+    MPI_Allgather(&indexList.back(), repIEndList.data(), 1);
     normList.clear();
     read<double>(&normList, normfile, workerID, workerNum);
     assert(normList.size()==indexList.size());
@@ -328,6 +332,15 @@ void Basis::indToVec(ind_int index, VecI& v, VecI& vp) const {
     indToVec(std::make_pair(fIndexList.at(index/sDim), sIndexList.at(index%sDim)), v, vp);
 }
 
+bool Basis::getBid(ind_int repI, int &bid) const {
+    auto low = std::lower_bound(repIStartList.begin(),repIStartList.end(),repI);
+    bid = low - repIStartList.begin();
+    if(low!=repIStartList.end() && repI==repIStartList[bid]) return true;
+    if(bid==0) return false;
+    bid--;
+    if(repI<=repIEndList[bid])return true;
+    return false;
+}
 bool Basis::search(ind_int index, ind_int &ind, const std::vector<ind_int> &indList) const {
     // Binary search
     ind_int list_size = indList.size();

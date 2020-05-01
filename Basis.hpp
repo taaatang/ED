@@ -55,6 +55,8 @@ class Basis{
         For all models: rep index for symmetry T x G (G not supported yet)
     */
     std::vector<ind_int> indexList;
+    std::vector<ind_int> repIStartList; // repIStratList[workerID] is the smallest repI stored in workerID's RAM
+    std::vector<ind_int> repIEndList;
     // norm for reps in symmetrized indexList
     std::vector<double> normList; 
     
@@ -125,6 +127,8 @@ public:
     void indToVec(ind_int index, VecI& v) const;
     void indToVec(pairIndex pairInd, VecI& v, VecI& vp) const;
     void indToVec(ind_int index, VecI& v, VecI& vp) const;
+
+    bool getBid(ind_int repI, int &bid) const;
 
     // Binary search the position of index in indexList
     ind_int search(ind_int index, const std::vector<ind_int> &indList) const;

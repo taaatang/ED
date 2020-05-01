@@ -210,25 +210,42 @@ inline void vConjDotv(T1* vconj, T2* v, cdouble* result, ind_int size){
 }
 
 /* MPI all gather */
-inline void vecAllGather(int *vec, int *vec_tot, ind_int nloc) {
+inline void MPI_Allgather(int *vec, int *vec_tot, ind_int nloc) {
     MPI_Allgather(vec, nloc, MPI_INT, vec_tot, nloc, MPI_INT, MPI_COMM_WORLD);
 }
-inline void vecAllGather(double *vec, double *vec_tot, ind_int nloc) {
+inline void MPI_Allgather(long long *vec, long long *vec_tot, ind_int nloc){
+    MPI_Allgather(vec, nloc, MPI_LONG_LONG, vec_tot, nloc, MPI_LONG_LONG, MPI_COMM_WORLD);
+}
+inline void MPI_Allgather(unsigned long long *vec, unsigned long long *vec_tot, ind_int nloc){
+    MPI_Allgather(vec, nloc, MPI_UNSIGNED_LONG_LONG, vec_tot, nloc, MPI_UNSIGNED_LONG_LONG, MPI_COMM_WORLD);
+}
+inline void MPI_Allgather(double *vec, double *vec_tot, ind_int nloc) {
     MPI_Allgather(vec, nloc, MPI_DOUBLE, vec_tot, nloc, MPI_DOUBLE, MPI_COMM_WORLD);
 }
-inline void vecAllGather(cdouble *vec, cdouble *vec_tot, ind_int nloc) {
+inline void MPI_Allgather(cdouble *vec, cdouble *vec_tot, ind_int nloc) {
     MPI_Allgather(vec, nloc, MPI_DOUBLE_COMPLEX, vec_tot, nloc, MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD);
 }
 
 /* MPI reduce */
-inline void vecReduce(int *vec_part, int *vec_tot, int nloc, int pidx) {
+inline void MPI_Reduce(int *vec_part, int *vec_tot, int nloc, int pidx) {
     MPI_Reduce(vec_part, vec_tot, nloc, MPI_INT, MPI_SUM, pidx, MPI_COMM_WORLD);
 }
-inline void vecReduce(double *vec_part, double *vec_tot, int nloc, int pidx) {
+inline void MPI_Reduce(double *vec_part, double *vec_tot, int nloc, int pidx) {
     MPI_Reduce(vec_part, vec_tot, nloc, MPI_DOUBLE, MPI_SUM, pidx, MPI_COMM_WORLD);
 }
-inline void vecReduce(cdouble *vec_part, cdouble *vec_tot, int nloc, int pidx) {
+inline void MPI_Reduce(cdouble *vec_part, cdouble *vec_tot, int nloc, int pidx) {
     MPI_Reduce(vec_part, vec_tot, nloc, MPI_DOUBLE_COMPLEX, MPI_SUM, pidx, MPI_COMM_WORLD);
+}
+
+/* MPI Allreduce */
+inline void MPI_Allreduce(int *part, int* sum, int count){
+    MPI_Allreduce(part, sum, count, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+}
+inline void MPI_Allreduce(long long *part, long long *sum, int count){
+    MPI_Allreduce(part, sum, count, MPI_LONG_LONG, MPI_SUM, MPI_COMM_WORLD);
+}
+inline void MPI_Allreduce(unsigned long long *part, unsigned long long *sum, int count){
+    MPI_Allreduce(part, sum, count, MPI_UNSIGNED_LONG_LONG, MPI_SUM, MPI_COMM_WORLD);
 }
 
 /* MPI all to all */
