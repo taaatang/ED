@@ -60,7 +60,7 @@ int main(int argc, const char * argv[]) {
     if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
     std::ofstream outfile;
     // basis data path
-    bool BASIS_IS_SAVED = false;
+    bool BASIS_IS_SAVED = true;
     std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";
@@ -88,7 +88,7 @@ int main(int argc, const char * argv[]) {
     timer.tik();
     Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
-    if (BASIS_IS_SAVED) B.gen(basisfile, normfile);
+    if (BASIS_IS_SAVED) B.gen(basisfile, normfile, workerID, workerNum);
     else B.gen();
     timer.tok();
     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
@@ -123,6 +123,7 @@ int main(int argc, const char * argv[]) {
     H.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
     H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp).pushV({ORBITAL::Pzu, ORBITAL::Pzd},Vpz);
     H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
+    if(workerID==MPI_MASTER) std::cout<<"begin H gen..."<<std::endl;
     H.genMatPara(&B);
     timer.tok();
 

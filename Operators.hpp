@@ -982,7 +982,7 @@ void SzkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
             for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
                 dval += getSz(siteID,repI) * expFactor[siteID];
             }
-            dval *= pt_Bf->getNorm(rowID));
+            dval *= pt_Bf->getNorm(rowID);
             rowMaps[0][repI] = dval;
         #else
             ind_int colID;
