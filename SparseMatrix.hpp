@@ -322,6 +322,7 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
                             int curidx = ridxBlockStart.at(bid).at(iter)+rowBlockCount.at(bid);
                             idxSendBuff.at(matID).at(curidx) = it->first;
                             valSendBuff.at(matID).at(curidx) = it->second;
+                            rowBlockCount.at(bid)++;
                         }
                         else{
                             std::cout<<"row elements count exceeds sendBuff size:"<<rowCount<<std::endl;
