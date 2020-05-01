@@ -273,7 +273,7 @@ cdouble SparseMatrix<T>::vMv(T *vecL, T *vecR){
 }
 
 template <class T>
-void setMpiBuff(ind_int idx_val){
+void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
     for(auto vecit = idxSendBuff.begin(); vecit != idxSendBuff.end(); vecit++){
         for(auto it = (*vecit).begin(); it != (*vecit).end(); it++) *it = idx_val;
     }
