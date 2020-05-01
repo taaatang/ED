@@ -368,7 +368,7 @@ public:
                 MapPush(rowMap,repI,val);
             #else
                 ind_int colID;
-                if (pt_Basis->search(repI, colID){
+                if (pt_Basis->search(repI, colID)){
                     dataType val = factor * spMat[1] * smMat[0];
                     double finalNorm = pt_Basis->getNorm(colID);
                     val /= finalNorm;
@@ -937,6 +937,9 @@ void SSOp<T>::project(double s, T* vec){
 // generate matrix in subsapce labeled by kIndex for sum.r:Sr*Sr+dr, dr is labeled by rIndex
 template <class T>
 void SSOp<T>::genPairMat(int rIndex){
+    #ifdef Distributed_Basis
+        exit(1);
+    #else
     assert(rIndex>0 and rIndex<pt_lattice->getSiteNum());
     r = rIndex;
     int kIndex = pt_Basis->getkIndex();
@@ -967,38 +970,64 @@ void SSOp<T>::genPairMat(int rIndex){
         }
         pushRow(&rowMap);
     }
+    #endif
 }
 
 template <class T>
 void SzkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     if(pt_Bi->getSiteDim()==2){
-        ind_int colID;
-        if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
-            ind_int repI = pt_Bi->getRepI(colID);
+        #ifdef Distributed_Basis
+            ind_int repI = pt_Bf->getRepI(rowID);
             cdouble dval = 0.0;
             for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
                 dval += getSz(siteID,repI) * expFactor[siteID];
             }
-            dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
-            rowMaps[0][colID] = dval;
-        }
+            dval *= pt_Bf->getNorm(rowID));
+            rowMaps[0][repI] = dval;
+        #else
+            ind_int colID;
+            if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
+                ind_int repI = pt_Bi->getRepI(colID);
+                cdouble dval = 0.0;
+                for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
+                    dval += getSz(siteID,repI) * expFactor[siteID];
+                }
+                dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
+                rowMaps[0][colID] = dval;
+            }
+        #endif
     }
     else{
-        ind_int colID;
-        if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
+        #ifdef Distributed_Basis
+            ind_int repI = pt_Bf->getRepI(rowID);
             VecI initVec(pt_lattice->getOrbNum());
             cdouble dval = 0.0;
-            pt_Bi->indToVec(pt_Bi->getRepI(colID), initVec);
+            pt_Bf->indToVec(repI, initVec);
             for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
                 dval += getSz(siteID,initVec) * expFactor[siteID];
             }
-            dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
-            rowMaps[0][colID] = dval;
-        }
+            dval *= pt_Bf->getNorm(rowID);
+            rowMaps[0][repI] = dval;
+        #else
+            ind_int colID;
+            if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
+                VecI initVec(pt_lattice->getOrbNum());
+                cdouble dval = 0.0;
+                pt_Bi->indToVec(pt_Bi->getRepI(colID), initVec);
+                for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
+                    dval += getSz(siteID,initVec) * expFactor[siteID];
+                }
+                dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
+                rowMaps[0][colID] = dval;
+            }
+        #endif
     }
 }
 template <class T>
 void SzkOp<T>::genMat(){
+    #ifdef Distributed_Basis
+        exit(1);
+    #else
     clear();
     reserve(1);
     MAP rowMap;
@@ -1041,6 +1070,7 @@ void SzkOp<T>::genMat(){
             break;
         }
     }
+    #endif
 }
 
 #endif
