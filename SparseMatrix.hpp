@@ -206,6 +206,7 @@ SparseMatrix<T>::SparseMatrix(ind_int totDim_ , int spmNum_ , int dmNum_, MATRIX
         rowInitList.at(matID).resize(blockNum);
         colList.at(matID).resize(blockNum);
         valList.at(matID).resize(blockNum);
+        A.at(matID).resize(blockNum);
         
         int buffSize = blockNum * sendCount;
         idxSendBuff.at(matID).resize(buffSize);
@@ -309,9 +310,9 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
         #pragma omp parallel for
         for(int iter = 0; iter < (iterEnd-iterStart); iter++){
             std::vector<MAP> rowMaps(spmNum);
-            std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start iter:"<<iterStart+iter<<std::endl;
+            // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start iter:"<<iterStart+iter<<std::endl;
             row(iterStart+iter,rowMaps);
-            std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", after iter:"<<iterStart+iter<<std::endl;
+            // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", after iter:"<<iterStart+iter<<std::endl;
             for(int matID=0; matID < spmNum; matID++){
                 int bid;
                 std::vector<int> rowBlockCount(blockNum, 0);
@@ -357,6 +358,7 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
                 }
             }
         }
+        std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" finished filter row:"<<rowID<<std::endl;
     }
 #ifdef _MKL_
     for (int matID = 0; matID < spmNum; matID++) for(int bid=0; bid < blockNum; bid++){
