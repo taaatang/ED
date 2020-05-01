@@ -108,7 +108,7 @@ public:
     ~SparseMatrix(){
 #ifdef _MKL_
         for(int i = 0; i < spmNum; i++){
-            for(int b = 0; b < BaseMatrix<T>::workerNum) MKL::destroy(A.at(i).at(b));
+            for(int b = 0; b < BaseMatrix<T>::workerNum;b++) MKL::destroy(A.at(i).at(b));
         }
 #endif
     };
@@ -186,7 +186,7 @@ bool SparseMatrix<T>::is_vecBuf = false;
 template <class T>
 SparseMatrix<T>::SparseMatrix(ind_int totDim_ , int spmNum_ , int dmNum_, MATRIX_PARTITION partition_, int senCount_):\
     BaseMatrix<T>(totDim_),partition(partition_),spmNum(spmNum_),dmNum(dmNum_),parameters(spmNum,1.0),diagParameters(dmNum,1.0),\
-    counter(spmNum_),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),A(spmNum_)diagValList(dmNum_),sendCount(sendCount_),\
+    counter(spmNum_),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),A(spmNum_),diagValList(dmNum_),sendCount(sendCount_),\
     idxSendBuff(spmNum_),idxRecvBuff(spmNum_),valSendBuff(spmNum_),valRecvBuff(spmNum_){
     blockNum = BaseMatrix<T>::workerNum;
     for(int i = 0; i < dmNum; i++) diagValList[i].resize(BaseMatrix<T>::nloc);
@@ -234,7 +234,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
                 ind_int rowEnd = (rowStart + BaseMatrix<T>::nlocmax)<BaseMatrix<T>::dim?(rowStart + BaseMatrix<T>::nlocmax):BaseMatrix<T>::dim;
 
                 for (int matID = 0; matID < spmNum; matID++){
-                    MKL::MxV(A.at(matID).at(id),vecIn,vecBuf.data(),parameters.at(i));  
+                    MKL::MxV(A.at(matID).at(id),vecIn,vecBuf.data(),parameters.at(matID));  
                 }
                 MPI_Barrier(MPI_COMM_WORLD);
                 MPI_Reduce(vecBuf.data(), vecOut, rowEnd - rowStart, id);
@@ -294,14 +294,14 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
     ind_int endRowFlag = pt_Basis->getTotDim();
     int rowCount = sendCount/rowPerIt; // buff size for each row
     std::vector<std::vector<int>> ridxBlockStart(blockNum);
-    for(int bid = 0; bid < blockNum; row++){
+    for(int bid = 0; bid < blockNum; bid++){
         ridxBlockStart.at(bid).resize(rowPerIt);
-        for(int row=0;row<rowPerIt;row++){ridxBlockStart.at(bid).at(row)=bid*sendCount+row*rowCount}
+        for(int row=0;row<rowPerIt;row++){ridxBlockStart.at(bid).at(row)=bid*sendCount+row*rowCount;}
     }
     for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(BaseMatrix<T>::nloc);
     for(int i = 0; i < spmNum; i++) for(int b=0;b<blockNum;b++)rowInitList.at(i).at(b).push_back(counter.at(i).at(b));
     for (ind_int rowID = BaseMatrix<T>::startRow; rowID < BaseMatrix<T>::endRow; rowID+=rowPerIt){
-        setBuffZero(); // set mpi sent/recv buff
+        setMpiBuff(endRowFlag); // set mpi sent/recv buff
         ind_int iterStart = rowID;
         ind_int iterEnd = (rowID+rowPerIt)<BaseMatrix<T>::endRow ? (rowID+rowPerIt):BaseMatrix<T>::endRow;
         #pragma omp parallel for
@@ -332,7 +332,7 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
             MPI_Alltoall(valSendBuff.at(matID).data(), valRecvBuff.at(matID).data(), sendCount);
         }
         // filter recv buff and push data to sparse matrix
-        for(int matID=0; matID<somNum; matID++){
+        for(int matID=0; matID<spmNum; matID++){
             #pragma omp parallel for
             for(int bid=0; bid<blockNum; bid++){
                 for(int row=0; row<rowPerIt; row++){
@@ -347,7 +347,7 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
                         }
                     }
                     counter.at(matID).at(bid) += count_tmp;
-                    rowInitList.at(matID),at(bid).push_back(counter.at(matID).at(bid))
+                    rowInitList.at(matID).at(bid).push_back(counter.at(matID).at(bid));
                 }
             }
         }
