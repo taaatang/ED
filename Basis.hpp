@@ -101,6 +101,8 @@ public:
     void genFull();
     // construc k-subspace basis. need lattice to know symmetry operations
     void gen();
+    //generate fIdex,sIdex list for Hubbard and tJ model
+    void gendcmp();
     // construct k-subspace basis/norm from reps loaded from file
     void gen(std::string basisfile);
     void gen(std::string basisfile, std::string normfile);

@@ -29,7 +29,6 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
     Np = N;
     Nocc = occList.at(0);
     Npocc = occList.at(1);
-    initStartVec();
     switch(model){
         case LATTICE_MODEL::HUBBARD:
             assert(Nocc<=N);
@@ -73,7 +72,8 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
             break;
         default:break;
     }
-
+    initStartVec();
+    gendcmp();
     // default full hilbert space
     subDim = totDim;
     locDim = subDim;
@@ -162,7 +162,26 @@ void Basis::genFull(){
         }
     }  
 }
-
+void Basis::gendcmp(){
+    if(model==HUBBARD or model==t_J){
+        fIndexList.clear();
+        sIndexList.clear();
+        fIndexList.reserve(fDim);
+        sIndexList.reserve(sDim);
+        ind_int counter = 0;
+        do{
+            fIndexList.push_back(vecToInd(vec));
+            counter++;
+        }while (std::next_permutation(vec.begin(), vec.end()));
+        assert(counter == fDim);
+        counter = 0;
+        do{
+            sIndexList.push_back(vecToInd(vecp));
+            counter++;
+        }while (std::next_permutation(vecp.begin(), vecp.end()));
+        assert(counter == sDim);
+    }
+}
 // generate Basis for the subspace labeled by kInd
 void Basis::gen(){
     subDim = 0;
