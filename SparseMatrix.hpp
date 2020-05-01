@@ -184,7 +184,7 @@ bool SparseMatrix<T>::is_vecBuf = false;
     Constructor
 */
 template <class T>
-SparseMatrix<T>::SparseMatrix(ind_int totDim_ , int spmNum_ , int dmNum_, MATRIX_PARTITION partition_, int senCount_):\
+SparseMatrix<T>::SparseMatrix(ind_int totDim_ , int spmNum_ , int dmNum_, MATRIX_PARTITION partition_, int sendCount_):\
     BaseMatrix<T>(totDim_),partition(partition_),spmNum(spmNum_),dmNum(dmNum_),parameters(spmNum,1.0),diagParameters(dmNum,1.0),\
     counter(spmNum_),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),A(spmNum_),diagValList(dmNum_),sendCount(sendCount_),\
     idxSendBuff(spmNum_),idxRecvBuff(spmNum_),valSendBuff(spmNum_),valRecvBuff(spmNum_){
