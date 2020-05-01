@@ -298,6 +298,7 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
         ridxBlockStart.at(bid).resize(rowPerIt);
         for(int row=0;row<rowPerIt;row++){ridxBlockStart.at(bid).at(row)=bid*sendCount+row*rowCount;}
     }
+    std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", block num:"<<idxSendBuff.size()<<", sendsize:"<<idxSendBuff[0].size()<<std::endl;
     for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(BaseMatrix<T>::nloc);
     for(int i = 0; i < spmNum; i++) for(int b=0;b<blockNum;b++)rowInitList.at(i).at(b).push_back(counter.at(i).at(b));
     for (ind_int rowID = 0; rowID < BaseMatrix<T>::nloc; rowID+=rowPerIt){
@@ -310,6 +311,7 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
             std::vector<MAP> rowMaps(spmNum);
             std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start iter:"<<iterStart+iter<<std::endl;
             row(iterStart+iter,rowMaps);
+            std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", after iter:"<<iterStart+iter<<std::endl;
             for(int matID=0; matID < spmNum; matID++){
                 int bid;
                 std::vector<int> rowBlockCount(blockNum, 0);
