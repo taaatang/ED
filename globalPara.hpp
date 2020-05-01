@@ -134,6 +134,7 @@ enum SPIN {SPIN_UP, SPIN_DOWN, SPIN_UD};
     * Basis Class *
     ***************
 */
+#define Distributed_Basis
 typedef std::pair<ind_int,ind_int> pairIndex;
 #define KEEP_BASIS_NORM
 //#undef KEEP_BASIS_NORM
@@ -145,7 +146,11 @@ typedef std::pair<ind_int,ind_int> pairIndex;
 */
 
 enum MATRIX_PARTITION {ROW_PARTITION, COL_PARTITION};
-const MATRIX_PARTITION PARTITION = ROW_PARTITION;
+#ifdef Distributed_Basis
+    const MATRIX_PARTITION PARTITION = COL_PARTITION;
+#else
+    const MATRIX_PARTITION PARTITION = ROW_PARTITION;
+#endif
 // const MATRIX_PARTITION PARTITION = COL_PARTITION;
 /*
  (No longer used!)

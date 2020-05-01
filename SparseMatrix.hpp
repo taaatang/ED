@@ -7,7 +7,6 @@
 
 #ifndef SparseMatrix_hpp
 #define SparseMatrix_hpp
-#define Distributed_Basis
 
 #include "globalPara.hpp"
 #include "Basis.hpp"
@@ -343,7 +342,7 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
                         ind_int colID;
                         if(pt_Basis->search(idxRecvBuff.at(matID).at(idx),colID)){
                             colList.at(matID).at(bid).push_back(colID);
-                            valList.at(matID).at(bid).push_back(std::conj(valRecvBuff.at(matID).at(idx)));
+                            valList.at(matID).at(bid).push_back(std::conj(valRecvBuff.at(matID).at(idx)/pt_Basis->getNorm(colID)));
                             count_tmp++;
                         }
                     }

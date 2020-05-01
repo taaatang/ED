@@ -210,23 +210,31 @@ public:
         switch(spin){
             case SPIN_UP:{
                 if (cpcm(siteI, siteJ, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
+                    #ifdef Distributed_Basis
+                    MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
+                    #else
                     if (pt_Basis->search(pairRepIf, colidx)){
                         dataType val = factor * sign;
                         double finalNorm = pt_Basis->getNorm(colidx);
                         val /= finalNorm;
                         MapPush(rowMap,colidx,val);
                     }
+                    #endif
                 }
                 break;
             }
             case SPIN_DOWN:{
                 if (cpcm(siteI, siteJ, pairRepI.second, pairRepI.first, pairRepIf.second, sign)){
+                    #ifdef Distributed_Basis
+                    MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
+                    #else
                     if (pt_Basis->search(pairRepIf, colidx)){
                         dataType val = factor * sign;
                         double finalNorm = pt_Basis->getNorm(colidx);
                         val /= finalNorm;
                         MapPush(rowMap,colidx,val);
                     }
+                    #endif
                 }
                 break;
             }
@@ -253,54 +261,77 @@ public:
     
     double getSz(int siteI, VecI& initVec) const {return szMat.at(initVec.at(siteI));}
     void szsz(int siteI, int siteJ, dataType factor, ind_int initInd, VecI& initVec, MAP* rowMap){
-        ind_int colID;
-        if (pt_Basis->search(initInd,colID)){
+        #ifdef Distributed_Basis
             dataType dval = factor * szMat.at(initVec[siteI]) * szMat.at(initVec[siteJ]);
-            double finalNorm = pt_Basis->getNorm(colID);
-            dval /= finalNorm;
-            MapPush(rowMap,colID,dval);
-        }
+            MapPush(rowMap,initInd,dval);
+        #else
+            ind_int colID;
+            if (pt_Basis->search(initInd,colID)){
+                dataType dval = factor * szMat.at(initVec[siteI]) * szMat.at(initVec[siteJ]);
+                double finalNorm = pt_Basis->getNorm(colID);
+                dval /= finalNorm;
+                MapPush(rowMap,colID,dval);
+            }
+        #endif
     };
     
     void spsm(int siteI, dataType factor, ind_int initInd, VecI& initVec, MAP* rowMap){
-        ind_int colID;
-        if (pt_Basis->search(initInd, colID)){
+        #ifdef Distributed_Basis
             if (initVec[siteI] < (spinDim-1)){
                 dataType val = factor * spMat[initVec[siteI]+1] * smMat[initVec[siteI]];
-                double finalNorm = pt_Basis->getNorm(colID);
-                val /= finalNorm;
-                MapPush(rowMap,colID,val);
+                MapPush(rowMap,initInd,val);
             }
-        }
+        #else
+            ind_int colID;
+            if (pt_Basis->search(initInd, colID)){
+                if (initVec[siteI] < (spinDim-1)){
+                    dataType val = factor * spMat[initVec[siteI]+1] * smMat[initVec[siteI]];
+                    double finalNorm = pt_Basis->getNorm(colID);
+                    val /= finalNorm;
+                    MapPush(rowMap,colID,val);
+                }
+            }
+        #endif
     };
     
     void smsp(int siteI, dataType factor, ind_int initInd, VecI& initVec, MAP* rowMap){
-        ind_int colID;
-        if (pt_Basis->search(initInd, colID)){
+        #ifdef Distributed_Basis
             if (initVec[siteI] > 0){
                 dataType val = factor * smMat[initVec[siteI]-1] * spMat[initVec[siteI]];
-                double finalNorm = pt_Basis->getNorm(colID);
-                val /= finalNorm;
-                MapPush(rowMap,colID,val);
+                MapPush(rowMap,initInd,val);
             }
-        }
+        #else
+            ind_int colID;
+            if (pt_Basis->search(initInd, colID)){
+                if (initVec[siteI] > 0){
+                    dataType val = factor * smMat[initVec[siteI]-1] * spMat[initVec[siteI]];
+                    double finalNorm = pt_Basis->getNorm(colID);
+                    val /= finalNorm;
+                    MapPush(rowMap,colID,val);
+                }
+            }
+        #endif
     }
     
     void spsm(int siteI, int siteJ, dataType factor, ind_int initInd, VecI& initVec, MAP* rowMap){
-        ind_int colID;
         if (siteI==siteJ){
             spsm(siteI, factor, initInd, initVec, rowMap);
             return;
         }
         if (initVec[siteI] > 0 and initVec[siteJ] < (spinDim-1)){
             ind_int finalInd = initInd - pt_Basis->getmul(siteI) + pt_Basis->getmul(siteJ);
-            ind_int colID;
-            if (pt_Basis->search(finalInd, colID)){
+            #ifdef Distributde_Basis
                 dataType val = factor * spMat[initVec[siteI]] * smMat[initVec[siteJ]];
-                double finalNorm = pt_Basis->getNorm(colID);
-                val /= finalNorm;
-                MapPush(rowMap,colID,val);
-            }
+                MapPush(rowMap,initInd,val);
+            #else
+                ind_int colID;
+                if (pt_Basis->search(finalInd, colID)){
+                    dataType val = factor * spMat[initVec[siteI]] * smMat[initVec[siteJ]];
+                    double finalNorm = pt_Basis->getNorm(colID);
+                    val /= finalNorm;
+                    MapPush(rowMap,colID,val);
+                }
+            #endif
         }
     };
     
@@ -316,36 +347,51 @@ public:
     */
    double getSz(int siteI, ind_int repI) const {return szMat.at(1&(repI>>siteI));}
     void szsz(int siteI, int siteJ, dataType factor, ind_int repI, MAP* rowMap){
-        ind_int colID;
-        if (pt_Basis->search(repI,colID)){
+        #ifdef Distributed_Basis
             dataType dval = factor * szMat.at(1&(repI>>siteI)) * szMat.at(1&(repI>>siteJ));
-            double finalNorm = pt_Basis->getNorm(colID);
-            dval /= finalNorm;
-            MapPush(rowMap,colID,dval);
-        }
+            MapPush(rowMap,repI,dval);
+        #else
+            ind_int colID;
+            if (pt_Basis->search(repI,colID)){
+                dataType dval = factor * szMat.at(1&(repI>>siteI)) * szMat.at(1&(repI>>siteJ));
+                double finalNorm = pt_Basis->getNorm(colID);
+                dval /= finalNorm;
+                MapPush(rowMap,colID,dval);
+            }
+        #endif
     };
     
     void spsm(int siteI, dataType factor, ind_int repI, MAP* rowMap){
-        ind_int colID;
-        if (pt_Basis->search(repI, colID)){
-            if (!bitTest(repI,siteI)){
+        if (!bitTest(repI,siteI)){
+            #ifdef Distributed_Basis
                 dataType val = factor * spMat[1] * smMat[0];
-                double finalNorm = pt_Basis->getNorm(colID);
-                val /= finalNorm;
-                MapPush(rowMap,colID,val);
-            }
+                MapPush(rowMap,repI,val);
+            #else
+                ind_int colID;
+                if (pt_Basis->search(repI, colID){
+                    dataType val = factor * spMat[1] * smMat[0];
+                    double finalNorm = pt_Basis->getNorm(colID);
+                    val /= finalNorm;
+                    MapPush(rowMap,colID,val);
+                }
+            #endif
         }
     };
     
     void smsp(int siteI, dataType factor, ind_int repI, MAP* rowMap){
-        ind_int colID;
-        if (pt_Basis->search(repI, colID)){
-            if (bitTest(repI,siteI)){
-                dataType val = factor * smMat[0] * spMat[1];
-                double finalNorm = pt_Basis->getNorm(colID);
-                val /= finalNorm;
-                MapPush(rowMap,colID,val);
-            }
+        if (bitTest(repI,siteI)){
+            #ifdef Distributed_Basis
+                dataType val = factor * spMat[1] * smMat[0];
+                MapPush(rowMap,repI,val);
+            #else
+                ind_int colID;
+                if (pt_Basis->search(repI, colID){
+                    dataType val = factor * spMat[1] * smMat[0];
+                    double finalNorm = pt_Basis->getNorm(colID);
+                    val /= finalNorm;
+                    MapPush(rowMap,colID,val);
+                }
+            #endif
         }
     }
     
@@ -358,13 +404,17 @@ public:
         if (bitTest(repI,siteI) && (!bitTest(repI,siteJ))){
             bitFlip(repI,siteI);
             bitFlip(repI,siteJ);
-            ind_int colID;
-            if (pt_Basis->search(repI, colID)){
-                dataType val = factor * spMat[1] * smMat[0];
-                double finalNorm = pt_Basis->getNorm(colID);
-                val /= finalNorm;
-                MapPush(rowMap,colID,val);
-            }
+            dataType val = factor * spMat[1] * smMat[0];
+            #ifdef Distributed_Basis
+                MapPush(rowMap,repI,val);
+            #else
+                ind_int colID;
+                if (pt_Basis->search(repI, colID)){
+                    double finalNorm = pt_Basis->getNorm(colID);
+                    val /= finalNorm;
+                    MapPush(rowMap,colID,val);
+                }
+            #endif
         }
     };
     
@@ -376,6 +426,12 @@ public:
         spsm(siteJ, siteI, factor, repI,rowMap);
     };
 };
+
+/*
+    ***********
+    * Hubbard *
+    ***********
+*/
 
 template <class T>
 class Hubbard: public FermionOperator, public SparseMatrix<T>{
@@ -455,6 +511,12 @@ public:
     double count(ORBITAL orbital, dataType* vec);
 };
 
+/*
+    **************
+    * Heisenberg *
+    **************
+*/
+
 template <class T>
 class Heisenberg: public SpinOperator, public SparseMatrix<T>{
 private:
@@ -533,118 +595,10 @@ public:
 };
 
 /*
-    *********************
-    * Hamiltonian Class *
-    *********************
+    ****************************
+    * Operator Implementations *
+    ****************************
 */
-template <class T>
-void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
-    if(pt_Basis->getSiteDim()==2){
-        int kIndex = pt_Basis->getkIndex();
-        double initNorm, finalNorm;
-        std::vector<ind_int> finalIndList;
-        std::vector<cdouble> factorList;
-        pt_Basis->genSymm(rowID, finalIndList, factorList);
-        initNorm = pt_Basis->getNorm(rowID);
-        for (int i = 0; i < finalIndList.size(); i++){
-            for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
-                int matID = (*linkit).getmatid();
-                cdouble factor = factorList.at(i) * (*linkit).getVal();
-                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                    int siteID = (*bondit).at(0);
-                    int siteIDp = (*bondit).at(1);
-                    // sz.siteID * sz.siteIDp
-                    szsz(siteID, siteIDp, factor, finalIndList[i], &rowMaps[matID]);
-                    // 1/2 * sm.siteID * sp.siteIDp
-                    spsm(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
-                    // 1/2 * sp.siteID * sm.siteIDp
-                    smsp(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
-                }
-            }
-        }
-    }
-    else{
-        int kIndex = pt_Basis->getkIndex();
-        VecI initVec(pt_lattice->getOrbNum());
-        double initNorm, finalNorm;
-        std::vector<ind_int> finalIndList;
-        std::vector<cdouble> factorList;
-        pt_Basis->genSymm(rowID, finalIndList, factorList);
-        initNorm = pt_Basis->getNorm(rowID);
-        for (int i = 0; i < finalIndList.size(); i++){
-            pt_Basis->indToVec(finalIndList[i], initVec);
-            for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
-                int matID = (*linkit).getmatid();
-                cdouble factor = factorList.at(i) * (*linkit).getVal();
-                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                    int siteID = (*bondit).at(0);
-                    int siteIDp = (*bondit).at(1);
-                    // sz.siteID * sz.siteIDp
-                    szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMaps[matID]);
-                    // 1/2 * sm.siteID * sp.siteIDp
-                    spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
-                    // 1/2 * sp.siteID * sm.siteIDp
-                    smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
-                }
-            }
-        }
-    }  
-}
-// generate Hamiltonian in the subspacd labeled by kIndex
-template <class T>
-void Heisenberg<T>::genMat(){
-    int kIndex = pt_Basis->getkIndex();
-    SparseMatrix<T>::clear();
-    MAP rowMap;
-    // initialize rowInitList
-    for (int i = 0; i < SparseMatrix<T>::spmNum; i++) SparseMatrix<T>::pushRow(&rowMap,i);
-    VecI initVec(pt_lattice->getOrbNum());
-    double initNorm, finalNorm;
-    // calculate <R1k|H*Pk|R2k>/norm1/norm2
-    for (ind_int rowID = SparseMatrix<T>::startRow; rowID < SparseMatrix<T>::endRow; rowID++){
-        rowMap.clear();
-        std::vector<cdouble> factorList;
-        std::vector<ind_int> finalIndList;
-        pt_Basis->genSymm(rowID, finalIndList, factorList);
-        initNorm = pt_Basis->getNorm(rowID);
-        for (int i = 0; i < finalIndList.size(); i++){
-            pt_Basis->indToVec(finalIndList[i], initVec);
-            for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
-                cdouble factor = factorList.at(i) * (*linkit).getVal();
-                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                    int siteID = (*bondit).at(0);
-                    int siteIDp = (*bondit).at(1);
-                    // sz.siteID * sz.siteIDp
-                    szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMap);
-                    // 1/2 * sm.siteID * sp.siteIDp
-                    spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
-                    // 1/2 * sp.siteID * sm.siteIDp
-                    smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
-                }
-            }
-        }
-        SparseMatrix<T>::pushRow(&rowMap);
-
-        for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
-            rowMap.clear();
-            for (int i = 0; i < finalIndList.size(); i++){
-                pt_Basis->indToVec(finalIndList[i], initVec);
-                cdouble factor = factorList.at(i) * (*linkit).getVal();
-                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                    int siteID = (*bondit).at(0);
-                    int siteIDp = (*bondit).at(1);
-                    // sz.siteID * sz.siteIDp
-                    szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMap);
-                    // 1/2 * sm.siteID * sp.siteIDp
-                    spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
-                    // 1/2 * sp.siteID * sm.siteIDp
-                    smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
-                }
-            }
-            SparseMatrix<T>::pushRow(&rowMap, (*linkit)->getmatid());
-        }
-    }
-}
 
 template <class T>
 void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
@@ -756,6 +710,116 @@ inline void Nocc::row(ind_int rowID){
     ind_int loc_rowID = rowID - BaseMatrix<cdouble>::startRow;
     for (int i = 0; i < pt_lattice->getUnitOrbNum(); i++) {SparseMatrix<cdouble>::diagValList[i][loc_rowID] = occ[i];}
 }
+
+template <class T>
+void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
+    if(pt_Basis->getSiteDim()==2){
+        int kIndex = pt_Basis->getkIndex();
+        double initNorm, finalNorm;
+        std::vector<ind_int> finalIndList;
+        std::vector<cdouble> factorList;
+        pt_Basis->genSymm(rowID, finalIndList, factorList);
+        initNorm = pt_Basis->getNorm(rowID);
+        for (int i = 0; i < finalIndList.size(); i++){
+            for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+                int matID = (*linkit).getmatid();
+                cdouble factor = factorList.at(i) * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                    int siteID = (*bondit).at(0);
+                    int siteIDp = (*bondit).at(1);
+                    // sz.siteID * sz.siteIDp
+                    szsz(siteID, siteIDp, factor, finalIndList[i], &rowMaps[matID]);
+                    // 1/2 * sm.siteID * sp.siteIDp
+                    spsm(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                    // 1/2 * sp.siteID * sm.siteIDp
+                    smsp(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                }
+            }
+        }
+    }
+    else{
+        int kIndex = pt_Basis->getkIndex();
+        VecI initVec(pt_lattice->getOrbNum());
+        double initNorm, finalNorm;
+        std::vector<ind_int> finalIndList;
+        std::vector<cdouble> factorList;
+        pt_Basis->genSymm(rowID, finalIndList, factorList);
+        initNorm = pt_Basis->getNorm(rowID);
+        for (int i = 0; i < finalIndList.size(); i++){
+            pt_Basis->indToVec(finalIndList[i], initVec);
+            for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+                int matID = (*linkit).getmatid();
+                cdouble factor = factorList.at(i) * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                    int siteID = (*bondit).at(0);
+                    int siteIDp = (*bondit).at(1);
+                    // sz.siteID * sz.siteIDp
+                    szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMaps[matID]);
+                    // 1/2 * sm.siteID * sp.siteIDp
+                    spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
+                    // 1/2 * sp.siteID * sm.siteIDp
+                    smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
+                }
+            }
+        }
+    }  
+}
+// generate Hamiltonian in the subspacd labeled by kIndex
+template <class T>
+void Heisenberg<T>::genMat(){
+    int kIndex = pt_Basis->getkIndex();
+    SparseMatrix<T>::clear();
+    MAP rowMap;
+    // initialize rowInitList
+    for (int i = 0; i < SparseMatrix<T>::spmNum; i++) SparseMatrix<T>::pushRow(&rowMap,i);
+    VecI initVec(pt_lattice->getOrbNum());
+    double initNorm, finalNorm;
+    // calculate <R1k|H*Pk|R2k>/norm1/norm2
+    for (ind_int rowID = SparseMatrix<T>::startRow; rowID < SparseMatrix<T>::endRow; rowID++){
+        rowMap.clear();
+        std::vector<cdouble> factorList;
+        std::vector<ind_int> finalIndList;
+        pt_Basis->genSymm(rowID, finalIndList, factorList);
+        initNorm = pt_Basis->getNorm(rowID);
+        for (int i = 0; i < finalIndList.size(); i++){
+            pt_Basis->indToVec(finalIndList[i], initVec);
+            for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+                cdouble factor = factorList.at(i) * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                    int siteID = (*bondit).at(0);
+                    int siteIDp = (*bondit).at(1);
+                    // sz.siteID * sz.siteIDp
+                    szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMap);
+                    // 1/2 * sm.siteID * sp.siteIDp
+                    spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
+                    // 1/2 * sp.siteID * sm.siteIDp
+                    smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
+                }
+            }
+        }
+        SparseMatrix<T>::pushRow(&rowMap);
+
+        for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
+            rowMap.clear();
+            for (int i = 0; i < finalIndList.size(); i++){
+                pt_Basis->indToVec(finalIndList[i], initVec);
+                cdouble factor = factorList.at(i) * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                    int siteID = (*bondit).at(0);
+                    int siteIDp = (*bondit).at(1);
+                    // sz.siteID * sz.siteIDp
+                    szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMap);
+                    // 1/2 * sm.siteID * sp.siteIDp
+                    spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
+                    // 1/2 * sp.siteID * sm.siteIDp
+                    smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMap);
+                }
+            }
+            SparseMatrix<T>::pushRow(&rowMap, (*linkit)->getmatid());
+        }
+    }
+}
+
 /*
     ********************
     * Correlator Class *
