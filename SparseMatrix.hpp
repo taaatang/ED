@@ -301,6 +301,7 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
     for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(BaseMatrix<T>::nloc);
     for(int i = 0; i < spmNum; i++) for(int b=0;b<blockNum;b++)rowInitList.at(i).at(b).push_back(counter.at(i).at(b));
     for (ind_int rowID = 0; rowID < BaseMatrix<T>::endRow - BaseMatrix<T>::startRow; rowID+=rowPerIt){
+        std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start row:"<<rowID<<std::endl;
         setMpiBuff(endRowFlag); // set mpi sent/recv buff
         ind_int iterStart = rowID;
         ind_int iterEnd = (rowID+rowPerIt)<BaseMatrix<T>::endRow ? (rowID+rowPerIt):BaseMatrix<T>::endRow;
@@ -326,11 +327,13 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
                 }
             }
         }
+        std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start mpi all to all"<<std::endl;
         // mpi all to all 
         for(int matID=0; matID<spmNum; matID++){
             MPI_Alltoall(idxSendBuff.at(matID).data(), idxRecvBuff.at(matID).data(), sendCount);
             MPI_Alltoall(valSendBuff.at(matID).data(), valRecvBuff.at(matID).data(), sendCount);
         }
+        std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" Start filter row:"<<rowID<<std::endl;
         // filter recv buff and push data to sparse matrix
         for(int matID=0; matID<spmNum; matID++){
             #pragma omp parallel for
