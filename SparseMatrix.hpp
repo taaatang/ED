@@ -300,9 +300,9 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
     }
     for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(BaseMatrix<T>::nloc);
     for(int i = 0; i < spmNum; i++) for(int b=0;b<blockNum;b++)rowInitList.at(i).at(b).push_back(counter.at(i).at(b));
-    for (ind_int rowID = BaseMatrix<T>::startRow; rowID < BaseMatrix<T>::endRow; rowID+=rowPerIt){
+    for (ind_int rowID = 0; rowID < BaseMatrix<T>::endRow - BaseMatrix<T>::startRow; rowID+=rowPerIt){
         setMpiBuff(endRowFlag); // set mpi sent/recv buff
-        ind_int iterStart = rowID - BaseMatrix<T>::startRow;
+        ind_int iterStart = rowID;
         ind_int iterEnd = (rowID+rowPerIt)<BaseMatrix<T>::endRow ? (rowID+rowPerIt):BaseMatrix<T>::endRow;
         #pragma omp parallel for
         for(int iter = 0; iter < (iterEnd-iterStart); iter++){
