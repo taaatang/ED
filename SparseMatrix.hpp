@@ -300,14 +300,15 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
     }
     for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(BaseMatrix<T>::nloc);
     for(int i = 0; i < spmNum; i++) for(int b=0;b<blockNum;b++)rowInitList.at(i).at(b).push_back(counter.at(i).at(b));
-    for (ind_int rowID = 0; rowID < BaseMatrix<T>::endRow - BaseMatrix<T>::startRow; rowID+=rowPerIt){
+    for (ind_int rowID = 0; rowID < BaseMatrix<T>::nloc; rowID+=rowPerIt){
         std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start row:"<<rowID<<std::endl;
         setMpiBuff(endRowFlag); // set mpi sent/recv buff
         ind_int iterStart = rowID;
-        ind_int iterEnd = (rowID+rowPerIt)<BaseMatrix<T>::endRow ? (rowID+rowPerIt):BaseMatrix<T>::endRow;
+        ind_int iterEnd = (rowID+rowPerIt)<BaseMatrix<T>::nloc ? (rowID+rowPerIt):BaseMatrix<T>::nloc;
         #pragma omp parallel for
         for(int iter = 0; iter < (iterEnd-iterStart); iter++){
             std::vector<MAP> rowMaps(spmNum);
+            std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start iter:"<<iterStart+iter<<std::endl;
             row(iterStart+iter,rowMaps);
             for(int matID=0; matID < spmNum; matID++){
                 int bid;
