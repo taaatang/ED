@@ -146,12 +146,12 @@ public:
     FermionOperator(Basis* pt_Ba, LATTICE_MODEL mod=LATTICE_MODEL::HUBBARD):pt_Basis(pt_Ba),model(mod){};
     ~FermionOperator(){};
     void diag(ind_int rowID, dataType factor, MAP* rowMap){
-        auto it = rowMap->find(rowID);
-        if (it == rowMap->end()){
-            (*rowMap)[rowID] = factor;
-        }else{
-            it->second += factor;
-        }
+        #ifdef Distributed_Basis
+            ind_int repI = pt_Basis->getRepI(rowID);
+            MapPush(rowMap,repI,factor);
+        #else
+            MapPush(rowMap,rowID,factor);
+        #endif
     }
 
     bool cpcm(int siteI, int siteJ, ind_int repI, ind_int repIp, ind_int& repIf, int& sign){
