@@ -12,6 +12,7 @@
 #include "Basis.hpp"
 #include "algebra.hpp"
 #include "utils.hpp"
+#include <climits>
 #include "mpi.h"
 #ifdef OMP_
     #include <omp.h>
