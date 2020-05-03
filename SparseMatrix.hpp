@@ -91,6 +91,8 @@ protected:
         [row_1,row_2,...]
         row_i is of size rowCount
     */
+    int rowCount;
+    int rowPerIt;
     int sendCount;
     std::vector<std::vector<ind_int>> idxSendBuff, idxRecvBuff;
     std::vector<std::vector<T>> valSendBuff, valRecvBuff;
@@ -105,7 +107,7 @@ protected:
     std::vector<std::vector<sparse_matrix_t>> A;
 #endif
 public:
-    SparseMatrix(ind_int totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0, MATRIX_PARTITION partition_ = MATRIX_PARTITION::COL_PARTITION, int sendCount_ = 100000);
+    SparseMatrix(ind_int totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0, MATRIX_PARTITION partition_ = MATRIX_PARTITION::COL_PARTITION, int rowPerIt_=1000, int rowCount_ = 20);
     ~SparseMatrix(){
 #ifdef _MKL_
         for(int i = 0; i < spmNum; i++){
@@ -167,7 +169,7 @@ public:
     virtual void row(ind_int rowID, std::vector<MAP>& rowMaps) = 0;
     // construct sparse matrix in parallel. each thread create #rowPerThread.
     void setMpiBuff(ind_int idx_val);
-    void genMatPara(Basis *pt_Basis, int rowPerIt=1000);
+    void genMatPara(Basis *pt_Basis);
 };
 
 // static members
@@ -187,11 +189,12 @@ bool SparseMatrix<T>::is_vecBuf = false;
     Constructor
 */
 template <class T>
-SparseMatrix<T>::SparseMatrix(ind_int totDim_ , int spmNum_ , int dmNum_, MATRIX_PARTITION partition_, int sendCount_):\
+SparseMatrix<T>::SparseMatrix(ind_int totDim_ , int spmNum_ , int dmNum_, MATRIX_PARTITION partition_, int rowPerIt_, int rowCount_):\
     BaseMatrix<T>(totDim_),partition(partition_),spmNum(spmNum_),dmNum(dmNum_),parameters(spmNum,1.0),diagParameters(dmNum,1.0),\
-    counter(spmNum_),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),A(spmNum_),diagValList(dmNum_),sendCount(sendCount_),\
+    counter(spmNum_),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),A(spmNum_),diagValList(dmNum_),rowPerIt(rowPerIt_),rowCount(rowCount_)\
     idxSendBuff(spmNum_),idxRecvBuff(spmNum_),valSendBuff(spmNum_),valRecvBuff(spmNum_){
     blockNum = BaseMatrix<T>::workerNum;
+    sendCount = rowCount * rowPerIt;
     for(int i = 0; i < dmNum; i++) diagValList[i].resize(BaseMatrix<T>::nloc);
     // initialize is_vecBuf status
     switch(partition){
@@ -292,11 +295,10 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
     }
 }
 template <class T>
-void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
+void SparseMatrix<T>::genMatPara(Basis *pt_Basis){
     // do MPI_Alltoall communication after #rowPerIt row iterations 
     clear();
     ind_int endRowFlag = ULLONG_MAX;
-    int rowCount = sendCount/rowPerIt; // buff size for each row
     std::vector<std::vector<int>> ridxBlockStart(blockNum);
     for(int bid = 0; bid < blockNum; bid++){
         ridxBlockStart.at(bid).resize(rowPerIt);
