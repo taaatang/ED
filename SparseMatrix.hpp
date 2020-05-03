@@ -145,7 +145,7 @@ public:
         }
     }
     void pushDiag(T val, int matID=0){diagVal.at(matID).push_back(val);}
-    void putDiag(T val, ind_int idx, int matID=0){diagVal.at(matID).at(idx)=val;}
+    void putDiag(T val, ind_int idx, int matID=0){diagValList.at(matID).at(idx)=val;}
     void setBuf(ind_int size){vecBuf.resize(size); is_vecBuf = true;}
     void setBuf(){
         switch(partition){
