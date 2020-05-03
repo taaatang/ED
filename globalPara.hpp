@@ -98,7 +98,7 @@ const std::complex<double> CPLX_I(0.0, 1.0);
     ***************
 */
 // Matrix index datatype
-typedef long long int ind_int; 
+typedef unsigned long long int ind_int; 
 typedef unsigned int uint;
 typedef std::complex<double> cdouble;
 // #ifdef COMPLEX_DATA

@@ -202,7 +202,7 @@ SparseMatrix<T>::SparseMatrix(ind_int totDim_ , int spmNum_ , int dmNum_, MATRIX
     }
         // for(int i = 0; i < spmNum; i++) rowInitList.at(i).push_back(0);
     for(int matID=0; matID<spmNum; matID++){
-        counter.at(matID).resize(blockNum);
+        counter.at(matID).resize(blockNum,0);
         rowInitList.at(matID).resize(blockNum);
         colList.at(matID).resize(blockNum);
         valList.at(matID).resize(blockNum);
@@ -292,7 +292,7 @@ template <class T>
 void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
     // do MPI_Alltoall communication after #rowPerIt row iterations 
     clear();
-    ind_int endRowFlag = pt_Basis->getTotDim();
+    ind_int endRowFlag = ULLONG_MAX;
     int rowCount = sendCount/rowPerIt; // buff size for each row
     std::vector<std::vector<int>> ridxBlockStart(blockNum);
     for(int bid = 0; bid < blockNum; bid++){
