@@ -39,7 +39,7 @@ int main(int argc, const char * argv[]) {
     int PGRepIndex = -1;
     int rowPerThread = 1;
     std::ifstream infile("hubbardSpec_input.txt");
-    infile>>Nx>>Ny>>PGRepIndex;
+    infile>>Nx>>Ny>>kIndex;
     N = Nx * Ny;
     infile.close();
 /*
