@@ -608,7 +608,7 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     pairIndex pairRepI = pt_Basis->getPairRepI(repI);
     pt_lattice->orbOCC(pairRepI, occ, docc);
     double val = diagVal(occ,docc);
-    putDiag(val,rowID);
+    SparseMatrix<T>::putDiag(val,rowID);
     // off diagonal part
     std::vector<ind_int> finalIndList;
     std::vector<cdouble> factorList;
