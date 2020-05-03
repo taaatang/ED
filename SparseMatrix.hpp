@@ -145,6 +145,7 @@ public:
         }
     }
     void pushDiag(T val, int matID=0){diagVal.at(matID).push_back(val);}
+    void putDiag(T val, ind_int idx, int matID=0){diagVal.at(matID).at(idx)=val;}
     void setBuf(ind_int size){vecBuf.resize(size); is_vecBuf = true;}
     void setBuf(){
         switch(partition){
@@ -300,7 +301,7 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
         ridxBlockStart.at(bid).resize(rowPerIt);
         for(int row=0;row<rowPerIt;row++){ridxBlockStart.at(bid).at(row)=bid*sendCount+row*rowCount;}
     }
-    std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", block num:"<<idxSendBuff.size()<<", sendsize:"<<idxSendBuff[0].size()<<std::endl;
+    // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", block num:"<<idxSendBuff.size()<<", sendsize:"<<idxSendBuff[0].size()<<std::endl;
     for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(BaseMatrix<T>::nloc);
     for(int i = 0; i < spmNum; i++) for(int b=0;b<blockNum;b++)rowInitList.at(i).at(b).push_back(counter.at(i).at(b));
     for (ind_int rowID = 0; rowID < BaseMatrix<T>::nloc; rowID+=rowPerIt){
@@ -333,13 +334,13 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
                 }
             }
         }
-        std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start mpi all to all"<<std::endl;
+        // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start mpi all to all"<<std::endl;
         // mpi all to all 
         for(int matID=0; matID<spmNum; matID++){
             MPI_Alltoall(idxSendBuff.at(matID).data(), idxRecvBuff.at(matID).data(), sendCount);
             MPI_Alltoall(valSendBuff.at(matID).data(), valRecvBuff.at(matID).data(), sendCount);
         }
-        std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" Start filter row:"<<rowID<<std::endl;
+        // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" Start filter row:"<<rowID<<std::endl;
         // filter recv buff and push data to sparse matrix
         for(int matID=0; matID<spmNum; matID++){
             #pragma omp parallel for
@@ -360,7 +361,7 @@ void SparseMatrix<T>::genMatPara(Basis *pt_Basis, int rowPerIt){
                 }
             }
         }
-        std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" finished filter row:"<<rowID<<std::endl;
+        // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" finished filter row:"<<rowID<<std::endl;
     }
 #ifdef _MKL_
     for (int matID = 0; matID < spmNum; matID++) for(int bid=0; bid < blockNum; bid++){
