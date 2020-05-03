@@ -191,7 +191,7 @@ bool SparseMatrix<T>::is_vecBuf = false;
 template <class T>
 SparseMatrix<T>::SparseMatrix(ind_int totDim_ , int spmNum_ , int dmNum_, MATRIX_PARTITION partition_, int rowPerIt_, int rowCount_):\
     BaseMatrix<T>(totDim_),partition(partition_),spmNum(spmNum_),dmNum(dmNum_),parameters(spmNum,1.0),diagParameters(dmNum,1.0),\
-    counter(spmNum_),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),A(spmNum_),diagValList(dmNum_),rowPerIt(rowPerIt_),rowCount(rowCount_)\
+    counter(spmNum_),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),A(spmNum_),diagValList(dmNum_),rowPerIt(rowPerIt_),rowCount(rowCount_),\
     idxSendBuff(spmNum_),idxRecvBuff(spmNum_),valSendBuff(spmNum_),valRecvBuff(spmNum_){
     blockNum = BaseMatrix<T>::workerNum;
     sendCount = rowCount * rowPerIt;
