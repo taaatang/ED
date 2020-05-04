@@ -59,15 +59,15 @@ set(TIME_DEP ${GROUND_STATE_DEP} ${LANCZOS} ${TIME})
 add_executable(genBasis.out genBasisMain.cpp ${BASIS_DEP})
 
 add_executable(kGroundState.out kGroundStateMain.cpp ${GROUND_STATE_DEP})
-target_link_libraries(kGroundState.out MKL)
+target_link_libraries(kGroundState.out ${MKL})
 target_link_libraries(kGroundState.out PARPACK)
 
 add_executable(Spectra.out SpectraMain.cpp ${SPECTRA_DEP})
-target_link_libraries(Spectra.out MKL)
+target_link_libraries(Spectra.out ${MKL})
 target_link_libraries(Spectra.out PARPACK)
 
 add_executable(HubbardSpec.out HubbardSpecMain.cpp ${SPECTRA_DEP})
-target_link_libraries(HubbardSpec.out MKL)
+target_link_libraries(HubbardSpec.out ${MKL})
 target_link_libraries(HubbardSpec.out PARPACK)
                            
 
