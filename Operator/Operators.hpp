@@ -648,7 +648,7 @@ void Hubbard<T>::genMat(){
         // diagonal part. occupancy and double-occ
         VecI occ, docc;
         ind_int initInd = pt_Basis->getRepI(rowID);
-        pt_Basis->indToVec(initInd, initVec, initVecp);
+        pt_Basis->repToVec(initInd, initVec, initVecp);
         pt_lattice->orbOCC(initVec, initVecp, occ, docc);
         double val = diagVal(occ,docc);
         cdouble diag_val = 0.0;
@@ -657,7 +657,7 @@ void Hubbard<T>::genMat(){
         std::vector<cdouble> factorList;
         pt_Basis->genSymm(rowID, finalIndList, factorList);
         for (int i = 0; i < finalIndList.size(); i++){
-            pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
+            pt_Basis->repToVec(finalIndList[i], initVec, initVecp);
             if(finalIndList[i]==initInd)diag_val += val*factorList[i];
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
@@ -683,7 +683,7 @@ void Hubbard<T>::genMat(){
         for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
             rowMap.clear();
             for (int i = 0; i < finalIndList.size(); i++){
-                pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
+                pt_Basis->repToVec(finalIndList[i], initVec, initVecp);
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
                 for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                     int siteID = (*bondit).at(0);
@@ -744,7 +744,7 @@ void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         pt_Basis->genSymm(rowID, finalIndList, factorList);
         initNorm = pt_Basis->getNorm(rowID);
         for (int i = 0; i < finalIndList.size(); i++){
-            pt_Basis->indToVec(finalIndList[i], initVec);
+            pt_Basis->repToVec(finalIndList[i], initVec);
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
                 int matID = (*linkit).getmatid();
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
@@ -780,7 +780,7 @@ void Heisenberg<T>::genMat(){
         pt_Basis->genSymm(rowID, finalIndList, factorList);
         initNorm = pt_Basis->getNorm(rowID);
         for (int i = 0; i < finalIndList.size(); i++){
-            pt_Basis->indToVec(finalIndList[i], initVec);
+            pt_Basis->repToVec(finalIndList[i], initVec);
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
                 for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
@@ -800,7 +800,7 @@ void Heisenberg<T>::genMat(){
         for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
             rowMap.clear();
             for (int i = 0; i < finalIndList.size(); i++){
-                pt_Basis->indToVec(finalIndList[i], initVec);
+                pt_Basis->repToVec(finalIndList[i], initVec);
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
                 for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                     int siteID = (*bondit).at(0);
@@ -889,7 +889,7 @@ void SSOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         std::vector<cdouble> factorList;
         pt_Basis->genSymm(rowID, finalIndList, factorList);
         for (int i = 0; i < finalIndList.size(); i++){
-            pt_Basis->indToVec(finalIndList[i], initVec);
+            pt_Basis->repToVec(finalIndList[i], initVec);
             cdouble factor = factorList.at(i);
             for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
                 if (r >= 0){
@@ -954,7 +954,7 @@ void SSOp<T>::genPairMat(int rIndex){
         std::vector<cdouble> factorList;
         pt_Basis->genSymm(rowID, finalIndList, factorList);
         for (int i = 0; i < finalIndList.size(); i++){
-            pt_Basis->indToVec(finalIndList[i], initVec);
+            pt_Basis->repToVec(finalIndList[i], initVec);
             cdouble factor = factorList.at(i);
             for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
                 int siteJ = siteJList[rIndex][siteI];
@@ -1000,7 +1000,7 @@ void SzkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
             ind_int repI = pt_Bf->getRepI(rowID);
             VecI initVec(pt_lattice->getOrbNum());
             cdouble dval = 0.0;
-            pt_Bf->indToVec(repI, initVec);
+            pt_Bf->repToVec(repI, initVec);
             for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
                 dval += getSz(siteID,initVec) * expFactor[siteID];
             }
@@ -1011,7 +1011,7 @@ void SzkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
             if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
                 VecI initVec(pt_lattice->getOrbNum());
                 cdouble dval = 0.0;
-                pt_Bi->indToVec(pt_Bi->getRepI(colID), initVec);
+                pt_Bi->repToVec(pt_Bi->getRepI(colID), initVec);
                 for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
                     dval += getSz(siteID,initVec) * expFactor[siteID];
                 }
@@ -1039,7 +1039,7 @@ void SzkOp<T>::genMat(){
                 rowMap.clear();
                 if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
                     dval = 0.0;
-                    pt_Bi->indToVec(pt_Bi->getRepI(colID), initVec);
+                    pt_Bi->repToVec(pt_Bi->getRepI(colID), initVec);
                     for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
                         dval += getSz(siteID,initVec) * expFactor[siteID];
                     }
@@ -1056,7 +1056,7 @@ void SzkOp<T>::genMat(){
             for (ind_int rowID = startRow; rowID < endRow; rowID++){
                 if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
                     dval = 0.0;
-                    pt_Bf->indToVec(pt_Bf->getRepI(rowID), initVec);
+                    pt_Bf->repToVec(pt_Bf->getRepI(rowID), initVec);
                     for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
                         dval += getSz(siteID,initVec) * expFactor[siteID];
                     }

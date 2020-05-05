@@ -85,7 +85,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //         // diagonal part. occupancy and double-occ
 //         VecI occ, docc;
 //         ind_int initInd = pt_Basis->getRepI(rowID);
-//         pt_Basis->indToVec(initInd, initVec, initVecp);
+//         pt_Basis->repToVec(initInd, initVec, initVecp);
 //         pt_lattice->orbOCC(initVec, initVecp, occ, docc);
 //         double val = diagVal(occ,docc);
 //         cdouble diag_val = 0.0;
@@ -94,7 +94,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //         std::vector<cdouble> factorList;
 //         pt_Basis->genSymm(rowID, finalIndList, factorList);
 //         for (int i = 0; i < finalIndList.size(); i++){
-//             pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
+//             pt_Basis->repToVec(finalIndList[i], initVec, initVecp);
 //             if(finalIndList[i]==initInd)diag_val += val*factorList[i];
 //             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
 //                 cdouble factor = factorList.at(i) * (*linkit)->getVal();
@@ -120,7 +120,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //         for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
 //             rowMap.clear();
 //             for (int i = 0; i < finalIndList.size(); i++){
-//                 pt_Basis->indToVec(finalIndList[i], initVec, initVecp);
+//                 pt_Basis->repToVec(finalIndList[i], initVec, initVecp);
 //                 cdouble factor = factorList.at(i) * (*linkit)->getVal();
 //                 for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
 //                     int siteID = (*bondit).at(0);
@@ -165,7 +165,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //                 rowMap.clear();
 //                 if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
 //                     dval = 0.0;
-//                     pt_Bi->indToVec(pt_Bi->getRepI(colID), initVec);
+//                     pt_Bi->repToVec(pt_Bi->getRepI(colID), initVec);
 //                     for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
 //                         dval += getSz(siteID,initVec) * factor[siteID];
 //                     }
@@ -182,7 +182,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //             for (ind_int rowID = startRow; rowID < endRow; rowID++){
 //                 if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
 //                     dval = 0.0;
-//                     pt_Bf->indToVec(pt_Bf->getRepI(rowID), initVec);
+//                     pt_Bf->repToVec(pt_Bf->getRepI(rowID), initVec);
 //                     for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
 //                         dval += getSz(siteID,initVec) * factor[siteID];
 //                     }
@@ -230,7 +230,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //         std::vector<ind_int> finalIndList;
 //         pt_Basis->genSymm(pt_Basis->getRepI(rowID), finalIndList);
 //         for (int i = 0; i < finalIndList.size(); i++){
-//             pt_Basis->indToVec(finalIndList[i], initVec);
+//             pt_Basis->repToVec(finalIndList[i], initVec);
 //             cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
 //             for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
 //                 int siteJ = siteJList[siteI];
@@ -253,7 +253,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //     int *initVec_ = new(std::nothrow) int[pt_lattice->getOrbNum()]; assert(initVec_!=NULL);
 //     for (ind_int rowID = startRow; rowID < endRow; rowID++){
 //         dval = 0.0;
-//         pt_Basis->indToVec(pt_Basis->indexList.at(rowID), initVec_);
+//         pt_Basis->repToVec(pt_Basis->indexList.at(rowID), initVec_);
 //         for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
 //             dval += szMat.at(initVec_[siteID]) * std::exp(-CPLX_I * (q[0]*pt_lattice->lattice_[siteID].coordxy[0] + q[1]*pt_lattice->lattice_[siteID].coordxy[1]));
 //         }
@@ -276,7 +276,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //     int *initVec_ = new int[pt_lattice->getOrbNum()];
 //     for (ind_int rowID = startRow; rowID < endRow; rowID++){
 //         rowMap.clear();
-//         pt_Basis->indToVec(pt_Basis->indexList.at(rowID), initVec_);
+//         pt_Basis->repToVec(pt_Basis->indexList.at(rowID), initVec_);
 //         // sz.siteID * sz.siteIDp
 //         szsz(siteID, initSiteID, 1.0, rowID, initVec_, pt_Basis, &rowMap);
 //         // 1/2 * sm.siteID * sp.siteIDp
