@@ -23,56 +23,52 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
      t-J Model: occList->{#holes, #spin-up, #spin-down}
      HEISENBERG: occList->{#spin-up, #spin-down}
     */
+    #ifdef BINARY_REP
+        assert(siteDim==2)
+    #endif
     N = pt_lattice->getOrbNum();
     assert(kIndex<pt_lattice->getSiteNum());
     assert(PGRepIndex<pt_lattice->getPGRepNum());
-    Np = N;
-    Nocc = occList.at(0);
-    Npocc = occList.at(1);
-    initStartVec();
     switch(model){
         case LATTICE_MODEL::HUBBARD:
-            assert(Nocc<=N);
-            assert(Npocc<=Np);
-            fDim = combination<ind_int>((ind_int)N, (ind_int)(Nocc));
-            sDim = combination<ind_int>((ind_int)Np, (ind_int)(Npocc));
+            Nocc = occList;
+            assert(Nocc.at(0)<=N);
+            assert(Nocc.at(1)<=N);
+            fDim = combination<ind_int>((ind_int)N, (ind_int)(Nocc[0]));
+            sDim = combination<ind_int>((ind_int)N, (ind_int)(Nocc[1]));
             totDim = fDim * sDim;
             break;
         case LATTICE_MODEL::t_J:
-            assert((Nocc+Npocc)<=N);
-            fDim = combination<ind_int>((ind_int)N, (ind_int)(Nocc));
-            sDim = combination<ind_int>((ind_int)N, (ind_int)(occList[1]));
-            totDim = fDim * combination<ind_int>((ind_int)(N-Nocc), (ind_int)(occList[1]));
+            Nocc = occList;
+            assert((Nocc.at(0)+Nocc.at(1))<=N);
+            fDim = combination<ind_int>((ind_int)N, (ind_int)(Nocc[0]));
+            sDim = combination<ind_int>((ind_int)N, (ind_int)(Nocc[1]));
+            totDim = fDim * combination<ind_int>((ind_int)(N-Nocc[0]), (ind_int)(Nocc[1]));
             break;
-        // case t_J:
-        //     assert((Nocc+occList[1]+occList[2])==N);
-        //     Np = occList[1] + occList[2];
-        //     for (ind_int i = 0; i < (N - Nocc); i++) vec.push_back(0);
-        //     for (ind_int i = 0; i < Nocc; i++) vec.push_back(1);
-        //     for (ind_int i = 0; i < (occList[1]); i++) vecp.push_back(0);
-        //     for (ind_int i = 0; i < occList[2]; i++) vecp.push_back(1);
-        //     fDim = combination<ind_int>((ind_int)N, (ind_int)(Nocc));
-        //     sDim = combination<ind_int>((ind_int)(N-Nocc), (ind_int)(occList[1]));
-        //     totDim = fDim * sDim;
-        //     initVec.resize(N,0); initVecp.resize(N,0);
-        //     finalVec.resize(N,0); finalVecp.resize(N,0);
-        //     break;
         case LATTICE_MODEL::HEISENBERG:
-            assert((Nocc+Npocc)==N);
-            // initialize vec
-            for (ind_int i = 0; i < siteDim; i++){
-                for (int j = 0; j < occList[i]; j++) vec.push_back(i);
-            }
-            // calculate totDim
-            totDim = 1;
-            ind_int n = N;
-            for (int i = 0; i < siteDim; i++){
-                totDim *= combination<ind_int>(n, (ind_int)(occList[i]));
-                n -= occList[i];
-            }
+            Sztot = occList.at(0);
+            Nocc.resize(siteDim);
+            #ifdef BINARY_REP
+                assert(Sztot/2==N/2);
+                Nocc[0] = (N+Sztot)/2;
+                Nocc[1] = N - Nocc[0];
+                // calculate totDim
+                totDim = 1;
+                ind_int n = N;
+                for (int i = 0; i < siteDim; i++){
+                    totDim *= combination<ind_int>(n, (ind_int)(Nocc[i]));
+                    n -= Nocc[i];
+                }
+            #else
+                // initialize vec
+                for (ind_int i = 0; i < siteDim; i++){
+                    for (int j = 0; j < occList[i]; j++) vec.push_back(i);
+                }
+            #endif
             break;
         default:break;
     }
+    initMinMaxRep();
     // default full hilbert space
     subDim = totDim;
     locDim = subDim;
@@ -81,7 +77,29 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
     // generate fIndexList and sIndexList for Hubbard and tJ
     gendcmp(); 
 }
-void Basis::initStartVec() const {
+void Basis::initMinMaxRep() const {
+#ifdef BINARY_REP
+    assert(siteDim==2);
+    if(model==LATTICE_MODEL::HUBBARD or model==LATTICE_MODEL::t_J){
+        fminRep=0;fmaxRep=0;
+        for(int i=0; i<Nocc.at(0); i++){
+            bitSet(fminRep,i);
+            bitSet(fmaxRep,N-1-i);
+        }
+        sminRep=0;smaxRep=0;
+        for(int i=0; i<Nocc.at(1); i++){
+            bitSet(sminRep,i);
+            bitSet(smaxRep,N-1-i);
+        }
+    }
+    if(model==LATTICE_MODEL::HEISENBERG){
+        fminRep=0;fmaxRep=0;
+        for(int i=0; i<Nocc.at(1); i++){
+            bitSet(fminRep,i);
+            bitSet(fmaxRep,N-1-i);
+        }
+    }
+#else
     vec.clear();
     vecp.clear();
     switch(model){
@@ -93,6 +111,7 @@ void Basis::initStartVec() const {
             break;
         default:break;
     }
+#endif
 }
 // generate Basis for the full Hilbert Space
 void Basis::genFull(){
@@ -106,14 +125,14 @@ void Basis::genFull(){
             sIndexList.reserve(sDim);
             counter = 0;
             do{
-                fIndexList.push_back(vecToInd(vec));
+                fIndexList.push_back(vecToRep(vec));
                 counter++;
             }while (std::next_permutation(vec.begin(), vec.end()));
             assert(counter == fDim);
             
             counter = 0;
             do{
-                sIndexList.push_back(vecToInd(vecp));
+                sIndexList.push_back(vecToRep(vecp));
                 counter++;
             }while (std::next_permutation(vecp.begin(), vecp.end()));
             assert(counter == sDim);
@@ -126,14 +145,14 @@ void Basis::genFull(){
             sIndexList.reserve(sDim);
             counter = 0;
             do{
-                fIndexList.push_back(vecToInd(vec));
+                fIndexList.push_back(vecToRep(vec));
                 counter++;
             }while (std::next_permutation(vec.begin(), vec.end()));
             assert(counter == fDim);
 
             counter = 0;
             do{
-                sIndexList.push_back(vecToInd(vecp));
+                sIndexList.push_back(vecToRep(vecp));
                 counter++;
             }while (std::next_permutation(vecp.begin(), vecp.end()));
             assert(counter == sDim);
@@ -155,7 +174,7 @@ void Basis::genFull(){
             indexList.reserve(totDim);
             counter = 0;
             do{
-                indexList.push_back(vecToInd(vec));
+                indexList.push_back(vecToRep(vec));
                 counter++;
             }while (std::next_permutation(vec.begin(), vec.end()));
             assert(counter == totDim);
@@ -165,106 +184,85 @@ void Basis::genFull(){
 }
 void Basis::gendcmp(){
     if(model==LATTICE_MODEL::HUBBARD || model==LATTICE_MODEL::t_J){
-        fIndexList.clear();
-        sIndexList.clear();
-        fIndexList.reserve(fDim);
-        sIndexList.reserve(sDim);
+        fIndexList.clear(); sIndexList.clear();
+        fIndexList.reserve(fDim); sIndexList.reserve(sDim);
+
         ind_int counter = 0;
-        do{
-            fIndexList.push_back(vecToInd(vec));
+        ind_int repI = fminRep;
+        while(repI<=fmaxRep){
+            fIndexList.push_back(repI);
+            repI = nextLexicographicalNumber<ind_int>(repI);
             counter++;
-        }while (std::next_permutation(vec.begin(), vec.end()));
+        }
         assert(counter == fDim);
+
         counter = 0;
-        do{
-            sIndexList.push_back(vecToInd(vecp));
+        repI = sminRep;
+        while(repI<=smaxRep){
+            sIndexList.push_back(repI);
+            repI = nextLexicographicalNumber<ind_int>(repI);
             counter++;
-        }while (std::next_permutation(vecp.begin(), vecp.end()));
+        }
         assert(counter == sDim);
     }
 }
 // generate Basis for the subspace labeled by kInd
 void Basis::gen(){
+    initMinMaxRep();
     subDim = 0;
     indexList.clear();
-    fIndexList.clear();
-    sIndexList.clear();
-    double norm;
     normList.clear();
+    ind_int repI;
+    double norm;
     switch(model){
         case HUBBARD:case t_J:{
-            fIndexList.reserve(fDim);
-            sIndexList.reserve(sDim);
-            ind_int counter = 0;
-            do{
-                fIndexList.push_back(vecToInd(vec));
-                counter++;
-            }while (std::next_permutation(vec.begin(), vec.end()));
-            assert(counter == fDim);
-            counter = 0;
-            do{
-                sIndexList.push_back(vecToInd(vecp));
-                counter++;
-            }while (std::next_permutation(vecp.begin(), vecp.end()));
-            assert(counter == sDim);
-            if (kIndex!=-1){
-                initStartVec();
-                pairIndex pairInd;
-                int count = 0;
-                do{
-                    do{
-                        pairInd = vecToInd(vec,vecp);
-                        ind_int initInd = search(pairInd);
-                        if (isRep(initInd, norm)){
-                            indexList.push_back(initInd);
+            if (!(kIndex==-1 and model==LATTICE_MODEL::HUBBARD)){ 
+                for(ind_int fidx=0;fidx<fDim;fidx++){
+                    for(ind_int sidx=0;sidx<sDim;sidx++){
+                        repI = fidx*sDim+sidx;
+                        if(isMinRep(repI,norm)){
+                            indexList.push_back(repI);
                             subDim++;
                             #ifdef KEEP_BASIS_NORM
                                 normList.push_back(norm);
                             #endif
                         }
-                    }while(std::next_permutation(vecp.begin(), vecp.end()));
-                }while(std::next_permutation(vec.begin(), vec.end()));
-            }else if (model==LATTICE_MODEL::t_J){
-                // project out double occupancy
-                counter = 0;
-                VecI initVec(N), initVecp(N);
-                for (ind_int i = 0; i < fDim; i++){
-                    indToVec(fIndexList.at(i), initVec);
-                    for (ind_int j = 0; j < sDim; j++){
-                        indToVec(sIndexList.at(j), initVec);
-                        bool no_double_occp = true;
-                        for (int n = 0; n < N; n++){
-                            if ((initVec.at(n) + initVecp.at(n)) > 1){
-                                no_double_occp = false;
-                                break;
-                            }
-                        }
-                        if (no_double_occp){
-                            indexList.push_back(i * sDim + j);
-                            counter++;
-                        } 
                     }
                 }
-                assert(totDim==counter);
             }
             break;
         }
         case HEISENBERG:{
-            do{
-                ind_int initInd = vecToInd(vec);
-                if (isRep(initInd, norm)){
-                    indexList.push_back(initInd);
+        #ifdef BINARY_REP
+            ind_int repI = fminRep;
+            while(repI<=fmaxRep){
+                if (isMinRep(repI, norm)){
+                    indexList.push_back(repI);
                     subDim++;
                     #ifdef KEEP_BASIS_NORM
                         if (kIndex!=-1) normList.push_back(norm);
                     #endif
                 }
-            }while (std::next_permutation(vec.begin(), vec.end()));
+                repI = nextLexicographicalNumber<ind_int>(repI);
+            }
+        #else
+            // do{
+            //     ind_int initInd = vecToRep(vec);
+            //     if (isMinRep(initInd, norm)){
+            //         indexList.push_back(initInd);
+            //         subDim++;
+            //         #ifdef KEEP_BASIS_NORM
+            //             if (kIndex!=-1) normList.push_back(norm);
+            //         #endif
+            //     }
+            // }while (std::next_permutation(vec.begin(), vec.end()));
+        #endif
             break;
         }
         default:break;                                                  
     }
-    if (kIndex==-1) subDim = totDim;
+    if (kIndex==-1) assert(subDim == totDim);
+    locDim = subDim;
 }
 
 // construct subspace basis from reps loaded from file
@@ -313,14 +311,14 @@ void Basis::saveBasis(std::string basisfile, std::string normfile) {
     save<double>(normList.data(), (ind_int)normList.size(), &outfile, normfile);
 }
 
-ind_int Basis::vecToInd(VecI& v) const {
+ind_int Basis::vecToRep(VecI& v) const {
     ind_int result = 0;
     #pragma omp parallel for reduction(+:result)
     for (int i = 0; i < N; i++){if (v.at(i) != 0) result += v[i] * mul[i];}
     return result;
 }
 
-pairIndex Basis::vecToInd(VecI& v, VecI& vp) const {
+pairIndex Basis::vecToRep(VecI& v, VecI& vp) const {
     ind_int r=0, rp=0;
     #pragma omp parallel for reduction(+:r,rp)
     for (int i = 0; i < N; i++){
@@ -331,7 +329,7 @@ pairIndex Basis::vecToInd(VecI& v, VecI& vp) const {
     return pairInd;
 }
 
-void Basis::indToVec(ind_int index, VecI& v) const {
+void Basis::repToVec(ind_int index, VecI& v) const {
     for (int i = N - 1; i >= 0; i--){
         if (index > 0){
             v.at(i) = index % siteDim;
@@ -343,13 +341,13 @@ void Basis::indToVec(ind_int index, VecI& v) const {
     }
 }
 
-void Basis::indToVec(pairIndex pairInd, VecI& v, VecI& vp) const {
-    indToVec(pairInd.first,v);
-    indToVec(pairInd.second,vp);
+void Basis::repToVec(pairIndex pairInd, VecI& v, VecI& vp) const {
+    repToVec(pairInd.first,v);
+    repToVec(pairInd.second,vp);
 }
 
-void Basis::indToVec(ind_int index, VecI& v, VecI& vp) const {
-    indToVec(std::make_pair(fIndexList.at(index/sDim), sIndexList.at(index%sDim)), v, vp);
+void Basis::repToVec(ind_int index, VecI& v, VecI& vp) const {
+    repToVec(std::make_pair(fIndexList.at(index/sDim), sIndexList.at(index%sDim)), v, vp);
 }
 
 bool Basis::getBid(ind_int repI, int &bid) const {
@@ -455,7 +453,13 @@ ind_int Basis::search(pairIndex pairInd) const {
     * Implementation for translation symmetry *
     *******************************************
 */
-bool Basis::isRep(ind_int initInd, double& norm) const {
+bool Basis::isMinRep(ind_int repI, double& norm) const {
+    // project out double occp
+    if (model==LATTICE_MODEL::t_J){
+        pairIndex pairRepI;
+        getRepI(repI,pairRepI);
+        if((pairRepI.first & pairRepI.second))return false;
+    }
     // full hilbert space
     if (kIndex==-1) {
         norm = 1.0;
@@ -465,11 +469,7 @@ bool Basis::isRep(ind_int initInd, double& norm) const {
     switch(model){
         case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::t_J:{
             pairIndex pairRepI;
-            getRepI(initInd,pairRepI);
-            // project out double occp
-            if (model==LATTICE_MODEL::t_J and (pairRepI.first & pairRepI.second)){
-                return false;
-            }
+            getRepI(repI,pairRepI);
             if(PGRepIndex==-1){
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     pairIndex pairRepIp{0,0};
@@ -504,15 +504,34 @@ bool Basis::isRep(ind_int initInd, double& norm) const {
             break;
         }
         case LATTICE_MODEL::HEISENBERG:{
-            if(siteDim>2){
+            #ifdef BINARY_REP
+                ind_int repIp{0};
+                if(PGRepIndex==-1){
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for(int i = 0; i < pt_lattice->getOrbNum(); i++){
+                            if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbTran(r,i));
+                        }
+                        if (repI > repIp) return false;
+                    }
+                }else{
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
+                            for (int i = 0; i < pt_lattice->getOrbNum();i++){
+                                if(bitTest(repI,i)) bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
+                            }
+                            if (repI > repIp) return false;
+                        }        
+                    }
+                }
+            #else
                 VecI initVec(N), finalVec(N), finalVec1(N);
-                indToVec(initInd, initVec);
+                repToVec(repI, initVec);
                 if(PGRepIndex==-1){
                     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                         for(int i = 0; i < pt_lattice->getOrbNum(); i++){
                             finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
                         }
-                        if (initInd > vecToInd(finalVec)) return false;
+                        if (repI > vecToRep(finalVec)) return false;
                     }
                 }else{
                     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
@@ -523,36 +542,17 @@ bool Basis::isRep(ind_int initInd, double& norm) const {
                             for (int i = 0; i < pt_lattice->getOrbNum();i++){
                                 finalVec1.at(pt_lattice->getOrbPG(p,i)) = finalVec.at(i);
                             }
-                            if (initInd > vecToInd(finalVec1)) return false;
+                            if (repI > vecToRep(finalVec1)) return false;
                         }        
                     }
                 }
-            }
-            else if(siteDim==2){
-                ind_int repIp{0};
-                if(PGRepIndex==-1){
-                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
-                        for(int i = 0; i < pt_lattice->getOrbNum(); i++){
-                            if(bitTest(initInd,i))bitSet(repIp,pt_lattice->getOrbTran(r,i));
-                        }
-                        if (initInd > repIp) return false;
-                    }
-                }else{
-                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
-                        for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
-                            for (int i = 0; i < pt_lattice->getOrbNum();i++){
-                                if(bitTest(initInd,i)) bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
-                            }
-                            if (initInd > repIp) return false;
-                        }        
-                    }
-                }
-            }
+            #endif
+
             break;
         }
     }
     // norm > 0?
-    norm = Norm(initInd);
+    norm = Norm(repI);
     // sqrt(infinitismal)>>infinitesimal
     if (std::real(norm)*std::real(norm)>INFINITESIMAL){
         return true;
@@ -567,7 +567,7 @@ double Basis::Norm(ind_int initInd) const {
         case HUBBARD:case t_J:{
             VecI initVec(N), initVecp(N), finalVec(N), finalVecp(N);
             pairIndex pairInd = std::make_pair(fIndexList.at(initInd/sDim), sIndexList.at(initInd%sDim));
-            indToVec(pairInd, initVec, initVecp);
+            repToVec(pairInd, initVec, initVecp);
             VecI seq, seqp;
             if(PGRepIndex==-1){
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
@@ -579,7 +579,7 @@ double Basis::Norm(ind_int initInd) const {
                         if (initVec.at(i)==1) seq.push_back(pt_lattice->getOrbTran(r,i));
                         if (initVecp.at(i)==1) seqp.push_back(pt_lattice->getOrbTran(r,i));
                     }
-                    if ((vecToInd(finalVec)==pairInd.first) && (vecToInd(finalVecp)==pairInd.second)) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r);
+                    if ((vecToRep(finalVec)==pairInd.first) && (vecToRep(finalVecp)==pairInd.second)) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r);
                 }
                 norm /= pt_lattice->getSiteNum();
             }else{
@@ -593,7 +593,7 @@ double Basis::Norm(ind_int initInd) const {
                             if (initVec.at(i)==1) seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
                             if (initVecp.at(i)==1) seqp.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
                         } 
-                        if ((vecToInd(finalVec)==pairInd.first) && (vecToInd(finalVecp)==pairInd.second)) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p);
+                        if ((vecToRep(finalVec)==pairInd.first) && (vecToRep(finalVecp)==pairInd.second)) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p);
                     }
                 }
                 norm /= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);
@@ -605,13 +605,13 @@ double Basis::Norm(ind_int initInd) const {
 
         case HEISENBERG:{
             VecI initVec(N), finalVec(N);
-            indToVec(initInd, initVec);
+            repToVec(initInd, initVec);
             if(PGRepIndex==-1){
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     for(int i = 0; i < N; i++){
                         finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
                     }
-                    if (vecToInd(finalVec)==initInd) norm += pt_lattice->expKR(kIndex,r);
+                    if (vecToRep(finalVec)==initInd) norm += pt_lattice->expKR(kIndex,r);
                 }
                 norm /= pt_lattice->getSiteNum();
             }else{
@@ -620,7 +620,7 @@ double Basis::Norm(ind_int initInd) const {
                         for(int i = 0; i < N; i++){
                             finalVec.at(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i))) = initVec.at(i);
                         }
-                        if (vecToInd(finalVec)==initInd) norm += pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p);
+                        if (vecToRep(finalVec)==initInd) norm += pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p);
                     }   
                 }
                 norm /= pt_lattice->getSiteNum()* pt_lattice->getPGOpNum(PGRepIndex);
@@ -668,12 +668,12 @@ void Basis::genSymm(ind_int ind, std::vector<ind_int>& finalInd) const {
             }
             else{
                 VecI veci(N), vecf(N);
-                indToVec(ind, veci);
+                repToVec(ind, veci);
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     for(int i = 0; i<N; i++){
                         vecf.at(pt_lattice->getOrbTran(r,i)) = veci.at(i);
                     }
-                    finalInd.push_back(vecToInd(vecf));
+                    finalInd.push_back(vecToRep(vecf));
                 }
             }
             break;
@@ -756,14 +756,14 @@ void Basis::genSymm(ind_int rowid, std::vector<ind_int>& finalInd, std::vector<c
             }
             else{
                 VecI initVec(N), finalVec(N);
-                indToVec(repI, initVec);
+                repToVec(repI, initVec);
                 if(PGRepIndex==-1){
                     initNorm *= pt_lattice->getSiteNum();
                     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                         for(int i = 0; i < N; i++){
                             finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
                         }
-                        finalInd.push_back(vecToInd(finalVec));
+                        finalInd.push_back(vecToRep(finalVec));
                         factorList.push_back(pt_lattice->expKR(kIndex,r)/initNorm);
                     }
                 }else{
@@ -773,7 +773,7 @@ void Basis::genSymm(ind_int rowid, std::vector<ind_int>& finalInd, std::vector<c
                             for(int i = 0; i < N; i++){
                                 finalVec.at(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i))) = initVec.at(i);
                             }
-                            finalInd.push_back(vecToInd(finalVec));
+                            finalInd.push_back(vecToRep(finalVec));
                             factorList.push_back(pt_lattice->expKR(kIndex,r)* pt_lattice->getChi(PGRepIndex,p)/initNorm);
                         }
                     }
