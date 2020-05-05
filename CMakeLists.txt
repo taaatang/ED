@@ -32,12 +32,12 @@ set_target_properties(MKL_core PROPERTIES IMPORTED_LOCATION ${MKLROOT}/lib/intel
 set(MKL -Wl,--start-group MKL_ilp64 MKL_thread MKL_core -Wl,--end-group)
 
 # Include/Library Path, Compiler/Linker Flags
-include_directories(Global Geometry Basis Operator Algebra Utils Solver)
 include_directories(${ARPACKINC} ${MKLINC})
 set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall -qopenmp")
 set(CMAKE_EXE_LINKER_FLAGS "${MKL_LINK_FLAGS}")
 
 # SRC and Hearder files
+include_directories(Global Geometry Basis Operator Algebra Utils Solver)
 set(GLOBAL_PARA "Global/globalPara.hpp")
 set(UTILS "Utils/utils.cpp" "Utils/utils.hpp" "Utils/HelperClass.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp")
