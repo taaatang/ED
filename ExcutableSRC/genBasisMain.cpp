@@ -41,7 +41,7 @@ int main(int argc, const char * argv[]) {
     ****************************
 */
     int N, Nx, Ny;
-    std::ifstream infile("basis_input.txt");
+    std::ifstream infile("../Input/basis_input.txt");
     infile>>Nx>>Ny;
     infile.close(); 
     N = Nx * Ny;

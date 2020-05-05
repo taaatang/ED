@@ -107,7 +107,7 @@ protected:
     std::vector<std::vector<sparse_matrix_t>> A;
 #endif
 public:
-    SparseMatrix(ind_int totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0, MATRIX_PARTITION partition_ = MATRIX_PARTITION::COL_PARTITION, int rowPerIt_=1000, int rowCount_ = 20);
+    SparseMatrix(ind_int totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0, MATRIX_PARTITION partition_ = MATRIX_PARTITION::COL_PARTITION, int rowPerIt_=1000, int rowCount_ = 40);
     ~SparseMatrix(){
 #ifdef _MKL_
         for(int i = 0; i < spmNum; i++){

@@ -39,7 +39,7 @@ int main(int argc, const char * argv[]) {
     double spin = 0.5;
     int rowPerThread = 1;
     bool BASIS_IS_SAVED = false;
-    std::ifstream infile("ground_input.txt");
+    std::ifstream infile("../Input/ground_input.txt");
     // infile>>N>>PGRepIndex>>nev;
     infile>>Nx>>Ny>>PGRepIndex>>nev;
     N = Nx * Ny;

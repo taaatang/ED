@@ -38,7 +38,7 @@ int main(int argc, const char * argv[]) {
     int kIndex = 0; // Gamma Point
     int PGRepIndex = -1;
     int rowPerThread = 1;
-    std::ifstream infile("hubbardSpec_input.txt");
+    std::ifstream infile("../Input/hubbardSpec_input.txt");
     infile>>Nx>>Ny>>kIndex;
     N = Nx * Ny;
     infile.close();

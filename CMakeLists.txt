@@ -37,36 +37,37 @@ set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall -qopenmp")
 set(CMAKE_EXE_LINKER_FLAGS "${MKL_LINK_FLAGS}")
 
 # SRC and Hearder files
-set(GLOBAL "globalPara.hpp")
-set(UTILS "utils.cpp" "utils.hpp" "HelperClass.hpp")
-set(GEOMETRY "Geometry.cpp" "Geometry.hpp")
-set(BASIS "Basis.cpp" "Basis.hpp")
-set(ALGEBRA "algebra.cpp" "algebra.hpp")
-set(OPERATOR "Operators.cpp" "Operators.hpp")
+set(GLOBAL "Global/globalPara.hpp")
+set(UTILS "Utils/utils.cpp" "Utils/utils.hpp" "Utils/HelperClass.hpp")
+set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp")
+set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp")
+set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
+set(OPERATOR "Operator/Operators.cpp" "Operator/Operators.hpp" "Operator/SparseMatrix.hpp")
 
-set(SPARSE "SparseMatrix.hpp")
-set(ARPACK "PARPACKSolver.hpp")
-set(LANCZOS "LANCZOSIterator.hpp")
-set(SPECTRA "Spectra.hpp")
-set(TIME "TimeEvolver.hpp")
+set(ARPACK "Solver/PARPACKSolver.hpp")
+set(LANCZOS "Solver/LANCZOSIterator.hpp")
+set(SPECTRA "Solver/Spectra.hpp" ${LANCZOS})
+set(TIME "Solver/TimeEvolver.hpp" ${LANCZOS})
 
 set(BASIS_DEP ${BASIS} ${GEOMETRY} ${GLOBAL} ${UTILS})
-set(GROUND_STATE_DEP ${BASIS_DEP} ${OPERATOR} ${SPARSE} ${ARPACK} ${ALGEBRA})
-set(SPECTRA_DEP ${GROUND_STATE_DEP} ${LANCZOS})
-set(TIME_DEP ${GROUND_STATE_DEP} ${LANCZOS} ${TIME}) 
+set(GROUND_STATE_DEP ${BASIS_DEP} ${OPERATOR} ${ARPACK} ${ALGEBRA})
+set(SPECTRA_DEP ${GROUND_STATE_DEP} ${SPECTRA})
+set(TIME_DEP ${GROUND_STATE_DEP} ${TIME}) 
 
 # Excutables
-add_executable(genBasis.out genBasisMain.cpp ${BASIS_DEP})
+set(EXE_SRC ExcutableSRC)
 
-add_executable(kGroundState.out kGroundStateMain.cpp ${GROUND_STATE_DEP})
+add_executable(genBasis.out ${EXE_SRC}/genBasisMain.cpp ${BASIS_DEP})
+
+add_executable(GroundState.out ${EXE_SRC}/GroundStateMain.cpp ${GROUND_STATE_DEP})
 target_link_libraries(kGroundState.out ${MKL})
 target_link_libraries(kGroundState.out PARPACK)
 
-add_executable(Spectra.out SpectraMain.cpp ${SPECTRA_DEP})
+add_executable(Spectra.out ${EXE_SRC}/SpectraMain.cpp ${SPECTRA_DEP})
 target_link_libraries(Spectra.out ${MKL})
 target_link_libraries(Spectra.out PARPACK)
 
-add_executable(HubbardSpec.out HubbardSpecMain.cpp ${SPECTRA_DEP})
+add_executable(HubbardSpec.out ${EXE_SRC}/HubbardSpecMain.cpp ${SPECTRA_DEP})
 target_link_libraries(HubbardSpec.out ${MKL})
 target_link_libraries(HubbardSpec.out PARPACK)
                            
