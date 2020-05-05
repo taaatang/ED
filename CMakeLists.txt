@@ -36,7 +36,7 @@ link_directories(${ARPACKLIB})
 
 # SRC and Hearder files
 set(GLOBAL_PARA "Global/globalPara.hpp")
-set(UTILS "Utils/utils.cpp" "Utils/utils.hpp" "Utils/HelperClass.hpp")
+set(UTILS "Utils/utils.cpp" "Utils/utils.hpp" "Utils/timer.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp")
 set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp")
 set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
