@@ -32,6 +32,7 @@ set_target_properties(MKL_core PROPERTIES IMPORTED_LOCATION ${MKLROOT}/lib/intel
 set(MKL -Wl,--start-group MKL_ilp64 MKL_thread MKL_core -Wl,--end-group)
 
 # Include/Library Path, Compiler/Linker Flags
+include_directories(Global Geometry Basis Operator Algebra Utils Solver)
 include_directories(${ARPACKINC} ${MKLINC})
 set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall -qopenmp")
 set(CMAKE_EXE_LINKER_FLAGS "${MKL_LINK_FLAGS}")
@@ -60,8 +61,8 @@ set(EXE_SRC ExcutableSRC)
 add_executable(genBasis.out ${EXE_SRC}/genBasisMain.cpp ${BASIS_DEP})
 
 add_executable(GroundState.out ${EXE_SRC}/GroundStateMain.cpp ${GROUND_STATE_DEP})
-target_link_libraries(kGroundState.out ${MKL})
-target_link_libraries(kGroundState.out PARPACK)
+target_link_libraries(GroundState.out ${MKL})
+target_link_libraries(GroundState.out PARPACK)
 
 add_executable(Spectra.out ${EXE_SRC}/SpectraMain.cpp ${SPECTRA_DEP})
 target_link_libraries(Spectra.out ${MKL})
