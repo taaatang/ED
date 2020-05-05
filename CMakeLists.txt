@@ -37,7 +37,7 @@ set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall -qopenmp")
 set(CMAKE_EXE_LINKER_FLAGS "${MKL_LINK_FLAGS}")
 
 # SRC and Hearder files
-set(GLOBAL "Global/globalPara.hpp")
+set(GLOBAL_PARA "Global/globalPara.hpp")
 set(UTILS "Utils/utils.cpp" "Utils/utils.hpp" "Utils/HelperClass.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp")
 set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp")
@@ -49,7 +49,7 @@ set(LANCZOS "Solver/LANCZOSIterator.hpp")
 set(SPECTRA "Solver/Spectra.hpp" ${LANCZOS})
 set(TIME "Solver/TimeEvolver.hpp" ${LANCZOS})
 
-set(BASIS_DEP ${BASIS} ${GEOMETRY} ${GLOBAL} ${UTILS})
+set(BASIS_DEP ${BASIS} ${GEOMETRY} ${GLOBAL_PARA} ${UTILS})
 set(GROUND_STATE_DEP ${BASIS_DEP} ${OPERATOR} ${ARPACK} ${ALGEBRA})
 set(SPECTRA_DEP ${GROUND_STATE_DEP} ${SPECTRA})
 set(TIME_DEP ${GROUND_STATE_DEP} ${TIME}) 
