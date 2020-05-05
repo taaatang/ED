@@ -412,6 +412,7 @@ inline UnsignedType nextLexicographicalNumber(UnsignedType x) {
     return t | ((((t & -t) / (x & -x)) >> 1) - 1); //reverse bits after the pivot
 }
 
+// push data to an unordered map
 inline void MapPush(MAP* map_pt, ind_int key, dataType val){
     auto it = map_pt->find(key);
     if (it == map_pt->end()){
@@ -420,4 +421,4 @@ inline void MapPush(MAP* map_pt, ind_int key, dataType val){
         it->second += val;
     }
 }
-#endif 
+#endif // utils_hpp

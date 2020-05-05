@@ -5,8 +5,8 @@
 // Created by tatang on 9/2/20
 //
 
-#ifndef HelperClass_hpp
-#define HelperClass_hpp
+#ifndef timer_hpp
+#define timer_hpp
 
 #include <chrono>
 
@@ -28,4 +28,4 @@ public:
     }
 };
 
-#endif
+#endif // timer_hpp

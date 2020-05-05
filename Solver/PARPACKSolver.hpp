@@ -9,12 +9,12 @@
 #ifndef PARPACKSolver_hpp
 #define PARPACKSolver_hpp
 
-#include "globalPara.hpp"
-#include "HelperClass.hpp"
-#include "SparseMatrix.hpp"
-#include "Operators.hpp"
 #include "parpack.hpp"
-#include "utils.hpp"
+#include "../Global/globalPara.hpp"
+#include "../Utils/utils.hpp"
+#include "../Utils/timer.hpp"
+#include "../Operator/SparseMatrix.hpp"
+#include "../Operator/Operators.hpp"
 
 #include <assert.h>
 #include <array>
@@ -443,4 +443,4 @@ void PARPACKComplexSolver<T>::diag(double spin, SSOp<std::complex<T>>* SS){
     }
 }
 
-#endif
+#endif // PARPACKSolver_hpp

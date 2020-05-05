@@ -35,7 +35,6 @@ link_directories(${ARPACKLIB})
 
 
 # SRC and Hearder files
-include_directories(Global Geometry Basis Operator Algebra Utils Solver)
 set(GLOBAL_PARA "Global/globalPara.hpp")
 set(UTILS "Utils/utils.cpp" "Utils/utils.hpp" "Utils/HelperClass.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp")

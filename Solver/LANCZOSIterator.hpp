@@ -9,9 +9,9 @@
 #ifndef LANCZOSIterator_hpp
 #define LANCZOSIterator_hpp
 
-#include "globalPara.hpp"
-#include "SparseMatrix.hpp"
-#include "utils.hpp"
+#include "../Global/globalPara.hpp"
+#include "../Operator/SparseMatrix.hpp"
+#include "../Utils/utils.hpp"
 #include <mpi.h>
 #include <vector>
 #include <complex>

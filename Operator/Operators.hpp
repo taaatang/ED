@@ -9,11 +9,8 @@
 #ifndef Operators_hpp
 #define Operators_hpp
 
-#include "globalPara.hpp"
-#include "Basis.hpp"
-#include "Geometry.hpp"
+#include "../Basis/Basis.hpp"
 #include "SparseMatrix.hpp"
-#include "utils.hpp"
 
 #include <stdio.h>
 #include <algorithm>

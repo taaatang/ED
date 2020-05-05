@@ -9,17 +9,13 @@
 #ifndef TimeEvolver_hpp
 #define TimeEvolver_hpp
 
-#include "globalPara.hpp"
-#include "SparseMatrix.hpp"
 #include "LANCZOSIterator.hpp"
-#include "utils.hpp"
-#include "algebra.hpp"
+#include "../Algebra/algebra.hpp"
+
 #include <mpi.h>
 #include <vector>
 #include <complex>
 #include <cmath>
-//#include <Eigen/Eigenvalues>
-#include "mkl.h"
 #include "omp.h"
 
 /*
@@ -69,4 +65,4 @@ void TimeEvolver<T>::evolve(double expFac){
         vec[i] = sum;
     }
 }
-#endif
+#endif //TimeEvolver_hpp

@@ -8,19 +8,7 @@
 #ifndef Spectra_hpp
 #define Spectra_hpp
 
-#include "globalPara.hpp"
-#include "Geometry.hpp"
-#include "Basis.hpp"
-#include "SparseMatrix.hpp"
-#include "Operators.hpp"
-#include "utils.hpp"
 #include "LANCZOSIterator.hpp"
-
-#include <iostream>
-#include <fstream>
-#include <stdlib.h> // system
-#include <chrono>
-#include <mpi.h>
 
 template <class T>
 class SPECTRASolver: public LANCZOSIterator<T>{
@@ -50,5 +38,5 @@ public:
     };
 };
 
-#endif
+#endif //Spectra_hpp
 

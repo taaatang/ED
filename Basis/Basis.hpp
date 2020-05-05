@@ -9,9 +9,9 @@
 #ifndef Basis_hpp
 #define Basis_hpp
 
-#include "globalPara.hpp"
-#include "Geometry.hpp"
-#include "utils.hpp"
+#include "../Global/globalPara.hpp"
+#include "../Geometry/Geometry.hpp"
+#include "../Utils/utils.hpp"
 
 #include <stdio.h>
 #include <algorithm>

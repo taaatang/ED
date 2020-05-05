@@ -5,21 +5,16 @@
 //  Created by tatang on 12/17/19.
 //  Copyright © 2019 tatang. All rights reserved.
 //
-#include "globalPara.hpp"
-#include "Geometry.hpp"
-#include "Basis.hpp"
-#include "utils.hpp"
-#include "HelperClass.hpp"
+
+#include "../Basis/Basis.hpp"
+#include "../Utils/timer.hpp"
 
 #include <iostream>
 #include <iomanip> // std::setprecision
 #include <fstream>
 #include <stdlib.h> // system
-#include <chrono>
 #include <mpi.h>
-#ifdef OMP_
-    #include <omp.h>
-#endif
+#include <omp.h>
 
 int main(int argc, const char * argv[]) {
 /*

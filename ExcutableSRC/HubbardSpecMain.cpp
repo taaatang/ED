@@ -6,24 +6,17 @@
 //  Copyright © 2019 tatang. All rights reserved.
 //
 
-#include "globalPara.hpp"
-#include "HelperClass.hpp" // Timer
-#include "Geometry.hpp"
-#include "Basis.hpp"
-#include "Operators.hpp"
-#include "utils.hpp"
-#include "PARPACKSolver.hpp"
-#include "LANCZOSIterator.hpp"
-#include "Spectra.hpp"
-#include "TimeEvolver.hpp"
+#include "../Operator/Operators.hpp"
+#include "../Solver/PARPACKSolver.hpp"
+#include "../Solver/Spectra.hpp"
+#include "../Utils/timer.hpp"
+
 #include <iostream>
 #include <iomanip> // std::setprecision
 #include <fstream>
 #include <stdlib.h> // system
 #include <mpi.h>
-#ifdef OMP_
-    #include <omp.h>
-#endif
+#include <omp.h>
 
 int main(int argc, const char * argv[]) {
 /*
