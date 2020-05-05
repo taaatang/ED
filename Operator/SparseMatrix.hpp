@@ -8,10 +8,10 @@
 #ifndef SparseMatrix_hpp
 #define SparseMatrix_hpp
 
-#include "globalPara.hpp"
-#include "Basis.hpp"
-#include "algebra.hpp"
-#include "utils.hpp"
+#include "../Global/globalPara.hpp"
+#include "../Basis/Basis.hpp"
+#include "../Algebra/algebra.hpp"
+#include "../Utils/utils.hpp"
 #include <climits>
 #include "mpi.h"
 #ifdef OMP_
