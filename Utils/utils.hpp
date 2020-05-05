@@ -10,7 +10,7 @@
 #ifndef utils_hpp
 #define utils_hpp
 
-#include "globalPara.hpp"
+#include "../Global/globalPara.hpp"
 
 #include <stdio.h>
 #include <random>
