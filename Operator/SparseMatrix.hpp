@@ -199,7 +199,7 @@ SparseMatrix<T>::~SparseMatrix(){
         #else
             MKL::destroy(A.at(i))
         #endif
-        }
+    }
 }
 
 template <class T>
