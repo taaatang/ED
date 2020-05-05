@@ -6,10 +6,7 @@
 //
 #ifndef globalPara_hpp
 #define globalPara_hpp
-#define TEST
-#undef TEST
-#define OMP_
-// #undef OMP_
+
 #include <iostream>
 #include <assert.h>
 #include <chrono>
@@ -19,9 +16,23 @@
 #include <complex>
 #include <string>
 #include <utility>
-#ifdef OMP_
-    #include <omp.h>
-#endif
+#include <omp.h>
+
+/*
+    *****************
+    * Compile Macro *
+    * ***************
+*/
+
+// #define TEST
+// #undef TEST
+
+#define OMP_
+// #undef OMP_
+
+const bool DEBUG = false;
+#define SAXPY
+#undef SAXPY
 
 /*
     **************************
@@ -29,7 +40,7 @@
     **************************
 */
 /*
-    D4m: multi-band hubbard. due to orbital phases, the symmetry is only a sub group {I, RZ}. R is rotation, Z is reflection.
+    D4m: for multi-band hubbard, due to orbital phases, the symmetry is only a sub group {I, RZ}. R is rotation, Z is reflection.
     D4m5: include 2 Pz orbitals. the symmetry is {I, RZ}x{I, M}. M is the mirror symmetry about the xy plane.
 */
 enum PointGroup {NONE,D6, C6, D4, D4m, D4m5, C4, D3, C3};
@@ -37,15 +48,6 @@ enum ORBITAL {SINGLE, Dx2y2, Px, Py, Pzu, Pzd, TypeA, TypeB};
 enum LATTICE_MODEL {HUBBARD,t_J,HEISENBERG};
 enum LINK_TYPE {SUPER_EXCHANGE_J, CHIRAL_K, HOPPING_T, CHARGE_TRANSFER_V, HUBBARD_U};
 const LATTICE_MODEL MODEL=HEISENBERG;
-
-/*
-    *************************
-    * Hamiltonian Data Type *
-    *************************
-*/
-const bool DEBUG = false;
-#define SAXPY
-#undef SAXPY
 
 /*
     *************************
@@ -121,6 +123,25 @@ typedef std::vector<double> VecD;
 typedef std::vector<int> VecI;
 typedef std::vector<std::vector<int>> BondMap;
 const int MAX_BOND_NUM = 6;
+
+/*
+    ***************
+    * Basis Class *
+    ***************
+*/
+// use the binary form of an integer to represent basis state
+#define BINARY_REP
+// basis distributed among MPI workers
+#define DISTRIBUTED_BASIS
+
+#ifdef DISTRIBUTED_BASIS
+    // wavefunction vectors distributed among MPI workers
+    #define DISTRIBUTED_STATE
+#endif
+
+typedef std::pair<ind_int,ind_int> pairIndex;
+#define KEEP_BASIS_NORM
+
 /*
     ******************
     * Spin Operators *
@@ -129,15 +150,7 @@ const int MAX_BOND_NUM = 6;
 
 const int SPIN_DIM = 2;
 enum SPIN {SPIN_UP, SPIN_DOWN, SPIN_UD};
-/*
-    ***************
-    * Basis Class *
-    ***************
-*/
-#define Distributed_Basis
-typedef std::pair<ind_int,ind_int> pairIndex;
-#define KEEP_BASIS_NORM
-//#undef KEEP_BASIS_NORM
+
 
 /*
     **********************************
@@ -146,18 +159,14 @@ typedef std::pair<ind_int,ind_int> pairIndex;
 */
 
 enum MATRIX_PARTITION {ROW_PARTITION, COL_PARTITION};
-#ifdef Distributed_Basis
+#ifdef DISTRIBUTED_STATE
+    #define SPM_COL_PARTITION
     const MATRIX_PARTITION PARTITION = COL_PARTITION;
 #else
+    #define SPM_ROW_PARTITION
     const MATRIX_PARTITION PARTITION = ROW_PARTITION;
 #endif
-// const MATRIX_PARTITION PARTITION = COL_PARTITION;
-/*
- (No longer used!)
- Max Matrix Number hold in one sparse matrix object:
- sum.parameter[i]*Mi,i=0...MAX_MATRIX_NUM-1
- */
-// const int MAX_MATRIX_NUM = 2;
+
 
 /*
     *****************
@@ -167,7 +176,7 @@ enum MATRIX_PARTITION {ROW_PARTITION, COL_PARTITION};
 // MAX parpack iterations
 const int PARPACK_MAXITERATION = 5000;
 //MIN and MAX ncv
-const int PARPACK_MINNCV = 5;
+const int PARPACK_MINNCV = 7;
 // const int PARPACK_MAXNCV = 500;
 
 /*
@@ -179,4 +188,4 @@ const int PARPACK_MINNCV = 5;
 enum LANCZOS_OPTION {ALPHA_BETA, ALPHA_BETA_Q};
 const LANCZOS_OPTION LANCZOS_DEFAULT_OPTION = ALPHA_BETA;
 
-#endif
+#endif // globalPara_hpp

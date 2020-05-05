@@ -89,7 +89,7 @@ int main(int argc, const char * argv[]) {
     J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
     Heisenberg<dataType> H(&Lattice, &B, 2);
     H.pushLinks({J1Link}).pushLinks({J2Link});
-    H.genMatPara(&B);
+    H.genMatPara();
     timer.tok();
     std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
             <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
@@ -128,7 +128,7 @@ for(int J2_num = 0; J2_num<101; J2_num++){
         for (int i = 0; i < Lattice.getSiteNum(); i++){
             val = 0.0;
             SS.setr(i);
-            SS.genMatPara(&B);
+            SS.genMatPara();
             SS.MxV(gstate, vecTmp.data());
             vConjDotv<dataType, dataType>(gstate, vecTmp.data(), &val, SS.get_nloc());
             val /= Lattice.getSiteNum();
@@ -161,10 +161,10 @@ for(int J2_num = 0; J2_num<101; J2_num++){
             }else{Bp.gen();}
             // <Bp|Szq|B>, q = k_B - k_Bp
             SzkOp<dataType> Szq(&Lattice, &B, &Bp);
-            Szq.genMatPara(&B);
+            Szq.genMatPara();
             Heisenberg<dataType> Hp(&Lattice, &Bp, 2);
             Hp.pushLinks({J1Link}).pushLinks({J2Link});
-            Hp.genMatPara(&Bp);
+            Hp.genMatPara();
             Hp.setVal(1, J2);
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;

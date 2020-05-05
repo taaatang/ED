@@ -117,7 +117,7 @@ int main(int argc, const char * argv[]) {
     H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp).pushV({ORBITAL::Pzu, ORBITAL::Pzd},Vpz);
     H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
     if(workerID==MPI_MASTER) std::cout<<"begin H gen..."<<std::endl;
-    H.genMatPara(&B);
+    H.genMatPara();
     timer.tok();
 
     if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
@@ -141,7 +141,7 @@ int main(int argc, const char * argv[]) {
     timer.tik();
     Current Jz(&Lattice, &B);
     Jz.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
-    Jz.genMatPara(&B);
+    Jz.genMatPara();
 
     int krylovDim=400;
     SPECTRASolver<dataType> spectra(&H, w0[0], &Jz, gstate, H.get_dim(), krylovDim);

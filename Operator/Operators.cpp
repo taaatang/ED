@@ -51,7 +51,7 @@ void Current::row(ind_int rowID, std::vector<MAP>& rowMaps){
     }
 }
 
-Nocc::Nocc(Geometry *pt_lat, Basis *pt_Ba):pt_lattice(pt_lat),pt_Basis(pt_Ba),SparseMatrix<cdouble>(pt_Ba->getSubDim(),0,pt_lat->getUnitOrbNum()){
+Nocc::Nocc(Geometry *pt_lat, Basis *pt_Ba):pt_lattice(pt_lat),pt_Basis(pt_Ba),SparseMatrix<cdouble>(pt_Ba,pt_Ba,pt_Ba->getSubDim(),0,pt_lat->getUnitOrbNum()){
     for(int i = 0; i < pt_lat->getUnitOrbNum(); i++) diagValList.resize(BaseMatrix<cdouble>::nloc);
 }
 void Nocc::genMat(){
