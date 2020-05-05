@@ -143,7 +143,7 @@ public:
     FermionOperator(Basis* pt_Ba, LATTICE_MODEL mod=LATTICE_MODEL::HUBBARD):pt_Basis(pt_Ba),model(mod){};
     ~FermionOperator(){};
     void diag(ind_int rowID, dataType factor, MAP* rowMap){
-        #ifdef Distributed_Basis
+        #ifdef DISTRIBUTED_BASIS
             ind_int repI = pt_Basis->getRepI(rowID);
             MapPush(rowMap,repI,factor);
         #else
@@ -207,7 +207,7 @@ public:
         switch(spin){
             case SPIN_UP:{
                 if (cpcm(siteI, siteJ, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
-                    #ifdef Distributed_Basis
+                    #ifdef DISTRIBUTED_BASIS
                     MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
                     #else
                     if (pt_Basis->search(pairRepIf, colidx)){
@@ -222,7 +222,7 @@ public:
             }
             case SPIN_DOWN:{
                 if (cpcm(siteI, siteJ, pairRepI.second, pairRepI.first, pairRepIf.second, sign)){
-                    #ifdef Distributed_Basis
+                    #ifdef DISTRIBUTED_BASIS
                     MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
                     #else
                     if (pt_Basis->search(pairRepIf, colidx)){
@@ -258,7 +258,7 @@ public:
     
     double getSz(int siteI, VecI& initVec) const {return szMat.at(initVec.at(siteI));}
     void szsz(int siteI, int siteJ, dataType factor, ind_int initInd, VecI& initVec, MAP* rowMap){
-        #ifdef Distributed_Basis
+        #ifdef DISTRIBUTED_BASIS
             dataType dval = factor * szMat.at(initVec[siteI]) * szMat.at(initVec[siteJ]);
             MapPush(rowMap,initInd,dval);
         #else
@@ -273,7 +273,7 @@ public:
     };
     
     void spsm(int siteI, dataType factor, ind_int initInd, VecI& initVec, MAP* rowMap){
-        #ifdef Distributed_Basis
+        #ifdef DISTRIBUTED_BASIS
             if (initVec[siteI] < (spinDim-1)){
                 dataType val = factor * spMat[initVec[siteI]+1] * smMat[initVec[siteI]];
                 MapPush(rowMap,initInd,val);
@@ -292,7 +292,7 @@ public:
     };
     
     void smsp(int siteI, dataType factor, ind_int initInd, VecI& initVec, MAP* rowMap){
-        #ifdef Distributed_Basis
+        #ifdef DISTRIBUTED_BASIS
             if (initVec[siteI] > 0){
                 dataType val = factor * smMat[initVec[siteI]-1] * spMat[initVec[siteI]];
                 MapPush(rowMap,initInd,val);
@@ -344,7 +344,7 @@ public:
     */
    double getSz(int siteI, ind_int repI) const {return szMat.at(1&(repI>>siteI));}
     void szsz(int siteI, int siteJ, dataType factor, ind_int repI, MAP* rowMap){
-        #ifdef Distributed_Basis
+        #ifdef DISTRIBUTED_BASIS
             dataType dval = factor * szMat.at(1&(repI>>siteI)) * szMat.at(1&(repI>>siteJ));
             MapPush(rowMap,repI,dval);
         #else
@@ -360,7 +360,7 @@ public:
     
     void spsm(int siteI, dataType factor, ind_int repI, MAP* rowMap){
         if (!bitTest(repI,siteI)){
-            #ifdef Distributed_Basis
+            #ifdef DISTRIBUTED_BASIS
                 dataType val = factor * spMat[1] * smMat[0];
                 MapPush(rowMap,repI,val);
             #else
@@ -377,7 +377,7 @@ public:
     
     void smsp(int siteI, dataType factor, ind_int repI, MAP* rowMap){
         if (bitTest(repI,siteI)){
-            #ifdef Distributed_Basis
+            #ifdef DISTRIBUTED_BASIS
                 dataType val = factor * spMat[1] * smMat[0];
                 MapPush(rowMap,repI,val);
             #else
@@ -402,7 +402,7 @@ public:
             bitFlip(repI,siteI);
             bitFlip(repI,siteJ);
             dataType val = factor * spMat[1] * smMat[0];
-            #ifdef Distributed_Basis
+            #ifdef DISTRIBUTED_BASIS
                 MapPush(rowMap,repI,val);
             #else
                 ind_int colID;
@@ -935,7 +935,7 @@ void SSOp<T>::project(double s, T* vec){
 // generate matrix in subsapce labeled by kIndex for sum.r:Sr*Sr+dr, dr is labeled by rIndex
 template <class T>
 void SSOp<T>::genPairMat(int rIndex){
-    #ifdef Distributed_Basis
+    #ifdef DISTRIBUTED_BASIS
         exit(1);
     #else
     assert(rIndex>0 and rIndex<pt_lattice->getSiteNum());
@@ -974,7 +974,7 @@ void SSOp<T>::genPairMat(int rIndex){
 template <class T>
 void SzkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     if(pt_Bi->getSiteDim()==2){
-        #ifdef Distributed_Basis
+        #ifdef DISTRIBUTED_BASIS
             ind_int repI = pt_Bf->getRepI(rowID);
             cdouble dval = 0.0;
             for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
@@ -996,7 +996,7 @@ void SzkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         #endif
     }
     else{
-        #ifdef Distributed_Basis
+        #ifdef DISTRIBUTED_BASIS
             ind_int repI = pt_Bf->getRepI(rowID);
             VecI initVec(pt_lattice->getOrbNum());
             cdouble dval = 0.0;
@@ -1023,7 +1023,7 @@ void SzkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
 }
 template <class T>
 void SzkOp<T>::genMat(){
-    #ifdef Distributed_Basis
+    #ifdef DISTRIBUTED_BASIS
         exit(1);
     #else
     clear();
