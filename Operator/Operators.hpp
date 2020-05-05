@@ -382,7 +382,7 @@ public:
                 MapPush(rowMap,repI,val);
             #else
                 ind_int colID;
-                if (pt_Basis->search(repI, colID){
+                if (pt_Basis->search(repI, colID)){
                     dataType val = factor * spMat[1] * smMat[0];
                     double finalNorm = pt_Basis->getNorm(colID);
                     val /= finalNorm;

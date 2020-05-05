@@ -351,9 +351,9 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
                         for(int idx=ridxBlockStart.at(bid).at(row);idx<ridxBlockStart.at(bid).at(row)+rowCount;idx++){
                             if(idxRecvBuff.at(matID).at(idx)==endRowFlag) break;
                             ind_int colID;
-                            if(pt_Basis->search(idxRecvBuff.at(matID).at(idx),colID)){
+                            if(Bi->search(idxRecvBuff.at(matID).at(idx),colID)){
                                 colList.at(matID).at(bid).push_back(colID);
-                                valList.at(matID).at(bid).push_back(std::conj(valRecvBuff.at(matID).at(idx)/pt_Basis->getNorm(colID)));
+                                valList.at(matID).at(bid).push_back(std::conj(valRecvBuff.at(matID).at(idx)/Bi->getNorm(colID)));
                                 count_tmp++;
                             }
                         }
