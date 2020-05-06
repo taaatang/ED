@@ -36,12 +36,12 @@ int main(int argc, const char * argv[]) {
     ****************************
 */
     int N, Nx, Ny;
-    std::ifstream infile("../Input/basis_input.txt");
-    infile>>Nx>>Ny;
+    std::ifstream infile("../Input/lattice_input.txt");
+    infile>>Nx>>Ny>>Nu>>Nd;
     infile.close(); 
     N = Nx * Ny;
     // std::string subDir = "/"+std::to_string(N);
-    std::string subDir = "/"+std::to_string(Nx)+"by"+std::to_string(Ny);
+    std::string subDir = "/"+std::to_string(Nx)+"by"+std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     int kIndex = 0;
     Timer timer;
     
@@ -68,7 +68,7 @@ int main(int argc, const char * argv[]) {
         // Lattice.addOrb({});
         Lattice.construct();
         int siteDim = 2;
-        VecI occList{N/2, N - N/2};
+        VecI occList{Nu, Nd};
     
         timer.tik();
         Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex);

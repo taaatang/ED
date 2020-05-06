@@ -31,8 +31,14 @@ int main(int argc, const char * argv[]) {
     int kIndex = 0; // Gamma Point
     int PGRepIndex = -1;
     int rowPerThread = 1;
-    std::ifstream infile("../Input/hubbardSpec_input.txt");
-    infile>>Nx>>Ny>>kIndex;
+
+    std::ifstream infile("../Input/lattice_input.txt");
+    infile>>Nx>>Ny>>Nu>>Nd;
+    infile.close();
+    infile("../Input/symm_input.txt");
+    infile>>kIndex>>PGRepIndex;
+    infile.close();
+
     N = Nx * Ny;
     infile.close();
 /*
@@ -46,7 +52,7 @@ int main(int argc, const char * argv[]) {
     if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl; 
     OMP_Info(workerID);   
     // data directory
-    std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
+    std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
     std::string dataDir = dataDirP+"/Conductivity/";

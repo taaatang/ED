@@ -24,24 +24,27 @@ int main(int argc, const char * argv[]) {
 */
     MPI_Init(NULL, NULL);
     Timer timer;
-    a_int nev;
-    int Nx, Ny, N;
+    a_int nev=1;
+    int Nx, Ny, N, Nu, Nd;
     int kIndex = -1; // Gamma Point
     int PGRepIndex = -1;
     double spin = 0.5;
     int rowPerThread = 1;
     bool BASIS_IS_SAVED = false;
-    std::ifstream infile("../Input/ground_input.txt");
+    std::ifstream infile("../Input/lattice_input.txt");
     // infile>>N>>PGRepIndex>>nev;
-    infile>>Nx>>Ny>>PGRepIndex>>nev;
+    infile>>Nx>>Ny>>Nu>>Nd;
     N = Nx * Ny;
+    infile.close();
+    infile("../Input/symm_input.txt");
+    infile>>kIndex>>PGRepIndex;
     infile.close();
     int kStart = 0, kEnd = 1;
     int J2Start = 0, J2End = 1, J2Step = 2;
     double J1 = 1.0;
     double J2 = 0.0, dJ2 = 0.01;
     // data directory
-    // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
+    // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     std::string subDir = std::to_string(N);
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
 /*
