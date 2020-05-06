@@ -24,7 +24,7 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
      HEISENBERG: occList->{#spin-up, #spin-down}
     */
     #ifdef BINARY_REP
-        assert(siteDim==2)
+        assert(siteDim==2);
     #endif
     N = pt_lattice->getOrbNum();
     assert(kIndex<pt_lattice->getSiteNum());
@@ -247,9 +247,9 @@ void Basis::gen(){
             }
         #else
             // do{
-            //     ind_int initInd = vecToRep(vec);
-            //     if (isMinRep(initInd, norm)){
-            //         indexList.push_back(initInd);
+            //     ind_int repI = vecToRep(vec);
+            //     if (isMinRep(repI, norm)){
+            //         indexList.push_back(repI);
             //         subDim++;
             //         #ifdef KEEP_BASIS_NORM
             //             if (kIndex!=-1) normList.push_back(norm);
@@ -406,8 +406,8 @@ bool Basis::search(pairIndex pairInd, ind_int &ind) const {
         }
     }else{
         if((search(pairInd.first, fInd, fIndexList)) and (search(pairInd.second, sInd, sIndexList))){
-            ind_int initInd = fInd * sDim + sInd;
-            return search(initInd, ind, indexList);
+            ind_int repI = fInd * sDim + sInd;
+            return search(repI, ind, indexList);
         }
     }
     return false;
@@ -457,7 +457,7 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
     // project out double occp
     if (model==LATTICE_MODEL::t_J){
         pairIndex pairRepI;
-        getRepI(repI,pairRepI);
+        pairRepI = getPairRepI(repI);
         if((pairRepI.first & pairRepI.second))return false;
     }
     // full hilbert space
@@ -469,7 +469,7 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
     switch(model){
         case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::t_J:{
             pairIndex pairRepI;
-            getRepI(repI,pairRepI);
+            pairRepI = getPairRepI(repI);
             if(PGRepIndex==-1){
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     pairIndex pairRepIp{0,0};
@@ -560,40 +560,36 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
     return false;
 }
 
-double Basis::Norm(ind_int initInd) const {
+double Basis::Norm(ind_int repI) const {
     if (kIndex==-1) return 1.0;
     cdouble norm = 0.0;
     switch(model){
         case HUBBARD:case t_J:{
-            VecI initVec(N), initVecp(N), finalVec(N), finalVecp(N);
-            pairIndex pairInd = std::make_pair(fIndexList.at(initInd/sDim), sIndexList.at(initInd%sDim));
-            repToVec(pairInd, initVec, initVecp);
+            pairIndex pairRepI = getPairRepI(repI);
             VecI seq, seqp;
             if(PGRepIndex==-1){
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    pairIndex pairRepIp{0,0};
                     seq.clear();
                     seqp.clear();
                     for(int i = 0; i < pt_lattice->getOrbNum(); i++){
-                        finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
-                        finalVecp.at(pt_lattice->getOrbTran(r,i)) = initVecp.at(i);
-                        if (initVec.at(i)==1) seq.push_back(pt_lattice->getOrbTran(r,i));
-                        if (initVecp.at(i)==1) seqp.push_back(pt_lattice->getOrbTran(r,i));
+                        if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));}
+                        if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seqp.push_back(pt_lattice->getOrbTran(r,i));}
                     }
-                    if ((vecToRep(finalVec)==pairInd.first) && (vecToRep(finalVecp)==pairInd.second)) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r);
+                    if (pairRepIp==pairRepI) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r);
                 }
                 norm /= pt_lattice->getSiteNum();
             }else{
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     for(int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
+                        pairIndex pairRepIp{0,0};
                         seq.clear();
                         seqp.clear();
                         for(int i = 0; i < pt_lattice->getOrbNum(); i++){
-                            finalVec.at(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i))) = initVec.at(i);
-                            finalVecp.at(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i))) = initVecp.at(i);
-                            if (initVec.at(i)==1) seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
-                            if (initVecp.at(i)==1) seqp.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
+                            if(bitTest(pairRepI.first,i)){bitSet(pairRepIp.first,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                            if(bitTest(pairRepI.second,i)){bitSet(pairRepIp.second,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seqp.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
                         } 
-                        if ((vecToRep(finalVec)==pairInd.first) && (vecToRep(finalVecp)==pairInd.second)) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p);
+                        if (pairRepIp==pairRepI) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p);
                     }
                 }
                 norm /= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);
@@ -604,14 +600,39 @@ double Basis::Norm(ind_int initInd) const {
         }
 
         case HEISENBERG:{
+        #ifdef BINARY_REP
+            if(PGRepIndex==-1){
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    ind_int repIp{0};
+                    for(int i = 0; i < pt_lattice->getOrbNum(); i++){
+                        if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbTran(r,i));
+                    }
+                    if (repIp==repI) norm += pt_lattice->expKR(kIndex,r);
+                }
+                norm /= pt_lattice->getSiteNum();
+            }else{
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
+                        ind_int repIp{0};
+                        for(int i = 0; i < pt_lattice->getOrbNum(); i++){
+                            if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
+                        }
+                        if (repIp==repI) norm += pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p);
+                    }
+                }
+                norm /= pt_lattice->getSiteNum()* pt_lattice->getPGOpNum(PGRepIndex);
+            }
+            assert(std::abs(std::imag(norm))<INFINITESIMAL);
+            return std::sqrt(std::real(norm));
+        #else
             VecI initVec(N), finalVec(N);
-            repToVec(initInd, initVec);
+            repToVec(repI, initVec);
             if(PGRepIndex==-1){
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     for(int i = 0; i < N; i++){
                         finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
                     }
-                    if (vecToRep(finalVec)==initInd) norm += pt_lattice->expKR(kIndex,r);
+                    if (vecToRep(finalVec)==repI) norm += pt_lattice->expKR(kIndex,r);
                 }
                 norm /= pt_lattice->getSiteNum();
             }else{
@@ -620,13 +641,14 @@ double Basis::Norm(ind_int initInd) const {
                         for(int i = 0; i < N; i++){
                             finalVec.at(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i))) = initVec.at(i);
                         }
-                        if (vecToRep(finalVec)==initInd) norm += pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p);
+                        if (vecToRep(finalVec)==repI) norm += pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p);
                     }   
                 }
                 norm /= pt_lattice->getSiteNum()* pt_lattice->getPGOpNum(PGRepIndex);
             }
             assert(std::abs(std::imag(norm))<INFINITESIMAL);
             return std::sqrt(std::real(norm));
+        #endif
             break;
         }
     }
@@ -644,7 +666,7 @@ void Basis::genSymm(ind_int ind, std::vector<ind_int>& finalInd) const {
     switch(model){
         case HUBBARD:case t_J:{
             pairIndex repI;
-            getRepI(ind,repI);
+            repI = getPairRepI(ind);
             for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                 pairIndex repIp{0,0};
                 for(int i = 0; i < N; i++){
@@ -657,7 +679,7 @@ void Basis::genSymm(ind_int ind, std::vector<ind_int>& finalInd) const {
         }
 
         case HEISENBERG:{
-            if(siteDim==2){
+            #ifdef BINARY_REP
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     ind_int indp{0};
                     for(int i = 0; i<N; i++){
@@ -665,8 +687,8 @@ void Basis::genSymm(ind_int ind, std::vector<ind_int>& finalInd) const {
                     }
                     finalInd.push_back(indp);
                 }
-            }
-            else{
+            
+            #else
                 VecI veci(N), vecf(N);
                 repToVec(ind, veci);
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
@@ -675,7 +697,8 @@ void Basis::genSymm(ind_int ind, std::vector<ind_int>& finalInd) const {
                     }
                     finalInd.push_back(vecToRep(vecf));
                 }
-            }
+            #endif
+
             break;
         }
 
@@ -694,7 +717,7 @@ void Basis::genSymm(ind_int rowid, std::vector<ind_int>& finalInd, std::vector<c
     switch(model){
         case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::t_J:{
             pairIndex pairRepI;
-            getRepI(repI,pairRepI);
+            pairRepI = getPairRepI(repI);
             VecI seq, seqp;
             if(PGRepIndex==-1){
                 initNorm *= pt_lattice->getSiteNum();
@@ -729,7 +752,7 @@ void Basis::genSymm(ind_int rowid, std::vector<ind_int>& finalInd, std::vector<c
         }
 
         case LATTICE_MODEL::HEISENBERG:{
-            if(siteDim==2){
+            #ifdef BINARY_REP
                 if(PGRepIndex==-1){
                     initNorm *= pt_lattice->getSiteNum();
                     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
@@ -753,8 +776,8 @@ void Basis::genSymm(ind_int rowid, std::vector<ind_int>& finalInd, std::vector<c
                         }
                     }
                 }
-            }
-            else{
+            
+            #else
                 VecI initVec(N), finalVec(N);
                 repToVec(repI, initVec);
                 if(PGRepIndex==-1){
@@ -778,7 +801,7 @@ void Basis::genSymm(ind_int rowid, std::vector<ind_int>& finalInd, std::vector<c
                         }
                     }
                 }
-            }
+            #endif
 
             break;
         }

@@ -54,10 +54,6 @@ public:
     pairIndex getPairRepI(ind_int repI) const {return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));}
     // pairRepI->repI
     ind_int getRepI(pairIndex pairRepI) const {return search(pairRepI);}
-    // for Heisenberg. idx->repI
-    void getRepI(ind_int idx, ind_int& repI) const {repI = indexList.at(idx);}
-    // for Hubbard/tJ. repI->pairRepI
-    void getRepI(ind_int repI, pairIndex& pairRepI) const {pairRepI.first = fIndexList.at(repI/sDim); pairRepI.second = sIndexList.at(repI%sDim);}
     
     ind_int getmul(int orbid) const {return mul.at(orbid);}
 
