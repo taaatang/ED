@@ -36,7 +36,7 @@ int main(int argc, const char * argv[]) {
     infile>>Nx>>Ny>>Nu>>Nd;
     N = Nx * Ny;
     infile.close();
-    infile("../Input/symm_input.txt");
+    infile.open("../Input/symm_input.txt");
     infile>>kIndex>>PGRepIndex;
     infile.close();
     int kStart = 0, kEnd = 1;

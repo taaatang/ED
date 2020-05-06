@@ -35,7 +35,7 @@ int main(int argc, const char * argv[]) {
     std::ifstream infile("../Input/lattice_input.txt");
     infile>>Nx>>Ny>>Nu>>Nd;
     infile.close();
-    infile("../Input/symm_input.txt");
+    infile.open("../Input/symm_input.txt");
     infile>>kIndex>>PGRepIndex;
     infile.close();
 
