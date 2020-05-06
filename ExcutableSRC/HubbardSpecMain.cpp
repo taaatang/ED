@@ -27,7 +27,7 @@ int main(int argc, const char * argv[]) {
     MPI_Init(NULL, NULL);
     Timer timer;
     a_int nev = 1;
-    int Nx, Ny, N;
+    int N, Nx, Ny, Nu, Nd;
     int kIndex = 0; // Gamma Point
     int PGRepIndex = -1;
     int rowPerThread = 1;

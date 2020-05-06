@@ -35,7 +35,7 @@ int main(int argc, const char * argv[]) {
     * Input And Initialization *
     ****************************
 */
-    int N, Nx, Ny;
+    int N, Nx, Ny, Nu, Nd;
     std::ifstream infile("../Input/lattice_input.txt");
     infile>>Nx>>Ny>>Nu>>Nd;
     infile.close(); 
