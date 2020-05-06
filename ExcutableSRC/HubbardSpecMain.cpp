@@ -76,7 +76,7 @@ int main(int argc, const char * argv[]) {
     Lattice.construct();
     
     int siteDim = 2;
-    VecI occList{N/2, N-N/2};
+    VecI occList{Nu, Nd};
     ind_int fullDim=0, totDim=0;
     
     /*
