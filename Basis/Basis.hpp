@@ -81,7 +81,7 @@ public:
         #ifdef KEEP_BASIS_NORM
             return normList.at(rowid);
         #else
-            return Norm(kIndex, indexList.at(rowid), pt_lattice);
+            return Norm(getRepI(rowid));
         #endif
     };
     
@@ -124,8 +124,10 @@ public:
     // rep: smallest index and norm!=0
     bool isMinRep(ind_int repI, double& norm) const;
     
-    // calculate the norm of |rk>
+    // calculate the norm of a genery repI
     double Norm(ind_int repI) const;
+    // calculate the norm of a minimum repI in a symm cycle. only defined for Hubbard and t_J model.
+    double minNorm(ind_int repI) const;
     
     // I/O
     void saveBasis(std::string basisfile);

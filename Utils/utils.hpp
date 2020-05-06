@@ -425,4 +425,11 @@ inline void MapPush(MAP* map_pt, ind_int key, dataType val){
         it->second += val;
     }
 }
+
+inline void assert_msg(bool condition, std::string msg){
+    if(!condition){
+        std::cout<<msg<<std::endl;
+        exit(1);
+    }
+}
 #endif // utils_hpp

@@ -512,7 +512,7 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
         }
     }
     // norm > 0?
-    norm = Norm(repI);
+    norm = (model==LATTICE_MODEL::HEISENBERG)?Norm(repI):minNorm(repI);
     // sqrt(infinitismal)>>infinitesimal
     if (std::real(norm)*std::real(norm)>INFINITESIMAL){
         return true;
@@ -520,6 +520,48 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
     return false;
 }
 
+double Basis::minNorm(ind_int repI) const {
+    if (kIndex==-1) return 1.0;
+    if (model==LATTICE_MODEL::HUBBARD or model==LATTICE_MODEL::t_J){
+        cdouble norm = 0.0;
+        auto repSymmIt = fMinRepSymmHash.find(pairRepI.first);
+        assert_msg(repSymmIt!=fMinRepSymmHash.end(),"Basis::minNorm only defined for minimum repI in a cycle!");
+        pairIndex pairRepI = getPairRepI(repI);
+        VecI seq, seqp;
+        if(PGRepIndex==-1){
+            for (auto symm = (*repSymmIt).second.begin(); symm != (*repSymmIt).second.end(); symm++){
+                int r = *symm;
+                pairIndex pairRepIp{0,0};
+                seq.clear();
+                seqp.clear();
+                for(int i = 0; i < pt_lattice->getOrbNum(); i++){
+                    if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));}
+                    if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seqp.push_back(pt_lattice->getOrbTran(r,i));}
+                }
+                if (pairRepIp==pairRepI) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r);
+            }
+            norm /= pt_lattice->getSiteNum();
+        }else{
+            for (auto symm = (*repSymmIt).second.begin(); symm != (*repSymmIt).second.end(); symm += 2){
+                int r = *symm, p = *(symm+1);
+                pairIndex pairRepIp{0,0};
+                seq.clear();
+                seqp.clear();
+                for(int i = 0; i < pt_lattice->getOrbNum(); i++){
+                    if(bitTest(pairRepI.first,i)){bitSet(pairRepIp.first,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                    if(bitTest(pairRepI.second,i)){bitSet(pairRepIp.second,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seqp.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                } 
+                if (pairRepIp==pairRepI) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p);
+            }
+            norm /= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);
+        }
+        assert(std::abs(std::imag(norm))<INFINITESIMAL);
+        return std::sqrt(std::real(norm));
+    }else{
+        std::cout<<"Basis::minNorm only defined fro Hubbard and t_J"<<std::endl;
+        exit(1);
+    }
+}
 double Basis::Norm(ind_int repI) const {
     if (kIndex==-1) return 1.0;
     cdouble norm = 0.0;
