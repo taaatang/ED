@@ -524,6 +524,7 @@ double Basis::minNorm(ind_int repI) const {
     if (kIndex==-1) return 1.0;
     if (model==LATTICE_MODEL::HUBBARD or model==LATTICE_MODEL::t_J){
         cdouble norm = 0.0;
+        pairIndex pairRepI = getPairRepI(repI);
         auto repSymmIt = fMinRepSymmHash.find(pairRepI.first);
         assert_msg(repSymmIt!=fMinRepSymmHash.end(),"Basis::minNorm only defined for minimum repI in a cycle!");
         pairIndex pairRepI = getPairRepI(repI);
