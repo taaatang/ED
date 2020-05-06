@@ -527,7 +527,6 @@ double Basis::minNorm(ind_int repI) const {
         pairIndex pairRepI = getPairRepI(repI);
         auto repSymmIt = fMinRepSymmHash.find(pairRepI.first);
         assert_msg(repSymmIt!=fMinRepSymmHash.end(),"Basis::minNorm only defined for minimum repI in a cycle!");
-        pairIndex pairRepI = getPairRepI(repI);
         VecI seq, seqp;
         if(PGRepIndex==-1){
             for (auto symm = (*repSymmIt).second.begin(); symm != (*repSymmIt).second.end(); symm++){
