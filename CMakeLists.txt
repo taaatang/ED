@@ -27,7 +27,7 @@ add_library(MKL_core STATIC IMPORTED)
 set_target_properties(MKL_core PROPERTIES IMPORTED_LOCATION ${MKLROOT}/lib/intel64/libmkl_core.a) 
 set(MKL -Wl,--start-group MKL_ilp64 MKL_thread MKL_core -Wl,--end-group iomp5 pthread m dl)
 
-# Compiler/Linker Flags
+# Compiler Flags
 set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall -qopenmp")
 # Include/Library Path
 include_directories(${ARPACKINC} ${MKLINC})

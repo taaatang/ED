@@ -53,7 +53,7 @@ public:
     // repI->pairRepI
     pairIndex getPairRepI(ind_int repI) const {return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));}
     // pairRepI->repI
-    ind_int getRepI(pairIndex pairRepI) const {return search(pairRepI);}
+    ind_int getRepI(pairIndex pairRepI) const {return fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);}
     
     ind_int getmul(int orbid) const {return mul.at(orbid);}
 
@@ -98,12 +98,15 @@ public:
     bool getBid(ind_int repI, int &bid) const;
 
     // Binary search the position of index in indexList
-    ind_int search(ind_int index, const std::vector<ind_int> &indList) const;
-    ind_int search(ind_int index) const;
-    ind_int search(pairIndex pairInd) const;//search full hilbert space
-    bool search(ind_int index, ind_int &ind, const std::vector<ind_int> &indList) const;
-    bool search(ind_int index, ind_int &ind) const;
-    bool search(pairIndex pairInd, ind_int &ind) const;//search current symm sector subspace
+
+    //search full hilbert space
+    ind_int search(ind_int repI, const std::vector<ind_int> &indList) const;
+    ind_int search(ind_int repI) const;
+    ind_int search(pairIndex pairRepI) const;
+    //search current symm sector subspace
+    bool search(ind_int repI, ind_int &idx, const std::vector<ind_int> &indList) const;
+    bool search(ind_int repI, ind_int &idx) const;
+    bool search(pairIndex pairRepI, ind_int &idx) const;
 
     /*
         ************
@@ -115,16 +118,19 @@ public:
     void genSymm(ind_int ind, std::vector<ind_int>& finalInd) const;
     void genSymm(ind_int ind, std::vector<ind_int>& finalInd, std::vector<cdouble>& factorList) const;
     
+    // judge if repI is min repI. append symm operations tp symmList if symm(repI)==repI. not guanranteed to be MinRep since its norm might = 0
+    bool isMin(ind_int repI, VecI& symmList);
     // judge if a basis vec belongs to k-subspace rep vecs
     // rep: smallest index and norm!=0
-    bool isMinRep(ind_int initInd, double& norm) const;
+    bool isMinRep(ind_int repI, double& norm) const;
     
     // calculate the norm of |rk>
-    double Norm(ind_int initInd) const;
+    double Norm(ind_int repI) const;
     
     // I/O
     void saveBasis(std::string basisfile);
     void saveBasis(std::string basisfile, std::string normfile);
+
 private:
     /*
      Instantiate an object managing the Basis set
@@ -154,12 +160,15 @@ private:
         pairRepI = (fIndexList(fidx), sIndexList(sidx))
     */
     std::vector<ind_int> fIndexList, sIndexList;
+    std::unordered_map<ind_int,ind_int> fRepIdxHash,sRepIdxHash;
+    std::unordered_map<ind_int,VecI> fMinRepSymmHash;
 
     /* 
         repI list in corresponding subspace in ascending order
         For Hubbard, if no symm is used, this is empty.
     */
     std::vector<ind_int> indexList;
+    std::unordered_map<ind_int,ind_int> repHashTable;
     // repIStratList[workerID] is the smallest repI stored in workerID's RAM
     std::vector<ind_int> repIStartList; 
     // repIEndList[workerID] is the largest repI stored in workerID's RAM

@@ -123,6 +123,8 @@ void Basis::gendcmp(){
         ind_int repI = fminRep;
         while(repI<=fmaxRep){
             fIndexList.push_back(repI);
+            fRepIdxHash[repI] = counter;
+
             repI = nextLexicographicalNumber<ind_int>(repI);
             counter++;
         }
@@ -132,10 +134,18 @@ void Basis::gendcmp(){
         repI = sminRep;
         while(repI<=smaxRep){
             sIndexList.push_back(repI);
+            sRepIdxHash[repI] = counter;
+
             repI = nextLexicographicalNumber<ind_int>(repI);
             counter++;
         }
         assert(counter == sDim);
+
+        for(ind_int idx=0; idx<fDim; idx++){
+            ind_int repI = fIndexList.at(idx);
+            VecI symmList;
+            if(isMin(repI, symmList)) fMinRepSymmHash[repI] = symmList;
+        }
     }
 }
 // generate Basis for the subspace labeled by kInd
@@ -291,93 +301,54 @@ bool Basis::getBid(ind_int repI, int &bid) const {
     if(repI<=repIEndList[bid])return true;
     return false;
 }
-bool Basis::search(ind_int index, ind_int &ind, const std::vector<ind_int> &indList) const {
-    // Binary search
-    ind_int list_size = indList.size();
-    ind_int begin = 0, middle, end = list_size;
-    while (end >= begin){
-        middle = (end + begin) / 2;
-        // in case index>indList[subdim-1], make sure middle<=subdim-1
-        if (middle>=list_size) break;
-        if (index > indList.at(middle)){
-            begin = middle + 1;
-            continue;
-        }
-        else if (index < indList.at(middle)){
-            // in case we are using unsigned integer and index<indList[0], make sure middle-1 is not negative
-            if (middle>=1){
-                end = middle - 1;
-                continue;
-            }else{
-                break;
-            }
-        }
-        else if (index == indList.at(middle)){
-            ind = middle;
-            return true;
-        }
+
+bool Basis::search(ind_int repI, ind_int &idx, const std::vector<ind_int> &indList) const {
+    auto low = std::lower_bound(indList.begin(),indList.end(),repI);
+    if((low==indList.end()) or (repI!=(*low))) return false;
+    idx = low - indList.begin();
+    return true;
+}
+
+bool Basis::search(ind_int repI, ind_int &idx) const {
+    return search(index, repI, indexList);
+}
+
+bool Basis::search(pairIndex pairRepI, ind_int &idx) const {
+    assert(model != LATTICE_MODEL::HEISENBERG);
+    auto fiter = fRepIdxHash.find(pairRepI.first); if(fiter==fRepIdxHash.end()) return false;
+    auto siter = sRepIdxHash.find(pairRepI.second); if(fiter==sRepIdxHash.end()) return false;
+    ind_int repI = (*fiter)*sDim+(*siter);
+    if (model==LATTICE_MODEL::HUBBARD and kIndex==-1){
+        idx = repI;
+        return true;
+    }else{
+        return search(repI, idx, indexList);
     }
-    if (kIndex==-1){
-        std::cerr<<"index:"<<index<<" not found in indList (full hilbert space kIndex=-1)!"<<std::endl;
+    return false;
+}
+
+ind_int Basis::search(ind_int repI, const std::vector<ind_int> &indList) const {
+    ind_int idx;
+    if(search(repI,idx,indList)){
+        return idx;
+    } else{
+        std::cerr<<"index not found in indList!"<<std::endl;
         exit(EXIT_FAILURE);
     }
-    return false;
 }
-
-bool Basis::search(ind_int index, ind_int &ind) const {
-    return search(index, ind, indexList);
+ind_int Basis::search(ind_int repI) const {
+    return search(repI, indexList);
 }
-
-bool Basis::search(pairIndex pairInd, ind_int &ind) const {
-    assert(model != HEISENBERG);
-    ind_int fInd, sInd;
-    if (model==HUBBARD and kIndex==-1){
-        if((search(pairInd.first, fInd, fIndexList)) and (search(pairInd.second, sInd, sIndexList))){
-            ind = fInd * sDim + sInd;
-            return true;
-        }
+ind_int Basis::search(pairIndex pairRepI) const {
+    ind_int repI = fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);
+    if(model==LATTICE_MODEL::HUBBARD){
+        return repI;
+    }else if(model==LATTICE_MODEL::t_J){
+        return search(repI);
     }else{
-        if((search(pairInd.first, fInd, fIndexList)) and (search(pairInd.second, sInd, sIndexList))){
-            ind_int repI = fInd * sDim + sInd;
-            return search(repI, ind, indexList);
-        }
-    }
-    return false;
-}
-
-ind_int Basis::search(ind_int index, const std::vector<ind_int> &indList) const {
-    // Binary search
-    ind_int list_size = indList.size();
-    ind_int begin = 0, middle, end = list_size;
-    while (end >= begin){
-        middle = (end + begin) / 2;
-        if (middle>=list_size) break;
-        if (index > indList.at(middle)){
-            begin = middle + 1;
-            continue;
-        }
-        else if (index < indList.at(middle)){
-            if (middle>=1){
-                end = middle -1;
-                continue;
-            }else{
-                break;
-            }
-        }
-        else if (index == indList.at(middle)){
-            return middle;
-        }
-    }
-    std::cerr<<"index not found in indList!"<<std::endl;
-    exit(EXIT_FAILURE);
-}
-ind_int Basis::search(ind_int index) const {
-    return search(index, indexList);
-}
-ind_int Basis::search(pairIndex pairInd) const {
-    ind_int fInd = search(pairInd.first, fIndexList);
-    ind_int sInd = search(pairInd.second, sIndexList);
-    return (fInd * sDim + sInd);
+        std::cerr<<"pairRepI only defined for Hubbard and t_J!"<<std::endl;
+        exit(EXIT_FAILURE);
+    } 
 }
 
 /*
@@ -385,6 +356,32 @@ ind_int Basis::search(pairIndex pairInd) const {
     * Implementation for translation symmetry *
     *******************************************
 */
+bool Basis::isMin(ind_int repI, VecI& symmList){
+    symmList.clear();
+    if(PGRepIndex==-1){
+        for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+            ind_int repIp{0};
+            for(int i = 0; i < pt_lattice->getOrbNum(); i++){
+                if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbTran(r,i));
+            }
+            if (repI > repIp) return false;
+            if (repI == repIp) symmList.push_back(r);
+        }
+    }else{
+        for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+            for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
+                ind_int repIp{0};
+                for (int i = 0; i < pt_lattice->getOrbNum();i++){
+                    if(bitTest(repI,i)) bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
+                }
+                if (repI > repIp) return false;
+                if(repI == repI) {symmList.push_back(r); symmList.push_back(p);}
+            }        
+        }
+    }
+    return true;
+}
+
 bool Basis::isMinRep(ind_int repI, double& norm) const {
     // project out double occp
     if (model==LATTICE_MODEL::t_J){
@@ -400,46 +397,76 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
     // smallest index in the cycle?
     switch(model){
         case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::t_J:{
-            pairIndex pairRepI;
-            pairRepI = getPairRepI(repI);
+            pairIndex pairRepI = getPairRepI(repI);
             if(PGRepIndex==-1){
-                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
-                    pairIndex pairRepIp{0,0};
-                    for (int i = 0; i < pt_lattice->getOrbNum(); i++){
-                        if(bitTest(pairRepI.first,i))bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));
-                    }
-                    if (pairRepI.first > pairRepIp.first) return false;
-                    else if (pairRepI.first == pairRepIp.first){
+                auto it = fMinRepSymmHash.find(pairRepI.first);
+                if(it==fMinRepSymmHash.end()){
+                    return false;
+                }else{
+                    for(auto symm=(*it).second.begin(); symm!=(*it).second.end(); symm++){
+                        int r = *symm;
+                        ind_int srepI=0;
                         for (int j = 0; j < pt_lattice->getOrbNum(); j++){
-                            if(bitTest(pairRepI.second,j))bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,j));                            
+                            if(bitTest(pairRepI.second,j))bitSet(srepI,pt_lattice->getOrbTran(r,j));                            
                         }
-                        if (pairRepI.second > pairRepIp.second) return false;
+                        if (pairRepI.second > srepI) return false;
                     }
                 }
             }else{
-                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
-                    for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
-                        pairIndex pairRepIp{0,0};
-                        for (int i = 0; i < pt_lattice->getOrbNum();i++){
-                            if(bitTest(pairRepI.first,i))bitSet(pairRepIp.first,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
+                auto it = fMinRepSymmHash.find(pairRepI.first);
+                if(it==fMinRepSymmHash.end()){
+                    return false;
+                }else{
+                    for(auto symm=(*it).second.begin(); symm!=(*it).second.end(); symm += 2){
+                        int r = *symm;
+                        int p = *(symm+1);
+                        ind_int srepI=0;
+                        for (int i = 0; i < pt_lattice->getOrbNum(); i++){
+                            if(bitTest(pairRepI.second,i))bitSet(srepI,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));                      
                         }
-                        if (pairRepI.first > pairRepIp.first) return false;
-                        else if (pairRepI.first == pairRepIp.first){
-                            for (int i = 0; i < pt_lattice->getOrbNum(); i++){
-                                if(bitTest(pairRepI.second,i))bitSet(pairRepIp.second,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));                      
-                            }
-                            if (pairRepI.second > pairRepIp.second) return false;
-                        }
-                    }    
+                        if (pairRepI.second > srepI) return false;
+                    }
                 }
             }
+
+            // if(PGRepIndex==-1){
+            //     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+            //         pairIndex pairRepIp{0,0};
+            //         for (int i = 0; i < pt_lattice->getOrbNum(); i++){
+            //             if(bitTest(pairRepI.first,i))bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));
+            //         }
+            //         if (pairRepI.first > pairRepIp.first) return false;
+            //         else if (pairRepI.first == pairRepIp.first){
+            //             for (int j = 0; j < pt_lattice->getOrbNum(); j++){
+            //                 if(bitTest(pairRepI.second,j))bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,j));                            
+            //             }
+            //             if (pairRepI.second > pairRepIp.second) return false;
+            //         }
+            //     }
+            // }else{
+            //     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+            //         for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
+            //             pairIndex pairRepIp{0,0};
+            //             for (int i = 0; i < pt_lattice->getOrbNum();i++){
+            //                 if(bitTest(pairRepI.first,i))bitSet(pairRepIp.first,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
+            //             }
+            //             if (pairRepI.first > pairRepIp.first) return false;
+            //             else if (pairRepI.first == pairRepIp.first){
+            //                 for (int i = 0; i < pt_lattice->getOrbNum(); i++){
+            //                     if(bitTest(pairRepI.second,i))bitSet(pairRepIp.second,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));                      
+            //                 }
+            //                 if (pairRepI.second > pairRepIp.second) return false;
+            //             }
+            //         }    
+            //     }
+            // }
             break;
         }
         case LATTICE_MODEL::HEISENBERG:{
             #ifdef BINARY_REP
-                ind_int repIp{0};
                 if(PGRepIndex==-1){
                     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        ind_int repIp{0};
                         for(int i = 0; i < pt_lattice->getOrbNum(); i++){
                             if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbTran(r,i));
                         }
@@ -448,6 +475,7 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
                 }else{
                     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                         for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex); p++){
+                            ind_int repIp{0};
                             for (int i = 0; i < pt_lattice->getOrbNum();i++){
                                 if(bitTest(repI,i)) bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
                             }

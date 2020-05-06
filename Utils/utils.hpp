@@ -282,12 +282,14 @@ inline void MPI_Alltoallv(cdouble *sendBuff,int *sendCounts,int *sdispls,cdouble
 */
 
 template <class T>
-inline void save(T *d_pt, int size, std::ofstream *f_pt, std::string filename){
-    f_pt->open(filename, std::ios::binary);
+inline void save(T *d_pt, int size, std::ofstream *f_pt, std::string filename, bool is_app=false){
+    if(is_app)f_pt->open(filename, std::ios::binary|std::ios::app);
+    else f_pt->open(filename, std::ios::binary);
     if (f_pt->is_open()){
         f_pt->write(reinterpret_cast<char*>(d_pt), size * sizeof(T));
         f_pt->close();
-        std::cout<<"Data saved to "<<filename<<std::endl;
+        if(is_app)std::cout<<"Data appended to "<<filename<<std::endl;
+        else std::cout<<"Data wrote to "<<filename<<std::endl;
     }else{
         std::cout<<filename<<" failed to open!"<<std::endl;
         exit(1);
@@ -295,12 +297,14 @@ inline void save(T *d_pt, int size, std::ofstream *f_pt, std::string filename){
 }
 
 template <class T>
-inline void save(T *d_pt, ind_int size, std::ofstream *f_pt, std::string filename){
-    f_pt->open(filename, std::ios::binary);
+inline void save(T *d_pt, ind_int size, std::ofstream *f_pt, std::string filename, bool is_app=false){
+    if(is_app)f_pt->open(filename, std::ios::binary|std::ios::app);
+    else f_pt->open(filename, std::ios::binary);
     if (f_pt->is_open()){
         f_pt->write(reinterpret_cast<char*>(d_pt), size * sizeof(T));
         f_pt->close();
-        std::cout<<"Data saved to "<<filename<<std::endl;
+        if(is_app)std::cout<<"Data appended to "<<filename<<std::endl;
+        else std::cout<<"Data wrote to "<<filename<<std::endl;
     }else{
         std::cout<<filename<<" failed to open!"<<std::endl;
         exit(1);

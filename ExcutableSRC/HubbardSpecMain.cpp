@@ -31,12 +31,17 @@ int main(int argc, const char * argv[]) {
     int kIndex = 0; // Gamma Point
     int PGRepIndex = -1;
     int rowPerThread = 1;
+    int rowCount = 50;
+    int rowPerIt = 1000;
 
     std::ifstream infile("../Input/lattice_input.txt");
     infile>>Nx>>Ny>>Nu>>Nd;
     infile.close();
     infile.open("../Input/symm_input.txt");
     infile>>kIndex>>PGRepIndex;
+    infile.close();
+    infile.open("../Input/genmatBuf_input.txt");
+    infile>>rowCount>>rowPerIt;
     infile.close();
 
     N = Nx * Ny;
@@ -123,7 +128,7 @@ int main(int argc, const char * argv[]) {
     H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp).pushV({ORBITAL::Pzu, ORBITAL::Pzd},Vpz);
     H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
     if(workerID==MPI_MASTER) std::cout<<"begin H gen..."<<std::endl;
-    H.genMatPara();
+    H.genMatPara(rowCount,rowPerIt);
     timer.tok();
 
     if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
@@ -147,7 +152,7 @@ int main(int argc, const char * argv[]) {
     timer.tik();
     Current Jz(&Lattice, &B);
     Jz.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
-    Jz.genMatPara();
+    Jz.genMatPara(rowCount, rowPerIt);
 
     int krylovDim=400;
     SPECTRASolver<dataType> spectra(&H, w0[0], &Jz, gstate, H.get_dim(), krylovDim);
