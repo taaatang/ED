@@ -113,75 +113,7 @@ void Basis::initMinMaxRep() const {
     }
 #endif
 }
-// generate Basis for the full Hilbert Space
-void Basis::genFull(){
-    ind_int counter = 0;
-    indexList.clear();
-    fIndexList.clear();
-    sIndexList.clear();
-    switch(model){
-        case HUBBARD:{
-            fIndexList.reserve(fDim);
-            sIndexList.reserve(sDim);
-            counter = 0;
-            do{
-                fIndexList.push_back(vecToRep(vec));
-                counter++;
-            }while (std::next_permutation(vec.begin(), vec.end()));
-            assert(counter == fDim);
-            
-            counter = 0;
-            do{
-                sIndexList.push_back(vecToRep(vecp));
-                counter++;
-            }while (std::next_permutation(vecp.begin(), vecp.end()));
-            assert(counter == sDim);
-            break;
-        }
-        
-        case t_J:{
-            fIndexList.reserve(fDim);
-            indexList.reserve(totDim);
-            sIndexList.reserve(sDim);
-            counter = 0;
-            do{
-                fIndexList.push_back(vecToRep(vec));
-                counter++;
-            }while (std::next_permutation(vec.begin(), vec.end()));
-            assert(counter == fDim);
 
-            counter = 0;
-            do{
-                sIndexList.push_back(vecToRep(vecp));
-                counter++;
-            }while (std::next_permutation(vecp.begin(), vecp.end()));
-            assert(counter == sDim);
-
-            // project out double occupancy
-            counter = 0;
-            VecI initVec(N), initVecp(N);
-            for (ind_int i = 0; i < fDim; i++){
-                for (ind_int j = 0; j < sDim; j++){
-                    if(fIndexList.at(i) & sIndexList.at(j)) continue;
-                    indexList.push_back(i * sDim + j);
-                    counter++;
-                }
-            }
-            assert(totDim==counter);
-            break;
-        }
-        case HEISENBERG:{
-            indexList.reserve(totDim);
-            counter = 0;
-            do{
-                indexList.push_back(vecToRep(vec));
-                counter++;
-            }while (std::next_permutation(vec.begin(), vec.end()));
-            assert(counter == totDim);
-            break;
-        }
-    }  
-}
 void Basis::gendcmp(){
     if(model==LATTICE_MODEL::HUBBARD || model==LATTICE_MODEL::t_J){
         fIndexList.clear(); sIndexList.clear();

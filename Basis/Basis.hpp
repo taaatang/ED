@@ -61,8 +61,7 @@ public:
 
     //generate fIdex,sIdex list for Hubbard and tJ model
     void gendcmp();
-    // generate full hilbertspace basis;
-    void genFull();
+    
     // construc k-subspace basis. need lattice to know symmetry operations
     void gen();
     
