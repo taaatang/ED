@@ -208,7 +208,7 @@ public:
             case SPIN_UP:{
                 if (cpcm(siteI, siteJ, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
                     #ifdef DISTRIBUTED_BASIS
-                    MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
+                    if(pt_Basis->isfMin(pairRepIf.first)) MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
                     #else
                     if (pt_Basis->search(pairRepIf, colidx)){
                         dataType val = factor * sign;
@@ -611,6 +611,8 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     std::vector<cdouble> factorList;
     pt_Basis->genSymm(rowID, finalIndList, factorList);
     for (int i = 0; i < finalIndList.size(); i++){
+        pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
+        bool isfminRep = pt_Basis->isfMin(pairRepI.first);
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
             int matID = (*linkit).getmatid();
             int matIDp = matID; 
@@ -622,8 +624,10 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
                 // cp.siteI * cm.siteJ
                 cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
                 cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);
-                cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);   
+                if(isfminRep){
+                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);   
+                }
             }
         }
     }

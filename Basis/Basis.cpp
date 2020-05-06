@@ -358,6 +358,7 @@ ind_int Basis::search(pairIndex pairRepI) const {
 */
 bool Basis::isMin(ind_int repI, VecI& symmList){
     symmList.clear();
+    if(kIndex==-1) return true;
     if(PGRepIndex==-1){
         for (int r = 0; r < pt_lattice->getSiteNum(); r++){
             ind_int repIp{0};

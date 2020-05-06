@@ -120,6 +120,7 @@ public:
     
     // judge if repI is min repI. append symm operations tp symmList if symm(repI)==repI. not guanranteed to be MinRep since its norm might = 0
     bool isMin(ind_int repI, VecI& symmList);
+    bool isfMin(ind_int frepI) const {return fMinRepSymmHash.find(frepI)!=fMinRepSymmHash.end();}
     // judge if a basis vec belongs to k-subspace rep vecs
     // rep: smallest index and norm!=0
     bool isMinRep(ind_int repI, double& norm) const;

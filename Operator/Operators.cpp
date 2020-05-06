@@ -35,6 +35,8 @@ void Current::row(ind_int rowID, std::vector<MAP>& rowMaps){
     std::vector<cdouble> factorList;
     pt_Basis->genSymm(rowID, finalIndList, factorList);
     for (int i = 0; i < finalIndList.size(); i++){
+        pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
+        bool isfminRep = pt_Basis->isfMin(pairRepI.first);
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
             int matID = (*linkit).getmatid();
             cdouble factor = CPLX_I * factorList.at(i) * (*linkit).getVal();
@@ -44,8 +46,10 @@ void Current::row(ind_int rowID, std::vector<MAP>& rowMaps){
                 // cp.siteI * cm.siteJ
                 cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
                 cpcm(SPIN::SPIN_UP, siteJ, siteI, -factor, finalIndList[i], &rowMaps[matID]);
-                cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                cpcm(SPIN::SPIN_DOWN, siteJ, siteI, -factor, finalIndList[i], &rowMaps[matID]);   
+                if(isfminRep){
+                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, -factor, finalIndList[i], &rowMaps[matID]);   
+                } 
             }
         }
     }
