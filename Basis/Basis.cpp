@@ -310,14 +310,14 @@ bool Basis::search(ind_int repI, ind_int &idx, const std::vector<ind_int> &indLi
 }
 
 bool Basis::search(ind_int repI, ind_int &idx) const {
-    return search(index, repI, indexList);
+    return search(repI, idx, indexList);
 }
 
 bool Basis::search(pairIndex pairRepI, ind_int &idx) const {
     assert(model != LATTICE_MODEL::HEISENBERG);
     auto fiter = fRepIdxHash.find(pairRepI.first); if(fiter==fRepIdxHash.end()) return false;
     auto siter = sRepIdxHash.find(pairRepI.second); if(fiter==sRepIdxHash.end()) return false;
-    ind_int repI = (*fiter)*sDim+(*siter);
+    ind_int repI = (*fiter).second*sDim+(*siter).second;
     if (model==LATTICE_MODEL::HUBBARD and kIndex==-1){
         idx = repI;
         return true;
