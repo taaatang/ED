@@ -85,15 +85,15 @@ int main(int argc, const char * argv[]) {
             B.saveBasis(basisfile, normfile);
             std::cout<<"workerID:"<<workerID<<", data saved!"<<std::endl;
             if(workerNum>1){
-                MPI_Send(msg,1,workerID+1);
+                MPI_Send(&msg,1,workerID+1);
             }
-        }else if((workerID>0) and (workerID<(workNum-1))){
-            MPI_Recv(msg,1,workerID-1);
+        }else if((workerID>0) and (workerID<(workerNum-1))){
+            MPI_Recv(&msg,1,workerID-1);
             B.saveBasis(basisfile, normfile, is_app);
             std::cout<<"workerID:"<<workerID<<", data saved!"<<std::endl;
-            MPI_Send(msg,1,workerID+1);
+            MPI_Send(&msg,1,workerID+1);
         }else if(workerID==(workerNum-1)){
-            MPI_Recv(msg,1,workerID-1);
+            MPI_Recv(&msg,1,workerID-1);
             B.saveBasis(basisfile, normfile, is_app);
             std::cout<<"workerID:"<<workerID<<", data saved!"<<std::endl;
         }
