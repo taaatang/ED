@@ -35,17 +35,17 @@ int main(int argc, const char * argv[]) {
     int rowPerIt = 1000;
 
     std::ifstream infile("../Input/lattice_input.txt");
-    infile>>Nx>>Ny>>Nu>>Nd;
-    infile.close();
+    // infile>>Nx>>Ny>>Nu>>Nd;
+    // N = Nx * Ny;
+    // infile.close();
+    N = 8, Nu = 4, Nd = 4;
     infile.open("../Input/symm_input.txt");
-    infile>>kIndex>>PGRepIndex;
+    infile>>kIndex;
     infile.close();
     infile.open("../Input/genmatBuf_input.txt");
     infile>>rowCount>>rowPerIt;
     infile.close();
 
-    N = Nx * Ny;
-    infile.close();
 /*
     ********************
     * MPI and OMP Info *
@@ -57,8 +57,9 @@ int main(int argc, const char * argv[]) {
     if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl; 
     OMP_Info(workerID);   
     // data directory
-    std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
+    // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
+    std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
     std::string dataDir = dataDirP+"/Conductivity/";
     if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
@@ -75,7 +76,7 @@ int main(int argc, const char * argv[]) {
     ************************************
 */
     // geometry class
-    SquareLattice Lattice(Nx,Ny);
+    SquareLattice Lattice(N);
     Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
     Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
     Lattice.construct();

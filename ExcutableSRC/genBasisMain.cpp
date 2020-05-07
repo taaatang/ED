@@ -49,7 +49,7 @@ int main(int argc, const char * argv[]) {
     //     kIndex = workerID;
     // }
 
-    // if (kIndex < N){
+    for(kIndex=0; kIndex<N; kIndex++){
         // create data path
         std::string dataDir = PROJECT_DATA_PATH+ subDir +"/kSpace/Basis/"+std::to_string(kIndex);
         system(("mkdir -p " + dataDir).c_str());
@@ -117,7 +117,7 @@ int main(int argc, const char * argv[]) {
         //     }
         // }
         //  std::cout<<"workerID:"<<workerID<<", B and Bp maches!"<<std::endl;
-    // }
+    }
 
 /*
     *******
