@@ -284,6 +284,7 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
     template <class T>
     void SparseMatrix<T>::genMatPara(int rowCount, int rowPerIt){
         Timer timer;
+        Timer tInit, tMPI;
         // do MPI_Alltoall communication after #rowPerIt row iterations 
         int sendCount = rowCount * rowPerIt;
         int buffSize = blockNum * sendCount;
@@ -310,7 +311,9 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
         for (ind_int rowID = 0; rowID < BaseMatrix<T>::nloc; rowID+=rowPerIt){
             timer.tik();
             // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start row:"<<rowID<<std::endl;
+            tInit.tik();
             setMpiBuff(endRowFlag); // set mpi sent/recv buff
+            tInit.tok();
             ind_int iterStart = rowID;
             ind_int iterEnd = (rowID+rowPerIt)<BaseMatrix<T>::nloc ? (rowID+rowPerIt):BaseMatrix<T>::nloc;
             #pragma omp parallel for
@@ -340,10 +343,12 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
             }
             // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start mpi all to all"<<std::endl;
             // mpi all to all 
+            tMPI.tik();
             for(int matID=0; matID<spmNum; matID++){
                 MPI_Alltoall(idxSendBuff.at(matID).data(), idxRecvBuff.at(matID).data(), sendCount);
                 MPI_Alltoall(valSendBuff.at(matID).data(), valRecvBuff.at(matID).data(), sendCount);
             }
+            tMPI.tok();
             // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" Start filter row:"<<rowID<<std::endl;
             // filter recv buff and push data to sparse matrix
             for(int matID=0; matID<spmNum; matID++){
@@ -366,7 +371,7 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
                 }
             }
             timer.tok();
-            if(BaseMatrix<T>::workerID==MPI_MASTER)std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" finished row:"<<rowID<<", time:"<<timer.elapse()<<"ms\n";
+            if(BaseMatrix<T>::workerID==MPI_MASTER)std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<"row:"<<rowID<<", init:"<<tInit.elapse()<<", MPI:"<<tMPI.elapse()<<", tot:"<<timer.elapse()<<"ms\n";
             // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" finished filter row:"<<rowID<<std::endl;
         }
         for (int matID = 0; matID < spmNum; matID++) for(int bid=0; bid < blockNum; bid++){
