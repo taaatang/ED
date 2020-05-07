@@ -12,6 +12,7 @@
 #include "../Basis/Basis.hpp"
 #include "../Algebra/algebra.hpp"
 #include "../Utils/utils.hpp"
+#include "../Utils/timer.hpp"
 #include <climits>
 #include "mpi.h"
 #include <omp.h>
@@ -282,6 +283,7 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
 #ifdef DISTRIBUTED_BASIS
     template <class T>
     void SparseMatrix<T>::genMatPara(int rowCount, int rowPerIt){
+        Timer timer();
         // do MPI_Alltoall communication after #rowPerIt row iterations 
         int sendCount = rowCount * rowPerIt;
         int buffSize = blockNum * sendCount;
@@ -306,6 +308,7 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
         for(int i = 0; i < dmNum; i++) diagValList.at(i).resize(BaseMatrix<T>::nloc);
         for(int i = 0; i < spmNum; i++) for(int b=0;b<blockNum;b++)rowInitList.at(i).at(b).push_back(counter.at(i).at(b));
         for (ind_int rowID = 0; rowID < BaseMatrix<T>::nloc; rowID+=rowPerIt){
+            timer.tik();
             // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start row:"<<rowID<<std::endl;
             setMpiBuff(endRowFlag); // set mpi sent/recv buff
             ind_int iterStart = rowID;
@@ -362,6 +365,8 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
                     }
                 }
             }
+            timer.tok();
+            if(BaseMatrix<T>::workerID==MPI_MASTER)std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" finished row:"<<rowID<<", time:"<<timer.elapse()<<"ms\n";
             // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<" finished filter row:"<<rowID<<std::endl;
         }
         for (int matID = 0; matID < spmNum; matID++) for(int bid=0; bid < blockNum; bid++){
