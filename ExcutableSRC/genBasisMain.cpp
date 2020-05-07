@@ -32,20 +32,24 @@ int main(int argc, const char * argv[]) {
     ****************************
 */
     int N, Nx, Ny, Nu, Nd;
-    std::ifstream infile("../Input/lattice_input.txt");
-    infile>>Nx>>Ny>>Nu>>Nd;
+    int kIndex;
+    std::ifstream infile("../Input/symm_input.txt");
+    // infile>>Nx>>Ny>>Nu>>Nd;
+    // N = Nx * Ny;
+    infile>>kIndex;
     infile.close(); 
-    N = Nx * Ny;
+    N = 8
+    
     // std::string subDir = "/"+std::to_string(N);
-    std::string subDir = "/"+std::to_string(Nx)+"by"+std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
-    int kIndex = 0;
+    // std::string subDir = "/"+std::to_string(Nx)+"by"+std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
+    std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     Timer timer;
     
     // if (workerNum > 1){
     //     kIndex = workerID;
     // }
 
-    if (kIndex < N){
+    // if (kIndex < N){
         // create data path
         std::string dataDir = PROJECT_DATA_PATH+ subDir +"/kSpace/Basis/"+std::to_string(kIndex);
         system(("mkdir -p " + dataDir).c_str());
@@ -57,7 +61,7 @@ int main(int argc, const char * argv[]) {
         * Lattice and Basis Initialization *
         ************************************
     */
-        SquareLattice Lattice(Nx,Ny);
+        SquareLattice Lattice(N);
         Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
         Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
         // TriAngLattice Lattice(N);
@@ -78,7 +82,7 @@ int main(int argc, const char * argv[]) {
         Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex);
         B.gen(workerID,workerNum);
         timer.tok();
-        std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+        std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", local size="<<B.getLocDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
         int msg = 1;
         bool is_app = true;
         if(workerID==0){
@@ -113,7 +117,7 @@ int main(int argc, const char * argv[]) {
         //     }
         // }
         //  std::cout<<"workerID:"<<workerID<<", B and Bp maches!"<<std::endl;
-    }
+    // }
 
 /*
     *******

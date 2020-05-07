@@ -7,21 +7,24 @@ cd ~
 source ./${env}
 cd ${cwd}
 
-N1=3
-keyword=N2
-app=Spectra.out
-script=run.sh
-input=spectra_input.txt
-for i in 11
+JobDir=Job/sq8_4u4d/Basis
+keyword=kIndex
+app=build/genBasis.out
+script=run_haswell.sh
+input=Input/symm_input.txt
+for i in 0 1 2 3 4 5 6 7
     do
-     dir=${N1}by${i}/spectra
-     mkdir -p ${dir}
-     cp ${app}  ${dir}/${app}
-     sed -e "s/${keyword}/${i}/g" ${script} > ${dir}/${script}
-     sed -e "s/${keyword}/${i}/g" ${input} > ${dir}/${input}
-     cd ${dir}
-     rm -rf job.out
-     rm -rf job.err
-     sbatch ${script}
-     cd ../../
+        dir=${JobDir}/k${i}
+        appDir=dir/App
+        inputDir=dir/Input
+        mkdir -p ${appDir}
+        mkdir -p ${inputDir}
+        cp ${app}  ${appDir}/${app}
+        sed -e "s/${keyword}/${i}/g" ${input} > ${inputDir}/${input}
+        sed -e "s/${keyword}/${i}/g" ${script} > ${dir}/${script}
+        cd ${dir}
+        rm -rf job.out
+        rm -rf job.err
+        sbatch ${script}
+        cd ${cwd}
     done

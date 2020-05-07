@@ -212,6 +212,7 @@ void Basis::gen(){
 }
 
 void Basis::gen(int workerID, int workerNum){
+    locDim = 0;
     assert(model==LATTICE_MODEL::HUBBARD or model==LATTICE_MODEL::t_J);
     if(model==LATTICE_MODEL::HUBBARD) assert(kIndex!=-1);
     ind_int repI;
@@ -225,7 +226,7 @@ void Basis::gen(int workerID, int workerNum){
             repI = fidx*sDim+sidx;
             if(isMinRep(repI,norm)){
                 indexList.push_back(repI);
-                subDim++;
+                locDim++;
                 #ifdef KEEP_BASIS_NORM
                     normList.push_back(norm);
                 #endif

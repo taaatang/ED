@@ -66,4 +66,9 @@ target_link_libraries(Spectra.out ${MKL} parpack)
 add_executable(HubbardSpec.out ${EXE_SRC}/HubbardSpecMain.cpp ${SPECTRA_DEP})
 target_link_libraries(HubbardSpec.out ${MKL} parpack)
 
+# Test
+set(TEST_SRC Test)
+
+add_executable(geometryTest.out ${TEST_SRC}/geometryTest.cpp)
+
 # add_executable(Time.out timeTest.cpp algebra.cpp utils.cpp Basis.cpp Geometry.cpp Operators.cpp) 
