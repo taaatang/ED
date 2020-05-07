@@ -44,7 +44,21 @@ inline void OMP_Info(int workerID){
     #endif
 }
 
+inline void MPI_Info(int& workerID, int& workerNum){
+    MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
+    MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
+    if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl;
+    OMP_Info(workerID);
+}
+
 void errExit(std::string msg);
+
+inline void assert_msg(bool condition, std::string msg){
+    if(!condition){
+        std::cout<<msg<<std::endl;
+        exit(1);
+    }
+}
 
 /*
     ***************
@@ -426,10 +440,4 @@ inline void MapPush(MAP* map_pt, ind_int key, dataType val){
     }
 }
 
-inline void assert_msg(bool condition, std::string msg){
-    if(!condition){
-        std::cout<<msg<<std::endl;
-        exit(1);
-    }
-}
 #endif // utils_hpp

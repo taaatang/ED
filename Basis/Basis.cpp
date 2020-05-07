@@ -144,7 +144,10 @@ void Basis::gendcmp(){
         for(ind_int idx=0; idx<fDim; idx++){
             ind_int repI = fIndexList.at(idx);
             VecI symmList;
-            if(isMin(repI, symmList)) fMinRepSymmHash[repI] = symmList;
+            if(isMin(repI, symmList)){
+                fMinRepSymmHash[repI] = symmList;
+                fMinRepList.append(repI);
+            } 
         }
     }
 }
@@ -160,6 +163,7 @@ void Basis::gen(){
         case HUBBARD:case t_J:{
             if (!(kIndex==-1 and model==LATTICE_MODEL::HUBBARD)){ 
                 for(ind_int fidx=0;fidx<fDim;fidx++){
+                    if(!isfMin(fIndexList[fidx])) continue;
                     for(ind_int sidx=0;sidx<sDim;sidx++){
                         repI = fidx*sDim+sidx;
                         if(isMinRep(repI,norm)){
@@ -240,17 +244,17 @@ void Basis::gen(std::string basisfile, std::string normfile, int workerID, int w
     assert(normList.size()==indexList.size());
 }
 
-void Basis::saveBasis(std::string basisfile) {
+void Basis::saveBasis(std::string basisfile, bool is_app) {
     std::ofstream outfile;
     ind_int *d_pt = indexList.data();
     ind_int size = indexList.size();
-    save<ind_int>(d_pt, size, &outfile, basisfile);
+    save<ind_int>(d_pt, size, &outfile, basisfile, is_app);
 }
 
-void Basis::saveBasis(std::string basisfile, std::string normfile) {
+void Basis::saveBasis(std::string basisfile, std::string normfile, bool is_app) {
     std::ofstream outfile;
-    save<ind_int>(indexList.data(), (ind_int)indexList.size(), &outfile, basisfile);
-    save<double>(normList.data(), (ind_int)normList.size(), &outfile, normfile);
+    save<ind_int>(indexList.data(), (ind_int)indexList.size(), &outfile, basisfile, is_app);
+    save<double>(normList.data(), (ind_int)normList.size(), &outfile, normfile, is_app);
 }
 
 ind_int Basis::vecToRep(VecI& v) const {

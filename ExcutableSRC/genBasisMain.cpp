@@ -24,11 +24,7 @@ int main(int argc, const char * argv[]) {
 */
     MPI_Init(NULL, NULL);
     int workerID, workerNum;
-    MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
-    MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
-    if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl;
-    
-    OMP_Info(workerID);
+    MPI_Info(workerID, workerNum);
     
 /*
     ****************************
