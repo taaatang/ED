@@ -146,7 +146,7 @@ void Basis::gendcmp(){
             VecI symmList;
             if(isMin(repI, symmList)){
                 fMinRepSymmHash[repI] = symmList;
-                fMinRepList.append(repI);
+                fMinRepList.push_back(repI);
             } 
         }
     }

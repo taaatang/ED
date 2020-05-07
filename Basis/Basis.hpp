@@ -164,7 +164,7 @@ private:
     */
     std::vector<ind_int> fIndexList, sIndexList;
     std::unordered_map<ind_int,ind_int> fRepIdxHash,sRepIdxHash;
-    std::unordered_map<ind_int,ind_int> fMinRepList;
+    std::vector<ind_int> fMinRepList;
     std::unordered_map<ind_int,VecI> fMinRepSymmHash;
 
     /* 
