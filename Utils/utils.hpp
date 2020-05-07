@@ -51,6 +51,13 @@ inline void mpi_info(int& workerID, int& workerNum){
     OMP_Info(workerID);
 }
 
+void work_load(ind_int size, int workerID, int workerNum, ind_int& idxStart, ind_int& idxEnd){
+    assert((workerNum>0) && (workerID<workerNum));
+    ind_int nlocmax = (size + workerNum - 1)/workerNum;
+    idxStart = workerID * nlocmax;
+    idxEnd = (idxStart + nlocmax)<size?(idxStart + nlocmax):size;
+}
+
 void errExit(std::string msg);
 
 inline void assert_msg(bool condition, std::string msg){
@@ -223,6 +230,14 @@ inline void vConjDotv(T1* vconj, T2* v, cdouble* result, ind_int size){
     MPI_Allreduce(&partResult, result, 1, MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
 }
 
+/* MPI send */
+inline voild MPI_Send(int* buf, int count, int dest){
+    MPI_Send(buf,count,MPI_INT,dest,MPI_ANY_TAG,MPI_COMM_WORLD);
+}
+/* MPI recv */
+inline voild MPI_Recv(int* buf, int count, int source){
+    MPI_Recv(buf,count,MPI_INT,source,MPI_ANY_TAG,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+}
 /* MPI all gather */
 inline void MPI_Allgather(int *vec, int *vec_tot, ind_int nloc) {
     MPI_Allgather(vec, nloc, MPI_INT, vec_tot, nloc, MPI_INT, MPI_COMM_WORLD);

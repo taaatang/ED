@@ -211,6 +211,27 @@ void Basis::gen(){
     locDim = subDim;
 }
 
+void Basis::gen(int workerID, int workerNum){
+    assert(model==LATTICE_MODEL::HUBBARD or model==LATTICE_MODEL::t_J);
+    if(model==LATTICE_MODEL::HUBBARD) assert(kIndex!=-1);
+    ind_int size = fMinRepList.size();
+    ind_int fidxStart, fidxEnd;
+    work_load(size, workerID, workerNum, fidxStart, fidxEnd);
+    for(ind_int idx=fidxStart; idx<fidxEnd; idx++){
+        fidx = fRepIdxHash.at(fMinRepList[idx]);
+        for(ind_int sidx=0;sidx<sDim;sidx++){
+            repI = fidx*sDim+sidx;
+            if(isMinRep(repI,norm)){
+                indexList.push_back(repI);
+                subDim++;
+                #ifdef KEEP_BASIS_NORM
+                    normList.push_back(norm);
+                #endif
+            }
+        }
+    }
+}
+
 // construct subspace basis from reps loaded from file
 void Basis::gen(std::string basisfile){
     subDim = 0;

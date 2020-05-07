@@ -64,6 +64,7 @@ public:
     
     // construc k-subspace basis. need lattice to know symmetry operations
     void gen();
+    void gen(int workerID, int workerNum);
     
     // construct k-subspace basis/norm from reps loaded from file
     void gen(std::string basisfile);
