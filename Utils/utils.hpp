@@ -51,7 +51,7 @@ inline void mpi_info(int& workerID, int& workerNum){
     OMP_Info(workerID);
 }
 
-void work_load(ind_int size, int workerID, int workerNum, ind_int& idxStart, ind_int& idxEnd){
+inline void work_load(ind_int size, int workerID, int workerNum, ind_int& idxStart, ind_int& idxEnd){
     assert((workerNum>0) && (workerID<workerNum));
     ind_int nlocmax = (size + workerNum - 1)/workerNum;
     idxStart = workerID * nlocmax;
