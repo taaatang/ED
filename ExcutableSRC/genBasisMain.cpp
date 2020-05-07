@@ -38,7 +38,7 @@ int main(int argc, const char * argv[]) {
     // N = Nx * Ny;
     infile>>kIndex;
     infile.close(); 
-    N = 8
+    N=8, Nu=4, Nd=4;
     
     // std::string subDir = "/"+std::to_string(N);
     // std::string subDir = "/"+std::to_string(Nx)+"by"+std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
