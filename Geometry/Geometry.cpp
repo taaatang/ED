@@ -569,7 +569,7 @@ SquareLattice::SquareLattice(int N, bool PBC){
             vecXAdd(2.0, a1.data(), -2.0, a2.data(), R1.data(), getDim());
             vecXAdd(2.0, a1.data(), 2.0, a2.data(), R2.data(), getDim());
             vecXAdd(1.0/4.0, b1.data(),-1.0/4.0, b2.data(), b10.data(), getDim());
-            vecXAdd(1.4, b1.data(), 1.0/4.0, b2.data(), b20.data(), getDim());
+            vecXAdd(1.0/4.0, b1.data(), 1.0/4.0, b2.data(), b20.data(), getDim());
             xlist = VecD {+0, +1, +2, -1, +0, +1, +0, +1};
             ylist = VecD {+0, +0, +0, +0, +1, +1, -1, -1};
             kxlist = VecD {0.0, 1.0, -1.0, -1.0, 0.0, 1.0, +0.0, +0.0};
