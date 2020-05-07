@@ -551,3 +551,46 @@ SquareLattice::SquareLattice(int N1, int N2, bool PBC){
         vecXAdd(1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
     }    
 }
+
+SquareLattice::SquareLattice(int N, bool PBC){
+    PG = PointGroup::D4;
+    is_PBC = PBC;
+    Nsite = N;
+    name = "Square"+std::to_string(N);
+    ax = VecD {1.0, 0.0, 0.0};
+    ay = VecD {0.0, 1.0, 0.0};
+    az = VecD {0.0, 0.0, 1.0};
+    bx = VecD {2*PI, 0.0, 0.0};
+    by = VecD {0.0, 2*PI, 0.0};
+    bz = VecD {0.0, 0.0, 2*PI};
+
+    switch(Nsite){
+        case 8:{
+            vecXAdd(2.0, a1.data(), -2.0, a2.data(), R1.data(), getDim());
+            vecXAdd(2.0, a1.data(), 2.0, a2.data(), R2.data(), getDim());
+            vecXAdd(1.0/4.0, b1.data(),-1.0/4.0, b2.data(), b10.data(), getDim());
+            vecXAdd(1.4, b1.data(), 1.0/4.0, b2.data(), b20.data(), getDim());
+            xlist = VecD {+0, +1, +2, -1, +0, +1, +0, +1};
+            ylist = VecD {+0, +0, +0, +0, +1, +1, -1, -1};
+            kxlist = VecD {0.0, 1.0, -1.0, -1.0, 0.0, 1.0, +0.0, +0.0};
+            kylist = VecD {0.0, 0.0, +0.0, +1.0, 1.0, 1.0, +2.0, -1.0};
+            break;
+        }
+        default: 
+            std::cout<<"N="<<Nsite<<" must be one of the values: 8!"<<std::endl;
+            exit(1);
+            break;
+    }
+    zlist.resize(Nsite,0.0);
+    kzlist.resize(Nsite,0.0);
+    VecD vtmp(3);
+    vecXAdd(0.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    vecXAdd(1.0, R1.data(), 1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    vecXAdd(-1.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    vecXAdd(-1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    vecXAdd(0.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    vecXAdd(1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+}
