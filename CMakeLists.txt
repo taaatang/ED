@@ -47,7 +47,8 @@ set(LANCZOS "Solver/LANCZOSIterator.hpp")
 set(SPECTRA "Solver/Spectra.hpp" ${LANCZOS})
 set(TIME "Solver/TimeEvolver.hpp" ${LANCZOS})
 
-set(BASIS_DEP ${BASIS} ${GEOMETRY} ${GLOBAL_PARA} ${UTILS})
+set(GEOMETRY_DEP ${GEOMETRY} ${GLOBAL_PARA} ${UTILS})
+set(BASIS_DEP ${BASIS} ${GEOMETRY_DEP})
 set(GROUND_STATE_DEP ${BASIS_DEP} ${OPERATOR} ${ARPACK} ${ALGEBRA})
 set(SPECTRA_DEP ${GROUND_STATE_DEP} ${SPECTRA})
 set(TIME_DEP ${GROUND_STATE_DEP} ${TIME}) 
@@ -69,6 +70,6 @@ target_link_libraries(HubbardSpec.out ${MKL} parpack)
 # Test
 set(TEST_SRC Test)
 
-add_executable(geometryTest.out ${TEST_SRC}/geometryTest.cpp)
+add_executable(geometryTest.out ${TEST_SRC}/geometryTest.cpp ${GEOMETRY_DEP})
 
 # add_executable(Time.out timeTest.cpp algebra.cpp utils.cpp Basis.cpp Geometry.cpp Operators.cpp) 
