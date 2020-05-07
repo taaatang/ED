@@ -44,7 +44,7 @@ inline void OMP_Info(int workerID){
     #endif
 }
 
-inline void MPI_Info(int& workerID, int& workerNum){
+inline void mpi_info(int& workerID, int& workerNum){
     MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
     MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
     if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl;

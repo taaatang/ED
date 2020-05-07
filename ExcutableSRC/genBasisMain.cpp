@@ -24,7 +24,7 @@ int main(int argc, const char * argv[]) {
 */
     MPI_Init(NULL, NULL);
     int workerID, workerNum;
-    MPI_Info(workerID, workerNum);
+    mpi_info(workerID, workerNum);
     
 /*
     ****************************
