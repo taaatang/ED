@@ -231,11 +231,11 @@ inline void vConjDotv(T1* vconj, T2* v, cdouble* result, ind_int size){
 }
 
 /* MPI send */
-inline voild MPI_Send(int* buf, int count, int dest){
+inline void MPI_Send(int* buf, int count, int dest){
     MPI_Send(buf,count,MPI_INT,dest,MPI_ANY_TAG,MPI_COMM_WORLD);
 }
 /* MPI recv */
-inline voild MPI_Recv(int* buf, int count, int source){
+inline void MPI_Recv(int* buf, int count, int source){
     MPI_Recv(buf,count,MPI_INT,source,MPI_ANY_TAG,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 }
 /* MPI all gather */
