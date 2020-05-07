@@ -283,7 +283,7 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
 #ifdef DISTRIBUTED_BASIS
     template <class T>
     void SparseMatrix<T>::genMatPara(int rowCount, int rowPerIt){
-        Timer timer();
+        Timer timer;
         // do MPI_Alltoall communication after #rowPerIt row iterations 
         int sendCount = rowCount * rowPerIt;
         int buffSize = blockNum * sendCount;
