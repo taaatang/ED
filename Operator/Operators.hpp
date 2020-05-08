@@ -605,7 +605,11 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     pairIndex pairRepI = pt_Basis->getPairRepI(repI);
     pt_lattice->orbOCC(pairRepI, occ, docc);
     double val = diagVal(occ,docc);
+    #ifdef DISTRIBUTED_BASIS
     SparseMatrix<T>::putDiag(val,rowID);
+    #else
+    SparseMatrix<T>::putDiag(val,rowID-BaseMatrix<T>::StartRow);
+    #endif
     // off diagonal part
     std::vector<ind_int> finalIndList;
     std::vector<cdouble> factorList;
