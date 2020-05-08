@@ -477,6 +477,8 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
             MPI_Reduce(vecBuf.data(), vecOut, rowEnd - rowStart, id);
         }
     #else
+        #pragma omp parallel for
+        for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] = 0.0;
         MPI_Allgather(vecIn,vecBuf.data(),BaseMatrix<T>::nlocmax);
         for (int i = 0; i < spmNum; i++){MKL::MxV(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
     #endif
