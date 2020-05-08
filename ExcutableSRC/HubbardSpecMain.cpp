@@ -61,7 +61,7 @@ int main(int argc, const char * argv[]) {
     // std::string subDir = std::to_string(N);
     std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
-    std::string dataDir = dataDirP+"/Conductivity/";
+    std::string dataDir = dataDirP+"/Conductivity";
     if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
     std::ofstream outfile;
     // basis data path
