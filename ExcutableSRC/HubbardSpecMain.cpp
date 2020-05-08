@@ -35,10 +35,10 @@ int main(int argc, const char * argv[]) {
     int rowPerIt = 1000;
 
     std::ifstream infile("../Input/lattice_input.txt");
-    // infile>>Nx>>Ny>>Nu>>Nd;
-    // N = Nx * Ny;
-    // infile.close();
-    N = 8, Nu = 4, Nd = 4;
+    infile>>Nx>>Ny>>Nu>>Nd;
+    N = Nx * Ny;
+    infile.close();
+    // N = 8, Nu = 4, Nd = 4;
     infile.open("../Input/symm_input.txt");
     infile>>kIndex;
     infile.close();
@@ -57,15 +57,15 @@ int main(int argc, const char * argv[]) {
     if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl; 
     OMP_Info(workerID);   
     // data directory
-    // std::string subDir = "/sq"+std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
+    std::string subDir = "/sq"+std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
-    std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
+    // std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
     std::string dataDir = dataDirP+"/Conductivity";
     if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
     std::ofstream outfile;
     // basis data path
-    bool BASIS_IS_SAVED = true;
+    bool BASIS_IS_SAVED = false;
     std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";

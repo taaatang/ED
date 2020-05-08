@@ -132,7 +132,7 @@ const int MAX_BOND_NUM = 6;
 // use the binary form of an integer to represent basis state
 #define BINARY_REP
 // basis distributed among MPI workers
-#define DISTRIBUTED_BASIS
+// #define DISTRIBUTED_BASIS
 
 #ifdef DISTRIBUTED_BASIS
     // wavefunction vectors distributed among MPI workers
