@@ -82,8 +82,20 @@ public:
     void clear();
 
     void pushDiag(T val, int matID=0){diagValList.at(matID).push_back(val);}
-    void putDiag(double val, ind_int idx, int matID=0){diagValList.at(matID).at(idx)=val;}
-    void putDiag(cdouble val, ind_int idx, int matID=0){diagValList.at(matID).at(idx)=val;}
+    void putDiag(double val, ind_int idx, int matID=0){
+        #ifdef DISTRIBUTED_BASIS
+        diagValList.at(matID).at(idx)=val;
+        #else
+        diagValList.at(matID).at(idx-BaseMatrix<T>::startRow)=val;
+        #endif
+    }
+    void putDiag(cdouble val, ind_int idx, int matID=0){
+        #ifdef DISTRIBUTED_BASIS
+        diagValList.at(matID).at(idx)=val;
+        #else
+        diagValList.at(matID).at(idx-BaseMatrix<T>::startRow)=val;
+        #endif
+    }
 
     // set buffer for MxV
     void setBuf(ind_int size){vecBuf.resize(size); is_vecBuf = true;}
