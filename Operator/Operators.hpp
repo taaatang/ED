@@ -608,7 +608,7 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     #ifdef DISTRIBUTED_BASIS
     SparseMatrix<T>::putDiag(val,rowID);
     #else
-    SparseMatrix<T>::putDiag(val,rowID-BaseMatrix<T>::StartRow);
+    SparseMatrix<T>::putDiag(val,rowID-BaseMatrix<T>::startRow);
     #endif
     // off diagonal part
     std::vector<ind_int> finalIndList;
