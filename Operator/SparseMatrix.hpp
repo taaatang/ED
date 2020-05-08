@@ -98,10 +98,10 @@ public:
     void setMpiBuff(ind_int idx_val);
     // construct sparse matrix in parallel. each thread create #rowPerThread.
     void genMatPara(int rowCount=50, int rowPerIt=1000);
-#else
+#else // DISTRIBUTED_BASIS
     void pushRow(std::unordered_map<ind_int,T>* rowMap, int matID=0);
-    void genMatPara(int rowPerThread=1)
-#endif
+    void genMatPara(int rowPerThread=1);
+#endif // DISTRIBUTED_BASIS
 
     void MxV(T *vecIn, T *vecOut);
     cdouble vMv(T *vecL, T *vecR);
@@ -198,7 +198,7 @@ SparseMatrix<T>::~SparseMatrix(){
         #ifdef DISTRIBUTED_BASIS
             for(int b = 0; b < BaseMatrix<T>::workerNum;b++) MKL::destroy(A.at(i).at(b));
         #else
-            MKL::destroy(A.at(i))
+            MKL::destroy(A.at(i));
         #endif
     }
 }

@@ -57,7 +57,7 @@ int main(int argc, const char * argv[]) {
     if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl; 
     OMP_Info(workerID);   
     // data directory
-    // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
+    // std::string subDir = "/sq"+std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
     std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
@@ -93,8 +93,15 @@ int main(int argc, const char * argv[]) {
     timer.tik();
     Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
-    if (BASIS_IS_SAVED) B.gen(basisfile, normfile, workerID, workerNum);
-    else B.gen();
+    if (BASIS_IS_SAVED){
+        #ifdef DISTRIBUTED_BASIS
+        B.gen(basisfile, normfile, workerID, workerNum);
+        #else
+        B.gen(basisfile, normfile);
+        #endif
+    } else {
+        B.gen();
+    }
     timer.tok();
     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
     fullDim = B.getTotDim(); totDim += B.getSubDim();
@@ -129,7 +136,11 @@ int main(int argc, const char * argv[]) {
     H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp).pushV({ORBITAL::Pzu, ORBITAL::Pzd},Vpz);
     H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
     if(workerID==MPI_MASTER) std::cout<<"begin H gen..."<<std::endl;
-    H.genMatPara(rowCount,rowPerIt);
+    #ifdef DISTRIBUTED_BASIS
+        H.genMatPara(rowCount,rowPerIt);
+    #else
+        H.genMatPara();
+    #endif
     timer.tok();
 
     if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
@@ -153,7 +164,11 @@ int main(int argc, const char * argv[]) {
     timer.tik();
     Current Jz(&Lattice, &B);
     Jz.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
-    Jz.genMatPara(rowCount, rowPerIt);
+    #ifdef DISTRIBUTED_BASIS
+        Jz.genMatPara(rowCount, rowPerIt);
+    #else
+        Jz.genMatPara();
+    #endif
 
     int krylovDim=400;
     SPECTRASolver<dataType> spectra(&H, w0[0], &Jz, gstate, H.get_dim(), krylovDim);
