@@ -63,14 +63,19 @@ void Nocc::genMat(){
     for(ind_int rowID = BaseMatrix<cdouble>::startRow; rowID < BaseMatrix<cdouble>::endRow; rowID++) row(rowID);
 }
 double Nocc::count(ORBITAL orbital, dataType* vec){
-    int id = pt_lattice->getOrbID(orbital);
-    double sum = 0.0, part_sum = 0.0;
-    #pragma omp parallel for reduction(+:part_sum)
-    for(ind_int i = 0; i < BaseMatrix<cdouble>::nloc; i++){
-        part_sum += std::real(diagValList[id][i])*(std::real(vec[i])*std::real(vec[i])+std::imag(vec[i])*std::imag(vec[i]));
+    VecI ids = pt_lattice->getOrbID(orbital);
+    double sum_final = 0.0;
+    for(auto it=ids.begin(); it!=ids.end(); it++){
+        int id = *it;
+        double sum = 0.0, part_sum = 0.0;
+        #pragma omp parallel for reduction(+:part_sum)
+        for(ind_int i = 0; i < BaseMatrix<cdouble>::nloc; i++){
+            part_sum += std::real(diagValList[id][i])*(std::real(vec[i])*std::real(vec[i])+std::imag(vec[i])*std::imag(vec[i]));
+        }
+        MPI_Allreduce(&part_sum, &sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        sum_final += sum;
     }
-    MPI_Allreduce(&part_sum, &sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    return sum;
+    return sum_final;
 }
 // void Hubbard::genMat(){
 //     int kIndex = pt_Basis->getkIndex();
