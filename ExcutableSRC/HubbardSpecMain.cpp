@@ -34,35 +34,38 @@ int main(int argc, const char * argv[]) {
     int rowCount = 50;
     int rowPerIt = 1000;
 
-    std::ifstream infile("../Input/lattice_input.txt");
-    if(infile.is_open()){
-        infile>>Nx>>Ny>>Nu>>Nd;
-    }else{
-        std::cout<<"file failed to open!";
-        exit(1);
-    }
-    infile.close();
+    infile({&Nx, &Ny}, "Input/lattice_input.txt");
+    infile({&kIndex, &PGRepIndex}, "Input/symm_input.txt");
+    infile({&rowCount, &rowPerIt}, "Input/genmatBuf_input.txt");
+    // std::ifstream infile("Input/lattice_input.txt");
+    // if(infile.is_open()){
+    //     infile>>Nx>>Ny>>Nu>>Nd;
+    // }else{
+    //     std::cout<<"file failed to open!";
+    //     exit(1);
+    // }
+    // infile.close();
 
     N = Nx * Ny;
     
     // N = 8, Nu = 4, Nd = 4;
-    infile.open("../Input/symm_input.txt");
-    if(infile.is_open()){
-        infile>>kIndex;
-    }else{
-        std::cout<<"file failed to open!";
-        exit(1);
-    }
-    infile.close();
+    // infile.open("Input/symm_input.txt");
+    // if(infile.is_open()){
+    //     infile>>kIndex;
+    // }else{
+    //     std::cout<<"file failed to open!";
+    //     exit(1);
+    // }
+    // infile.close();
 
-    infile.open("../Input/genmatBuf_input.txt");
-    if(infile.is_open()){
-        infile>>rowCount>>rowPerIt;
-    }else{
-        std::cout<<"file failed to open!";
-        exit(1);
-    }
-    infile.close();
+    // infile.open("Input/genmatBuf_input.txt");
+    // if(infile.is_open()){
+    //     infile>>rowCount>>rowPerIt;
+    // }else{
+    //     std::cout<<"file failed to open!";
+    //     exit(1);
+    // }
+    // infile.close();
 
 /*
     ********************

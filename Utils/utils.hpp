@@ -412,6 +412,24 @@ inline void read(std::vector<T> *d_pt, std::string filename, int workerID, int w
         exit(1);
     }
 }
+
+template <class T>
+inline void infile(std::vector<T*> para, std::string filename){
+    std::ifstream file(filename);
+    if(file.is_open()){
+        for(auto it = para.begin(); it!= para.end(); it++){
+            if(!file.eof()){
+                file>>*(*it);
+            }else{
+                std::cout<<filename<<" contains parameters less than expected:"<<para.size()<<"\n";
+            }   
+        }
+    }else{
+        std::cout<<filename<<" failed to open!\n";
+        exit(1);
+    }
+    file.close();
+}
 /*
     ******************
     * Bit Operations *
