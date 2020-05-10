@@ -34,7 +34,7 @@ int main(int argc, const char * argv[]) {
     int rowCount = 50;
     int rowPerIt = 1000;
 
-    infile({&Nx, &Ny}, "Input/lattice_input.txt");
+    infile({&Nx, &Ny, &Nu, &Nd}, "Input/lattice_input.txt");
     infile({&kIndex, &PGRepIndex}, "Input/symm_input.txt");
     infile({&rowCount, &rowPerIt}, "Input/genmatBuf_input.txt");
     // std::ifstream infile("Input/lattice_input.txt");
