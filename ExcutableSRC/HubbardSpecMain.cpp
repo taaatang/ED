@@ -35,15 +35,33 @@ int main(int argc, const char * argv[]) {
     int rowPerIt = 1000;
 
     std::ifstream infile("../Input/lattice_input.txt");
-    infile>>Nx>>Ny>>Nu>>Nd;
-    N = Nx * Ny;
+    if(infile.is_open()){
+        infile>>Nx>>Ny>>Nu>>Nd;
+    }else{
+        std::cout<<"file failed to open!";
+        exit(1);
+    }
     infile.close();
+
+    N = Nx * Ny;
+    
     // N = 8, Nu = 4, Nd = 4;
     infile.open("../Input/symm_input.txt");
-    infile>>kIndex;
+    if(infile.is_open()){
+        infile>>kIndex;
+    }else{
+        std::cout<<"file failed to open!";
+        exit(1);
+    }
     infile.close();
+
     infile.open("../Input/genmatBuf_input.txt");
-    infile>>rowCount>>rowPerIt;
+    if(infile.is_open()){
+        infile>>rowCount>>rowPerIt;
+    }else{
+        std::cout<<"file failed to open!";
+        exit(1);
+    }
     infile.close();
 
 /*
