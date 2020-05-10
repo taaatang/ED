@@ -462,8 +462,8 @@ public:
         assert(spmCount<=SparseMatrix<T>::spmNum);
         return *this;
     }
-    Hubbard& pushV(std::vector<ORBITAL> orbList, double val){for(auto it=orbList.begin();it!=orbList.end();it++)V.at(pt_lattice->getOrbID(*it))=val;return *this;}
-    Hubbard& pushU(std::vector<ORBITAL> orbList, double val){for(auto it=orbList.begin();it!=orbList.end();it++)U.at(pt_lattice->getOrbID(*it))=val;return *this;}
+    Hubbard& pushV(std::vector<ORBITAL> orbList, double val){for(auto it=orbList.begin();it!=orbList.end();it++){VecI ids = pt_lattice->getOrbID(*it); for(auto id=ids.begin();id!=ids.end();id++)V.at(*id)=val;} return *this;}
+    Hubbard& pushU(std::vector<ORBITAL> orbList, double val){for(auto it=orbList.begin();it!=orbList.end();it++){VecI ids = pt_lattice->getOrbID(*it); for(auto id=ids.begin();id!=ids.end();id++)U.at(*id)=val;} return *this;}
     void printV() const {std::cout<<"V:"<<std::endl;for(auto it=V.begin();it!=V.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
     void printU() const {std::cout<<"U:"<<std::endl;for(auto it=U.begin();it!=U.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
     double diagVal(VecI occ, VecI docc) const {double val=0.0; for(int i=0;i<pt_lattice->getUnitOrbNum();i++)val += occ.at(i)*V.at(i)+docc.at(i)*U.at(i);return val;}

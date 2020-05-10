@@ -105,7 +105,7 @@ public:
     // lattice dimension. default is 3
     int getDim() const {return dim;}
     // id of an orbital (0~unitCell size - 1)
-    int getOrbID(ORBITAL orb) const {for(auto it = unitSite.begin(); it != unitSite.end(); it++) if (orb==(*it).orb) return (*it).orbid;std::cout<<"Orbital not found!"<<std::endl;exit(1);}
+    VecI getOrbID(ORBITAL orb) const {VecI ids; for(auto it = unitSite.begin(); it != unitSite.end(); it++) if (orb==(*it).orb) ids.push_back((*it).orbid); return ids;}
     // test if the orbital at position id is orb_test
     bool is_Orbital(int id, ORBITAL orb_test) const {return orbs.at(id).orb==orb_test;}
     // return the orbital at position id
