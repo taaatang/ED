@@ -175,6 +175,8 @@ void Basis::gen(){
                         }
                     }
                 }
+            }else{
+                subDim=totDim;
             }
             break;
         }
