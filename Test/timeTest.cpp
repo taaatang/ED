@@ -91,7 +91,7 @@ int main(int argc, const char * argv[]){
         ***********
     */
     // double tdp_val=1.13, tpp_val=0.49, tppz_val=0.3, Vd=0.0, Vp=3.24, Vpz=3.0, Ud=8.5, Up=4.1;
-    double tdp_val=1, tpp_val=0.5, tppz_val=0.5, Vd=0.0, Vp=3.2, Vpz=3.2, Ud=8.5, Up=4;
+    double tdp_val=1, tpp_val=0.5, tppz_val=0.3, Vd=0.0, Vp=3.2, Vpz=3.2, Ud=8.5, Up=4;
     Link<dataType> tdpx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px}, -tdp_val); tdpx.addLinkVec({0.5,0.0,0.0});
     Link<dataType> tdpy(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Py}, tdp_val); tdpy.addLinkVec({0.0,0.5,0.0});
     Link<dataType> tpxd(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Dx2y2}, tdp_val); tpxd.addLinkVec({0.5,0.0,0.0});
