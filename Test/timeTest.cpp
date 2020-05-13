@@ -1,21 +1,14 @@
-#include "globalPara.hpp"
-#include "HelperClass.hpp" // Timer
-#include "Geometry.hpp"
-#include "Basis.hpp"
-#include "Operators.hpp"
-#include "utils.hpp"
-#include "PARPACKSolver.hpp"
-#include "LANCZOSIterator.hpp"
-#include "TimeEvolver.hpp"
-#include <iostream>
+#include "../Operator/Operators.hpp"
+#include "../Solver/PARPACKSolver.hpp"
+#include "../Solver/TimeEvolver.hpp"
+#include "../Utils/timer.hpp"
+
 #include <fstream>
+#include <stdio.h>
 #include <stdlib.h> // system
 #include <mpi.h>
-#ifdef OMP_
-    #include <omp.h>
-#endif
-#include <stdio.h>
-#include <assert.h>
+#include <omp.h>
+
 int main(int argc, const char * argv[]){
     /*
     ****************************
