@@ -27,7 +27,7 @@ int main(int argc, const char * argv[]) {
     MPI_Init(NULL, NULL);
     Timer timer;
     a_int nev = 1;
-    int N, Nx=2, Ny=2, Nu=3, Nd=2;
+    int N, Nx=4, Ny=1, Nu=3, Nd=2;
     int kIndex = 1; // 0 is Gamma Point
     int PGRepIndex = -1;
     int rowPerThread = 1;
@@ -50,7 +50,7 @@ int main(int argc, const char * argv[]) {
     if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl; 
     OMP_Info(workerID);   
     // data directory
-    std::string subDir = "/sqOcta"+std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
+    std::string subDir = "sqOcta"+std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
     // std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Conductivity";

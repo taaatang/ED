@@ -26,14 +26,14 @@ int main(int argc, const char * argv[]){
     Timer timer;
     a_int nev = 1;
     int kIndex = -1;
-    int N1=2, N2=2, N;
+    int Nx=4, Ny=1, Nu=2, Nd=2, N;
     int rowPerThread = 1;
     // std::ifstream infile("time_input.txt");
     // infile.close();
     // infile>>N1>>N2;
-    N = N1 * N2;
+    N = Nx * Ny;
     // data directory
-    std::string subDir = std::to_string(N1) + "by" + std::to_string(N2);
+    std::string subDir = "sqOcta"+std::to_string(Nx) + "by" + std::to_string(Ny);
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
 /*
     ********************
@@ -54,10 +54,11 @@ int main(int argc, const char * argv[]){
     SquareLattice Lattice(N1,N2);
     Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
     Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
+    Lattice.addOrb({ORBITAL::Py,5,{0.0,-0.5,0.0}});
     Lattice.construct();
 
     int siteDim = 2;
-    VecI occList{N/2, N-N/2};
+    VecI occList{Nu, Nd};
     ind_int fullDim=0, totDim=0;
     std::ofstream outfile;
     std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
@@ -69,12 +70,21 @@ int main(int argc, const char * argv[]){
         **********************
     */
     timer.tik();
-    Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex);
-    B.gen();
+    Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
+    if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
+    if (BASIS_IS_SAVED){
+        #ifdef DISTRIBUTED_BASIS
+        B.gen(basisfile, normfile, workerID, workerNum);
+        #else
+        B.gen(basisfile, normfile);
+        #endif
+    } else {
+        B.gen();
+    }
     timer.tok();
-    fullDim = B.getTotDim(); totDim += B.getSubDim();
-    if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kInd ="<<kIndex<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
+    fullDim = B.getTotDim(); totDim += B.getSubDim();
+    if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kInd ="<<kIndex<<", size="<<B.getLocDim()<<"/"<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl; 
     /*
         ****************************
         * Hamiltonian Construction *
@@ -85,7 +95,8 @@ int main(int argc, const char * argv[]){
         * HUBBARD *
         ***********
     */
-    double tdp_val=1.13, tpp_val=0.49, tppz_val=0.3, Vd=0.0, Vp=3.24, Vpz=3.0, Ud=8.5, Up=4.1;
+    // double tdp_val=1.13, tpp_val=0.49, tppz_val=0.3, Vd=0.0, Vp=3.24, Vpz=3.0, Ud=8.5, Up=4.1;
+    double tdp_val=1, tpp_val=0.5, tppz_val=0.5, Vd=0.0, Vp=3.2, Vpz=3.2, Ud=8.5, Up=4;
     Link<dataType> tdpx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px}, -tdp_val); tdpx.addLinkVec({0.5,0.0,0.0});
     Link<dataType> tdpy(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Py}, tdp_val); tdpy.addLinkVec({0.0,0.5,0.0});
     Link<dataType> tpxd(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Dx2y2}, tdp_val); tpxd.addLinkVec({0.5,0.0,0.0});
@@ -149,7 +160,12 @@ int main(int argc, const char * argv[]){
         H.setVal(1,factor);
         H.setVal(2,std::conj(factor));
         Tevol.evolve(-dt);
-        // if(workerID==MPI_MASTER) std::cout<<"time step: "<<t<<", d orbital occ:"<<occ.count(ORBITAL::Dx2y2,Tevol.getVec())<<std::endl;
+        if(workerID==MPI_MASTER) std::cout<<"time step: "<<t<<"\n"\
+            <<"d:"<<occ.count(ORBITAL::Dx2y2,Tevol.getVec())<<"\n"\
+            <<"px:"<<occ.count(ORBITAL::Px,Tevol.getVec())<<"\n"\
+            <<"py:"<<occ.count(ORBITAL::Py,Tevol.getVec())<<"\n"\
+            <<"pzu:"<<occ.count(ORBITAL::Pzu,Tevol.getVec())<<"\n"\
+            <<"pzd:"<<occ.count(ORBITAL::Pzd,Tevol.getVec());
     }
     timer.tok();
     if(workerID==MPI_MASTER) std::cout<<"total iterations:"<<tsteps<<". time:"<<timer.elapse()<<"ms."<<std::endl;
