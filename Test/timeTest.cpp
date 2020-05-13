@@ -18,16 +18,18 @@ int main(int argc, const char * argv[]){
     MPI_Init(NULL, NULL);
     Timer timer;
     a_int nev = 1;
-    int kIndex = -1;
+    int kIndex = -1, PGRepIndex=-1;
     int Nx=4, Ny=1, Nu=2, Nd=2, N;
     int rowPerThread = 1;
     // std::ifstream infile("time_input.txt");
     // infile.close();
-    // infile>>N1>>N2;
+    // infile>>Nx>>Ny;
     N = Nx * Ny;
     // data directory
     std::string subDir = "sqOcta"+std::to_string(Nx) + "by" + std::to_string(Ny);
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
+
+    bool BASIS_IS_SAVED = false;
 /*
     ********************
     * MPI and OMP Info *
@@ -44,7 +46,7 @@ int main(int argc, const char * argv[]){
     ************************************
 */
     // geometry class
-    SquareLattice Lattice(N1,N2);
+    SquareLattice Lattice(Nx,Ny);
     Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
     Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
     Lattice.addOrb({ORBITAL::Py,5,{0.0,-0.5,0.0}});
@@ -113,8 +115,12 @@ int main(int argc, const char * argv[]){
     H.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
     H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp).pushV({ORBITAL::Pzu, ORBITAL::Pzd},Vpz);
     H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
-    H.genMatPara(&B);
-    // H.genMat();
+    if(workerID==MPI_MASTER) std::cout<<"begin H gen..."<<std::endl;
+    #ifdef DISTRIBUTED_BASIS
+        H.genMatPara(rowCount,rowPerIt);
+    #else
+        H.genMatPara();
+    #endif
     timer.tok();
     if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
         <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
