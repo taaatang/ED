@@ -72,4 +72,7 @@ set(TEST_SRC Test)
 
 add_executable(geometryTest.out ${TEST_SRC}/geometryTest.cpp ${GEOMETRY_DEP})
 
+add_executable(timeTest.out ${TEST_SRC}/timeTest.cpp ${TIME_DEP})
+target_link_libraries(timeTest.out ${MKL} parpack)
+
 # add_executable(Time.out timeTest.cpp algebra.cpp utils.cpp Basis.cpp Geometry.cpp Operators.cpp) 
