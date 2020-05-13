@@ -159,12 +159,12 @@ int main(int argc, const char * argv[]){
         H.setVal(1,factor);
         H.setVal(2,std::conj(factor));
         Tevol.evolve(-dt);
-        if(workerID==MPI_MASTER) std::cout<<"time step: "<<t<<"\n"\
+        if(workerID==MPI_MASTER) std::cout<<"\ntime step: "<<t<<"\n"\
             <<"d:"<<occ.count(ORBITAL::Dx2y2,Tevol.getVec())<<"\n"\
             <<"px:"<<occ.count(ORBITAL::Px,Tevol.getVec())<<"\n"\
             <<"py:"<<occ.count(ORBITAL::Py,Tevol.getVec())<<"\n"\
             <<"pzu:"<<occ.count(ORBITAL::Pzu,Tevol.getVec())<<"\n"\
-            <<"pzd:"<<occ.count(ORBITAL::Pzd,Tevol.getVec());
+            <<"pzd:"<<occ.count(ORBITAL::Pzd,Tevol.getVec())<<"\n";
     }
     timer.tok();
     if(workerID==MPI_MASTER) std::cout<<"total iterations:"<<tsteps<<". time:"<<timer.elapse()<<"ms."<<std::endl;
