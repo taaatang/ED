@@ -44,7 +44,7 @@ double Pulse::getA(int stepIdx) const {
     return result;
 }
 
-double Pulse::computeFluence(){
+double Pulse::computeFluence() const {
     double result, abserr;
     size_t neval;
     gsl_integration_qng(&FuncE2, ti, tf, epsabs, epsrel, &result, &abserr, &neval);
@@ -53,7 +53,7 @@ double Pulse::computeFluence(){
 
 void Pulse::setFluence(double Flu){
     params.at(0) *= std::sqrt(Flu/Fluence); 
-    double Flu_ckeck = computeFluence();
+    double Flu_check = computeFluence();
     assert_msg(std::abs(Flu-Flu_check)<1e-6,"Err bigger than 1e-6 in Pulse::setFluence!");
     Fluence = Flu;
 }
