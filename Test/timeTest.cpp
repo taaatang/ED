@@ -19,16 +19,24 @@ int main(int argc, const char * argv[]){
     MPI_Init(NULL, NULL);
     Timer timer;
     a_int nev = 1;
-    int kIndex = -1, PGRepIndex=-1;
+    int kIndex = 0, PGRepIndex=-1;
     int Nx=4, Ny=1, Nu=2, Nd=2, N;
     int rowPerThread = 1;
+    int widx;
+    infile<int>({&widx},"Input/freq_input.txt");
+    double w = 0.1*widx;
     // std::ifstream infile("time_input.txt");
     // infile.close();
     // infile>>Nx>>Ny;
     N = Nx * Ny;
     // data directory
-    std::string subDir = "sqOcta"+std::to_string(Nx) + "by" + std::to_string(Ny);
-    std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace";
+    std::string subDir = "sqOcta"+std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
+    std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/TimeEvolve/k"+std::to_string(kIndex);
+
+    if (workerID==MPI_MASTER){
+        system(("mkdir -p " + dataDirP).c_str());
+
+    } 
 
     bool BASIS_IS_SAVED = false;
 /*
@@ -131,50 +139,77 @@ int main(int argc, const char * argv[]){
     // std::string dataDir = dataDirP+"/eigs/J2_"+std::to_string(J2_num);
     // if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
     MPI_Barrier(MPI_COMM_WORLD);
-/*
-    *********************************
-    * Diagonalization Using PARPACK *
-    *********************************
-*/
-    PARPACKComplexSolver<double> PDiag(&H, nev);
-    PDiag.diag();
-    cdouble* gstate = PDiag.getEigvec();
-/*
-    ******************
-    * Time Evolution *
-    ******************
-*/
-    int krydim = 15;
-    double dt = 0.01;
-    int tsteps = 15000;
-    double w = 4.0, width = 10.0;
-    double Fluence = 1.0; //mJ/cm^2
-    double a = 0.2429; //nm
-    Pulse pulse(w,width,dt,tsteps);
-    pulse.seta(a);
-    pulse.setFluence(Fluence);
-    pulse.print();
-    TimeEvolver<cdouble> Tevol(gstate, &H, krydim);
-    Nocc occ(&Lattice, &B); 
-    occ.genMat();
-    timer.tik();
-    for(int tstep = 0; tstep < tsteps; tstep++){
-        double Aa = pulse.getAa();
-        cdouble factor = std::exp(CPLX_I*Aa);
-        H.setVal(1,factor);
-        H.setVal(2,std::conj(factor));
-        Tevol.evolve(-dt);
-        if(tstep%150==0){
-            if(workerID==MPI_MASTER) std::cout<<"\ntime step: "<<tstep<<"\n"\
-                <<"d:"<<occ.count(ORBITAL::Dx2y2,Tevol.getVec())<<"\n"\
-                <<"px:"<<occ.count(ORBITAL::Px,Tevol.getVec())<<"\n"\
-                <<"py:"<<occ.count(ORBITAL::Py,Tevol.getVec())<<"\n"\
-                <<"pzu:"<<occ.count(ORBITAL::Pzu,Tevol.getVec())<<"\n"\
-                <<"pzd:"<<occ.count(ORBITAL::Pzd,Tevol.getVec())<<"\n";
+    int fluNum = 2;
+    double pow_start = -1.0, pow_end = 3.0
+    for (int fluidx = 0; fluidx < flunum; fluidx++){
+    /*
+        *********************************
+        * Diagonalization Using PARPACK *
+        *********************************
+    */
+        PARPACKComplexSolver<double> PDiag(&H, nev);
+        PDiag.diag();
+        cdouble* gstate = PDiag.getEigvec();
+    /*
+        ******************
+        * Time Evolution *
+        ******************
+    */
+        double Fluence = std::pow(10.0,pow_start+(pow_end-pow_start)/(fluNum-1)*fluidx);
+        std::string TimePath = dataDirP + "/w_"+std::to_string(widx)+"_flu_"+std::to_string(fluidx)+"_";
+
+        int krydim = 15;
+        double dt = 0.01;
+        int tsteps = 1500;
+        double a = 0.2429; //nm
+        double width = 10.0;
+        
+        Pulse pulse(w,width,dt,tsteps);
+        pulse.seta(a);
+        pulse.setFluence(Fluence);
+        pulse.print();
+        TimeEvolver<cdouble> Tevol(gstate, &H, krydim);
+        Nocc occ(&Lattice, &B); 
+        occ.genMat();
+        timer.tik();
+        VecD dx2y2,px,py,pzu,pzd;
+        dx2y2.push_back(occ.count(ORBITAL::Dx2y2, Tevol.getVec()));
+        px.push_back(occ.count(ORBITAL::Px,Tevol.getVec()));
+        py.push_back(occ.count(ORBITAL::Py,Tevol.getVec()));
+        pzu.push_back(occ.count(ORBITAL::Pzu,Tevol.getVec()));
+        pzd.push_back(occ.count(ORBITAL::Pzd,Tevol.getVec()));
+
+        for(int tstep = 0; tstep < tsteps; tstep++){
+            double Aa = pulse.getAa();
+            cdouble factor = std::exp(CPLX_I*Aa);
+            H.setVal(1,factor);
+            H.setVal(2,std::conj(factor));
+            Tevol.evolve(-dt);
+
+            dx2y2.push_back(occ.count(ORBITAL::Dx2y2, Tevol.getVec()));
+            px.push_back(occ.count(ORBITAL::Px,Tevol.getVec()));
+            py.push_back(occ.count(ORBITAL::Py,Tevol.getVec()));
+            pzu.push_back(occ.count(ORBITAL::Pzu,Tevol.getVec()));
+            pzd.push_back(occ.count(ORBITAL::Pzd,Tevol.getVec()));
+
+            if(tstep%150==0){
+                if(workerID==MPI_MASTER) std::cout<<"\ntime step: "<<tstep<<"\n"\
+                    <<"d:"<<occ.count(ORBITAL::Dx2y2,Tevol.getVec())<<"\n"\
+                    <<"px:"<<occ.count(ORBITAL::Px,Tevol.getVec())<<"\n"\
+                    <<"py:"<<occ.count(ORBITAL::Py,Tevol.getVec())<<"\n"\
+                    <<"pzu:"<<occ.count(ORBITAL::Pzu,Tevol.getVec())<<"\n"\
+                    <<"pzd:"<<occ.count(ORBITAL::Pzd,Tevol.getVec())<<"\n";
+            }
         }
+        std::ofstream outfile;
+        save<double>(dx2y2.data(),(int)dx2y2.size(),&outfile,TimePath+"dx2y2");
+        save<double>(px.data(),(int)px.size(),&outfile,TimePath+"px");
+        save<double>(py.data(),(int)py.size(),&outfile,TimePath+"py");
+        save<double>(pzu.data(),(int)pzu.size(),&outfile,TimePath+"pzu");
+        save<double>(pzd.data(),(int)pzd.size(),&outfile,TimePath+"pzd");
+        timer.tok();
+        if(workerID==MPI_MASTER) std::cout<<"total iterations:"<<tsteps<<". time:"<<timer.elapse()<<"ms."<<std::endl;
     }
-    timer.tok();
-    if(workerID==MPI_MASTER) std::cout<<"total iterations:"<<tsteps<<". time:"<<timer.elapse()<<"ms."<<std::endl;
     MPI_Finalize();
     return 0;
 }

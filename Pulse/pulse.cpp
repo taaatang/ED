@@ -63,7 +63,7 @@ double Pulse::computeFluence() const {
     double intval = 2*PI/params.at(2);
     double result, abserr;
     size_t neval;
-    for(double t_start = ti; t_tmp < tf; t_start += intval){
+    for(double t_start = ti; t_start < tf; t_start += intval){
         double t_next = t_start + intval;
         double t_end = t_next<tf?t_next:tf;
         gsl_integration_qng(&FuncE2, t_start, t_end, epsabs, epsrel, &result, &abserr, &neval);
