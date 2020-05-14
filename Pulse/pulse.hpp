@@ -42,10 +42,10 @@ public:
     double getA(int stepIdx) const;
     double getAa(int stepIdx) const {return a*getA(stepIdx);} // return A*a
 
-    setE0(double E0){params.at(0)=E0;}
-    setWidth(double width){params.at(1)=width*std::sqrt(2);}
-    setW(double w){params.at(2)=w;}
-    setPhase(double phase){params.at(3)=phase;}
+    void setE0(double E0){params.at(0)=E0;}
+    void setWidth(double width){params.at(1)=width*std::sqrt(2);}
+    void setW(double w){params.at(2)=w;}
+    void setPhase(double phase){params.at(3)=phase;}
     void setFluence(double Flu /* mJ/cm^2 */);
 
     void seta(double a_/*nm*/){a = a_/Lu;}
