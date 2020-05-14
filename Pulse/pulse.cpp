@@ -1,6 +1,6 @@
 #include "pulse.hpp"
 
-Pulse::Pulse(double w_, double width = 10.0, double dt_ = 0.01, int numSteps_ = 15000):{
+Pulse::Pulse(double w_, double width = 10.0, double dt_ = 0.01, int numSteps_ = 15000){
     tu = 1.05457/1.60218; // in unit of fs
     Eu = 0.160218/3/1.055; // in unit of 10^8 V/m
     Au = Eu*tu*1e-7; // in unit of V/m*s
@@ -31,12 +31,12 @@ Pulse::Pulse(double w_, double width = 10.0, double dt_ = 0.01, int numSteps_ = 
 
 }
 
-double Pulse::getE(int stepIdx){
+double Pulse::getE(int stepIdx) const {
     double t = stepIdx*dt-tc;
     return GaussPulse(t,params.data());
 }
 
-double Pulse::getA(int stepIdx){
+double Pulse::getA(int stepIdx) const {
     double t = stepIdx*dt-tc;
     double result, abserr;
     size_t neval;
