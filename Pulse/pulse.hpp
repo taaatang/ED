@@ -33,8 +33,8 @@ class Pulse{
           tu = hbar/eV, Lu = c*tu, Eu = eV/e/Lu
 */
 public:
-    pulse(double w_/*eV*/, double width = 10.0/*fs*/, double dt_ = 0.01/*tu*/, int numSteps_ = 15000);
-    ~pulse(){};
+    Pulse(double w_/*eV*/, double width = 10.0/*fs*/, double dt_ = 0.01/*tu*/, int numSteps_ = 15000);
+    ~Pulse(){};
 
     double getE(int stepIdx) const;
     double getFluence() const {return Fluence;}
