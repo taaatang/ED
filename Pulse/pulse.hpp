@@ -46,7 +46,7 @@ public:
     void print() const;
 
 private:
-    double E, A;
+    mutable double E, A;
 
     double Eu, Au; // electric field unit
     std::vector<double> params; // params = {E0, sigma, w, phase}, sigma = sqrt(2)*width, where I(width) = I(0)/e
@@ -58,7 +58,7 @@ private:
     int numSteps;
     double tu; // time unit: hbar/eV, fs
     double ti,tc,tf; 
-    double t;
+    mutable double t;
 
     gsl_function FuncE;
     gsl_function FuncE2;
