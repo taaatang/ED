@@ -37,6 +37,7 @@ link_directories(${ARPACKLIB})
 # SRC and Hearder files
 set(GLOBAL_PARA "Global/globalPara.hpp")
 set(UTILS "Utils/utils.cpp" "Utils/utils.hpp" "Utils/timer.hpp")
+set(PULSE "Pulse/pulse.cpp" "Pulse/pulse.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp")
 set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp")
 set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
@@ -51,7 +52,7 @@ set(GEOMETRY_DEP ${GEOMETRY} ${GLOBAL_PARA} ${UTILS})
 set(BASIS_DEP ${BASIS} ${GEOMETRY_DEP})
 set(GROUND_STATE_DEP ${BASIS_DEP} ${OPERATOR} ${ARPACK} ${ALGEBRA})
 set(SPECTRA_DEP ${GROUND_STATE_DEP} ${SPECTRA})
-set(TIME_DEP ${GROUND_STATE_DEP} ${TIME}) 
+set(TIME_DEP ${GROUND_STATE_DEP} ${TIME} ${PULSE})
 
 # Excutables
 set(EXE_SRC ExcutableSRC)
@@ -73,6 +74,6 @@ set(TEST_SRC Test)
 add_executable(geometryTest.out ${TEST_SRC}/geometryTest.cpp ${GEOMETRY_DEP})
 
 add_executable(timeTest.out ${TEST_SRC}/timeTest.cpp ${TIME_DEP})
-target_link_libraries(timeTest.out ${MKL} parpack)
+target_link_libraries(timeTest.out ${MKL} parpack gsl gslcblas)
 
 # add_executable(Time.out timeTest.cpp algebra.cpp utils.cpp Basis.cpp Geometry.cpp Operators.cpp) 
