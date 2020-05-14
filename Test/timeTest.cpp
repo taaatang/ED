@@ -1,6 +1,7 @@
 #include "../Operator/Operators.hpp"
 #include "../Solver/PARPACKSolver.hpp"
 #include "../Solver/TimeEvolver.hpp"
+#include "../Pulse/pulse.hpp67"
 #include "../Utils/timer.hpp"
 
 #include <fstream>
@@ -145,26 +146,32 @@ int main(int argc, const char * argv[]){
 */
     int krydim = 15;
     double dt = 0.01;
-    int tsteps = 100;
-    double t, t0=dt*(tsteps/2);
-    double amp = 0.5, sigma = dt*(tsteps/5), freq = 1.5;
+    int tsteps = 15000;
+    double w = 4.0, width = 10.0;
+    double Fluence = 1.0; //mJ/cm^2
+    double a = 0.2429; //nm
+    Pulse pulse(w,width,dt,tsteps);
+    pulse.seta(a);
+    pulse.setFluence(Fluence);
+    pulse.print();
     TimeEvolver<cdouble> Tevol(gstate, &H, krydim);
     Nocc occ(&Lattice, &B); 
     occ.genMat();
     timer.tik();
     for(int tstep = 0; tstep < tsteps; tstep++){
-        t = dt * tstep - t0;
-        double A = GaussPulse(t,amp,sigma,freq);
-        cdouble factor = std::exp(CPLX_I*A);
+        double Aa = pulse.getAa(tstep);
+        cdouble factor = std::exp(CPLX_I*Aa);
         H.setVal(1,factor);
         H.setVal(2,std::conj(factor));
         Tevol.evolve(-dt);
-        if(workerID==MPI_MASTER) std::cout<<"\ntime step: "<<t<<"\n"\
-            <<"d:"<<occ.count(ORBITAL::Dx2y2,Tevol.getVec())<<"\n"\
-            <<"px:"<<occ.count(ORBITAL::Px,Tevol.getVec())<<"\n"\
-            <<"py:"<<occ.count(ORBITAL::Py,Tevol.getVec())<<"\n"\
-            <<"pzu:"<<occ.count(ORBITAL::Pzu,Tevol.getVec())<<"\n"\
-            <<"pzd:"<<occ.count(ORBITAL::Pzd,Tevol.getVec())<<"\n";
+        if(tstep%150==0){
+            if(workerID==MPI_MASTER) std::cout<<"\ntime step: "<<tstep<<"\n"\
+                <<"d:"<<occ.count(ORBITAL::Dx2y2,Tevol.getVec())<<"\n"\
+                <<"px:"<<occ.count(ORBITAL::Px,Tevol.getVec())<<"\n"\
+                <<"py:"<<occ.count(ORBITAL::Py,Tevol.getVec())<<"\n"\
+                <<"pzu:"<<occ.count(ORBITAL::Pzu,Tevol.getVec())<<"\n"\
+                <<"pzd:"<<occ.count(ORBITAL::Pzd,Tevol.getVec())<<"\n";
+        }
     }
     timer.tok();
     if(workerID==MPI_MASTER) std::cout<<"total iterations:"<<tsteps<<". time:"<<timer.elapse()<<"ms."<<std::endl;
