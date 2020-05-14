@@ -1,6 +1,6 @@
 #include "pulse.hpp"
 
-Pulse::Pulse(double w_, double width = 10.0, double dt_ = 0.01, int numSteps_ = 15000){
+Pulse::Pulse(double w_, double width, double dt_ , int numSteps_){
     tu = 1.05457/1.60218; // in unit of fs
     Eu = 0.160218/3/1.055; // in unit of 10^8 V/m
     Au = Eu*tu*1e-7; // in unit of V/m*s
