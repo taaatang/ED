@@ -32,8 +32,8 @@ public:
     double getE(int stepIdx) const;
     double getFluence() const {return Fluence;}
     double computeFluence() const;
-    double getA(int stepIdx) const;
-    double getAa(int stepIdx) const {return a*getA(stepIdx);} // return A*a
+    double getA() const;
+    double getAa() const {return a*getA();} // return A*a
 
     void setE0(double E0){params.at(0)=E0;}
     void setWidth(double width){params.at(1)=width*std::sqrt(2);}
@@ -58,6 +58,7 @@ private:
     int numSteps;
     double tu; // time unit: hbar/eV, fs
     double ti,tc,tf; 
+    double t;
 
     gsl_function FuncE;
     gsl_function FuncE2;

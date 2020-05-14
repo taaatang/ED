@@ -12,6 +12,8 @@ double GaussPulse2(double t, void* params){
 }
 
 Pulse::Pulse(double w_, double width, double dt_ , int numSteps_){
+    A = 0.0;
+
     tu = 1.05457/1.60218; // in unit of fs
     Eu = 0.160218/3/1.055; // in unit of 10^8 V/m
     Au = Eu*tu*1e-7; // in unit of V/m*s
@@ -29,17 +31,17 @@ Pulse::Pulse(double w_, double width, double dt_ , int numSteps_){
     tc = dt*numSteps/2.0;
     ti = 0.0-tc;
     tf = dt*numSteps-tc;
+    t = ti;
 
     FuncE.function = &GaussPulse;
     FuncE.params = (void *)params.data();
 
     FuncE2.function = &GaussPulse2;
     FuncE2.params = (void *)params.data();
-    epsabs = 1e-10;
-    epsrel = 1e-6;
+    epsabs = 1e-8;
+    epsrel = 1e-8;
 
     Fluence = computeFluence();
-
 }
 
 double Pulse::getE(int stepIdx) const {
@@ -47,19 +49,27 @@ double Pulse::getE(int stepIdx) const {
     return GaussPulse(t,(void *)params.data());
 }
 
-double Pulse::getA(int stepIdx) const {
-    double t = stepIdx*dt-tc;
+double Pulse::getA() const {
     double result, abserr;
     size_t neval;
-    gsl_integration_qng(&FuncE, ti, t, epsabs, epsrel, &result, &abserr, &neval);
-    return result;
+    gsl_integration_qng(&FuncE, t, t+dt, epsabs, epsrel, &result, &abserr, &neval);
+    t += dt;
+    A += result;
+    return A;
 }
 
 double Pulse::computeFluence() const {
+    double result_sum;
+    double intval = 2*PI/params.at(2);
     double result, abserr;
     size_t neval;
-    gsl_integration_qng(&FuncE2, ti, tf, epsabs, epsrel, &result, &abserr, &neval);
-    return 3.0*8.85*tu*Eu*Eu*result*1e-7;
+    for(double t_start = ti; t_tmp < tf; t_start += intval){
+        double t_next = t_start + intval;
+        double t_end = t_next<tf?t_next:tf;
+        gsl_integration_qng(&FuncE2, t_start, t_end, epsabs, epsrel, &result, &abserr, &neval);
+        result_sum += result;
+    }
+    return 3.0*8.85*tu*Eu*Eu*result_sum*1e-7;
 }
 
 void Pulse::setFluence(double Flu){
