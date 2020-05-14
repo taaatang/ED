@@ -17,6 +17,9 @@ int main(int argc, const char * argv[]){
     ****************************
 */
     MPI_Init(NULL, NULL);
+    int workerID, workerNum;
+    mpi_info(workerID, workerNum);
+
     Timer timer;
     a_int nev = 1;
     int kIndex = 0, PGRepIndex=-1;
@@ -140,7 +143,7 @@ int main(int argc, const char * argv[]){
     // if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
     MPI_Barrier(MPI_COMM_WORLD);
     int fluNum = 2;
-    double pow_start = -1.0, pow_end = 3.0
+    double pow_start = -1.0, pow_end = 3.0;
     for (int fluidx = 0; fluidx < flunum; fluidx++){
     /*
         *********************************

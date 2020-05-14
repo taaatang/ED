@@ -20,11 +20,18 @@
 
 int main(int argc, const char * argv[]) {
 /*
+    ********************
+    * MPI and OMP Info *
+    ********************
+*/
+    MPI_Init(NULL, NULL);
+    int workerID, workerNum;
+    mpi_info(workerID, workerNum);
+/*
     ****************************
     * Input And Initialization *
     ****************************
 */
-    MPI_Init(NULL, NULL);
     Timer timer;
     a_int nev = 1;
     int N, Nx=4, Ny=1, Nu=3, Nd=2;
@@ -39,16 +46,6 @@ int main(int argc, const char * argv[]) {
     // infile<int>({&rowCount, &rowPerIt}, "Input/genmatBuf_input.txt");
     N = Nx * Ny;
 
-/*
-    ********************
-    * MPI and OMP Info *
-    ********************
-*/
-    int workerID, workerNum;
-    MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
-    MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
-    if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl; 
-    OMP_Info(workerID);   
     // data directory
     std::string subDir = "sqOcta"+std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
