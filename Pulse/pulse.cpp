@@ -1,5 +1,16 @@
 #include "pulse.hpp"
 
+double GaussPulse(double t, void* params){
+    double *Params = (double *) params;
+    double amp = Params[0], sigma = Params[1], freq = Params[2], phase = Params[3];
+    return amp*std::exp(-t*t/sigma/sigma)*std::sin(freq*t+phase);
+}
+
+double GaussPulse2(double t, void* params){
+    double E = GaussPulse(t, params);
+    return E*E;
+}
+
 Pulse::Pulse(double w_, double width, double dt_ , int numSteps_){
     tu = 1.05457/1.60218; // in unit of fs
     Eu = 0.160218/3/1.055; // in unit of 10^8 V/m
@@ -19,10 +30,10 @@ Pulse::Pulse(double w_, double width, double dt_ , int numSteps_){
     ti = 0.0-tc;
     tf = dt*numSteps-tc;
 
-    FuncE.function = &PULSE::GaussPulse;
+    FuncE.function = &GaussPulse;
     FuncE.params = (void *)params.data();
 
-    FuncE2.function = &PULSE::GaussPulse2;
+    FuncE2.function = &GaussPulse2;
     FuncE2.params = (void *)params.data();
     epsabs = 1e-10;
     epsrel = 1e-6;
@@ -33,7 +44,7 @@ Pulse::Pulse(double w_, double width, double dt_ , int numSteps_){
 
 double Pulse::getE(int stepIdx) const {
     double t = stepIdx*dt-tc;
-    return PULSE::GaussPulse(t,(void *)params.data());
+    return GaussPulse(t,(void *)params.data());
 }
 
 double Pulse::getA(int stepIdx) const {
