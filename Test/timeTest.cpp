@@ -144,7 +144,7 @@ int main(int argc, const char * argv[]){
     MPI_Barrier(MPI_COMM_WORLD);
     int fluNum = 2;
     double pow_start = -1.0, pow_end = 3.0;
-    for (int fluidx = 0; fluidx < flunum; fluidx++){
+    for (int fluidx = 0; fluidx < fluNum; fluidx++){
     /*
         *********************************
         * Diagonalization Using PARPACK *
