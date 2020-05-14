@@ -41,17 +41,7 @@ int main(int argc, const char * argv[]){
 
     } 
 
-    bool BASIS_IS_SAVED = false;
-/*
-    ********************
-    * MPI and OMP Info *
-    ********************
-*/
-    int workerID, workerNum;
-    MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
-    MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
-    if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl; 
-    OMP_Info(workerID);    
+    bool BASIS_IS_SAVED = false;  
 /*
     ************************************
     * Lattice and Basis Initialization *
