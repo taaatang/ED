@@ -40,12 +40,15 @@ public:
     double getFluence() const {return Fluence;}
     double computeFluence() const;
     double getA(int stepIdx) const;
+    double getAa(int stepIdx) const {return a*getA(stepIdx);} // return A*a
 
     setE0(double E0){params.at(0)=E0;}
     setWidth(double width){params.at(1)=width*std::sqrt(2);}
     setW(double w){params.at(2)=w;}
     setPhase(double phase){params.at(3)=phase;}
     void setFluence(double Flu /* mJ/cm^2 */);
+
+    void seta(double a_/*nm*/){a = a_/Lu;}
 
     void print() const;
 
@@ -55,6 +58,8 @@ private:
     double Eu, Au; // electric field unit
     std::vector<double> params; // params = {E0, sigma, w, phase}, sigma = sqrt(2)*width, where I(width) = I(0)/e
     double Fluence;
+
+    double Lu, a;
 
     double dt;
     int numSteps;
