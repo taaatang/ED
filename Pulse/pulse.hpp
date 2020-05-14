@@ -13,16 +13,17 @@
 #include "../Utils/utils.hpp"
 #include <gsl/gsl_integration.h>
 #include <cmath>
+namespace PULSE{
+    double GaussPulse(double t, void* params){
+        double *Params = (double *) params;
+        double amp = Params[0], sigma = Params[1], freq = Params[2], phase = Params[3];
+        return amp*std::exp(-t*t/sigma/sigma)*std::sin(freq*t+phase);
+    }
 
-double GaussPulse(double t, void* params){
-    double *Params = (double *) params;
-    double amp = Params[0], sigma = Params[1], freq = Params[2], phase = Params[3];
-    return amp*std::exp(-t*t/sigma/sigma)*std::sin(freq*t+phase);
-}
-
-double GaussPulse2(double t, void* params){
-    double E = GaussPulse(t, params);
-    return E*E;
+    double GaussPulse2(double t, void* params){
+        double E = GaussPulse(t, params);
+        return E*E;
+    }
 }
 
 class Pulse{

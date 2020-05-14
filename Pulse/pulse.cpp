@@ -19,10 +19,10 @@ Pulse::Pulse(double w_, double width, double dt_ , int numSteps_){
     ti = 0.0-tc;
     tf = dt*numSteps-tc;
 
-    FuncE.function = &GaussPulse;
+    FuncE.function = &PULSE::GaussPulse;
     FuncE.params = (void *)params.data();
 
-    FuncE2.function = &GaussPulse2;
+    FuncE2.function = &PULSE::GaussPulse2;
     FuncE2.params = (void *)params.data();
     epsabs = 1e-10;
     epsrel = 1e-6;
@@ -33,7 +33,7 @@ Pulse::Pulse(double w_, double width, double dt_ , int numSteps_){
 
 double Pulse::getE(int stepIdx) const {
     double t = stepIdx*dt-tc;
-    return GaussPulse(t,(void *)params.data());
+    return PULSE::GaussPulse(t,(void *)params.data());
 }
 
 double Pulse::getA(int stepIdx) const {
