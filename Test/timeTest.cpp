@@ -1,7 +1,7 @@
 #include "../Operator/Operators.hpp"
 #include "../Solver/PARPACKSolver.hpp"
 #include "../Solver/TimeEvolver.hpp"
-#include "../Pulse/pulse.hpp67"
+#include "../Pulse/pulse.hpp"
 #include "../Utils/timer.hpp"
 
 #include <fstream>
