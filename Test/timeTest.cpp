@@ -159,7 +159,7 @@ int main(int argc, const char * argv[]){
     occ.genMat();
     timer.tik();
     for(int tstep = 0; tstep < tsteps; tstep++){
-        double Aa = pulse.getAa(tstep);
+        double Aa = pulse.getAa();
         cdouble factor = std::exp(CPLX_I*Aa);
         H.setVal(1,factor);
         H.setVal(2,std::conj(factor));
