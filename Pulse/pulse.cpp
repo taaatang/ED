@@ -59,7 +59,7 @@ double Pulse::getA() const {
 }
 
 double Pulse::computeFluence() const {
-    double result_sum;
+    double result_sum=0.0;
     double intval = 2*PI/params.at(2);
     double result, abserr;
     size_t neval;
@@ -69,7 +69,7 @@ double Pulse::computeFluence() const {
         gsl_integration_qng(&FuncE2, t_start, t_end, epsabs, epsrel, &result, &abserr, &neval);
         result_sum += result;
     }
-    return 3.0*8.85*tu*Eu*Eu*result_sum*1e-7;
+    return 3.0*8.85*tu*Eu*Eu*result_sum*1e-4;
 }
 
 void Pulse::setFluence(double Flu){
