@@ -82,8 +82,8 @@ void Pulse::setFluence(double Flu){
 void Pulse::print() const {
     std::cout<<"Pulse Info:\n";
     std::cout<<"E0:"<<params.at(0)*Eu<<"*10^8 V/m\n"\
-             <<"sigma:"<<params.at(1)*tu<<"fs\n"\
-             <<"w:"<<params.at(2)<<"eV\n"\
+             <<"sigma:"<<params.at(1)*tu<<" fs\n"\
+             <<"w:"<<params.at(2)<<" eV\n"\
              <<"phase:"<<params.at(3)<<"\n"\
-             <<"Fluence:"<<Fluence<<"mJ/cm^2\n";
+             <<"Fluence:"<<Fluence<<" mJ/cm^2\n";
 }
