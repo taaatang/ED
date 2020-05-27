@@ -10,7 +10,7 @@
 #define Operators_hpp
 
 #include "../Basis/Basis.hpp"
-#include "SparseMatrix.hpp"
+#include "../Operator/SparseMatrix.hpp"
 
 #include <stdio.h>
 #include <algorithm>
@@ -24,7 +24,6 @@
 #include <complex>
 
 /* Operators_hpp */
-
 
 template <class T>
 class Link{
@@ -423,7 +422,18 @@ public:
         spsm(siteJ, siteI, factor, repI,rowMap);
     };
 };
+class ProjSpinOps{
+/*
+    Spin-1/2 ops for tJ model. Operate on projected hilbert space without double occupancy.(docc)
+*/
+public:
+    
+protected:
+    Basis *pt_Basis;
+}
+class ProjFermOps{
 
+}
 /*
     ***********
     * Hubbard *
