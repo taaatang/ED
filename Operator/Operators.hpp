@@ -382,6 +382,26 @@ public:
             }
         #endif
     };
+
+    void szsznn(int siteI, int siteJ, dataType factor, ind_int repI, MAP* rowMap){
+        // for tJ model, szi*szj -1/4*ni*nj
+        assert_msg(model==LATTICE_MODEL::t_J,"SpinOperator::szsznn only defined for tJ model");
+        pairIndex pairRepI = pt_Basis->getPairRepI(repI);
+        if((bitTest(pairRepI.first,siteI) && bitTest(pairRepI.second,siteJ)) || (bitTest(pairRepI.first,siteJ) && bitTest(pairRepI.second,siteI))){
+            #ifdef DISTRIBUTED_BASIS
+                dataType dval = -0.5*factor;
+                MapPush(rowMap,repI,dval);
+            #else
+                ind_int colID;
+                if (pt_Basis->search(repI,colID)){
+                    dataType dval = -0.5*factor;
+                    double finalNorm = pt_Basis->getNorm(colID);
+                    dval /= finalNorm;
+                    MapPush(rowMap,colID,dval);
+                }
+            #endif
+        }
+    }
     
     void spsm(int siteI, dataType factor, ind_int repI, MAP* rowMap){
         bool condition;
@@ -863,13 +883,32 @@ void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
             for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                 int siteI = (*bondit).at(0);
                 int siteJ = (*bondit).at(1);
-                // cp.siteI * cm.siteJ
-                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);
-                if(isfminRep){
-                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);   
+                switch(type){
+                    case LINK_TYPE::HOPPING_T:{
+                        // cp.siteI * cm.siteJ
+                        cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                        cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);
+                        if(isfminRep){
+                            cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                            cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);   
+                        }
+                        break;
+                    }
+                    case LINK_TYPE::SUPER_EXCHANGE_J:{
+                        // szi * szj - 1/4*ni*nj 
+                        szsznn(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                        // 1/2 * sm.siteID * sp.siteIDp
+                        spsm(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                        // 1/2 * sp.siteID * sm.siteIDp
+                        smsp(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                        break;
+                    }
                 }
+                default:{
+                    std::cout<<"Interaction type not defined for tJ model(HtJ::row)\n";
+                    exit(1);
+                }
+                
             }
         }
     }
