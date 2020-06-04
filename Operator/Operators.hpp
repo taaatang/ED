@@ -633,11 +633,12 @@ private:
     // non-constant links
     std::vector<Link<T>> NCLinks;
     Geometry *pt_lattice;
+    Basis* pt_Basis;
 public:
     HtJ(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int dmNum_=0, int spindim=2):\
         FermionOperator(pt_Ba, LATTICE_MODEL::t_J),\
         SpinOperator(pt_Ba, LATTICE_MODEL::t_J),\
-        SparseMatrix<T>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_,dmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+        SparseMatrix<T>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_,dmNum_), pt_lattice(pt_lat), pt_Basis(pt_Ba),linkCount(0),spmCount(0){}
     ~HtJ(){}
 
     HtJ& pushLink(Link<T> link, int matID){
