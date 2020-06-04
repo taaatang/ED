@@ -183,9 +183,9 @@ public:
                         bitFlip(repIf,siteJ);
                         int counter = 0;
                         if (siteI < siteJ) {
-                            for (int i = siteI + 1; i < siteJ; i++) if (bitTest(repI,i)) counter++;
+                            for (int i = siteI + 1; i < siteJ; i++) {if (bitTest(repI,i)) counter++; else if (bitTest(repIp,i)) counter++;}
                         }else{
-                            for (int i = siteJ + 1; i < siteI; i++) if (bitTest(repI,i)) counter++;
+                            for (int i = siteJ + 1; i < siteI; i++) {if (bitTest(repI,i)) counter++; else if (bitTest(repIp,i)) counter++;}
                         }
                         if (counter%2==0) sign = 1;
                         else sign = -1;
@@ -252,7 +252,7 @@ protected:
     int spinDim;
     std::vector<double> szMat, spMat, smMat;
 public: 
-    SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod=HEISENBERG);
+    SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod=LATTICE_MODEL::HEISENBERG);
     ~SpinOperator(){};
     
     double getSz(int siteI, VecI& initVec) const {return szMat.at(initVec.at(siteI));}
@@ -341,15 +341,37 @@ public:
     /*
         Binary Reps For Spindim=2
     */
-   double getSz(int siteI, ind_int repI) const {return szMat.at(1&(repI>>siteI));}
+    double getSz(int siteI, ind_int repI) const {
+        switch(model){
+            case LATTICE_MODEL::HEISENBERG:{
+                return szMat.at(1&(repI>>siteI));
+                break;
+            }
+            case LATTICE_MODEL::t_J:{
+                pairIndex pairRepI=pt_Basis->getPairRepI(repI);
+                if(bitTest(pairRepI.first,siteI)){
+                    return szMat.at(0);
+                }else if(bitTest(pairRepI.second,siteI)){
+                    return szMat.at(1);
+                }else{
+                    return 0.0;
+                }
+                break;
+            }
+            default:{
+                std::cout<<"model not defined for SpinOperator::getSz\n";
+                exit(1);
+            }
+        }   
+    }
     void szsz(int siteI, int siteJ, dataType factor, ind_int repI, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
-            dataType dval = factor * szMat.at(1&(repI>>siteI)) * szMat.at(1&(repI>>siteJ));
+            dataType dval = factor * getSz(siteI,repI) * getSz(siteJ,repI);
             MapPush(rowMap,repI,dval);
         #else
             ind_int colID;
             if (pt_Basis->search(repI,colID)){
-                dataType dval = factor * szMat.at(1&(repI>>siteI)) * szMat.at(1&(repI>>siteJ));
+                dataType dval = factor * getSz(siteI,repI) * getSz(siteJ,repI);
                 double finalNorm = pt_Basis->getNorm(colID);
                 dval /= finalNorm;
                 MapPush(rowMap,colID,dval);
@@ -358,7 +380,23 @@ public:
     };
     
     void spsm(int siteI, dataType factor, ind_int repI, MAP* rowMap){
-        if (!bitTest(repI,siteI)){
+        bool condition;
+        switch(model){
+            case LATTICE_MODEL::HEISENBERG:{
+                condition = !bitTest(repI,siteI);
+                break;
+            }
+            case LATTICE_MODEL::t_J:{
+                pairIndex pairRepI = pt_Basis->getPairRepI(repI);
+                condition = bitTest(pairRepI.first,siteI);
+                break;
+            }
+            default:{
+                std::cout<<"model not defined for SpinOperator::spsm\n";
+                exit(1);
+            }
+        }
+        if (condition){
             #ifdef DISTRIBUTED_BASIS
                 dataType val = factor * spMat[1] * smMat[0];
                 MapPush(rowMap,repI,val);
@@ -375,6 +413,22 @@ public:
     };
     
     void smsp(int siteI, dataType factor, ind_int repI, MAP* rowMap){
+        bool condition;
+        switch(model){
+            case LATTICE_MODEL::HEISENBERG:{
+                condition = bitTest(repI,siteI);
+                break;
+            }
+            case LATTICE_MODEL::t_J:{
+                pairIndex pairRepI = pt_Basis->getPairRepI(repI);
+                condition = bitTest(pairRepI.second,siteI);
+                break;
+            }
+            default:{
+                std::cout<<"model not defined for SpinOperator::smsp\n";
+                exit(1);
+            }
+        }
         if (bitTest(repI,siteI)){
             #ifdef DISTRIBUTED_BASIS
                 dataType val = factor * spMat[1] * smMat[0];
@@ -397,21 +451,53 @@ public:
             spsm(siteI, factor, repI, rowMap);
             return;
         }
-        if (bitTest(repI,siteI) && (!bitTest(repI,siteJ))){
-            bitFlip(repI,siteI);
-            bitFlip(repI,siteJ);
-            dataType val = factor * spMat[1] * smMat[0];
-            #ifdef DISTRIBUTED_BASIS
-                MapPush(rowMap,repI,val);
-            #else
-                ind_int colID;
-                if (pt_Basis->search(repI, colID)){
-                    double finalNorm = pt_Basis->getNorm(colID);
-                    val /= finalNorm;
-                    MapPush(rowMap,colID,val);
+        switch(model){
+            case LATTICE_MODEL::HEISENBERG:{
+                if (bitTest(repI,siteI) && (!bitTest(repI,siteJ))){
+                bitFlip(repI,siteI);
+                bitFlip(repI,siteJ);
+                dataType val = factor * spMat[1] * smMat[0];
+                #ifdef DISTRIBUTED_BASIS
+                    MapPush(rowMap,repI,val);
+                #else
+                    ind_int colID;
+                    if (pt_Basis->search(repI, colID)){
+                        double finalNorm = pt_Basis->getNorm(colID);
+                        val /= finalNorm;
+                        MapPush(rowMap,colID,val);
+                    }
+                #endif
                 }
-            #endif
+                break;
+            }
+            case LATTICE_MODEL::t_J:{
+                pairIndex pairRepI = pt_Basis->getPairRepI(repI);
+                if (bitTest(pairRepI.first,siteJ) && bitTest(pairRepI.second,siteI)){
+                    bitFlip(pairRepI.first,siteI);
+                    bitFlip(pairRepI.first,siteJ);
+                    bitFlip(pairRepI.second,siteI);
+                    bitFlip(pairRepI.second,siteJ);
+                    repI = pt_Basis->getRepI(pairRepI);
+                    dataType val = factor * spMat[1] * smMat[0];
+                    #ifdef DISTRIBUTED_BASIS
+                        MapPush(rowMap,repI,val);
+                    #else
+                    ind_int colID;
+                    if (pt_Basis->search(repI, colID)){
+                        double finalNorm = pt_Basis->getNorm(colID);
+                        val /= finalNorm;
+                        MapPush(rowMap,colID,val);
+                    }
+                    #endif
+                }
+                break;
+            }
+            default:{
+                std::cout<<"model not defined for SpinOperator::spsm\n";
+                exit(1);
+            }
         }
+        
     };
     
     void smsp(int siteI, int siteJ, dataType factor, ind_int repI, MAP* rowMap){
@@ -425,8 +511,11 @@ public:
 class ProjSpinOps{
 /*
     Spin-1/2 ops for tJ model. Operate on projected hilbert space without double occupancy.(docc)
+    Inorder to not consider fermion sign for spin operators, the basis state is aranged as [su0,sd0,su1,sd1,...]
+    The basis state is stored as [su0,su1,...], [sd0,sd1,...]
 */
 public:
+    double getSz()
     
 protected:
     Basis *pt_Basis;
