@@ -24,7 +24,7 @@ int main(int argc, const char * argv[]) {
 */  
     MPI_Init(NULL, NULL);
     int workerID, workerNum;
-    mpi_info(&workerID, &workerNum);
+    mpi_info(workerID, workerNum);
 /*
     ****************************
     * Input And Initialization *
@@ -36,7 +36,7 @@ int main(int argc, const char * argv[]) {
     int PGRepIndex = -1;
     double spin = 0.5;
     double t1 = 1.0, t2 = 0.2, J1= 1.0, J2 = 0.0;
-    double J2 = 0.0, dJ2 = 0.01;
+    double dJ2 = 0.01;
     a_int nev=1;
 
     Timer timer;

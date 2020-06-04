@@ -553,7 +553,7 @@ private:
     Geometry *pt_lattice;
 public:
     Hubbard(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int dmNum_=1, int spindim=2):V(pt_lat->getUnitOrbNum()), U(pt_lat->getUnitOrbNum()),\
-        FermionOperator(pt_Ba),SparseMatrix<dataType>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_,dmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+        FermionOperator(pt_Ba),SparseMatrix<T>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_,dmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Hubbard(){};
 
     Hubbard& pushLink(Link<T> link, int matID){
@@ -634,10 +634,10 @@ private:
     std::vector<Link<T>> NCLinks;
     Geometry *pt_lattice;
 public:
-    HtJ(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int dmNum_=1, int spindim=2):\
+    HtJ(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int dmNum_=0, int spindim=2):\
         FermionOperator(pt_Ba, LATTICE_MODEL::t_J),\
         SpinOperator(pt_Ba, LATTICE_MODEL::t_J),\
-        SparseMatrix<dataType>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_,dmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+        SparseMatrix<T>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_,dmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~HtJ(){}
 
     HtJ& pushLink(Link<T> link, int matID){
@@ -903,12 +903,11 @@ void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
                         smsp(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]);
                         break;
                     }
-                }
-                default:{
-                    std::cout<<"Interaction type not defined for tJ model(HtJ::row)\n";
-                    exit(1);
-                }
-                
+                    default:{
+                        std::cout<<"Interaction type not defined for tJ model(HtJ::row)\n";
+                        exit(1);
+                    }
+                }   
             }
         }
     }
