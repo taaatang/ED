@@ -598,6 +598,49 @@ public:
 };
 
 /*
+    ******
+    * tJ *
+    ******
+*/
+
+template <class T>
+class HtJ: public FermionOperator, public SpinOperator, public SparseMatrix<T>{
+private:
+    // constant links
+    int linkCount;
+    int spmCount;
+    std::vector<Link<T>> Links;
+    // non-constant links
+    std::vector<Link<T>> NCLinks;
+    Geometry *pt_lattice;
+public:
+    HtJ(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int dmNum_=1, int spindim=2):\
+        FermionOperator(pt_Ba, LATTICE_MODEL::t_J),\
+        SpinOperator(pt_Ba, LATTICE_MODEL::t_J),\
+        SparseMatrix<dataType>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_,dmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+    ~HtJ(){}
+
+    HtJ& pushLink(Link<T> link, int matID){
+        if(matID==0)assert(link.isConst());
+        else assert(!link.isConst());
+        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); 
+        linkCount++;
+        return *this;
+    }
+    HtJ& pushLinks(std::vector<Link<T>> Links_){
+        assert(spmCount<SparseMatrix<T>::spmNum);
+        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], spmCount);
+        if (Links_.at(0).isOrdered()) spmCount += 2;
+        else spmCount++;
+        assert(spmCount<=SparseMatrix<T>::spmNum);
+        return *this;
+    }
+    void setVal(int matID, T val){(SparseMatrix<T>::parameters).at(matID) = val;}
+    void row(ind_int rowID, std::vector<MAP>& rowMaps);
+    void genMat();
+};
+
+/*
     **************
     * Heisenberg *
     **************
@@ -800,6 +843,37 @@ inline void Nocc::row(ind_int rowID){
     pt_lattice->orbOCC(pairRepI, occ);
     ind_int loc_rowID = rowID - BaseMatrix<cdouble>::startRow;
     for (int i = 0; i < pt_lattice->getUnitOrbNum(); i++) {SparseMatrix<cdouble>::diagValList[i][loc_rowID] = occ[i];}
+}
+
+template <class T>
+void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
+    // off diagonal part
+    std::vector<ind_int> finalIndList;
+    std::vector<cdouble> factorList;
+    pt_Basis->genSymm(rowID, finalIndList, factorList);
+    for (int i = 0; i < finalIndList.size(); i++){
+        pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
+        bool isfminRep = pt_Basis->isfMin(pairRepI.first);
+        for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+            LINK_TYPE type = (*linkit).getLinkType();
+            int matID = (*linkit).getmatid();
+            int matIDp = matID; 
+            if ((*linkit).isOrdered()) matIDp++;
+            cdouble factor = factorList.at(i) * (*linkit).getVal();
+            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                int siteI = (*bondit).at(0);
+                int siteJ = (*bondit).at(1);
+                // cp.siteI * cm.siteJ
+                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);
+                if(isfminRep){
+                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);   
+                }
+            }
+        }
+    }
+    // diag(rowID,val,&rowMaps[0]);
 }
 
 template <class T>
