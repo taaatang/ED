@@ -245,6 +245,10 @@ class SpinOperator{
 /*
     idx:0 --> spin:s
     idx++ ---> s--
+    For tJ model:
+        Spin-1/2 ops for tJ model. Operate on projected hilbert space without double occupancy.(docc)
+        Inorder to not consider fermion sign for spin operators, the basis state is aranged as [su0,sd0,su1,sd1,...]
+        The basis state is stored as [su0,su1,...], [sd0,sd1,...]
 */
 protected:
     Basis* pt_Basis;
@@ -508,21 +512,7 @@ public:
         spsm(siteJ, siteI, factor, repI,rowMap);
     };
 };
-class ProjSpinOps{
-/*
-    Spin-1/2 ops for tJ model. Operate on projected hilbert space without double occupancy.(docc)
-    Inorder to not consider fermion sign for spin operators, the basis state is aranged as [su0,sd0,su1,sd1,...]
-    The basis state is stored as [su0,su1,...], [sd0,sd1,...]
-*/
-public:
-    double getSz()
-    
-protected:
-    Basis *pt_Basis;
-}
-class ProjFermOps{
 
-}
 /*
     ***********
     * Hubbard *
