@@ -1191,12 +1191,14 @@ void SzkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         #else
             ind_int colID;
             if (pt_Bi->search(pt_Bf->getRepI(rowID),colID)){
+                std::cout<<"colID:"<<colID<<"\n";
                 ind_int repI = pt_Bi->getRepI(colID);
                 cdouble dval = 0.0;
                 for (int siteID = 0; siteID < pt_lattice->getOrbNum(); siteID++){
                     dval += getSz(siteID,repI) * expFactor[siteID];
                 }
                 dval *= pt_Bf->getNorm(rowID)/pt_Bi->getNorm(colID);
+                std::cout<<"rowMaps size:"<<rowMaps.size()<<"\n";
                 rowMaps[0][colID] = dval;
             }
         #endif
