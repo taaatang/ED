@@ -28,26 +28,32 @@ int main(int argc, const char * argv[]) {
 */
     MPI_Init(NULL, NULL);
     int workerID, workerNum;
-    MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
-    MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
-    if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl;
-    OMP_Info(workerID);
+    mpi_info(workerID, workerNum);
+
     bool COMPUTE_SS = true;
     bool COMPUTE_SQW = true;
     a_int nev = 1;
     // int Nx = 6, Ny = 6;
     // int N = Nx * Ny;
-    int N = 36;
-    double J1 = 1.0;
-    double J2 = 0.0, dJ2 = 0.01;
-    int kIndex = 0; // Gamma Point
-    std::ifstream infile("../Input/spectra_input.txt");
-    infile>>N>>kIndex;
-    infile.close(); 
+    LATTICE_MODEL model = LATTICE_MODEL::t_J;
+    int Nx, Ny, N, Nu, Nd;
+    int kIndex = -1; // Gamma Point
+    int PGRepIndex = -1;
+    double spin = 0.5;
+    double t1 = 1.0, t2 = 0.2, J1= 1.0, J2 = 0.0;
+    double dJ2 = 0.01;
+    a_int nev=1;
 
     Timer timer;
 
-    bool BASIS_IS_SAVED = true;
+    int rowPerThread = 1;
+
+    bool BASIS_IS_SAVED = false;
+
+    infile<int>({&N, &Nu, &Nd}, "../Input/lattice_input.txt");
+    infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
+    infile<double>({&t1, &t2, &J1, &J2}, "../Input/params_input.txt");
+
     // data directory
     // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
     std::string subDir = std::to_string(N);
@@ -69,39 +75,45 @@ int main(int argc, const char * argv[]) {
     */
     timer.tik();
     int siteDim = 2;
-    VecI occList{N/2, N-N/2};
-    Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
+    VecI occList{Nu, Nd};
+    Basis B(model, &Lattice, occList, kIndex);
     if (workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
     if (BASIS_IS_SAVED) B.gen(basisfile, normfile);
     else B.gen();
     timer.tok();
-    if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kInd ="<<kIndex<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
+    if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kIdx ="<<kIndex<<", PGidx = "<<PGRepIndex<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
     /*
         ****************************
         * Hamiltonian Construction *
         ****************************
     */
-    timer.tik();
-    Link<dataType> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0);
-    Link<dataType> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, false);
+    Link<dataType> t1Link(LINK_TYPE::HOPPING_T, {ORBITAL::SINGLE, ORBITAL::SINGLE}, t1);
+    Link<dataType> t2Link(LINK_TYPE::HOPPING_T, {ORBITAL::SINGLE, ORBITAL::SINGLE}, t2);
+    Link<dataType> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1);
+    Link<dataType> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2, true);
+    t1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
+    t2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
     J1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
     J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
-    Heisenberg<dataType> H(&Lattice, &B, 2);
-    H.pushLinks({J1Link}).pushLinks({J2Link});
+    timer.tik();
+    // Heisenberg<dataType> H(&Lattice, &B, 2);
+    // H.pushLinks({J1Link}).pushLinks({J2Link});
+    HtJ<dataType> H(&Lattice, &B, 1);
+    H.pushLinks({t1Link, t2Link, J1Link, J2Link});
     H.genMatPara();
     timer.tok();
     std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
             <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
 
-for(int J2_num = 0; J2_num<101; J2_num++){
-    J2 = dJ2 * J2_num;
+// for(int J2_num = 0; J2_num<101; J2_num++){
+//     J2 = dJ2 * J2_num;
     std::ofstream outfile;
     // data directory
-    std::string dataDir = PROJECT_DATA_PATH+"/"+ subDir +"/kSpace/Spectra/J2_"+std::to_string(J2_num);
+    std::string dataDir = PROJECT_DATA_PATH+"/"+ subDir +"/kSpace/Spectra/J2_"+std::to_string(J2);
     if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
     if (workerID==MPI_MASTER) std::cout<<"**********************"<<std::endl<<"Begin J2 = "<<J2<<std::endl<<"*************************"<<std::endl;
-    H.setVal(1,J2);
+    // H.setVal(1,J2);
     /*
         *********************************
         * Diagonalization Using PARPACK *
@@ -162,10 +174,10 @@ for(int J2_num = 0; J2_num<101; J2_num++){
             // <Bp|Szq|B>, q = k_B - k_Bp
             SzkOp<dataType> Szq(&Lattice, &B, &Bp);
             Szq.genMatPara();
-            Heisenberg<dataType> Hp(&Lattice, &Bp, 2);
-            Hp.pushLinks({J1Link}).pushLinks({J2Link});
+            HtJ<dataType> Hp(&Lattice, &Bp, 2);
+            Hp.pushLinks({t1Link,t2Link,J1Link,J2Link});
             Hp.genMatPara();
-            Hp.setVal(1, J2);
+            // Hp.setVal(1, J2);
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
@@ -181,7 +193,7 @@ for(int J2_num = 0; J2_num<101; J2_num++){
             if (workerID==MPI_MASTER) std::cout<<"Sqw time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
         }
     }
-}   
+// }   
 /*
     *******
     * End *
