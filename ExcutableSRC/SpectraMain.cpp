@@ -167,7 +167,7 @@ int main(int argc, const char * argv[]) {
             std::string basisDirp = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Basis/"+std::to_string(kIndexf);
             std::string basisfilep = basisDirp + "/basis";
             std::string normfilep = basisDirp + "/norm";
-            Basis Bp = Basis(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndexf);
+            Basis Bp = Basis(model, &Lattice, occList, kIndexf);
             if (BASIS_IS_SAVED) {Bp.gen(basisfilep, normfilep);
             }else{Bp.gen();}
             // <Bp|Szq|B>, q = k_B - k_Bp
