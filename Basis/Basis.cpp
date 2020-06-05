@@ -165,7 +165,7 @@ void Basis::gen(){
                     for(ind_int sidx=0;sidx<sDim;sidx++){
                         repI = fidx*sDim+sidx;
                         if(isMinRep(repI,norm)){
-                            std::cout<<"test repI is minRepI"<<"\n";
+                            // std::cout<<"test repI is minRepI"<<"\n";
                             indexList.push_back(repI);
                             subDim++;
                             #ifdef KEEP_BASIS_NORM
@@ -543,7 +543,7 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
     }
     // norm > 0?
     norm = (model==LATTICE_MODEL::HEISENBERG)?Norm(repI):minNorm(repI);
-    std::cout<<"norm:"<<norm<<"\n";
+    // std::cout<<"norm:"<<norm<<"\n";
     // sqrt(infinitismal)>>infinitesimal
     if (std::real(norm)*std::real(norm)>INFINITESIMAL){
         return true;
