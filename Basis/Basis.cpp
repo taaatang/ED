@@ -419,7 +419,7 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
         pairRepI = getPairRepI(repI);
         if((pairRepI.first & pairRepI.second))return false;
     }
-    std::cout<<"PGidx:"<<PGRepindex<<", no docc for repI:"<<repI<<"\n";
+    std::cout<<"PGidx:"<<PGRepIndex<<", no docc for repI:"<<repI<<"\n";
     // full hilbert space
     if (kIndex==-1) {
         norm = 1.0;
