@@ -419,7 +419,6 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
         pairRepI = getPairRepI(repI);
         if((pairRepI.first & pairRepI.second))return false;
     }
-    std::cout<<"PGidx:"<<PGRepIndex<<", no docc for repI:"<<repI<<"\n";
     // full hilbert space
     if (kIndex==-1) {
         norm = 1.0;
@@ -446,10 +445,8 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
             }else{
                 auto it = fMinRepSymmHash.find(pairRepI.first);
                 if(it==fMinRepSymmHash.end()){
-                    std::cout<<"repI not in minRepHash:"<<pairRepI.first<<", Hash size:"<<fMinRepSymmHash.size()<<"\n";
                     return false;
                 }else{
-                    std::cout<<"repI is in minRepHash:"<<pairRepI.first<<", Hash size:"<<fMinRepSymmHash.size()<<"\n";
                     for(auto symm=(*it).second.begin(); symm!=(*it).second.end(); symm += 2){
                         int r = *symm;
                         int p = *(symm+1);
@@ -458,6 +455,7 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
                             if(bitTest(pairRepI.second,i))bitSet(srepI,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));                      
                         }
                         if (pairRepI.second > srepI) return false;
+                        std::cout<<"repI is in minRep:"<<repI<<", Hash size:"<<fMinRepSymmHash.size()<<"\n";
                     }
                 }
             }
