@@ -446,8 +446,10 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
             }else{
                 auto it = fMinRepSymmHash.find(pairRepI.first);
                 if(it==fMinRepSymmHash.end()){
+                    std::cout<<"repI not in minRepHash:"<<pairRepI.first<<", Hash size:"<<fMinRepSymmHash.size()<<"\n";
                     return false;
                 }else{
+                    std::cout<<"repI is in minRepHash:"<<pairRepI.first<<", Hash size:"<<fMinRepSymmHash.size()<<"\n";
                     for(auto symm=(*it).second.begin(); symm!=(*it).second.end(); symm += 2){
                         int r = *symm;
                         int p = *(symm+1);
