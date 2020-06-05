@@ -868,6 +868,7 @@ inline void Nocc::row(ind_int rowID){
 
 template <class T>
 void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
+    std::cout<<"****************\n"<<"row:"<<rowID<<"\n****************\n";
     // off diagonal part
     std::vector<ind_int> finalIndList;
     std::vector<cdouble> factorList;
@@ -886,6 +887,7 @@ void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
                 int siteJ = (*bondit).at(1);
                 switch(type){
                     case LINK_TYPE::HOPPING_T:{
+                        std::cout<<"HOPPING_T\n";
                         // cp.siteI * cm.siteJ
                         cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
                         cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);
@@ -896,6 +898,7 @@ void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
                         break;
                     }
                     case LINK_TYPE::SUPER_EXCHANGE_J:{
+                        std::cout<<"SUPER_EXCHANGE_J\n";
                         // szi * szj - 1/4*ni*nj 
                         szsznn(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
                         // 1/2 * sm.siteID * sp.siteIDp
