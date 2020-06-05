@@ -139,7 +139,7 @@ protected:
     Basis* pt_Basis;
     LATTICE_MODEL model;
 public:
-    FermionOperator(Basis* pt_Ba, LATTICE_MODEL mod=LATTICE_MODEL::HUBBARD):pt_Basis(pt_Ba),model(mod){};
+    FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),model(pt_Ba->getModel()){};
     ~FermionOperator(){};
     void diag(ind_int rowID, dataType factor, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
@@ -256,7 +256,7 @@ protected:
     int spinDim;
     std::vector<double> szMat, spMat, smMat;
 public: 
-    SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod=LATTICE_MODEL::HEISENBERG);
+    SpinOperator(Basis* pt_Ba);
     ~SpinOperator(){};
     
     double getSz(int siteI, VecI& initVec) const {return szMat.at(initVec.at(siteI));}
@@ -636,8 +636,8 @@ private:
     Basis* pt_Basis;
 public:
     HtJ(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int dmNum_=0, int spindim=2):\
-        FermionOperator(pt_Ba, LATTICE_MODEL::t_J),\
-        SpinOperator(pt_Ba, LATTICE_MODEL::t_J),\
+        FermionOperator(pt_Ba),\
+        SpinOperator(pt_Ba),\
         SparseMatrix<T>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_,dmNum_), pt_lattice(pt_lat), pt_Basis(pt_Ba),linkCount(0),spmCount(0){}
     ~HtJ(){}
 
@@ -679,7 +679,7 @@ private:
     Geometry *pt_lattice;
 public:
     Heisenberg(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):\
-        SpinOperator(pt_Ba,HEISENBERG),SparseMatrix<T>(pt_Ba,pt_Ba,pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+        SpinOperator(pt_Ba),SparseMatrix<T>(pt_Ba,pt_Ba,pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
     ~Heisenberg(){};
 
     Heisenberg& pushLink(Link<T> link, int matID){
@@ -713,7 +713,7 @@ private:
     std::vector<cdouble> expFactor;
 public:
     SzkOp(Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1, int spindim=2):pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
-        SpinOperator(pt_Bi,HEISENBERG),SparseMatrix<cdouble>(pt_Bi,pt_Bf,pt_Bf_->getSubDim(),spmNum_){
+        SpinOperator(pt_Bi),SparseMatrix<cdouble>(pt_Bi,pt_Bf,pt_Bf_->getSubDim(),spmNum_){
             assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
@@ -1031,7 +1031,7 @@ void Heisenberg<T>::genMat(){
 */
 template <class T>
 SSOp<T>::SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_, int spindim):r(-1),pt_lattice(pt_lat), siteJList(pt_lat->getSiteNum()),\
-    SpinOperator(pt_Ba,HEISENBERG),SparseMatrix<T>(pt_Ba,pt_Ba,pt_Ba->getSubDim(),spmNum_){
+    SpinOperator(pt_Ba),SparseMatrix<T>(pt_Ba,pt_Ba,pt_Ba->getSubDim(),spmNum_){
     VecD coordi(3), coordr(3), coordf(3);
     for (int rIndex = 0; rIndex < pt_lat->getSiteNum();rIndex++){
         siteJList.at(rIndex).resize(pt_lat->getSiteNum());

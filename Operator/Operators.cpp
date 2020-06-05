@@ -13,7 +13,7 @@
     * Spin Operators Class *
     ************************
 */
-SpinOperator::SpinOperator(Basis* pt_Ba, LATTICE_MODEL mod):pt_Basis(pt_Ba),model(mod),spinDim(pt_Ba->getSiteDim()){
+SpinOperator::SpinOperator(Basis* pt_Ba):pt_Basis(pt_Ba),model(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()){
     double s = (double)(spinDim - 1)/2.0;
     double m = s;
     for (int i = 0; i < spinDim; i++){

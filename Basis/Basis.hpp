@@ -44,6 +44,7 @@ public:
     Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kInd=-1, int PGRepInd = -1, int siteD=2);
     ~Basis(){};
 
+    LATTICE_MODEL getModel() const {return model;}
     int getkIndex() const {return kIndex;}
     int getPGIndex() const {return PGRepIndex;}
 
