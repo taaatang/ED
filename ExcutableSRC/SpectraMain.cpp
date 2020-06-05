@@ -42,7 +42,6 @@ int main(int argc, const char * argv[]) {
     double spin = 0.5;
     double t1 = 1.0, t2 = 0.2, J1= 1.0, J2 = 0.0;
     double dJ2 = 0.01;
-    a_int nev=1;
 
     Timer timer;
 
