@@ -454,6 +454,7 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
                         for (int i = 0; i < pt_lattice->getOrbNum(); i++){
                             if(bitTest(pairRepI.second,i))bitSet(srepI,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));                      
                         }
+                        std::cout<<"r:"<<r<<",p:"<<p<<", repI:"<<pairRepI.second<<", srepI:"<<srepI<<"\n";
                         if (pairRepI.second > srepI) return false;
                         std::cout<<"repI is in minRep:"<<repI<<", Hash size:"<<fMinRepSymmHash.size()<<"\n";
                     }
