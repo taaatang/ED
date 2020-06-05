@@ -66,7 +66,7 @@ int main(int argc, const char * argv[]) {
     // Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
     // Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
     Lattice.construct();
-    // if (workerID==MPI_MASTER) Lattice.print();
+    if (workerID==MPI_MASTER) Lattice.print();
     int siteDim = 2;
     VecI occList{Nu, Nd};
     ind_int fullDim=0, totDim=0;
