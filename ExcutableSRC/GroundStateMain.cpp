@@ -30,7 +30,7 @@ int main(int argc, const char * argv[]) {
     * Input And Initialization *
     ****************************
 */
-    LATTICE_MODEL model = LATTICE_MODEL::t_J;
+    LATTICE_MODEL model = LATTICE_MODEL::HEISENBERG;
     int Nx, Ny, N, Nu, Nd;
     int kIndex = -1; // Gamma Point
     int PGRepIndex = -1;
@@ -66,12 +66,12 @@ int main(int argc, const char * argv[]) {
     // Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
     // Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
     Lattice.construct();
-    if (workerID==MPI_MASTER) Lattice.print();
+    // if (workerID==MPI_MASTER) Lattice.print();
     int siteDim = 2;
     VecI occList{Nu, Nd};
     ind_int fullDim=0, totDim=0;
     // scan kIndex
-    // for (int kIndex = kStart;  kIndex < kEnd; kIndex++){
+    for (int PGRepIndex = 0;  PGRepIndex < 8; PGRepIndex++){
         std::ofstream outfile;
         std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
         std::string basisfile = basisDir + "/basis";
@@ -88,7 +88,7 @@ int main(int argc, const char * argv[]) {
         else B.gen();
         timer.tok();
         fullDim = B.getTotDim(); totDim += B.getSubDim();
-        if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kInd ="<<kIndex<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
+        if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kIdx ="<<kIndex<<", PGidx = "<<PGRepIndex<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
         if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
         /*
             ****************************
@@ -109,10 +109,10 @@ int main(int argc, const char * argv[]) {
         J1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
         J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
         timer.tik();
-        HtJ<dataType> H(&Lattice, &B, 1);
-        H.pushLinks({t1Link, t2Link, J1Link, J2Link});
-        // Heisenberg<dataType> H(&Lattice, &B, 1);
-        // H.pushLinks({J1Link, J2Link});
+        // HtJ<dataType> H(&Lattice, &B, 1);
+        // H.pushLinks({t1Link, t2Link, J1Link, J2Link});
+        Heisenberg<dataType> H(&Lattice, &B, 1);
+        H.pushLinks({J1Link, J2Link});
         H.genMatPara(rowPerThread);
         timer.tok();
         /*
@@ -197,7 +197,7 @@ int main(int argc, const char * argv[]) {
             // }
             MPI_Barrier(MPI_COMM_WORLD);
         // }
-//    }   
+   }   
 /*
     *******
     * End *
