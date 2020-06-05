@@ -882,7 +882,7 @@ void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
             int matIDp = matID; 
             if ((*linkit).isOrdered()) matIDp++;
             cdouble factor = factorList.at(i) * (*linkit).getVal();
-            std<<"begin cpcm/spsm\n";
+            std::cout<<"begin cpcm/spsm\n";
             for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                 int siteI = (*bondit).at(0);
                 int siteJ = (*bondit).at(1);
