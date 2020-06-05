@@ -44,9 +44,9 @@ int main(int argc, const char * argv[]) {
     int rowPerThread = 1;
     bool BASIS_IS_SAVED = false;
 
-    infile<int>({&N, &Nu, &Nd}, "Input/lattice_input.txt");
-    infile<int>({&kIndex, &PGRepIndex}, "Input/symm_input.txt");
-    infile<double>({&t1, &t2, &J1, &J2}, "Input/params_input.txt");
+    infile<int>({&N, &Nu, &Nd}, "../Input/lattice_input.txt");
+    infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
+    infile<double>({&t1, &t2, &J1, &J2}, "../Input/params_input.txt");
     // int kStart = 0, kEnd = 1;
     // int J2Start = 0, J2End = 1, J2Step = 2;
     
