@@ -164,7 +164,6 @@ void Basis::gen(){
                     if(!isfMin(fIndexList[fidx])) continue;
                     for(ind_int sidx=0;sidx<sDim;sidx++){
                         repI = fidx*sDim+sidx;
-                        std::cout<<"test repI:"<<repI<<"\n";
                         if(isMinRep(repI,norm)){
                             std::cout<<"test repI is minRepI"<<"\n";
                             indexList.push_back(repI);
@@ -420,6 +419,7 @@ bool Basis::isMinRep(ind_int repI, double& norm) const {
         pairRepI = getPairRepI(repI);
         if((pairRepI.first & pairRepI.second))return false;
     }
+    std::cout<<"PGidx:"<<PGRepindex<<", no docc for repI:"<<repI<<"\n";
     // full hilbert space
     if (kIndex==-1) {
         norm = 1.0;
