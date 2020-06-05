@@ -882,12 +882,13 @@ void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
             int matIDp = matID; 
             if ((*linkit).isOrdered()) matIDp++;
             cdouble factor = factorList.at(i) * (*linkit).getVal();
+            std<<"begin cpcm/spsm\n";
             for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                 int siteI = (*bondit).at(0);
                 int siteJ = (*bondit).at(1);
                 switch(type){
                     case LINK_TYPE::HOPPING_T:{
-                        std::cout<<"HOPPING_T\n";
+                        std::cout<<"*****************\nHOPPING_T\n***************\n";
                         // cp.siteI * cm.siteJ
                         cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
                         cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);
@@ -898,7 +899,7 @@ void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
                         break;
                     }
                     case LINK_TYPE::SUPER_EXCHANGE_J:{
-                        std::cout<<"SUPER_EXCHANGE_J\n";
+                        std::cout<<"*******************\nSUPER_EXCHANGE_J\n******************\n";
                         // szi * szj - 1/4*ni*nj 
                         szsznn(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
                         // 1/2 * sm.siteID * sp.siteIDp
