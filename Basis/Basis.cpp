@@ -46,12 +46,10 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
             totDim = fDim * combination<ind_int>((ind_int)(N-Nocc[0]), (ind_int)(Nocc[1]));
             break;
         case LATTICE_MODEL::HEISENBERG:
-            Sztot = occList.at(0);
-            Nocc.resize(siteDim);
+            Sztot = occList.at(0) - occList.at(1);
+            Nocc = occList;;
             #ifdef BINARY_REP
-                assert(Sztot/2==N/2);
-                Nocc[0] = (N+Sztot)/2;
-                Nocc[1] = N - Nocc[0];
+                assert((Nocc.at(0) + Nocc.at(1))==N);
                 // calculate totDim
                 totDim = 1;
                 ind_int n = N;
