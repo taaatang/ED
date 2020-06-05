@@ -371,8 +371,8 @@ ind_int Basis::search(pairIndex pairRepI) const {
     ind_int repI = fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);
     if(model==LATTICE_MODEL::HUBBARD){
         return repI;
-    }else if(model==LATTICE_MODEL::t_J){
-        return search(repI);
+    }else if(model==LATTICE_MODEL::t_J && !(repI.first & repI.second)){
+        return repI;
     }else{
         std::cerr<<"pairRepI only defined for Hubbard and t_J!"<<std::endl;
         exit(EXIT_FAILURE);
