@@ -405,7 +405,7 @@ bool Basis::isMin(ind_int repI, VecI& symmList){
                     if(bitTest(repI,i)) bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
                 }
                 if (repI > repIp) return false;
-                if(repI == repI) {symmList.push_back(r); symmList.push_back(p);}
+                if(repI == repIp) {symmList.push_back(r); symmList.push_back(p);}
             }        
         }
     }
