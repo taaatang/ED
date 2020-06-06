@@ -718,7 +718,7 @@ public:
         SpinOperator(pt_Bi),SparseMatrix<cdouble>(pt_Bi,pt_Bf,pt_Bf_->getSubDim(),spmNum_){
             printModel(pt_Bi->getModel());
             printModel(pt_Bf->getModel());
-            std::cout<<"In SzkOp constructo:"<<std::endl<<"spin model:"<<SpinOperator::smodel<<std::endl<<"spin model:"<<FermionOperator::fmodel<<std::endl;
+            std::cout<<"In SzkOp constructo:"<<std::endl<<"spin model:"<<SpinOperator::smodel<<std::endl<<std::endl;
             assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
