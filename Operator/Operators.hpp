@@ -137,9 +137,9 @@ void Link<T>::print() const {
 class FermionOperator{
 protected:
     Basis* pt_Basis;
-    LATTICE_MODEL model;
+    LATTICE_MODEL fmodel;
 public:
-    FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),model(pt_Ba->getModel()){std::cout<<"In FermionOp,model:"<<model<<std::endl;};
+    FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->getModel()){std::cout<<"In FermionOp,model:"<<model<<std::endl;};
     ~FermionOperator(){};
     void diag(ind_int rowID, dataType factor, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
@@ -158,7 +158,7 @@ public:
                 return true;
             }
         }else{
-            switch(model){
+            switch(fmodel){
                 case HUBBARD:{
                     if(bitTest(repI,siteJ) && (!bitTest(repI,siteI))){
                         bitFlip(repIf,siteI);
@@ -252,7 +252,7 @@ class SpinOperator{
 */
 protected:
     Basis* pt_Basis;
-    LATTICE_MODEL model;
+    LATTICE_MODEL smodel;
     int spinDim;
     std::vector<double> szMat, spMat, smMat;
 public: 
@@ -346,9 +346,9 @@ public:
         Binary Reps For Spindim=2
     */
     double getSz(int siteI, ind_int repI) const {
-        std::cout<<"In getSz, model:"<<model<<std::endl;
-        printModel(model);
-        switch(model){
+        std::cout<<"In getSz, model:"<<smodel<<std::endl;
+        printModel(smodel);
+        switch(smodel){
             case LATTICE_MODEL::HEISENBERG:{
                 return szMat.at(1&(repI>>siteI));
                 break;
@@ -387,7 +387,7 @@ public:
 
     void szsznn(int siteI, int siteJ, dataType factor, ind_int repI, MAP* rowMap){
         // for tJ model, szi*szj -1/4*ni*nj
-        assert_msg(model==LATTICE_MODEL::t_J,"SpinOperator::szsznn only defined for tJ model");
+        assert_msg(smodel==LATTICE_MODEL::t_J,"SpinOperator::szsznn only defined for tJ model");
         pairIndex pairRepI = pt_Basis->getPairRepI(repI);
         if((bitTest(pairRepI.first,siteI) && bitTest(pairRepI.second,siteJ)) || (bitTest(pairRepI.first,siteJ) && bitTest(pairRepI.second,siteI))){
             #ifdef DISTRIBUTED_BASIS
@@ -407,7 +407,7 @@ public:
     
     void spsm(int siteI, dataType factor, ind_int repI, MAP* rowMap){
         bool condition;
-        switch(model){
+        switch(smodel){
             case LATTICE_MODEL::HEISENBERG:{
                 condition = !bitTest(repI,siteI);
                 break;
@@ -440,7 +440,7 @@ public:
     
     void smsp(int siteI, dataType factor, ind_int repI, MAP* rowMap){
         bool condition;
-        switch(model){
+        switch(smodel){
             case LATTICE_MODEL::HEISENBERG:{
                 condition = bitTest(repI,siteI);
                 break;
@@ -477,7 +477,7 @@ public:
             spsm(siteI, factor, repI, rowMap);
             return;
         }
-        switch(model){
+        switch(smodel){
             case LATTICE_MODEL::HEISENBERG:{
                 if (bitTest(repI,siteI) && (!bitTest(repI,siteJ))){
                 bitFlip(repI,siteI);
@@ -718,7 +718,7 @@ public:
         SpinOperator(pt_Bi),SparseMatrix<cdouble>(pt_Bi,pt_Bf,pt_Bf_->getSubDim(),spmNum_){
             printModel(pt_Bi->getModel());
             printModel(pt_Bf->getModel());
-            std::cout<<"In SzkOp constructor, model:"<<model<<std::endl<<"spin model:"<<SpinOperator::model<<std::endl<<std::endl;
+            std::cout<<"In SzkOp constructo:"<<std::endl<<"spin model:"<<SpinOperator::smodel<<std::endl<<"spin model:"<<FermionOperator::fmodel<<std::endl;
             assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
@@ -913,7 +913,7 @@ void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
                         break;
                     }
                     default:{
-                        std::cout<<"Interaction type not defined for tJ model(HtJ::row)\n";
+                        std::cout<<"Interaction type not defined for tJ (HtJ::row)\n";
                         exit(1);
                     }
                 }   
