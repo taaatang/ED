@@ -346,6 +346,8 @@ public:
         Binary Reps For Spindim=2
     */
     double getSz(int siteI, ind_int repI) const {
+        std::cout<<"In getSz"<<std::endl;
+        printModel(model);
         switch(model){
             case LATTICE_MODEL::HEISENBERG:{
                 return szMat.at(1&(repI>>siteI));
