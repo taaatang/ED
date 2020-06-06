@@ -714,6 +714,9 @@ private:
 public:
     SzkOp(Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1, int spindim=2):pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
         SpinOperator(pt_Bi),SparseMatrix<cdouble>(pt_Bi,pt_Bf,pt_Bf_->getSubDim(),spmNum_){
+            printModel(pt_Bi->getModel());
+            printModel(pt_Bf->getModel());
+            std::cout<<"In SzkOp constructor\n";
             assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();

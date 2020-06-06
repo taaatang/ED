@@ -67,6 +67,23 @@ inline void assert_msg(bool condition, std::string msg){
     }
 }
 
+void printModel(LATTICE_MODEL model){
+    switch(model){
+        case LATTICE_MODEL::HUBBARD:
+            std::cout<<"Hubbard Model\n";
+            break;
+        case LATTICE_MODEL::HEISENBERG:
+            std::cout<<"Heisenberg Model\n";
+            break;
+        case LATTICE_MODEL::t_J:
+            std::cout<<"tJ Model\n";
+            break;
+        default:
+            std::cout<<"Moel Not Defined!(utils::printModel()).\n";
+            exit(1);
+    }
+}
+
 /*
     ***************
     * Combinatory *
