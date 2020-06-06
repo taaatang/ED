@@ -176,7 +176,7 @@ int main(int argc, const char * argv[]) {
             std::cout<<"construct Szq\n";
             Szq.genMatPara();
             std::cout<<"init Hp\n";
-            HtJ<dataType> Hp(&Lattice, &Bp, 2);
+            HtJ<dataType> Hp(&Lattice, &Bp, 1);
             Hp.pushLinks({t1Link,t2Link,J1Link,J2Link});
             std::cout<<"construct Hp\n";
             Hp.genMatPara();

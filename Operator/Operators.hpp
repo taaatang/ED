@@ -718,7 +718,10 @@ public:
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
             // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
-            for (int i = 0; i < pt_lattice->getSiteNum(); i++) expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
+            for (int i = 0; i < pt_lattice->getSiteNum(); i++) {
+                std::cout<<"expF.size:"<<expFactor.size()<<", i:"<<i<<"\n";
+                expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
+            }
         };
     ~SzkOp(){};
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
