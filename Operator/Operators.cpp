@@ -7,7 +7,14 @@
 //
 
 #include "Operators.hpp"
-
+/*
+    ***************************
+    * Fermion Operators Class *
+    ***************************
+*/
+FermionOperator::FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->getModel()){
+    std::cout<<"In FermionOp,model:"<<fmodel<<std::endl;
+}
 /*
     ************************
     * Spin Operators Class *

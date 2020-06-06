@@ -138,8 +138,8 @@ class FermionOperator{
 protected:
     Basis* pt_Basis;
     LATTICE_MODEL fmodel;
-public:
-    FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->getModel()){std::cout<<"In FermionOp,model:"<<model<<std::endl;};
+public:FermionOperator(Basis* pt_Ba);
+    ;
     ~FermionOperator(){};
     void diag(ind_int rowID, dataType factor, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
