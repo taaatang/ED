@@ -139,7 +139,7 @@ protected:
     Basis* pt_Basis;
     LATTICE_MODEL model;
 public:
-    FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),model(pt_Ba->getModel()){};
+    FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),model(pt_Ba->getModel()){std::cout<<"In FermionOp,model:"<<model<<std::endl;};
     ~FermionOperator(){};
     void diag(ind_int rowID, dataType factor, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
@@ -718,7 +718,7 @@ public:
         SpinOperator(pt_Bi),SparseMatrix<cdouble>(pt_Bi,pt_Bf,pt_Bf_->getSubDim(),spmNum_){
             printModel(pt_Bi->getModel());
             printModel(pt_Bf->getModel());
-            std::cout<<"In SzkOp constructor"<<std::endl;
+            std::cout<<"In SzkOp constructor, model:"<<model<<std::endl<<"spin model:"<<SpinOperator::model<<std::endl<<"fermion model:"<<FermionOperator::model<<std::endl;
             assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
