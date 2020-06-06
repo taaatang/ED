@@ -67,7 +67,7 @@ inline void assert_msg(bool condition, std::string msg){
     }
 }
 
-void printModel(LATTICE_MODEL model){
+inline void printModel(LATTICE_MODEL model){
     switch(model){
         case LATTICE_MODEL::HUBBARD:
             std::cout<<"Hubbard Model\n";
