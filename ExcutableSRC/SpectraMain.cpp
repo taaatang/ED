@@ -171,6 +171,8 @@ int main(int argc, const char * argv[]) {
             if (BASIS_IS_SAVED) {Bp.gen(basisfilep, normfilep);
             }else{Bp.gen();}
             // <Bp|Szq|B>, q = k_B - k_Bp
+            printModel(B.getModel());
+            printModel(Bp.getModel());
             std::cout<<"Init Szq\n";
             SzkOp<dataType> Szq(&Lattice, &B, &Bp);
             std::cout<<"construct Szq\n";

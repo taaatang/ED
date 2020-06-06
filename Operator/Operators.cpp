@@ -13,7 +13,7 @@
     * Spin Operators Class *
     ************************
 */
-SpinOperator::SpinOperator(Basis* pt_Ba):pt_Basis(pt_Ba),model(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()){
+SpinOperator::SpinOperator(Basis* pt_Ba):pt_Basis(pt_Ba),smodel(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()){
     std::cout<<"In SpinOp constructor, model:"<<model<<std::endl;
     double s = (double)(spinDim - 1)/2.0;
     double m = s;
