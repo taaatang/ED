@@ -21,7 +21,7 @@ FermionOperator::FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->get
     ************************
 */
 SpinOperator::SpinOperator(Basis* pt_Ba):pt_Basis(pt_Ba),smodel(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()){
-    std::cout<<"In SpinOp constructor, model:"<<model<<std::endl;
+    std::cout<<"In SpinOp constructor, model:"<<smodel<<std::endl;
     double s = (double)(spinDim - 1)/2.0;
     double m = s;
     for (int i = 0; i < spinDim; i++){
