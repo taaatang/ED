@@ -171,26 +171,17 @@ int main(int argc, const char * argv[]) {
             if (BASIS_IS_SAVED) {Bp.gen(basisfilep, normfilep);
             }else{Bp.gen();}
             // <Bp|Szq|B>, q = k_B - k_Bp
-            printModel(B.getModel());
-            printModel(Bp.getModel());
-            std::cout<<"Init Szq\n";
             SzkOp<dataType> Szq(&Lattice, &B, &Bp);
-            std::cout<<"construct Szq\n";
             Szq.genMatPara();
-            std::cout<<"init Hp\n";
             HtJ<dataType> Hp(&Lattice, &Bp, 1);
             Hp.pushLinks({t1Link,t2Link,J1Link,J2Link});
-            std::cout<<"construct Hp\n";
             Hp.genMatPara();
             // Hp.setVal(1, J2);
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
-            std::cout<<"init spectra\n";
             SPECTRASolver<dataType> spectra(&Hp, w0[0], &Szq, gstate, H.get_dim(), krylovDim);
-            std::cout<<"compute spectra\n";
             spectra.compute();
-            std::cout<<"spectra computed\n";
             // save alpha, beta
             if (workerID==MPI_MASTER){
                 std::string dataPath = dataDir + "/k" + std::to_string(kIndex) + "_kp" + std::to_string(kIndexf);

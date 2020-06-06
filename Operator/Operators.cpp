@@ -12,16 +12,13 @@
     * Fermion Operators Class *
     ***************************
 */
-FermionOperator::FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->getModel()){
-    std::cout<<"In FermionOp,model:"<<fmodel<<std::endl;
-}
+FermionOperator::FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->getModel()){}
 /*
     ************************
     * Spin Operators Class *
     ************************
 */
 SpinOperator::SpinOperator(Basis* pt_Ba):pt_Basis(pt_Ba),smodel(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()){
-    std::cout<<"In SpinOp constructor, model:"<<smodel<<std::endl;
     double s = (double)(spinDim - 1)/2.0;
     double m = s;
     for (int i = 0; i < spinDim; i++){
@@ -30,7 +27,6 @@ SpinOperator::SpinOperator(Basis* pt_Ba):pt_Basis(pt_Ba),smodel(pt_Ba->getModel(
         smMat.push_back(std::sqrt(s*(s+1.0)-m*(m-1.0)));
         m -= 1.0;
     }
-    std::cout<<"End of SpinOp constructor"<<std::endl;
 }
 
 /*

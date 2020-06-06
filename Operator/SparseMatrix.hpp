@@ -182,7 +182,6 @@ template <class T>
 SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, ind_int totDim_ , int spmNum_ , int dmNum_):\
     BaseMatrix<T>(totDim_),Bi(Bi_),Bf(Bf_),spmNum(spmNum_),dmNum(dmNum_),parameters(spmNum,1.0),diagParameters(dmNum,1.0),\
     counter(spmNum_),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),A(spmNum_),diagValList(dmNum_){
-    std::cout<<"In SparseMatrix constructor"<<std::endl;
     for(int i = 0; i < dmNum; i++) diagValList[i].resize(BaseMatrix<T>::nloc);
     // initialize is_vecBuf status 
     #ifdef DISTRIBUTED_BASIS
@@ -203,7 +202,6 @@ SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, ind_int totDim_ , int spmN
             A.at(matID).resize(blockNum);
         }
     #endif
-    std::cout<<"end of SparseMatrix constructor"<<std::endl;
 }
 
 template <class T>

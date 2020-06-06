@@ -346,8 +346,6 @@ public:
         Binary Reps For Spindim=2
     */
     double getSz(int siteI, ind_int repI) const {
-        std::cout<<"In getSz, model:"<<smodel<<std::endl;
-        printModel(smodel);
         switch(smodel){
             case LATTICE_MODEL::HEISENBERG:{
                 return szMat.at(1&(repI>>siteI));
@@ -716,15 +714,11 @@ private:
 public:
     SzkOp(Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1, int spindim=2):pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
         SpinOperator(pt_Bi_),SparseMatrix<cdouble>(pt_Bi_,pt_Bf_,pt_Bf_->getSubDim(),spmNum_){
-            printModel(pt_Bi->getModel());
-            printModel(pt_Bf->getModel());
-            std::cout<<"In SzkOp constructo:"<<std::endl<<"spin model:"<<SpinOperator::smodel<<std::endl<<std::endl;
             assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
             // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
             for (int i = 0; i < pt_lattice->getSiteNum(); i++) {
-                std::cout<<"expF.size:"<<expFactor.size()<<", i:"<<i<<std::endl;
                 expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
             }
         };
