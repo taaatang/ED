@@ -453,7 +453,7 @@ public:
                 exit(1);
             }
         }
-        if (bitTest(repI,siteI)){
+        if (condition){
             #ifdef DISTRIBUTED_BASIS
                 dataType val = factor * spMat[1] * smMat[0];
                 MapPush(rowMap,repI,val);
