@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <random>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <list>
 #include <cmath>
@@ -82,6 +83,16 @@ inline void printModel(LATTICE_MODEL model){
             std::cout<<"Moel Not Defined!(utils::printModel()).\n";
             exit(1);
     }
+}
+
+inline std::string tostr(double val, int digit = 2){
+    std::ostringstream strTmp;
+    strTmp<<std::fixed<<std::setprecision(digit)<<val;
+    return strTmp.str();
+}
+
+inline std::string tostr(int val){
+    return std::to_string(val);
 }
 
 /*
