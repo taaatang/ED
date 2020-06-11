@@ -266,15 +266,12 @@ void SparseMatrix<T>::clear(){
 
 template <class T>
 void SparseMatrix<T>::setBuf(){
-    std::cout<<"begin setBuf size:"<<vecBuf.size()<<"\n";
     #ifdef DISTRIBUTED_BASIS
         vecBuf.resize(BaseMatrix<T>::nlocmax);
     #else
-        std::cout<<"ntot:"<<BaseMatrix<T>::ntot<<"\n";
         vecBuf.resize(BaseMatrix<T>::ntot);
     #endif
     is_vecBuf = true;
-    std::cout<<"finished setBuf size:"<<vecBuf.size()<<"\n";
 }
 
 #ifdef DISTRIBUTED_BASIS
@@ -466,13 +463,6 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
             }
         }
         for (int i = 0; i < spmNum; i++) MKL::create(A.at(i), BaseMatrix<T>::nloc, Bi->getSubDim(), rowInitList.at(i), colList.at(i), valList.at(i));
-        ind_int maxcol = 0;
-        for (int i = 0; i < colList.size(); i++){
-            for (int j = 0; j < colList[i].size(); j++){
-                if (colList[i][j]>maxcol) maxcol = colList[i][j];
-            }
-        }
-        std::cout<<"MKL create shape: ("<<BaseMatrix<T>::nloc<<","<<Bi->getSubDim()<<")"<<", maxcol:"<<maxcol<<"\n";
     }
 #endif
 
