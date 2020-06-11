@@ -182,7 +182,9 @@ int main(int argc, const char * argv[]) {
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
             SPECTRASolver<dataType> spectra(&Hp, w0[0], &Szq, gstate, H.get_dim(), krylovDim);
+            std::cout<<"spectra initialized\n";
             spectra.compute();
+            std::cout<<"spectra computed\n";
             // save alpha, beta
             if (workerID==MPI_MASTER){
                 std::string dataPath = dataDir + "/sqw_k" + std::to_string(kIndex) + "_kp" + std::to_string(kIndexf);
