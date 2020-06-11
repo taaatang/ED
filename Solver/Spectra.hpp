@@ -25,7 +25,7 @@ public:
         std::cout<<"in spec init\n";
         A->setBuf(vecSize_);
         vec.resize(H->get_nlocmax());
-        std::cout<<"begin A->MxV\n";
+        std::cout<<"begin A->MxV, vecIn/Out size:"<<vecSize_<<","<<H->get_nlocmax()<<"\n";
         A->MxV(vec_,vec.data());
         std::cout<<"finished MxV\n";
         H->setBuf();
