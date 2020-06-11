@@ -234,6 +234,16 @@ inline void vdeva(T* x, T a, ind_int size){
     for (ind_int i = 0; i < size; i++) x[i] /= a;
 }
 
+double vdotv(VecD v1, VecD v2){
+    assert_msg(v1.size()==v2.size(),"utils::vdotv, v1.size() != v2.size().");
+    double result = 0.0;
+    #pragma omp parallel for reduction(+:result)
+    for(int i = 0; i < v1.size(); i++){
+        result += v1[i]*v2[i];
+    }
+    return result;
+}
+
 // vector dot prodoct
 template <class T1, class T2>
 inline void vConjDotv(T1* vconj, T2* v, cdouble* result, ind_int size){
