@@ -234,7 +234,7 @@ inline void vdeva(T* x, T a, ind_int size){
     for (ind_int i = 0; i < size; i++) x[i] /= a;
 }
 
-double vdotv(VecD v1, VecD v2){
+inline double vdotv(VecD v1, VecD v2){
     assert_msg(v1.size()==v2.size(),"utils::vdotv, v1.size() != v2.size().");
     double result = 0.0;
     #pragma omp parallel for reduction(+:result)
