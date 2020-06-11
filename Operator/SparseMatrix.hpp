@@ -501,7 +501,9 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
     #else
         #pragma omp parallel for
         for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] = 0.0;
-        MPI_Allgather(vecIn,vecBuf.data(),BaseMatrix<T>::nlocmax);
+        // MPI_Allgather(vecIn,vecBuf.data(),BaseMatrix<T>::nlocmax);
+        ind_int nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
+        MPI_Allgather(vecIn,vecBuf.data(),nlocmax_col);
         for (int i = 0; i < spmNum; i++){MKL::MxV(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
     #endif
     // diagonal part
