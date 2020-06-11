@@ -266,12 +266,14 @@ void SparseMatrix<T>::clear(){
 
 template <class T>
 void SparseMatrix<T>::setBuf(){
+    std::cout<<"begin setBuf\n";
     #ifdef DISTRIBUTED_BASIS
         vecBuf.resize(BaseMatrix<T>::nlocmax);
     #else
         vecBuf.resize(BaseMatrix<T>::ntot);
     #endif
     is_vecBuf = true;
+    std::cout<<"finished setBuf\n";
 }
 
 #ifdef DISTRIBUTED_BASIS
