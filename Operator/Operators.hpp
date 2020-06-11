@@ -202,7 +202,8 @@ public:
         SpinOperator(pt_Ba),SparseMatrix<T>(pt_Ba,pt_Ba,pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){
             pIn = VecD{1.0,0.0,0.0};
             pOut = VecD{0.0,1.0,0.0};
-            NoRW = true;        }
+            NoRW = true;        
+        }
     ~RamanOp(){};
 
     RamanOp& pushLink(Link<T> link, int matID){

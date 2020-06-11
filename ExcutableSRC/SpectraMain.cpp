@@ -30,8 +30,8 @@ int main(int argc, const char * argv[]) {
     int workerID, workerNum;
     mpi_info(workerID, workerNum);
 
-    bool COMPUTE_SS = true;
-    bool COMPUTE_SQW = true;
+    bool COMPUTE_SS = false;
+    bool COMPUTE_SQW = false;
     bool COMPUTE_RAMAN = true;
     a_int nev = 1;
     // int Nx = 6, Ny = 6;
@@ -207,7 +207,9 @@ int main(int argc, const char * argv[]) {
             if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndex<<std::endl<<"********************"<<std::endl;
             RamanOp<dataType> R(&Lattice, &B);
             R.pushLinks({J1Link,J2Link});
+            std::cout<<"begin set plz\n";
             R.setplz(pIn,pOut);
+            std::cout<<"begin R.gen\n";
             R.genMatPara();
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
