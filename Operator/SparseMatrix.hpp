@@ -270,6 +270,7 @@ void SparseMatrix<T>::setBuf(){
     #ifdef DISTRIBUTED_BASIS
         vecBuf.resize(BaseMatrix<T>::nlocmax);
     #else
+        std::cout<<"ntot:"<<BaseMatrix<T>::ntot<<"\n";
         vecBuf.resize(BaseMatrix<T>::ntot);
     #endif
     is_vecBuf = true;
