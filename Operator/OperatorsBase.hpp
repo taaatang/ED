@@ -37,6 +37,8 @@ class Link{
     std::vector<ORBITAL> orbList;
     std::vector<VecD> LinkVecs;
     std::vector<VecI> LinkList;
+    // LinkVecIdList[i] is the id of LinkVec for i-th bond in LinkList
+    VecI LinkVecIdList;
 public:
     Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, bool is_Const_ = true, bool is_Ordered_ = false):timeStep(0), is_timeFunc_set(false){
         link_type = link_type_;
@@ -53,6 +55,8 @@ public:
     int getlinkid() const {return linkid;}
     int getmatid() const {return matid;}
     int getLinkNum() const {return LinkList.size();}
+    int getvecid(int bondid) const {return LinkVecIdList.at(bondid);}
+    VecD getvec(int vecid) const {return LinkVecs.at(vecid);}
     // rep orbital of the link
     ORBITAL getRepOrb() const {return orbList.at(0);}
     // number of orbs in one link
@@ -108,6 +112,7 @@ void Link<T>::genLinkMaps(Geometry* pt_lattice){
                     }
                 }
                 if(is_bond)push_back(tmp);
+                LinkVecIdList.push_back(j);
             }
         }   
     }

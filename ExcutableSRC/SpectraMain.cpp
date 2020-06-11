@@ -32,6 +32,7 @@ int main(int argc, const char * argv[]) {
 
     bool COMPUTE_SS = true;
     bool COMPUTE_SQW = true;
+    bool COMPUTE_RAMAN = true;
     a_int nev = 1;
     // int Nx = 6, Ny = 6;
     // int N = Nx * Ny;
@@ -184,7 +185,7 @@ int main(int argc, const char * argv[]) {
             spectra.compute();
             // save alpha, beta
             if (workerID==MPI_MASTER){
-                std::string dataPath = dataDir + "/k" + std::to_string(kIndex) + "_kp" + std::to_string(kIndexf);
+                std::string dataPath = dataDir + "/sqw_k" + std::to_string(kIndex) + "_kp" + std::to_string(kIndexf);
                 system(("mkdir -p " + dataPath).c_str());
                 spectra.saveData(dataPath);
             } 
@@ -192,6 +193,38 @@ int main(int argc, const char * argv[]) {
             if (workerID==MPI_MASTER) std::cout<<"Sqw time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
         }
     }
+/*
+    *********
+    * Raman *
+    *********
+*/
+    if (COMPUTE_RAMAN){
+        int krylovDim = 400;
+        VecD pIn{1.0,0.0,0.0}, pOut{0.0,1.0,0.0};
+        if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Raman ..."<<std::endl<<"********************"<<std::endl;
+        
+            timer.tik();
+            if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndex<<std::endl<<"********************"<<std::endl;
+            RamanOp<dataType> R(&Lattice, &B);
+            R.pushLinks({J1Link,J2Link});
+            R.setplz(pIn,pOut);
+            R.genMatPara();
+            timer.tok();
+            if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+            MPI_Barrier(MPI_COMM_WORLD);
+            SPECTRASolver<dataType> spectra(&H, w0[0], &R, gstate, H.get_dim(), krylovDim);
+            spectra.compute();
+            // save alpha, beta
+            if (workerID==MPI_MASTER){
+                std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex);
+                system(("mkdir -p " + dataPath).c_str());
+                spectra.saveData(dataPath);
+            } 
+            timer.tok();
+            if (workerID==MPI_MASTER) std::cout<<"Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+
+    }
+
 // }   
 /*
     *******

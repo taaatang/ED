@@ -184,6 +184,47 @@ public:
     void genMat();
 };
 
+template<class T>
+class RamanOp: public SpinOperator, public SparseMatrix<T>{
+private:
+    int linkCount;
+    int spmCount;
+    std::vector<Link<T>> Links;
+    std::vector<Link<T>> NCLinks;
+    Geometry *pt_lattice;
+
+    // polarization of in/out photons
+    VecD pIn, pOut;
+    std::vector<VecD> RamanWeight;
+    bool NoRW;
+public:
+    RamanOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2):\
+        SpinOperator(pt_Ba),SparseMatrix<T>(pt_Ba,pt_Ba,pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){
+            pIn = VecD{1.0,0.0,0.0};
+            pOut = VecD{0.0,1.0,0.0};
+            NoRW = true;        }
+    ~RamanOp(){};
+
+    RamanOp& pushLink(Link<T> link, int matID){
+        if(matID==0)assert(link.isConst());
+        else assert(!link.isConst());
+        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); 
+        linkCount++;
+        return *this;
+    }
+    RamanOp& pushLinks(std::vector<Link<T>> Links_){
+        assert(spmCount<SparseMatrix<T>::spmNum);
+        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], spmCount);
+        spmCount++;
+        assert(spmCount<=SparseMatrix<T>::spmNum);
+        return *this;
+    }
+
+    void setplz(VecD pIn_, VecD pOut_);
+    void setVal(int matID, double val){(SparseMatrix<T>::parameters).at(matID) = val;}
+    void row(ind_int rowID, std::vector<MAP>& rowMaps);
+}
+
 
 template <class T>
 class SzkOp: public SpinOperator, public SparseMatrix<cdouble>{
@@ -397,6 +438,54 @@ void HtJ<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         }
     }
     // diag(rowID,val,&rowMaps[0]);
+}
+
+template <class T>
+void RamanOp<T>::setplz(VecD pIn_, VecD pOut_){
+    pIn = pIn_;
+    pOut = pOut_;
+    RamanWeight.resize(Links.size());
+    double norm = std::sqrt((pt_lattice->RdotR(pIn,pIn))*(pt_lattice->RdotR(pOut,pOut)));
+    for(int linkid=0; linkid<Links.size(); linkid++){
+        RamanWeight[linkid].resize(Links[linkid].getLinkVecNum());
+        for(int vecid=0; vecid<Links[linkid].getLinkVecNum(); vecid++){
+            VecD r = Links[linkid].getvec(vecid);
+            RamanWeight[linkid][vecid] = (pt_lattice->RdotR(pIn,r))*(pt_lattice->RdotR(pOut,r))/(pt_lattice->RdotR(r,r))/norm;
+        }
+    }
+    NoRW = false;
+}
+template <class T>
+void RamanOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
+    if(NoRW) setplz(pIn, pOut);
+    std::vector<ind_int> finalIndList;
+    std::vector<cdouble> factorList;
+    pt_Basis->genSymm(rowID, finalIndList, factorList);
+    for (int i = 0; i < finalIndList.size(); i++){
+        pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
+        int linkid = 0;
+        for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+            int matID = (*linkit).getmatid();
+            int matIDp = matID; 
+            if ((*linkit).isOrdered()) matIDp++;
+            cdouble factor = factorList.at(i) * (*linkit).getVal();
+            int bondid = 0;
+            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                double rw = RamanWeight.at(linkid).at((*linkit).getvecid(bondid));
+                cdouble factor_rw = factor * rw;
+                int siteI = (*bondit).at(0);
+                int siteJ = (*bondit).at(1);
+                // szi * szj - 1/4*ni*nj 
+                szsznn(siteI, siteJ, factor_rw, finalIndList[i], &rowMaps[matID]);
+                // 1/2 * sm.siteID * sp.siteIDp
+                spsm(siteI, siteJ, factor_rw/2.0, finalIndList[i], &rowMaps[matID]);
+                // 1/2 * sp.siteID * sm.siteIDp
+                smsp(siteI, siteJ, factor_rw/2.0, finalIndList[i], &rowMaps[matID]);
+                bondid++;
+            }
+            linkid++;
+        }
+    }
 }
 
 template <class T>
