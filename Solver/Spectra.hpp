@@ -22,10 +22,14 @@ private:
 public:
     SPECTRASolver(SparseMatrix<T> *H_, cdouble w0_, SparseMatrix<T> *A_, T* vec_, ind_int vecSize_, int krylovdim_):H(H_),A(A_),w0(w0_),\
         LANCZOSIterator<T>(H_,krylovdim_){
+        std::cout<<"in spec init\n";
         A->setBuf(vecSize_);
         vec.resize(H->get_nlocmax());
+        std::cout<<"begin A->MxV\n";
         A->MxV(vec_,vec.data());
+        std::cout<<"finished MxV\n";
         H->setBuf();
+        std::cout<<"finished spec init\n";
     }
     ~SPECTRASolver(){}
     void compute(){run(vec.data());}
