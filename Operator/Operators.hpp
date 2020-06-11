@@ -446,10 +446,13 @@ void RamanOp<T>::setplz(VecD pIn_, VecD pOut_){
     pIn = pIn_;
     pOut = pOut_;
     RamanWeight.resize(Links.size());
+    std::cout<<"norm\n";
     double norm = std::sqrt((pt_lattice->RdotR(pIn,pIn))*(pt_lattice->RdotR(pOut,pOut)));
     for(int linkid=0; linkid<Links.size(); linkid++){
+        std::cout<<"linkid:"<<linkid<<"\n";
         RamanWeight[linkid].resize(Links[linkid].getLinkVecNum());
         for(int vecid=0; vecid<Links[linkid].getLinkVecNum(); vecid++){
+            std::cout<<"vecid:"<<vecid<<"\n";
             VecD r = Links[linkid].getvec(vecid);
             RamanWeight[linkid][vecid] = (pt_lattice->RdotR(pIn,r))*(pt_lattice->RdotR(pOut,r))/(pt_lattice->RdotR(r,r))/norm;
         }

@@ -56,7 +56,7 @@ int main(int argc, const char * argv[]) {
 
     // data directory
     // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
-    std::string subDir = std::to_string(N);
+    std::string subDir = "N"+tostr(N)+"Nu"+tostr(Nu)+"Nd"+tostr(Nd);
     std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";
