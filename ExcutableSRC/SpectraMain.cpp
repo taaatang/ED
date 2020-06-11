@@ -207,9 +207,7 @@ int main(int argc, const char * argv[]) {
             if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndex<<std::endl<<"********************"<<std::endl;
             RamanOp<dataType> R(&Lattice, &B);
             R.pushLinks({J1Link,J2Link});
-            std::cout<<"begin set plz\n";
             R.setplz(pIn,pOut);
-            std::cout<<"begin R.gen\n";
             R.genMatPara();
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
