@@ -30,8 +30,8 @@ int main(int argc, const char * argv[]) {
     int workerID, workerNum;
     mpi_info(workerID, workerNum);
 
-    bool COMPUTE_SS = false;
-    bool COMPUTE_SQW = false;
+    bool COMPUTE_SS = true;
+    bool COMPUTE_SQW = true;
     bool COMPUTE_RAMAN = true;
     a_int nev = 1;
     // int Nx = 6, Ny = 6;
