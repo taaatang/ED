@@ -28,7 +28,7 @@ public:
         std::cout<<"begin A->MxV, vecIn/Out size:"<<vecSize_<<","<<H->get_nlocmax()<<"\n";
         A->MxV(vec_,vec.data());
         std::cout<<"finished MxV\n";
-        H->setBuf();
+        H->clearBuf();
         std::cout<<"finished spec init\n";
     }
     ~SPECTRASolver(){}
