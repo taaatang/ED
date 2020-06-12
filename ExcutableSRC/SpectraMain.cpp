@@ -202,26 +202,32 @@ int main(int argc, const char * argv[]) {
 */
     if (COMPUTE_RAMAN){
         int krylovDim = 400;
-        VecD pIn{1.0,0.0,0.0}, pOut{0.0,1.0,0.0};
+        VecD plzX{1.0,0.0,0.0}, plzY{1.0,std::sqrt(3),0.0};
+        std::vector<VecD> plz{plzX,plzY};
+        std::vector<std::string> plzLabel{"x","y"};
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Raman ..."<<std::endl<<"********************"<<std::endl;
         
             timer.tik();
             if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndex<<std::endl<<"********************"<<std::endl;
-            RamanOp<dataType> R(&Lattice, &B);
-            R.pushLinks({J1Link,J2Link});
-            R.setplz(pIn,pOut);
-            R.genMatPara();
-            timer.tok();
-            if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
-            MPI_Barrier(MPI_COMM_WORLD);
-            SPECTRASolver<dataType> spectra(&H, w0[0], &R, gstate, H.get_dim(), krylovDim);
-            spectra.compute();
-            // save alpha, beta
-            if (workerID==MPI_MASTER){
-                std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex);
-                system(("mkdir -p " + dataPath).c_str());
-                spectra.saveData(dataPath);
-            } 
+            for(int i = 0; i < plz.size(); i++){
+                for(int j = 0; j < plz.size(); j++){
+                    RamanOp<dataType> R(&Lattice, &B);
+                    R.pushLinks({J1Link,J2Link});
+                    R.setplz(plz[i],plz[j]);
+                    R.genMatPara();
+                    timer.tok();
+                    if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+                    MPI_Barrier(MPI_COMM_WORLD);
+                    SPECTRASolver<dataType> spectra(&H, w0[0], &R, gstate, H.get_dim(), krylovDim);
+                    spectra.compute();
+                    // save alpha, beta
+                    if (workerID==MPI_MASTER){
+                        std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+plzLabel[i]+plzLabel[j];
+                        system(("mkdir -p " + dataPath).c_str());
+                        spectra.saveData(dataPath);
+                    } 
+                }
+            }       
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
 
