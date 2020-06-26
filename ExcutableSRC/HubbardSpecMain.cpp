@@ -41,9 +41,9 @@ int main(int argc, const char * argv[]) {
     int rowCount = 50;
     int rowPerIt = 1000;
 
-    // infile<int>({&Nx, &Ny, &Nu, &Nd}, "Input/lattice_input.txt");
-    // infile<int>({&kIndex, &PGRepIndex}, "Input/symm_input.txt");
-    // infile<int>({&rowCount, &rowPerIt}, "Input/genmatBuf_input.txt");
+    infile<int>({&Nx, &Ny, &Nu, &Nd}, "Input/lattice_input.txt");
+    infile<int>({&kIndex, &PGRepIndex}, "Input/symm_input.txt");
+    infile<int>({&rowCount, &rowPerIt}, "Input/genmatBuf_input.txt");
     N = Nx * Ny;
 
     // data directory
@@ -79,6 +79,7 @@ int main(int argc, const char * argv[]) {
         * Basis Construction *
         **********************
     */
+    for(kIndex=0; kIndex<N; kIndex++){
     timer.tik();
     Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
@@ -96,9 +97,9 @@ int main(int argc, const char * argv[]) {
     fullDim = B.getTotDim(); totDim += B.getSubDim();
     if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kInd ="<<kIndex<<", size="<<B.getLocDim()<<"/"<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl; 
     
-    int num = 2;
-    for(int idx_vpz=0; idx_vpz<num; idx_vpz++){
-        for(int idx_tpz=0; idx_tpz<num; idx_tpz++){
+    // int num = 2;
+    // for(int idx_vpz=0; idx_vpz<num; idx_vpz++){
+    //     for(int idx_tpz=0; idx_tpz<num; idx_tpz++){
             std::string dataDir = dataDirP+"/vpz_"+std::to_string(idx_vpz)+"_tpz_"+std::to_string(idx_tpz);
             if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
             /*
@@ -107,7 +108,8 @@ int main(int argc, const char * argv[]) {
                 ****************************
             */
             // double tdp_val=1.13, tpp_val=0.49, tppz_val=0.3, Vd=0.0, Vp=3.24, Vpz=3.0, Ud=8.5, Up=4.1;
-            double tdp_val=1, tpp_val=0.5, tppz_val=0.0+idx_tpz*0.5/(num-1), Vd=0.0, Vp=3.2, Vpz=2.0+idx_vpz*(3.2-2.0)/(num-1), Ud=8.5, Up=4;
+            // double tdp_val=1, tpp_val=0.5, tppz_val=0.0+idx_tpz*0.5/(num-1), Vd=0.0, Vp=3.2, Vpz=2.0+idx_vpz*(3.2-2.0)/(num-1), Ud=8.5, Up=4;
+            double tdp_val=1.0, tpp_val=0.5, tppz_val=0.3, Vd=0.0, Vp=3.2, Vpz=3.0, Ud=8.5, Up=4;
             Link<dataType> tdpx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px}, -tdp_val); tdpx.addLinkVec({0.5,0.0,0.0});
             Link<dataType> tdpy(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Py}, tdp_val); tdpy.addLinkVec({0.0,0.5,0.0});
             Link<dataType> tpxd(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Dx2y2}, tdp_val); tpxd.addLinkVec({0.5,0.0,0.0});
@@ -178,7 +180,8 @@ int main(int argc, const char * argv[]) {
             } 
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"SigmaW time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
-        }
+    //     }
+    // }
     }
 
 /*
