@@ -101,6 +101,7 @@ int main(int argc, const char * argv[]) {
     // for(int idx_vpz=0; idx_vpz<num; idx_vpz++){
     //     for(int idx_tpz=0; idx_tpz<num; idx_tpz++){
             // std::string dataDir = dataDirP+"/vpz_"+std::to_string(idx_vpz)+"_tpz_"+std::to_string(idx_tpz);
+            std::string dataDir = dataDirP;
             // if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
             /*
                 ****************************
