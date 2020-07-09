@@ -73,6 +73,7 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
     // initialize mul
     for (int i = 0; i < N; i++) mul.push_back(pow((ind_int) siteDim, (ind_int) (N - i - 1)));  
     // generate fIndexList and sIndexList for Hubbard and tJ
+    std::cout<<"Begin gendcmp()"<<"\n";
     gendcmp(); 
 }
 void Basis::initMinMaxRep() const {
