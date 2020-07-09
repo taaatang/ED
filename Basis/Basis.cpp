@@ -128,6 +128,7 @@ void Basis::gendcmp(){
             counter++;
         }
         assert(counter == fDim);
+        std::cout<<"fdim:"<<fDim<<"\n";
 
         counter = 0;
         repI = sminRep;
@@ -139,6 +140,7 @@ void Basis::gendcmp(){
             counter++;
         }
         assert(counter == sDim);
+        std::cout<<"sdim:"<<sDim<<"\n";
 
         for(ind_int idx=0; idx<fDim; idx++){
             ind_int repI = fIndexList.at(idx);
