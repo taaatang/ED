@@ -497,7 +497,7 @@ inline void bitPrint(ind_int n, int range){
 // From Yao's code
 template<class UnsignedType>
 inline UnsignedType nextLexicographicalNumber(UnsignedType x) {
-    if(x==0)return x;
+    if(x==0)return x+1;
     UnsignedType t = (x | (x - 1)) + 1; //find pivot position and set it to 1
     return t | ((((t & -t) / (x & -x)) >> 1) - 1); //reverse bits after the pivot
 }
