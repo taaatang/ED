@@ -161,7 +161,7 @@ int main(int argc, const char * argv[]) {
             occ.genMat();
             for(int state=0;state<nev;state++){
                 if(workerID==MPI_MASTER){
-                    dataType* vecpt = PDiag.getEigvec();
+                    dataType* vecpt = PDiag.getEigvec(state);
                     std::cout<<"state "<<state<<": Nd "<<occ.count(ORBITAL::Dx2y2, vecpt)<<", Npx "\
                     <<occ.count(ORBITAL::Px, vecpt)<<", Npy "<<occ.count(ORBITAL::Py, vecpt)<<"\n";
                 }
