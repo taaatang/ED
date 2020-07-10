@@ -33,7 +33,7 @@ int main(int argc, const char * argv[]) {
     ****************************
 */
     Timer timer;
-    a_int nev = 1;
+    a_int nev = 10;
     int N, Nx=4, Ny=1, Nu=3, Nd=2;
     int kIndex = 1; // 0 is Gamma Point
     int PGRepIndex = -1;
