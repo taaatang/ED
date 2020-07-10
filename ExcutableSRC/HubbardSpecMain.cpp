@@ -33,7 +33,7 @@ int main(int argc, const char * argv[]) {
     ****************************
 */
     Timer timer;
-    a_int nev = 10;
+    a_int nev = 3;
     int N, Nx=4, Ny=1, Nu=3, Nd=2;
     int kIndex = 1; // 0 is Gamma Point
     int PGRepIndex = -1;
@@ -80,7 +80,7 @@ int main(int argc, const char * argv[]) {
         * Basis Construction *
         **********************
     */
-    for(kIndex=2; kIndex<3; kIndex++){
+    for(kIndex=0; kIndex<N; kIndex++){
     timer.tik();
     Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
