@@ -157,31 +157,40 @@ int main(int argc, const char * argv[]) {
             dataType* gstate = PDiag.getEigvec();
             MPI_Barrier(MPI_COMM_WORLD);
 
+            Nocc occ(&Lattice, &B); 
+            occ.genMat();
+            for(int state=0;state<nev;state++){
+                dataType* vecpt = PDiag.getEigvec();
+                std::cout<<"state "<<state<<": Nd "<<occ.count(ORBITAL::Dx2y2, vecpt)<<", Npx "\
+                <<occ.count(ORBITAL::Px, vecpt)<<", Npy "<<occ.count(ORBITAL::Py, vecpt)<<"\n";
+            }
+
+
         /*
             ****************
             * Conductivity *
             * **************
         */
-            timer.tik();
-            Current Jz(&Lattice, &B);
-            Jz.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
-            #ifdef DISTRIBUTED_BASIS
-                Jz.genMatPara(rowCount, rowPerIt);
-            #else
-                Jz.genMatPara();
-            #endif
+            // timer.tik();
+            // Current Jz(&Lattice, &B);
+            // Jz.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
+            // #ifdef DISTRIBUTED_BASIS
+            //     Jz.genMatPara(rowCount, rowPerIt);
+            // #else
+            //     Jz.genMatPara();
+            // #endif
 
-            int krylovDim=400;
-            SPECTRASolver<dataType> spectra(&H, w0[0], &Jz, gstate, H.get_dim(), krylovDim);
-            spectra.compute();
-            // save alpha, beta
-            if (workerID==MPI_MASTER){
-                std::string dataPath = dataDir + "/k" + std::to_string(kIndex);
-                system(("mkdir -p " + dataPath).c_str());
-                // spectra.saveData(dataPath);
-            } 
-            timer.tok();
-            if (workerID==MPI_MASTER) std::cout<<"SigmaW time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+            // int krylovDim=400;
+            // SPECTRASolver<dataType> spectra(&H, w0[0], &Jz, gstate, H.get_dim(), krylovDim);
+            // spectra.compute();
+            // // save alpha, beta
+            // if (workerID==MPI_MASTER){
+            //     std::string dataPath = dataDir + "/k" + std::to_string(kIndex);
+            //     system(("mkdir -p " + dataPath).c_str());
+            //     // spectra.saveData(dataPath);
+            // } 
+            // timer.tok();
+            // if (workerID==MPI_MASTER) std::cout<<"SigmaW time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
     //     }
     // }
     }
