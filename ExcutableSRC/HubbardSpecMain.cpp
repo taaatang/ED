@@ -160,11 +160,11 @@ int main(int argc, const char * argv[]) {
             Nocc occ(&Lattice, &B); 
             occ.genMat();
             for(int state=0;state<nev;state++){
-                if(workerID==MPI_MASTER){
-                    dataType* vecpt = PDiag.getEigvec(state);
-                    std::cout<<"state "<<state<<": Nd "<<occ.count(ORBITAL::Dx2y2, vecpt)<<", Npx "\
-                    <<occ.count(ORBITAL::Px, vecpt)<<", Npy "<<occ.count(ORBITAL::Py, vecpt)<<"\n";
-                }
+                dataType* vecpt = PDiag.getEigvec(state);
+                double Nd = occ.count(ORBITAL::Dx2y2, vecpt);
+                double Npx = occ.count(ORBITAL::Px, vecpt);
+                double Npy = cc.count(ORBITAL::Py, vecpt);
+                if(workerID==MPI_MASTER)std::cout<<"state "<<state<<": Nd "<<Nd<<", Npx "<<Npx<<", Npy "<<Npy<<"\n";
             }
 
 
