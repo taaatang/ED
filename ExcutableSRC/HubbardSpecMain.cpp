@@ -163,7 +163,7 @@ int main(int argc, const char * argv[]) {
                 dataType* vecpt = PDiag.getEigvec(state);
                 double Nd = occ.count(ORBITAL::Dx2y2, vecpt);
                 double Npx = occ.count(ORBITAL::Px, vecpt);
-                double Npy = cc.count(ORBITAL::Py, vecpt);
+                double Npy = occ.count(ORBITAL::Py, vecpt);
                 if(workerID==MPI_MASTER)std::cout<<"state "<<state<<": Nd "<<Nd<<", Npx "<<Npx<<", Npy "<<Npy<<"\n";
             }
 
