@@ -67,7 +67,7 @@ int main(int argc, const char * argv[]) {
     SquareLattice Lattice(Nx,Ny);
     Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
     Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
-    Lattice.addOrb({ORBITAL::Py,5,{0.0,-0.5,0.0}});
+    // Lattice.addOrb({ORBITAL::Py,5,{0.0,-0.5,0.0}});
     Lattice.construct();
     
     int siteDim = 2;
