@@ -73,7 +73,7 @@ int main(int argc, const char * argv[]) {
     int siteDim = 2;
     VecI occList{Nu, Nd};
     ind_int fullDim=0, totDim=0;
-    std::cout<<"Nu:"<<Nu<<", Nd:"<<Nd<<"\n";
+    // std::cout<<"Nu:"<<Nu<<", Nd:"<<Nd<<"\n";
     
     /*
         **********************
@@ -82,9 +82,7 @@ int main(int argc, const char * argv[]) {
     */
     for(kIndex=0; kIndex<N; kIndex++){
     timer.tik();
-    std::cout<<"Begin B init..."<<"\n";
     Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
-    std::cout<<"B inited..."<<"\n";
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
     if (BASIS_IS_SAVED){
         #ifdef DISTRIBUTED_BASIS
@@ -180,7 +178,7 @@ int main(int argc, const char * argv[]) {
             if (workerID==MPI_MASTER){
                 std::string dataPath = dataDir + "/k" + std::to_string(kIndex);
                 system(("mkdir -p " + dataPath).c_str());
-                spectra.saveData(dataPath);
+                // spectra.saveData(dataPath);
             } 
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"SigmaW time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
