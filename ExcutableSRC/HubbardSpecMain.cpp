@@ -80,7 +80,7 @@ int main(int argc, const char * argv[]) {
         * Basis Construction *
         **********************
     */
-    for(kIndex=0; kIndex<N; kIndex++){
+    for(kIndex=2; kIndex<3; kIndex++){
     timer.tik();
     Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
