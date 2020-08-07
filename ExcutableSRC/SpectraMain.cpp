@@ -99,7 +99,7 @@ int main(int argc, const char * argv[]) {
     J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
     timer.tik();
     Heisenberg<dataType> H(&Lattice, &B, 1);
-    H.pushLinks({J1Link}).pushLinks({J2Link});
+    H.pushLinks({J1Link, J2Link});
     // HtJ<dataType> H(&Lattice, &B, 1);
     // H.pushLinks({t1Link, t2Link, J1Link, J2Link});
     H.genMatPara();
