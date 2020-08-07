@@ -36,7 +36,7 @@ int main(int argc, const char * argv[]) {
     a_int nev = 1;
     // int Nx = 6, Ny = 6;
     // int N = Nx * Ny;
-    LATTICE_MODEL model = LATTICE_MODEL::t_J;
+    LATTICE_MODEL model = LATTICE_MODEL::HEISENBERG;
     int Nx, Ny, N, Nu, Nd;
     int kIndex = -1; // Gamma Point
     int PGRepIndex = -1;
@@ -56,7 +56,8 @@ int main(int argc, const char * argv[]) {
 
     // data directory
     // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
-    std::string subDir = "N"+tostr(N)+"Nu"+tostr(Nu)+"Nd"+tostr(Nd);
+    // std::string subDir = "N"+tostr(N)+"Nu"+tostr(Nu)+"Nd"+tostr(Nd);
+    std::string subDir = "N"+tostr(N)+"_test";
     std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";
@@ -97,10 +98,10 @@ int main(int argc, const char * argv[]) {
     J1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
     J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
     timer.tik();
-    // Heisenberg<dataType> H(&Lattice, &B, 2);
-    // H.pushLinks({J1Link}).pushLinks({J2Link});
-    HtJ<dataType> H(&Lattice, &B, 1);
-    H.pushLinks({t1Link, t2Link, J1Link, J2Link});
+    Heisenberg<dataType> H(&Lattice, &B, 1);
+    H.pushLinks({J1Link}).pushLinks({J2Link});
+    // HtJ<dataType> H(&Lattice, &B, 1);
+    // H.pushLinks({t1Link, t2Link, J1Link, J2Link});
     H.genMatPara();
     timer.tok();
     std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
