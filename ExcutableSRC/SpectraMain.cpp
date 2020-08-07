@@ -175,8 +175,8 @@ int main(int argc, const char * argv[]) {
             // <Bp|Szq|B>, q = k_B - k_Bp
             SzkOp<dataType> Szq(&Lattice, &B, &Bp);
             Szq.genMatPara();
-            HtJ<dataType> Hp(&Lattice, &Bp, 1);
-            Hp.pushLinks({t1Link,t2Link,J1Link,J2Link});
+            Heisenberg<dataType> Hp(&Lattice, &Bp, 1);
+            Hp.pushLinks({J1Link,J2Link});
             Hp.genMatPara();
             // Hp.setVal(1, J2);
             timer.tok();
