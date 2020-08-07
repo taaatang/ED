@@ -3,6 +3,7 @@
 
 # vscode
 .vscode/
+*.code-workspace
 
 # build
 build/
