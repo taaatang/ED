@@ -15,7 +15,6 @@
 #include <iostream>
 #include <iomanip> // std::setprecision
 #include <fstream>
-#include <stdlib.h> // system
 #include <chrono>
 #include <mpi.h>
 
@@ -112,7 +111,7 @@ int main(int argc, const char * argv[]) {
     std::ofstream outfile;
     // data directory
     std::string dataDir = PROJECT_DATA_PATH+"/"+ subDir +"/kSpace/Spectra/J2_"+tostr(J2);
-    if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
+    if (workerID==MPI_MASTER) mkdir_fs(dataDir);
     if (workerID==MPI_MASTER) std::cout<<"**********************"<<std::endl<<"Begin J2 = "<<J2<<std::endl<<"*************************"<<std::endl;
     // H.setVal(1,J2);
     /*
@@ -189,7 +188,6 @@ int main(int argc, const char * argv[]) {
             // save alpha, beta
             if (workerID==MPI_MASTER){
                 std::string dataPath = dataDir + "/sqw_k" + std::to_string(kIndex) + "_kp" + std::to_string(kIndexf);
-                system(("mkdir -p " + dataPath).c_str());
                 spectra.saveData(dataPath);
             } 
             timer.tok();
@@ -224,7 +222,6 @@ int main(int argc, const char * argv[]) {
                     // save alpha, beta
                     if (workerID==MPI_MASTER){
                         std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+plzLabel[i]+plzLabel[j];
-                        system(("mkdir -p " + dataPath).c_str());
                         spectra.saveData(dataPath);
                     } 
                 }

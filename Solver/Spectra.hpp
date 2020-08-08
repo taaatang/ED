@@ -30,6 +30,7 @@ public:
     ~SPECTRASolver(){}
     void compute(){run(vec.data());}
     void saveData(std::string dataPath){
+        mkdir_fs(dataPath);
         std::ofstream outfile;
         save<cdouble>(&w0, 1, &outfile, dataPath + "/w0");
         save<cdouble>(&(LANCZOSIterator<T>::vecNorm), 1, &outfile, dataPath + "/vecNorm");
