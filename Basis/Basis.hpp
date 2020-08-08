@@ -52,7 +52,7 @@ public:
     // rowidx->repI
     ind_int getRepI(ind_int idx) const {if(kIndex==-1 and model==LATTICE_MODEL::HUBBARD)return idx; return indexList.at(idx);}
     // repI->pairRepI
-    pairIndex getPairRepI(ind_int repI) const {return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));}
+    pairIndex getPairRepI(ind_int repI) const {assert_msg(model!=LATTICE_MODEL::HEISENBERG,"PairRepI not defined for Heisenberg Model!");return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));}
     // pairRepI->repI
     ind_int getRepI(pairIndex pairRepI) const {return fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);}
     
