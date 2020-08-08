@@ -463,7 +463,6 @@ void RamanOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     std::vector<cdouble> factorList;
     pt_Basis->genSymm(rowID, finalIndList, factorList);
     for (int i = 0; i < finalIndList.size(); i++){
-        pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
         int linkid = 0;
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
             int matID = (*linkit).getmatid();
@@ -477,7 +476,8 @@ void RamanOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
                 int siteI = (*bondit).at(0);
                 int siteJ = (*bondit).at(1);
                 // szi * szj - 1/4*ni*nj 
-                szsznn(siteI, siteJ, factor_rw, finalIndList[i], &rowMaps[matID]);
+                // szsznn(siteI, siteJ, factor_rw, finalIndList[i], &rowMaps[matID]);
+                szsz(siteI, siteJ, factor_rw, finalIndList[i], &rowMaps[matID]);
                 // 1/2 * sm.siteID * sp.siteIDp
                 spsm(siteI, siteJ, factor_rw/2.0, finalIndList[i], &rowMaps[matID]);
                 // 1/2 * sp.siteID * sm.siteIDp
