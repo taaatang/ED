@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <random>
 #include <iostream>
+#include <filesystem>
 #include <iomanip>
 #include <fstream>
 #include <list>
@@ -347,6 +348,11 @@ inline void MPI_Alltoallv(cdouble *sendBuff,int *sendCounts,int *sdispls,cdouble
     * I/O *
     *******
 */
+
+inline void mkdir_fs(std::string dir){
+    bool succeed = std::filesystem::create_directories(dir);
+    assert_msg(succeed, dir + " failed to creat!");
+}
 
 template <class T>
 inline void save(T *d_pt, int size, std::ofstream *f_pt, std::string filename, bool is_app=false){
