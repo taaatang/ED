@@ -5,7 +5,7 @@ if(HOST STREQUAL "cori")
     set(CMAKE_CXX_COMPILER CC)
 elseif(HOST STREQUAL "sherlock" OR HOST STREQUAL "acer")
     set(CMAKE_CXX_COMPILER mpiicpc)
-    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 14)
     set(CMAKE_CXX_STANDARD_REQUIRED True)
 endif()
 
@@ -27,11 +27,15 @@ add_library(MKL_core STATIC IMPORTED)
 set_target_properties(MKL_core PROPERTIES IMPORTED_LOCATION ${MKLROOT}/lib/intel64/libmkl_core.a) 
 set(MKL -Wl,--start-group MKL_ilp64 MKL_thread MKL_core -Wl,--end-group iomp5 pthread m dl)
 
+# Boost
+set(BOOSTLIB $ENV{BOOST_LIB})
+set(BOOST boost_filesystem)
+
 # Compiler Flags
 set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall -qopenmp")
 # Include/Library Path
 include_directories(${ARPACKINC} ${MKLINC})
-link_directories(${ARPACKLIB})
+link_directories(${ARPACKLIB} ${BOOSTLIB})
 
 
 # SRC and Hearder files
@@ -63,7 +67,7 @@ add_executable(GroundState.out ${EXE_SRC}/GroundStateMain.cpp ${GROUND_STATE_DEP
 target_link_libraries(GroundState.out ${MKL} parpack)
 
 add_executable(Spectra.out ${EXE_SRC}/SpectraMain.cpp ${SPECTRA_DEP})
-target_link_libraries(Spectra.out ${MKL} parpack)
+target_link_libraries(Spectra.out ${MKL} ${BOOST} parpack)
 
 add_executable(HubbardSpec.out ${EXE_SRC}/HubbardSpecMain.cpp ${SPECTRA_DEP})
 target_link_libraries(HubbardSpec.out ${MKL} parpack)
