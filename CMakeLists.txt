@@ -28,13 +28,14 @@ set_target_properties(MKL_core PROPERTIES IMPORTED_LOCATION ${MKLROOT}/lib/intel
 set(MKL -Wl,--start-group MKL_ilp64 MKL_thread MKL_core -Wl,--end-group iomp5 pthread m dl)
 
 # Boost
+set(BOOSTROOT $ENV{BOOST_ROOT})
 set(BOOSTLIB $ENV{BOOST_LIB})
 set(BOOST boost_filesystem)
 
 # Compiler Flags
 set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall -qopenmp")
 # Include/Library Path
-include_directories(${ARPACKINC} ${MKLINC})
+include_directories(${ARPACKINC} ${MKLINC} ${BOOSTROOT})
 link_directories(${ARPACKLIB} ${BOOSTLIB})
 
 
@@ -64,13 +65,13 @@ set(EXE_SRC ExcutableSRC)
 add_executable(genBasis.out ${EXE_SRC}/genBasisMain.cpp ${BASIS_DEP})
 
 add_executable(GroundState.out ${EXE_SRC}/GroundStateMain.cpp ${GROUND_STATE_DEP})
-target_link_libraries(GroundState.out ${MKL} parpack)
+target_link_libraries(GroundState.out ${MKL} ${BOOST} parpack)
 
 add_executable(Spectra.out ${EXE_SRC}/SpectraMain.cpp ${SPECTRA_DEP})
 target_link_libraries(Spectra.out ${MKL} ${BOOST} parpack)
 
 add_executable(HubbardSpec.out ${EXE_SRC}/HubbardSpecMain.cpp ${SPECTRA_DEP})
-target_link_libraries(HubbardSpec.out ${MKL} parpack)
+target_link_libraries(HubbardSpec.out ${MKL} ${BOOST} parpack)
 
 # Test
 set(TEST_SRC Test)
@@ -78,6 +79,6 @@ set(TEST_SRC Test)
 add_executable(geometryTest.out ${TEST_SRC}/geometryTest.cpp ${GEOMETRY_DEP})
 
 add_executable(timeTest.out ${TEST_SRC}/timeTest.cpp ${TIME_DEP})
-target_link_libraries(timeTest.out ${MKL} parpack gsl gslcblas)
+target_link_libraries(timeTest.out ${MKL} ${BOOST} parpack gsl gslcblas)
 
 # add_executable(Time.out timeTest.cpp algebra.cpp utils.cpp Basis.cpp Geometry.cpp Operators.cpp) 
