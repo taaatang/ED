@@ -251,7 +251,7 @@ class SpinOperator{
     idx++ ---> s--
     For tJ model:
         Spin-1/2 ops for tJ model. Operate on projected hilbert space without double occupancy.(docc)
-        Inorder to not consider fermion sign for spin operators, the basis state is aranged as [su0,sd0,su1,sd1,...]
+        In order to not consider fermion sign for spin operators, the basis state is aranged as [su0,sd0,su1,sd1,...]
         The basis state is stored as [su0,su1,...], [sd0,sd1,...]
 */
 protected:
@@ -271,6 +271,19 @@ public:
         }
     }
     ~SpinOperator(){};
+
+    void push(ind_int repIf, dataType val, MAP* rowMap){
+        #ifdef DISTRIBUTED_BASIS
+            MapPush(rowMap,repIf,val);
+        #else
+            ind_int colID;
+            if (pt_Basis->search(repIf,colID)){
+                double finalNorm = pt_Basis->getNorm(colID);
+                val /= finalNorm;
+                MapPush(rowMap,colID,val);
+            }
+        #endif
+    }
     
     double getSz(int siteI, VecI& initVec) const {return szMat.at(initVec.at(siteI));}
     void szsz(int siteI, int siteJ, dataType factor, ind_int initInd, VecI& initVec, MAP* rowMap){
@@ -491,19 +504,19 @@ public:
         switch(smodel){
             case LATTICE_MODEL::HEISENBERG:{
                 if (bitTest(repI,siteI) && (!bitTest(repI,siteJ))){
-                bitFlip(repI,siteI);
-                bitFlip(repI,siteJ);
-                dataType val = factor * spMat[1] * smMat[0];
-                #ifdef DISTRIBUTED_BASIS
-                    MapPush(rowMap,repI,val);
-                #else
-                    ind_int colID;
-                    if (pt_Basis->search(repI, colID)){
-                        double finalNorm = pt_Basis->getNorm(colID);
-                        val /= finalNorm;
-                        MapPush(rowMap,colID,val);
-                    }
-                #endif
+                    bitFlip(repI,siteI);
+                    bitFlip(repI,siteJ);
+                    dataType val = factor * spMat[1] * smMat[0];
+                    #ifdef DISTRIBUTED_BASIS
+                        MapPush(rowMap,repI,val);
+                    #else
+                        ind_int colID;
+                        if (pt_Basis->search(repI, colID)){
+                            double finalNorm = pt_Basis->getNorm(colID);
+                            val /= finalNorm;
+                            MapPush(rowMap,colID,val);
+                        }
+                    #endif
                 }
                 break;
             }
@@ -544,5 +557,55 @@ public:
         }
         spsm(siteJ, siteI, factor, repI,rowMap);
     };
+
+    void szspsm(int siteI, int siteJ, int siteK, dataType factor, ind_int repI, MAP* rowMap){
+        /*
+            Jk/norm(repI)/norm(repfI) * I/2 * sz(i) * [sp(j)sm(k) - sm(j)sp(k)]
+            factor = Jk/norm(repI)
+        */
+       // assert_msg(siteI!=siteJ && siteJ!=siteK, "chiral term szspsm(i,j,k) only defined for three different sites (i,j,k)!");
+       switch (model){
+           case LATTICE_MODEL::HEISENBERG:{
+               bool cond = false;
+               double sign;
+               if (bitTest(repI,siteJ) && (!bitTest(repI,siteK))){
+                    cond = true;
+                    sign = 1.0;
+                }
+                else if ((!bitTest(repI,siteJ)) && bitTest(repI,siteK)){
+                    cond = true;
+                    sign = -1.0;
+                }
+                if (cond){
+                    bitFlip(repI,siteJ);
+                    bitFlip(repI,siteK);
+                    #ifdef DISTRIBUTED_BASIS
+                        dataType val = factor * sign * getSz(siteI, repI) * spMat[1] * smMat[0];
+                        MapPush(rowMap,repI,val);
+                    #else
+                        ind_int colID;
+                        if (pt_Basis->search(repI, colID)){
+                            dataType val = sign * factor * getSz(siteI, repI) * spMat[1] * smMat[0];
+                            double finalNorm = pt_Basis->getNorm(colID);
+                            val /= finalNorm;
+                            MapPush(rowMap,colID,val);
+                        }
+                    #endif
+                }
+                break;
+           }
+           default:{
+               std::cout<<"model not defined for SpinOperator::szspsm\n";
+               exit(1);
+           }
+       }
+    }
+
+    void chiral(int siteI, int siteJ, int siteK, dataType factor, ind_int repI, MAP* rowMap){
+        assert_msg(siteI!=siteJ && siteJ!=siteK, "chiral term chiral(i,j,k) only defined for three different sites (i,j,k)!");
+        szspsm(siteI, siteJ, siteK, factor, repI, rowMap);
+        szspsm(siteJ, siteK, siteI, factor, repI, rowMap);
+        szspsm(siteK, siteI, siteJ, factor, repI, rowMap);
+    }
 };
 #endif // OperatorsBase_hpp
