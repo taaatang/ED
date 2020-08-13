@@ -602,7 +602,11 @@ public:
     }
 
     void chiral(int siteI, int siteJ, int siteK, dataType factor, ind_int repI, MAP* rowMap){
-        assert_msg(siteI!=siteJ && siteJ!=siteK, "chiral term chiral(i,j,k) only defined for three different sites (i,j,k)!");
+        /*
+            Jk/norm(repI)/norm(repfI) * si * (sj x sk)
+            factor = Jk/norm(repI)
+        */
+        assert_msg(siteI!=siteJ && siteJ!=siteK, "chiral term chiral(i,j,k) only defined for three different lattice sites (i,j,k)!");
         szspsm(siteI, siteJ, siteK, factor, repI, rowMap);
         szspsm(siteJ, siteK, siteI, factor, repI, rowMap);
         szspsm(siteK, siteI, siteJ, factor, repI, rowMap);
