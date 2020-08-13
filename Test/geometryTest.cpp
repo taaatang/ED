@@ -9,18 +9,27 @@
 #include "../Global/globalPara.hpp"
 #include "../Utils/utils.hpp"
 #include "../Geometry/Geometry.hpp"
+#include "../Operator/OperatorsBase.hpp"
 
 #include <iostream>
 
 int main(int argc, const char * argv[]) {
-    // int N = 12;
-    // TriAngLattice Lattice(N);
+    int N = 12;
+    TriAngLattice Lattice(N);
     // Lattice.addOrb({});
     // int Nx=2, Ny=2;
-    SquareLattice Lattice(8);
-    Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
-    Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
+    // SquareLattice Lattice(8);
+    // Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
+    // Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
+    Lattice.addOrb({});
     Lattice.construct();
     Lattice.print();
+
+    dataType Jk = 1.0;
+    Link<dataType> JkLink(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE},\
+        Jk, true, true);
+    JkLink.addLinkVec({0.0,1.0,0.0}).addLinkVec({1.0,0.0,0.0}).\
+        addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,-1.0,0.0});
+    JkLink.print();
     return 0;
 }
