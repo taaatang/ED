@@ -567,14 +567,14 @@ public:
        switch (smodel){
            case LATTICE_MODEL::HEISENBERG:{
                bool cond = false;
-               double sign;
+               cdouble sign;
                if (bitTest(repI,siteJ) && (!bitTest(repI,siteK))){
                     cond = true;
-                    sign = 1.0;
+                    sign = CPLX_I/2.0;
                 }
                 else if ((!bitTest(repI,siteJ)) && bitTest(repI,siteK)){
                     cond = true;
-                    sign = -1.0;
+                    sign = -CPLX_I/2.0;
                 }
                 if (cond){
                     bitFlip(repI,siteJ);
