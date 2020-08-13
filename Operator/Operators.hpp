@@ -519,7 +519,7 @@ void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
                         for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                             int siteI = (*bondit).at(0);
                             int siteJ = (*bondit).at(1);
-                            int siteK = (*bondit).at(3);
+                            int siteK = (*bondit).at(2);
                             chiral(siteI, siteJ, siteK, factor, finalIndList[i], &rowMaps[matID]);
                         }
                         break;
