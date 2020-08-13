@@ -26,8 +26,7 @@ int main(int argc, const char * argv[]) {
     Lattice.print();
 
     dataType Jk = 1.0;
-    Link<dataType> JkLink(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE},\
-        Jk, true, true);
+    Link<dataType> JkLink(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE},Jk);
     JkLink.addLinkVec({0.0,1.0,0.0}).addLinkVec({1.0,0.0,0.0}).\
         addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,-1.0,0.0});
     JkLink.genLinkMaps(&Lattice);
