@@ -40,7 +40,7 @@ int main(int argc, const char * argv[]) {
     int kIndex = -1; // Gamma Point
     int PGRepIndex = -1;
     double spin = 0.5;
-    double t1 = 1.0, t2 = 0.2, J1= 1.0, J2 = 0.0;
+    double t1 = 1.0, t2 = 0.2, J1= 1.0, J2 = 0.0, Jk = 0.0;
     double dJ2 = 0.01;
 
     Timer timer;
@@ -51,7 +51,7 @@ int main(int argc, const char * argv[]) {
 
     infile<int>({&N, &Nu, &Nd}, "../Input/lattice_input.txt");
     infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
-    infile<double>({&t1, &t2, &J1, &J2}, "../Input/params_input.txt");
+    infile<double>({&t1, &t2, &J1, &J2, &Jk}, "../Input/params_input.txt");
 
     // data directory
     // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
@@ -92,13 +92,15 @@ int main(int argc, const char * argv[]) {
     Link<dataType> t2Link(LINK_TYPE::HOPPING_T, {ORBITAL::SINGLE, ORBITAL::SINGLE}, t2);
     Link<dataType> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1);
     Link<dataType> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2, true);
+    Link<dataType> JkLink(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE},Jk, true);
     t1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
     t2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
     J1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
     J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
+    JkLink.addLinkVec({0.0,1.0,0.0}).addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,-1.0,0.0});
     timer.tik();
     Heisenberg<dataType> H(&Lattice, &B, 1);
-    H.pushLinks({J1Link, J2Link});
+    H.pushLinks({J1Link, J2Link, JkLink});
     // HtJ<dataType> H(&Lattice, &B, 1);
     // H.pushLinks({t1Link, t2Link, J1Link, J2Link});
     H.genMatPara();
