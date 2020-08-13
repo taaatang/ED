@@ -500,16 +500,34 @@ void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
                 int matID = (*linkit).getmatid();
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
-                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                    int siteID = (*bondit).at(0);
-                    int siteIDp = (*bondit).at(1);
-                    // sz.siteID * sz.siteIDp
-                    szsz(siteID, siteIDp, factor, finalIndList[i], &rowMaps[matID]);
-                    // 1/2 * sm.siteID * sp.siteIDp
-                    spsm(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
-                    // 1/2 * sp.siteID * sm.siteIDp
-                    smsp(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                switch((*linkit).getLinkType()){
+                    case LINK_TYPE::HOPPING_T:{
+                        for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                            int siteID = (*bondit).at(0);
+                            int siteIDp = (*bondit).at(1);
+                            // sz.siteID * sz.siteIDp
+                            szsz(siteID, siteIDp, factor, finalIndList[i], &rowMaps[matID]);
+                            // 1/2 * sm.siteID * sp.siteIDp
+                            spsm(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                            // 1/2 * sp.siteID * sm.siteIDp
+                            smsp(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                        }
+                        break;
+                    }
+
+                    case LINK_TYPE::CHIRAL_K:{
+                        for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                            int siteI = (*bondit).at(0);
+                            int siteJ = (*bondit).at(1);
+                            int siteK = (*bondit).at(3);
+                            chiral(siteI, siteJ, siteK, factor, finalIndList[i], &rowMaps[matID]);
+                        }
+                        break;
+                    }
+
+                    default: break;
                 }
+                
             }
         }
     }
