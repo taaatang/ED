@@ -493,11 +493,9 @@ template <class T>
 void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     if(pt_Basis->getSiteDim()==2){
         int kIndex = pt_Basis->getkIndex();
-        double initNorm, finalNorm;
         std::vector<ind_int> finalIndList;
         std::vector<cdouble> factorList;
         pt_Basis->genSymm(rowID, finalIndList, factorList);
-        initNorm = pt_Basis->getNorm(rowID);
         for (int i = 0; i < finalIndList.size(); i++){
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
                 int matID = (*linkit).getmatid();
@@ -518,11 +516,9 @@ void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     else{
         int kIndex = pt_Basis->getkIndex();
         VecI initVec(pt_lattice->getOrbNum());
-        double initNorm, finalNorm;
         std::vector<ind_int> finalIndList;
         std::vector<cdouble> factorList;
         pt_Basis->genSymm(rowID, finalIndList, factorList);
-        initNorm = pt_Basis->getNorm(rowID);
         for (int i = 0; i < finalIndList.size(); i++){
             pt_Basis->repToVec(finalIndList[i], initVec);
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
@@ -551,14 +547,12 @@ void Heisenberg<T>::genMat(){
     // initialize rowInitList
     for (int i = 0; i < SparseMatrix<T>::spmNum; i++) SparseMatrix<T>::pushRow(&rowMap,i);
     VecI initVec(pt_lattice->getOrbNum());
-    double initNorm, finalNorm;
     // calculate <R1k|H*Pk|R2k>/norm1/norm2
     for (ind_int rowID = SparseMatrix<T>::startRow; rowID < SparseMatrix<T>::endRow; rowID++){
         rowMap.clear();
         std::vector<cdouble> factorList;
         std::vector<ind_int> finalIndList;
         pt_Basis->genSymm(rowID, finalIndList, factorList);
-        initNorm = pt_Basis->getNorm(rowID);
         for (int i = 0; i < finalIndList.size(); i++){
             pt_Basis->repToVec(finalIndList[i], initVec);
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
@@ -629,8 +623,6 @@ void SSOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     //binary rep
     if(pt_Basis->getSiteDim()==2){
         int kIndex = pt_Basis->getkIndex();
-        double initNorm, finalNorm;
-        initNorm = pt_Basis->getNorm(rowID);
         std::vector<ind_int> finalIndList;
         std::vector<cdouble> factorList;
         pt_Basis->genSymm(rowID, finalIndList, factorList);
@@ -663,8 +655,6 @@ void SSOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     else{
         int kIndex = pt_Basis->getkIndex();
         VecI initVec(pt_lattice->getOrbNum());
-        double initNorm, finalNorm;
-        initNorm = pt_Basis->getNorm(rowID);
         std::vector<ind_int> finalIndList;
         std::vector<cdouble> factorList;
         pt_Basis->genSymm(rowID, finalIndList, factorList);
@@ -726,10 +716,8 @@ void SSOp<T>::genPairMat(int rIndex){
     MAP rowMap;
     pushRow(&rowMap);
     VecI initVec(pt_lattice->getOrbNum());
-    double initNorm, finalNorm;
     for (ind_int rowID = startRow; rowID < endRow; rowID++){
         rowMap.clear();
-        initNorm = pt_Basis->getNorm(rowID);
         std::vector<ind_int> finalIndList;
         std::vector<cdouble> factorList;
         pt_Basis->genSymm(rowID, finalIndList, factorList);
