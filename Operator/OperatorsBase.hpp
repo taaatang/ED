@@ -564,7 +564,7 @@ public:
             factor = Jk/norm(repI)
         */
        // assert_msg(siteI!=siteJ && siteJ!=siteK, "chiral term szspsm(i,j,k) only defined for three different sites (i,j,k)!");
-       switch (model){
+       switch (smodel){
            case LATTICE_MODEL::HEISENBERG:{
                bool cond = false;
                double sign;
