@@ -30,6 +30,7 @@ int main(int argc, const char * argv[]) {
         Jk, true, true);
     JkLink.addLinkVec({0.0,1.0,0.0}).addLinkVec({1.0,0.0,0.0}).\
         addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,-1.0,0.0});
+    JkLink.genLinkMaps(&Lattice);
     JkLink.print();
     return 0;
 }
