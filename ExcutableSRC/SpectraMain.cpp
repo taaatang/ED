@@ -112,7 +112,7 @@ int main(int argc, const char * argv[]) {
 //     J2 = dJ2 * J2_num;
     std::ofstream outfile;
     // data directory
-    std::string dataDir = PROJECT_DATA_PATH+"/"+ subDir +"/kSpace/Spectra/J2_"+tostr(J2);
+    std::string dataDir = PROJECT_DATA_PATH+"/"+ subDir +"/kSpace/Spectra/J2_"+tostr(J2)+"_Jk_"+tostr(Jk);
     if (workerID==MPI_MASTER) mkdir_fs(dataDir);
     if (workerID==MPI_MASTER) std::cout<<"**********************"<<std::endl<<"Begin J2 = "<<J2<<std::endl<<"*************************"<<std::endl;
     // H.setVal(1,J2);
