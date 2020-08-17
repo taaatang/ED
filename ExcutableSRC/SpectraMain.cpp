@@ -80,10 +80,10 @@ int main(int argc, const char * argv[]) {
     timer.tik();
     int siteDim = 2;
     VecI occList{Nu, Nd};
-    Basis B(model, &Lattice, occList, kIndex);
+    Basis* B new Basis(model, &Lattice, occList, kIndex);
     if (workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
-    if (BASIS_IS_SAVED) B.gen(basisfile, normfile);
-    else B.gen();
+    if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
+    else B->gen();
     timer.tok();
     if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kIdx ="<<kIndex<<", PGidx = "<<PGRepIndex<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
@@ -108,13 +108,13 @@ int main(int argc, const char * argv[]) {
     J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
     JkLink.addLinkVec({0.0,1.0,0.0}).addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,-1.0,0.0});
     timer.tik();
-    Heisenberg<dataType> H(&Lattice, &B, 1);
-    H.pushLinks({J1Link, J2Link, JkLink});
+    Heisenberg<dataType>* H = new Heisenberg<dataType>(&Lattice, B, 1);
+    H->pushLinks({J1Link, J2Link, JkLink});
     // HtJ<dataType> H(&Lattice, &B, 1);
     // H.pushLinks({t1Link, t2Link, J1Link, J2Link});
-    H.genMatPara();
+    H->genMatPara();
     timer.tok();
-    std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
+    std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H->get_nloc()<<"/"<<H->get_dim()<<", Local Hamiltonian non-zero elements count:"<<H->nzCount()\
             <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
 
 // for(int J2_num = 0; J2_num<101; J2_num++){
@@ -130,7 +130,7 @@ int main(int argc, const char * argv[]) {
         * Diagonalization Using PARPACK *
         *********************************
     */
-    PARPACKComplexSolver<double> PDiag(&H, nev);
+    PARPACKComplexSolver<double> PDiag(H, nev);
     PDiag.diag();
     // save eigen values
     if (workerID==MPI_MASTER){
@@ -153,7 +153,7 @@ int main(int argc, const char * argv[]) {
 */
     if (COMPUTE_SS){
         timer.tik();
-        SSOp<dataType> SS(&Lattice,&B);
+        SSOp<dataType> SS(&Lattice,B);
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin SS ..."<<std::endl<<"********************"<<std::endl;
         std::vector<dataType> vecTmp(SS.get_nlocmax());
         cdouble val;
@@ -188,6 +188,8 @@ int main(int argc, const char * argv[]) {
 */
     if (COMPUTE_SQW){
         int krylovDim = 400;
+        int_int Hdim = H->get_dim();
+        delete H;
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Sqw ..."<<std::endl<<"********************"<<std::endl;
         for (int kIndexf = 0; kIndexf < Lattice.getSiteNum(); kIndexf++){
             timer.tik();
@@ -199,7 +201,7 @@ int main(int argc, const char * argv[]) {
             if (BASIS_IS_SAVED) {Bp.gen(basisfilep, normfilep);
             }else{Bp.gen();}
             // <Bp|Szq|B>, q = k_B - k_Bp
-            SzkOp<dataType> Szq(&Lattice, &B, &Bp);
+            SzkOp<dataType> Szq(&Lattice, B, &Bp);
             Szq.genMatPara();
             Heisenberg<dataType> Hp(&Lattice, &Bp, 1);
             Hp.pushLinks({J1Link,J2Link,JkLink});
@@ -211,7 +213,7 @@ int main(int argc, const char * argv[]) {
             for(auto idx : gs_idx){
                 cdouble w0 = ws[idx];
                 dataType* state = PDiag.getEigvec(idx);
-                SPECTRASolver<dataType> spectra(&Hp, w0, &Szq, state, H.get_dim(), krylovDim);
+                SPECTRASolver<dataType> spectra(&Hp, w0, &Szq, state, Hdim, krylovDim);
                 spectra.compute();
                 // save alpha, beta
                 if (workerID==MPI_MASTER){
@@ -284,7 +286,10 @@ int main(int argc, const char * argv[]) {
     //     }
     // }
     
-
+    if(!COMPUTE_SQW){
+        delete H;
+    }
+    delete B;
 // }   
 /*
     *******
