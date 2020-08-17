@@ -83,6 +83,11 @@ int main(int argc, const char * argv[]) {
     timer.tok();
     if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kIdx ="<<kIndex<<", PGidx = "<<PGRepIndex<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
+    
+    VecD J2s{0.0, 0.16, 0.3, 0.6};
+    VecD Jks{0.0, 0.2, 0.4, 0.8};
+    for(auto J2 : J2s){
+        for(auto Jk : Jks){
     /*
         ****************************
         * Hamiltonian Construction *
@@ -271,6 +276,8 @@ int main(int argc, const char * argv[]) {
         // }
         // timer.tok();
         // if (workerID==MPI_MASTER) std::cout<<"Chiral Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+    }
+        }
     }
     
 
