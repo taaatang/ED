@@ -11,7 +11,7 @@ JobDir=../Job/36/Raman
 keyword1=J2idx
 keyword2=Jkidx
 app=Raman.out
-script=run_haswell.sh
+script=run_knl.sh
 input=params_input.txt
 for i in 0 15 30
     do
