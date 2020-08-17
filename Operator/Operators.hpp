@@ -501,7 +501,7 @@ void Heisenberg<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
                 int matID = (*linkit).getmatid();
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
                 switch((*linkit).getLinkType()){
-                    case LINK_TYPE::HOPPING_T:{
+                    case LINK_TYPE::SUPER_EXCHANGE_J:{
                         for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                             int siteID = (*bondit).at(0);
                             int siteIDp = (*bondit).at(1);
