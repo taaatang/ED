@@ -51,7 +51,7 @@ int main(int argc, const char * argv[]) {
 
     infile<int>({&N, &Nu, &Nd}, "../Input/lattice_input.txt");
     infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
-    infile<double>({&t1, &t2, &J1, &J2, &Jk}, "../Input/params_input.txt");
+    infile<double>({&J1, &J2, &Jk}, "../Input/params_input.txt");
 
     // data directory
     // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
@@ -88,13 +88,13 @@ int main(int argc, const char * argv[]) {
         * Hamiltonian Construction *
         ****************************
     */
-    Link<dataType> t1Link(LINK_TYPE::HOPPING_T, {ORBITAL::SINGLE, ORBITAL::SINGLE}, t1);
-    Link<dataType> t2Link(LINK_TYPE::HOPPING_T, {ORBITAL::SINGLE, ORBITAL::SINGLE}, t2);
+    // Link<dataType> t1Link(LINK_TYPE::HOPPING_T, {ORBITAL::SINGLE, ORBITAL::SINGLE}, t1);
+    // Link<dataType> t2Link(LINK_TYPE::HOPPING_T, {ORBITAL::SINGLE, ORBITAL::SINGLE}, t2);
     Link<dataType> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1);
     Link<dataType> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2, true);
     Link<dataType> JkLink(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE},Jk, true);
-    t1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
-    t2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
+    // t1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
+    // t2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
     J1Link.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
     J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
     JkLink.addLinkVec({0.0,1.0,0.0}).addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,-1.0,0.0});
@@ -123,10 +123,20 @@ int main(int argc, const char * argv[]) {
     */
     PARPACKComplexSolver<double> PDiag(&H, nev);
     PDiag.diag();
-    // Ground State
-    cdouble* w0 = PDiag.getEigval();
-    dataType* gstate = PDiag.getEigvec();
+    // save eigen values
+    if (workerID==MPI_MASTER){
+        save<dataType>(PDiag.getEigval(), nev, &outfile, dataDir + "/eigval_k" + tostr(kIndex));
+    }
+    // eigval
+    cdouble* ws = PDiag.getEigval();
+    // dataType* state = PDiag.getEigvec();
     MPI_Barrier(MPI_COMM_WORLD);
+    VecI gs_idx;
+    double tol = 1e-8;
+    for (int state_idx = 0; state_idx<nev; state_idx++){
+        if(std::abs(ws[state_idx].real-ws[0].real)<tol) gs_idx.push_back(state_idx);
+    }
+    if(workerID==MPI_MASTER) std::cout<<"Ground State deg:"<<gs_idx.size()<<"\n";
 /*
     *************************************
     * Static Spin-Spin Structure Factor *
@@ -143,11 +153,17 @@ int main(int argc, const char * argv[]) {
             val = 0.0;
             SS.setr(i);
             SS.genMatPara();
-            SS.MxV(gstate, vecTmp.data());
-            vConjDotv<dataType, dataType>(gstate, vecTmp.data(), &val, SS.get_nloc());
-            val /= Lattice.getSiteNum();
-            ssvals.push_back(val);
+            for(auto idx : gs_idx){
+                dataType* state = PDiag.getEigvec(idx);
+                SS.MxV(state, vecTmp.data());
+                vConjDotv<dataType, dataType>(state, vecTmp.data(), &val, SS.get_nloc());
+                val /= Lattice.getSiteNum();
+                ssvals.push_back(val);
+                MPI_Barrier(MPI_COMM_WORLD);
+            }
+            
             if (workerID==MPI_MASTER) std::cout<<"SS "<<i<<" finished:"<<val<<std::endl;
+            MPI_Barrier(MPI_COMM_WORLD);
         }
         // save ss(i)
         if (workerID==MPI_MASTER) save<cdouble>(ssvals.data(), Lattice.getSiteNum(), &outfile, dataDir + "/spinspin_k"+std::to_string(kIndex));
@@ -183,12 +199,17 @@ int main(int argc, const char * argv[]) {
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
-            SPECTRASolver<dataType> spectra(&Hp, w0[0], &Szq, gstate, H.get_dim(), krylovDim);
-            spectra.compute();
-            // save alpha, beta
-            if (workerID==MPI_MASTER){
-                std::string dataPath = dataDir + "/sqw_k" + std::to_string(kIndex) + "_kp" + std::to_string(kIndexf);
-                spectra.saveData(dataPath);
+            for(auto idx : gs_idx){
+                cdouble w0 = ws[idx];
+                dataType* state = PDiag.getEigvec(idx);
+                SPECTRASolver<dataType> spectra(&Hp, w0, &Szq, state, H.get_dim(), krylovDim);
+                spectra.compute();
+                // save alpha, beta
+                if (workerID==MPI_MASTER){
+                    std::string dataPath = dataDir + "/sqw_k" + std::to_string(kIndex) + "_kp" + std::to_string(kIndexf)+"state_"+tostr(idx);
+                    spectra.saveData(dataPath);
+                }
+                MPI_Barrier(MPI_COMM_WORLD);
             } 
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"Sqw time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
@@ -205,31 +226,53 @@ int main(int argc, const char * argv[]) {
         std::vector<VecD> plz{plzX,plzY};
         std::vector<std::string> plzLabel{"x","y"};
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Raman ..."<<std::endl<<"********************"<<std::endl;
-        
-            timer.tik();
-            if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndex<<std::endl<<"********************"<<std::endl;
-            for(int i = 0; i < plz.size(); i++){
-                for(int j = 0; j < plz.size(); j++){
-                    RamanOp<dataType> R(&Lattice, &B);
-                    R.pushLinks({J1Link,J2Link});
-                    R.setplz(plz[i],plz[j]);
-                    R.genMatPara();
-                    timer.tok();
-                    if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
-                    MPI_Barrier(MPI_COMM_WORLD);
-                    SPECTRASolver<dataType> spectra(&H, w0[0], &R, gstate, H.get_dim(), krylovDim);
+        timer.tik();
+        if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndex<<std::endl<<"********************"<<std::endl;
+        for(int i = 0; i < 1; i++){
+            for(int j = 0; j < plz.size(); j++){
+                RamanOp<dataType> R(&Lattice, &B);
+                R.pushLinks({J1Link,J2Link});
+                R.setplz(plz[i],plz[j]);
+                R.genMatPara();
+                timer.tok();
+                if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+                for(auto idx : gs_idx){
+                    cdouble w0 = ws[idx];
+                    dataType* state = PDiag.getEigvec(idx);
+                    SPECTRASolver<dataType> spectra(&H, w0, &R, state, H.get_dim(), krylovDim);
                     spectra.compute();
                     // save alpha, beta
                     if (workerID==MPI_MASTER){
-                        std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+plzLabel[i]+plzLabel[j];
+                        std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+plzLabel[i]+plzLabel[j]+"state_"+tostr(idx);
                         spectra.saveData(dataPath);
                     } 
+                    MPI_Barrier(MPI_COMM_WORLD);
                 }
-            }       
-            timer.tok();
-            if (workerID==MPI_MASTER) std::cout<<"Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
-
+                MPI_Barrier(MPI_COMM_WORLD);
+            }
+        }       
+        timer.tok();
+        if (workerID==MPI_MASTER) std::cout<<"Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+        
+        // timer.tik();
+        // Heisenberg<dataType> Rc(&Lattice, &B, 1);
+        // JkLink.setVal(1.0);
+        // Rc.pushLinks({JkLink});
+        // Rc.genMatPara();
+        // timer.tok();
+        // if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Chiral Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+        // MPI_Barrier(MPI_COMM_WORLD);
+        // SPECTRASolver<dataType> spectra(&H, w0[0], &Rc, gstate, H.get_dim(), krylovDim);
+        // spectra.compute();
+        // // save alpha, beta
+        // if (workerID==MPI_MASTER){
+        //     std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_chiral";
+        //     spectra.saveData(dataPath);
+        // }
+        // timer.tok();
+        // if (workerID==MPI_MASTER) std::cout<<"Chiral Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
     }
+    
 
 // }   
 /*
