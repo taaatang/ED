@@ -32,7 +32,7 @@ int main(int argc, const char * argv[]) {
     bool COMPUTE_SS = true;
     bool COMPUTE_SQW = true;
     bool COMPUTE_RAMAN = true;
-    a_int nev = 1;
+    a_int nev = 5;
     // int Nx = 6, Ny = 6;
     // int N = Nx * Ny;
     LATTICE_MODEL model = LATTICE_MODEL::HEISENBERG;
@@ -211,7 +211,7 @@ int main(int argc, const char * argv[]) {
                 spectra.compute();
                 // save alpha, beta
                 if (workerID==MPI_MASTER){
-                    std::string dataPath = dataDir + "/sqw_k" + std::to_string(kIndex) + "_kp" + std::to_string(kIndexf)+"state_"+tostr(idx);
+                    std::string dataPath = dataDir + "/sqw_k" + std::to_string(kIndex) + "_kp" + std::to_string(kIndexf)+"_state_"+tostr(idx);
                     spectra.saveData(dataPath);
                 }
                 MPI_Barrier(MPI_COMM_WORLD);
@@ -248,7 +248,7 @@ int main(int argc, const char * argv[]) {
                     spectra.compute();
                     // save alpha, beta
                     if (workerID==MPI_MASTER){
-                        std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+plzLabel[i]+plzLabel[j]+"state_"+tostr(idx);
+                        std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+plzLabel[i]+plzLabel[j]+"_state_"+tostr(idx);
                         spectra.saveData(dataPath);
                     } 
                     MPI_Barrier(MPI_COMM_WORLD);
