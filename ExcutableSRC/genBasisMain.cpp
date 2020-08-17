@@ -36,8 +36,8 @@ int main(int argc, const char * argv[]) {
     // std::ifstream infile("../Input/symm_input.txt");
     // infile>>Nx>>Ny>>Nu>>Nd;
     // N = Nx * Ny;
-    infile>>kIndex;
-    infile.close(); 
+    // infile>>kIndex;
+    // infile.close(); 
     N=36, Nu=18, Nd=18;
     
     std::string subDir = "/"+std::to_string(N);
