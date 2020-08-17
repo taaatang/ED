@@ -53,7 +53,7 @@ int main(int argc, const char * argv[]) {
     if(kIndex < N){
         // create data path
         std::string dataDir = PROJECT_DATA_PATH+ subDir +"/kSpace/Basis/"+std::to_string(kIndex);
-        system(("mkdir -p " + dataDir).c_str());
+        mkdir_fs(dataDir);
         std::string basisfile = dataDir + "/basis";
         std::string normfile = dataDir + "/norm";
         
