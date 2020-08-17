@@ -63,6 +63,7 @@ set(TIME_DEP ${GROUND_STATE_DEP} ${TIME} ${PULSE})
 set(EXE_SRC ExcutableSRC)
 
 add_executable(genBasis.out ${EXE_SRC}/genBasisMain.cpp ${BASIS_DEP})
+target_link_libraries(genBasis.out ${BOOST})
 
 add_executable(GroundState.out ${EXE_SRC}/GroundStateMain.cpp ${GROUND_STATE_DEP})
 target_link_libraries(GroundState.out ${MKL} ${BOOST} parpack)
