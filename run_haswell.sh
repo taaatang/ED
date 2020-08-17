@@ -3,7 +3,7 @@
 #SBATCH --job-name=rmJ2idxxJkidx
 #SBATCH -C haswell
 #SBATCH -q regular
-#SBATCH -L SCRATCH,project 
+#SBATCH -L SCRATCH,project
 #SBATCH -t 24:00:00
 #SBATCH --nodes=25
 #SBATCH --ntasks=50
@@ -20,4 +20,4 @@ export OMP_PLACES=cores
 export OMP_PROC_BIND=spread
 # export OMP_DISPLAY_AFFINITY=TRUE
 # export OMP_AFFINITY_FORMAT="host=%H, pid=%P, thread_num=%n, thread affinity=%A"
-srun --cpu-bind=cores ./APP
+srun --cpu-bind=cores /global/homes/t/tatang/sql/ED/build/APP
