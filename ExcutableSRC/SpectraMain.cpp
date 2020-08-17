@@ -29,15 +29,15 @@ int main(int argc, const char * argv[]) {
     int workerID, workerNum;
     mpi_info(workerID, workerNum);
 
-    bool COMPUTE_SS = true;
-    bool COMPUTE_SQW = true;
+    bool COMPUTE_SS = false;
+    bool COMPUTE_SQW = false;
     bool COMPUTE_RAMAN = true;
     a_int nev = 5;
     // int Nx = 6, Ny = 6;
     // int N = Nx * Ny;
     LATTICE_MODEL model = LATTICE_MODEL::HEISENBERG;
-    int Nx, Ny, N, Nu, Nd;
-    int kIndex = -1; // Gamma Point
+    int Nx, Ny, N=36, Nu=18, Nd=18;
+    int kIndex = 15; // Gamma Point
     int PGRepIndex = -1;
     double spin = 0.5;
     double t1 = 1.0, t2 = 0.2, J1= 1.0, J2 = 0.0, Jk = 0.0;
@@ -50,8 +50,8 @@ int main(int argc, const char * argv[]) {
 
     bool BASIS_IS_SAVED = true;
 
-    infile<int>({&N, &Nu, &Nd}, "../Input/lattice_input.txt");
-    infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
+    // infile<int>({&N, &Nu, &Nd}, "../Input/lattice_input.txt");
+    // infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
     infile<int>({&J2idx, &Jkidx}, "../Input/params_input.txt");
 
     J2 = dJ * double(J2idx);
