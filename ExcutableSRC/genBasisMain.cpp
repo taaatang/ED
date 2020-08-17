@@ -33,7 +33,7 @@ int main(int argc, const char * argv[]) {
 */
     int N, Nx, Ny, Nu, Nd;
     int kIndex;
-    std::ifstream infile("../Input/symm_input.txt");
+    // std::ifstream infile("../Input/symm_input.txt");
     // infile>>Nx>>Ny>>Nu>>Nd;
     // N = Nx * Ny;
     infile>>kIndex;
