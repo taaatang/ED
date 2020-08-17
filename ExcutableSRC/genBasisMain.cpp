@@ -72,7 +72,7 @@ int main(int argc, const char * argv[]) {
         VecI occList{Nu, Nd};
     
         timer.tik();
-        Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex);
+        Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
         B.gen();
         timer.tok();
         std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
