@@ -48,7 +48,7 @@ int main(int argc, const char * argv[]) {
 
     int rowPerThread = 1;
 
-    bool BASIS_IS_SAVED = false;
+    bool BASIS_IS_SAVED = true;
 
     infile<int>({&N, &Nu, &Nd}, "../Input/lattice_input.txt");
     infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
