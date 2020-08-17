@@ -41,7 +41,8 @@ int main(int argc, const char * argv[]) {
     int PGRepIndex = -1;
     double spin = 0.5;
     double t1 = 1.0, t2 = 0.2, J1= 1.0, J2 = 0.0, Jk = 0.0;
-    double dJ2 = 0.01;
+    double dJ = 0.01;
+    int J2idx, Jkidx;
 
     Timer timer;
 
@@ -51,12 +52,15 @@ int main(int argc, const char * argv[]) {
 
     infile<int>({&N, &Nu, &Nd}, "../Input/lattice_input.txt");
     infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
-    infile<double>({&J1, &J2, &Jk}, "../Input/params_input.txt");
+    infile<int>({&J2idx, &Jkidx}, "../Input/params_input.txt");
+
+    J2 = dJ * double(J2idx);
+    Jk = dJ * double(Jkidx);
 
     // data directory
     // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
     // std::string subDir = "N"+tostr(N)+"Nu"+tostr(Nu)+"Nd"+tostr(Nd);
-    std::string subDir = "N"+tostr(N)+"_test";
+    std::string subDir = tostr(N);
     std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";
@@ -84,10 +88,10 @@ int main(int argc, const char * argv[]) {
     if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kIdx ="<<kIndex<<", PGidx = "<<PGRepIndex<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
     
-    VecD J2s{0.0, 0.16, 0.3, 0.6};
-    VecD Jks{0.0, 0.2, 0.4, 0.8};
-    for(auto J2 : J2s){
-        for(auto Jk : Jks){
+    // VecD J2s{0.0, 0.16, 0.3, 0.6};
+    // VecD Jks{0.0, 0.2, 0.4, 0.8};
+    // for(auto J2 : J2s){
+    //     for(auto Jk : Jks){
     /*
         ****************************
         * Hamiltonian Construction *
@@ -117,7 +121,7 @@ int main(int argc, const char * argv[]) {
 //     J2 = dJ2 * J2_num;
     std::ofstream outfile;
     // data directory
-    std::string dataDir = PROJECT_DATA_PATH+"/"+ subDir +"/kSpace/Spectra/J2_"+tostr(J2)+"_Jk_"+tostr(Jk);
+    std::string dataDir = PROJECT_DATA_PATH+"/"+ subDir +"/kSpace/Spectra/J2_"+tostr(J2idx)+"_Jk_"+tostr(Jkidx);
     if (workerID==MPI_MASTER) mkdir_fs(dataDir);
     if (workerID==MPI_MASTER) std::cout<<"**********************"<<std::endl<<"Begin J2 = "<<J2<<std::endl<<"*************************"<<std::endl;
     // H.setVal(1,J2);
@@ -277,8 +281,8 @@ int main(int argc, const char * argv[]) {
         // timer.tok();
         // if (workerID==MPI_MASTER) std::cout<<"Chiral Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
     }
-        }
-    }
+    //     }
+    // }
     
 
 // }   
