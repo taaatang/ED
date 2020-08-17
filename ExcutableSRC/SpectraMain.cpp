@@ -139,7 +139,7 @@ int main(int argc, const char * argv[]) {
     VecI gs_idx;
     double tol = 1e-8;
     for (int state_idx = 0; state_idx<nev; state_idx++){
-        if(std::abs((ws[state_idx]).real-(ws[0]).real)<tol) gs_idx.push_back(state_idx);
+        if(std::abs((ws[state_idx]).real()-(ws[0]).real())<tol) gs_idx.push_back(state_idx);
     }
     if(workerID==MPI_MASTER) std::cout<<"Ground State deg:"<<gs_idx.size()<<"\n";
 /*
