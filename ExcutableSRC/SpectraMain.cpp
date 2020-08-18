@@ -80,12 +80,12 @@ int main(int argc, const char * argv[]) {
     timer.tik();
     int siteDim = 2;
     VecI occList{Nu, Nd};
-    Basis B(model, &Lattice, occList, kIndex);
+    Basis *B = new Basis(model, &Lattice, occList, kIndex);
     if (workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
-    if (BASIS_IS_SAVED) B.gen(basisfile, normfile);
-    else B.gen();
+    if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
+    else B->gen();
     timer.tok();
-    if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kIdx ="<<kIndex<<", PGidx = "<<PGRepIndex<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
+    if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kIdx ="<<kIndex<<", PGidx = "<<PGRepIndex<<", size="<<B->getSubDim()<<"/"<<B->getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
     
     // VecD J2s{0.0, 0.16, 0.3, 0.6};
@@ -108,11 +108,12 @@ int main(int argc, const char * argv[]) {
     J2Link.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
     JkLink.addLinkVec({0.0,1.0,0.0}).addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,0.0,0.0}).addLinkVec({1.0,-1.0,0.0});
     timer.tik();
-    Heisenberg<dataType>* H = new Heisenberg<dataType>(&Lattice, &B, 1);
+    Heisenberg<dataType>* H = new Heisenberg<dataType>(&Lattice, B, 1);
     H->pushLinks({J1Link, J2Link, JkLink});
-    // HtJ<dataType> H(&Lattice, &B, 1);
+    // HtJ<dataType> H(&Lattice, B, 1);
     // H.pushLinks({t1Link, t2Link, J1Link, J2Link});
     H->genMatPara();
+    delete B;
     timer.tok();
     std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H->get_nloc()<<"/"<<H->get_dim()<<", Local Hamiltonian non-zero elements count:"<<H->nzCount()\
             <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
@@ -152,8 +153,11 @@ int main(int argc, const char * argv[]) {
     *************************************
 */
     if (COMPUTE_SS){
+        Basis *B = new Basis(model, &Lattice, occList, kIndex);
+        if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
+        else B->gen();
         timer.tik();
-        SSOp<dataType> SS(&Lattice,&B);
+        SSOp<dataType> SS(&Lattice,B);
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin SS ..."<<std::endl<<"********************"<<std::endl;
         std::vector<dataType> vecTmp(SS.get_nlocmax());
         cdouble val;
@@ -174,6 +178,7 @@ int main(int argc, const char * argv[]) {
             if (workerID==MPI_MASTER) std::cout<<"SS "<<i<<" finished:"<<val<<std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
         }
+        delete B;
         // save ss(i)
         if (workerID==MPI_MASTER) save<cdouble>(ssvals.data(), Lattice.getSiteNum(), &outfile, dataDir + "/spinspin_k"+std::to_string(kIndex));
         timer.tok();
@@ -189,6 +194,7 @@ int main(int argc, const char * argv[]) {
     if (COMPUTE_SQW){
         int krylovDim = 400;
         ind_int Hdim = H->get_dim();
+        H->clearBuf();
         delete H;
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Sqw ..."<<std::endl<<"********************"<<std::endl;
         for (int kIndexf = 0; kIndexf < Lattice.getSiteNum(); kIndexf++){
@@ -197,15 +203,24 @@ int main(int argc, const char * argv[]) {
             std::string basisDirp = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Basis/"+std::to_string(kIndexf);
             std::string basisfilep = basisDirp + "/basis";
             std::string normfilep = basisDirp + "/norm";
-            Basis Bp = Basis(model, &Lattice, occList, kIndexf);
-            if (BASIS_IS_SAVED) {Bp.gen(basisfilep, normfilep);
-            }else{Bp.gen();}
+            Basis *B = new Basis(model, &Lattice, occList, kIndex);
+            if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
+            else B->gen();
+            Basis* Bp = new Basis(model, &Lattice, occList, kIndexf);
+            if (BASIS_IS_SAVED) {Bp->gen(basisfilep, normfilep);
+            }else{Bp->gen();}
             // <Bp|Szq|B>, q = k_B - k_Bp
-            SzkOp<dataType> Szq(&Lattice, &B, &Bp);
+            SzkOp<dataType> Szq(&Lattice, B, Bp);
             Szq.genMatPara();
-            Heisenberg<dataType> Hp(&Lattice, &Bp, 1);
+
+            delete B;
+
+            Heisenberg<dataType> Hp(&Lattice, Bp, 1);
             Hp.pushLinks({J1Link,J2Link,JkLink});
             Hp.genMatPara();
+
+            delete Bp;
+
             // Hp.setVal(1, J2);
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
@@ -222,6 +237,9 @@ int main(int argc, const char * argv[]) {
                 }
                 MPI_Barrier(MPI_COMM_WORLD);
             } 
+
+            Hp.clearBuf();
+
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"Sqw time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
         }
@@ -241,10 +259,18 @@ int main(int argc, const char * argv[]) {
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndex<<std::endl<<"********************"<<std::endl;
         for(int i = 0; i < 1; i++){
             for(int j = 0; j < plz.size(); j++){
-                RamanOp<dataType> R(&Lattice, &B);
+                H->clearBuf();
+                Basis *B = new Basis(model, &Lattice, occList, kIndex);
+                if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
+                else B->gen();
+
+                RamanOp<dataType> R(&Lattice, B);
                 R.pushLinks({J1Link,J2Link});
                 R.setplz(plz[i],plz[j]);
                 R.genMatPara();
+
+                delete B;
+                
                 timer.tok();
                 if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
                 for(auto idx : gs_idx){
@@ -266,7 +292,7 @@ int main(int argc, const char * argv[]) {
         if (workerID==MPI_MASTER) std::cout<<"Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
         
         // timer.tik();
-        // Heisenberg<dataType> Rc(&Lattice, &B, 1);
+        // Heisenberg<dataType> Rc(&Lattice, B, 1);
         // JkLink.setVal(1.0);
         // Rc.pushLinks({JkLink});
         // Rc.genMatPara();
