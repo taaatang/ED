@@ -29,7 +29,7 @@ int main(int argc, const char * argv[]) {
     int workerID, workerNum;
     mpi_info(workerID, workerNum);
 
-    bool COMPUTE_SS = true;
+    bool COMPUTE_SS = false;
     bool COMPUTE_SQW = true;
     bool COMPUTE_RAMAN = false;
     a_int nev = 5;
@@ -37,7 +37,7 @@ int main(int argc, const char * argv[]) {
     // int N = Nx * Ny;
     LATTICE_MODEL model = LATTICE_MODEL::HEISENBERG;
     int Nx, Ny, N=36, Nu=18, Nd=18;
-    int kIndex = 15; // Gamma Point
+    int kIndex = 0; // Gamma Point
     int PGRepIndex = -1;
     double spin = 0.5;
     double t1 = 1.0, t2 = 0.2, J1= 1.0, J2 = 0.0, Jk = 0.0;
@@ -61,7 +61,7 @@ int main(int argc, const char * argv[]) {
     // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
     // std::string subDir = "N"+tostr(N)+"Nu"+tostr(Nu)+"Nd"+tostr(Nd);
     std::string subDir = tostr(N);
-    std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
+    std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/BasisP/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";
     /*
@@ -188,7 +188,7 @@ int main(int argc, const char * argv[]) {
 */
     if (COMPUTE_SQW){
         int krylovDim = 400;
-        int_int Hdim = H->get_dim();
+        ind_int Hdim = H->get_dim();
         delete H;
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Sqw ..."<<std::endl<<"********************"<<std::endl;
         for (int kIndexf = 0; kIndexf < Lattice.getSiteNum(); kIndexf++){
