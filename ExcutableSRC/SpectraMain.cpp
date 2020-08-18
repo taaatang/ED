@@ -289,7 +289,6 @@ int main(int argc, const char * argv[]) {
     if(!COMPUTE_SQW){
         delete H;
     }
-    delete B;
 // }   
 /*
     *******
