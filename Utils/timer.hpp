@@ -24,6 +24,7 @@ public:
     double elapse(){
         if (!is_tok) tok();
         duration_ = tok_ - tik_;
+        is_tok = false;
         return duration_.count()*1000.0;
     }
 };
