@@ -181,6 +181,7 @@ public:
     void setName(std::string s){name = s;}
     // generate translation map for all r. TransList.at(r).at(id) = id->r
     bool rotate(int orbid, int& orbidf) const;
+    VecD rotate(VecD vec) const;
     bool reflect(int orbid, int& orbidf) const;
     bool mirror(int orbid, int& orbidf) const;
     void genPGList();

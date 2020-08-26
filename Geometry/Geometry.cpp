@@ -87,6 +87,39 @@ bool Geometry::rotate(int orbid, int& orbidf) const {
     return coordToOrbid(coordf.data(), orbidf);
 }
 
+VecD Geometry::rotate(VecD coordr) const {
+    VecD coordrp(3);
+    switch(PG){
+        case PointGroup::D3: case PointGroup::C3:
+            /*
+                a1->a2,a2->-a1-a2
+                x1*a1 + x2*a2 -> x1*a2 + x2*(-a1-a2) = -x2*a1 + (x1-x2)*a2
+            */
+            coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]-coordr[1]; coordrp[2] = coordr[2];
+            break;
+        case PointGroup::D4: case PointGroup::D4m: case PointGroup::D4m5: case PointGroup::C4:
+            /*
+                a1->a2,a2->-a1
+                x1*a1 + x2*a2 -> x1*a2 + x2*(-a1) = -x2*a1 + x1*a2
+            */
+            coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]; coordrp[2] = coordr[2];
+            break;
+        case PointGroup::D6: case PointGroup::C6:
+            /*
+                a1->a2,a2->a2-a1
+                x1*a1 + x2*a2 -> x1*a2 + x2*(a2-a1) = -x2*a1 + (x1+x2)*a2
+            */
+            coordrp[0] = -coordr[1]; coordrp[1] = coordr[0] + coordr[1]; coordrp[2] = coordr[2];  
+            break;
+        case PointGroup::NONE:
+            return false;
+            break;
+        default:
+            return false;
+            break;   
+    }
+    return coordrp;
+}
 bool Geometry::reflect(int orbid, int& orbidf) const {
     VecD coordi(3), coordr(3), coordrp(3), coordf(3);
     getOrbR(orbid,coordi.data());
