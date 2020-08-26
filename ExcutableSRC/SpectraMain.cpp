@@ -30,17 +30,17 @@ int main(int argc, const char * argv[]) {
     mpi_info(workerID, workerNum);
 
     bool COMPUTE_SS = false;
-    bool COMPUTE_SQW = true;
-    bool COMPUTE_RAMAN = false;
+    bool COMPUTE_SQW = false;
+    bool COMPUTE_RAMAN = true;
     a_int nev = 5;
     // int Nx = 6, Ny = 6;
     // int N = Nx * Ny;
     LATTICE_MODEL model = LATTICE_MODEL::HEISENBERG;
-    int Nx, Ny, N=36, Nu=18, Nd=18;
+    int Nx, Ny, N=12, Nu=6, Nd=6;
     int kIndex = 0; // Gamma Point
     int PGRepIndex = -1;
     double spin = 0.5;
-    double t1 = 1.0, t2 = 0.2, J1= 1.0, J2 = 0.0, Jk = 0.0;
+    double t1 = 1.0, t2 = 0.2, J1= 1.0, J2 = 0.1, Jk = 0.0;
     double dJ = 0.01;
     int J2idx, Jkidx;
 
@@ -60,7 +60,7 @@ int main(int argc, const char * argv[]) {
     // data directory
     // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
     // std::string subDir = "N"+tostr(N)+"Nu"+tostr(Nu)+"Nd"+tostr(Nd);
-    std::string subDir = tostr(N);
+    std::string subDir = tostr(N)+"_test";
     std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";
@@ -250,6 +250,16 @@ int main(int argc, const char * argv[]) {
     *********
 */
     if (COMPUTE_RAMAN){
+        std::vector<VecD> A2vecs{{1.0,1.0,0.0},{1.0,0.0,0.0}, {1.0,0.0,0.0},{2.0,-1.0,0.0},\
+        {0.0,1.0,0.0},{1.0,0.0,0.0}, {1.0,0.0,0.0},{1.0,-1.0,0.0}, {1.0,1.0,0.0},{2.0,0.0,0.0}, {2.0,0.0,0.0},{2.0,-1.0,0.0}};
+        int vecNum = A2vecs.size();
+        for (int rot = 0; rot < 5; rot++){
+            for (int vecidx = 0; vecidx < vecNum; vecidx++){
+                int cur_idx = rot*vecNum+vecidx;
+                VecD vec = Lattice.rotate(A2vecs.at(cur_idx));
+                A2vecs.push_back(vec);
+            }
+        }
         int krylovDim = 400;
         VecD plzX{1.0,0.0,0.0}, plzY{1.0,std::sqrt(3),0.0};
         std::vector<VecD> plz{plzX,plzY};
@@ -264,9 +274,16 @@ int main(int argc, const char * argv[]) {
                 if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
                 else B->gen();
 
-                RamanOp<dataType> R(&Lattice, B);
-                R.pushLinks({J1Link,J2Link});
-                R.setplz(plz[i],plz[j]);
+                // RamanOp<dataType> R(&Lattice, B);
+                // R.pushLinks({J1Link,J2Link});
+                // R.setplz(plz[i],plz[j]);
+                // R.genMatPara();
+
+                // A2 channel
+                Heisenberg<dataType> R(&Lattice, B);
+                Link<dataType> A2Link(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, CPLX_I*4*J1*std::sqrt(3*J1*J2), true);
+                for(vec : A2vecs) A2Link.addLinkVec(vec);
+                R.pushLinks({A2Link});
                 R.genMatPara();
 
                 delete B;
