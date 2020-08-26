@@ -112,12 +112,12 @@ VecD Geometry::rotate(VecD coordr) const {
             coordrp[0] = -coordr[1]; coordrp[1] = coordr[0] + coordr[1]; coordrp[2] = coordr[2];  
             break;
         case PointGroup::NONE:
-            return false;
+            return coordr;
             break;
         default:
-            return false;
+            return coordr;
             break;   
-    }
+    }ss
     return coordrp;
 }
 bool Geometry::reflect(int orbid, int& orbidf) const {
