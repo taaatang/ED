@@ -117,7 +117,7 @@ VecD Geometry::rotate(VecD coordr) const {
         default:
             return coordr;
             break;   
-    }ss
+    }
     return coordrp;
 }
 bool Geometry::reflect(int orbid, int& orbidf) const {
