@@ -282,7 +282,7 @@ int main(int argc, const char * argv[]) {
                 // A2 channel
                 Heisenberg<dataType> R(&Lattice, B);
                 Link<dataType> A2Link(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, CPLX_I*4*J1*std::sqrt(3*J1*J2), true);
-                for(vec : A2vecs) A2Link.addLinkVec(vec);
+                for(auto vec : A2vecs) A2Link.addLinkVec(vec);
                 R.pushLinks({A2Link});
                 R.genMatPara();
 
