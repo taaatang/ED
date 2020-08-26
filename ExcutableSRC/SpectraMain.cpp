@@ -250,16 +250,7 @@ int main(int argc, const char * argv[]) {
     *********
 */
     if (COMPUTE_RAMAN){
-        std::vector<VecD> A2vecs{{1.0,1.0,0.0},{1.0,0.0,0.0}, {1.0,0.0,0.0},{2.0,-1.0,0.0},\
-        {0.0,1.0,0.0},{1.0,0.0,0.0}, {1.0,0.0,0.0},{1.0,-1.0,0.0}, {1.0,1.0,0.0},{2.0,0.0,0.0}, {2.0,0.0,0.0},{2.0,-1.0,0.0}};
-        int vecNum = A2vecs.size();
-        for (int rot = 0; rot < 5; rot++){
-            for (int vecidx = 0; vecidx < vecNum; vecidx++){
-                int cur_idx = rot*vecNum+vecidx;
-                VecD vec = Lattice.rotate(A2vecs.at(cur_idx));
-                A2vecs.push_back(vec);
-            }
-        }
+       
         int krylovDim = 400;
         VecD plzX{1.0,0.0,0.0}, plzY{1.0,std::sqrt(3),0.0};
         std::vector<VecD> plz{plzX,plzY};
@@ -274,16 +265,9 @@ int main(int argc, const char * argv[]) {
                 if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
                 else B->gen();
 
-                // RamanOp<dataType> R(&Lattice, B);
-                // R.pushLinks({J1Link,J2Link});
-                // R.setplz(plz[i],plz[j]);
-                // R.genMatPara();
-
-                // A2 channel
-                Heisenberg<dataType> R(&Lattice, B);
-                Link<dataType> A2Link(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, CPLX_I*4*J1*std::sqrt(3*J1*J2), true);
-                for(auto vec : A2vecs) A2Link.addLinkVec(vec);
-                R.pushLinks({A2Link});
+                RamanOp<dataType> R(&Lattice, B);
+                R.pushLinks({J1Link,J2Link});
+                R.setplz(plz[i],plz[j]);
                 R.genMatPara();
 
                 delete B;
@@ -305,8 +289,49 @@ int main(int argc, const char * argv[]) {
                 MPI_Barrier(MPI_COMM_WORLD);
             }
         }       
+
+        // A2 channel
+        std::vector<VecD> A2vecs{{1.0,1.0,0.0},{1.0,0.0,0.0}, {1.0,0.0,0.0},{2.0,-1.0,0.0},\
+        {0.0,1.0,0.0},{1.0,0.0,0.0}, {1.0,0.0,0.0},{1.0,-1.0,0.0}, {1.0,1.0,0.0},{2.0,0.0,0.0}, {2.0,0.0,0.0},{2.0,-1.0,0.0}};
+        int vecNum = A2vecs.size();
+        for (int rot = 0; rot < 5; rot++){
+            for (int vecidx = 0; vecidx < vecNum; vecidx++){
+                int cur_idx = rot*vecNum+vecidx;
+                VecD vec = Lattice.rotate(A2vecs.at(cur_idx));
+                A2vecs.push_back(vec);
+            }
+        }
+
+        H->clearBuf();
+        Basis *B = new Basis(model, &Lattice, occList, kIndex);
+        if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
+        else B->gen();
+        Heisenberg<dataType> R(&Lattice, B);
+        Link<dataType> A2Link(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, CPLX_I*4*J1*std::sqrt(3*J1*J2), true);
+        for(auto vec : A2vecs) A2Link.addLinkVec(vec);
+        R.pushLinks({A2Link});
+        R.genMatPara();
+        delete B;
+
+        timer.tok();
+        if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+        for(auto idx : gs_idx){
+            cdouble w0 = ws[idx];
+            dataType* state = PDiag.getEigvec(idx);
+            SPECTRASolver<dataType> spectra(H, w0, &R, state, H->get_dim(), krylovDim);
+            spectra.compute();
+            // save alpha, beta
+            if (workerID==MPI_MASTER){
+                std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_A2"+"_state_"+tostr(idx);
+                spectra.saveData(dataPath);
+            } 
+            MPI_Barrier(MPI_COMM_WORLD);
+        }
+
+
         timer.tok();
         if (workerID==MPI_MASTER) std::cout<<"Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+
         
         // timer.tik();
         // Heisenberg<dataType> Rc(&Lattice, B, 1);
