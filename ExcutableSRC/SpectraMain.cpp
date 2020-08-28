@@ -299,7 +299,7 @@ int main(int argc, const char * argv[]) {
         std::vector<Link<dataType>> A2Links{A2Link};
 
         std::vector<std::vector<Link<dataType>>> LinksList{A1Links,E21Links,E22Links,A2Links};
-        std::vector<std::string> RamanLabels{"A1","E21","E22"."A2"}
+        std::vector<std::string> RamanLabels{"A1","E21","E22","A2"};
         
         for(int opidx=0;opidx<4;opidx++){
             H->clearBuf();
