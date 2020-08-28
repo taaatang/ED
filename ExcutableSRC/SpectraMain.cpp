@@ -269,7 +269,7 @@ int main(int argc, const char * argv[]) {
         Link<dataType> E21Link_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J1/4.0);
         E21Link_2.addLinkVec({0.0,1.0,0.0}).addLinkVec({-1.0,1.0,0.0});
         Link<dataType> E21Link_3(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2/4.0*3.0);
-        E21Link_3.addLinkVec({2.0,-1,0,0.0}).addLinkVec({1.0,1.0,0.0});
+        E21Link_3.addLinkVec({2.0,-1,0.0}).addLinkVec({1.0,1.0,0.0});
         Link<dataType> E21Link_4(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J2/2.0*3);
         E21Link_4.addLinkVec({-1.0,2.0,0.0});
         std::vector<Link<dataType>> E21Links{E21Link_1,E21Link_2,E21Link_3,E21Link_4};
