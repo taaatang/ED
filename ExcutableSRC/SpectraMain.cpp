@@ -257,114 +257,114 @@ int main(int argc, const char * argv[]) {
     if (COMPUTE_RAMAN){
         int krylovDim = 400;
 
-        // A1
-        Link<dataType> A1Link_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1/2.0);
-        A1Link_1.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
-        Link<dataType> A1Link_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2/2.0*3.0);
-        A1Link_2.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
-        std::vector<Link<dataType>> A1Links{A1Link_1, A1Link_2};
-        // E2_1
-        Link<dataType> E21Link_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1/2.0);
-        E21Link_1.addLinkVec({1.0,0.0,0.0});
-        Link<dataType> E21Link_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J1/4.0);
-        E21Link_2.addLinkVec({0.0,1.0,0.0}).addLinkVec({-1.0,1.0,0.0});
-        Link<dataType> E21Link_3(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2/4.0*3.0);
-        E21Link_3.addLinkVec({2.0,-1,0.0}).addLinkVec({1.0,1.0,0.0});
-        Link<dataType> E21Link_4(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J2/2.0*3);
-        E21Link_4.addLinkVec({-1.0,2.0,0.0});
-        std::vector<Link<dataType>> E21Links{E21Link_1,E21Link_2,E21Link_3,E21Link_4};
-        // E2_2
-        Link<dataType> E22Link_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1/4.0*std::sqrt(3.0));
-        E22Link_1.addLinkVec({0.0,1.0,0.0});
-        Link<dataType> E22Link_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J1/4.0*std::sqrt(3.0));
-        E22Link_2.addLinkVec({-1.0,1.0,0.0});
-        Link<dataType> E22Link_3(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2/4.0*3.0*std::sqrt(3.0));
-        E22Link_1.addLinkVec({1.0,1.0,0.0});
-        Link<dataType> E22Link_4(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J2/4.0*3.0*std::sqrt(3.0));
-        E22Link_2.addLinkVec({2.0,-1.0,0.0});
-        std::vector<Link<dataType>> E22Links{E22Link_1,E22Link_2,E22Link_3,E22Link_4};
-        // A2
-        std::vector<VecD> A2vecs{{1.0,1.0,0.0},{1.0,0.0,0.0}, {1.0,0.0,0.0},{2.0,-1.0,0.0},\
-        {0.0,1.0,0.0},{1.0,0.0,0.0}, {1.0,0.0,0.0},{1.0,-1.0,0.0}, {1.0,1.0,0.0},{2.0,0.0,0.0}, {2.0,0.0,0.0},{2.0,-1.0,0.0}};
-        int vecNum = A2vecs.size();
-        for (int rot = 0; rot < 5; rot++){
-            for (int vecidx = 0; vecidx < vecNum; vecidx++){
-                int cur_idx = rot*vecNum+vecidx;
-                VecD vec = Lattice.rotate(A2vecs.at(cur_idx));
-                A2vecs.push_back(vec);
-            }
-        }
-        Link<dataType> A2Link(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, CPLX_I*4*J1*std::sqrt(3*J1*J2), true);
-        for(auto vec : A2vecs) A2Link.addLinkVec(vec);
-        std::vector<Link<dataType>> A2Links{A2Link};
+        // // A1
+        // Link<dataType> A1Link_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1/2.0);
+        // A1Link_1.addLinkVec(VecD{1.0,0.0,0.0}).addLinkVec(VecD{0.0,1.0,0.0}).addLinkVec(VecD{1.0,-1.0,0.0});
+        // Link<dataType> A1Link_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2/2.0*3.0);
+        // A1Link_2.addLinkVec(VecD{1.0,1.0,0.0}).addLinkVec(VecD{-1.0,2.0,0.0}).addLinkVec(VecD{2.0,-1.0,0.0});
+        // std::vector<Link<dataType>> A1Links{A1Link_1, A1Link_2};
+        // // E2_1
+        // Link<dataType> E21Link_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1/2.0);
+        // E21Link_1.addLinkVec({1.0,0.0,0.0});
+        // Link<dataType> E21Link_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J1/4.0);
+        // E21Link_2.addLinkVec({0.0,1.0,0.0}).addLinkVec({-1.0,1.0,0.0});
+        // Link<dataType> E21Link_3(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2/4.0*3.0);
+        // E21Link_3.addLinkVec({2.0,-1,0.0}).addLinkVec({1.0,1.0,0.0});
+        // Link<dataType> E21Link_4(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J2/2.0*3);
+        // E21Link_4.addLinkVec({-1.0,2.0,0.0});
+        // std::vector<Link<dataType>> E21Links{E21Link_1,E21Link_2,E21Link_3,E21Link_4};
+        // // E2_2
+        // Link<dataType> E22Link_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1/4.0*std::sqrt(3.0));
+        // E22Link_1.addLinkVec({0.0,1.0,0.0});
+        // Link<dataType> E22Link_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J1/4.0*std::sqrt(3.0));
+        // E22Link_2.addLinkVec({-1.0,1.0,0.0});
+        // Link<dataType> E22Link_3(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2/4.0*3.0*std::sqrt(3.0));
+        // E22Link_1.addLinkVec({1.0,1.0,0.0});
+        // Link<dataType> E22Link_4(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J2/4.0*3.0*std::sqrt(3.0));
+        // E22Link_2.addLinkVec({2.0,-1.0,0.0});
+        // std::vector<Link<dataType>> E22Links{E22Link_1,E22Link_2,E22Link_3,E22Link_4};
+        // // A2
+        // std::vector<VecD> A2vecs{{1.0,1.0,0.0},{1.0,0.0,0.0}, {1.0,0.0,0.0},{2.0,-1.0,0.0},\
+        // {0.0,1.0,0.0},{1.0,0.0,0.0}, {1.0,0.0,0.0},{1.0,-1.0,0.0}, {1.0,1.0,0.0},{2.0,0.0,0.0}, {2.0,0.0,0.0},{2.0,-1.0,0.0}};
+        // int vecNum = A2vecs.size();
+        // for (int rot = 0; rot < 5; rot++){
+        //     for (int vecidx = 0; vecidx < vecNum; vecidx++){
+        //         int cur_idx = rot*vecNum+vecidx;
+        //         VecD vec = Lattice.rotate(A2vecs.at(cur_idx));
+        //         A2vecs.push_back(vec);
+        //     }
+        // }
+        // Link<dataType> A2Link(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, CPLX_I*4*J1*std::sqrt(3*J1*J2), true);
+        // for(auto vec : A2vecs) A2Link.addLinkVec(vec);
+        // std::vector<Link<dataType>> A2Links{A2Link};
 
-        std::vector<std::vector<Link<dataType>>> LinksList{A1Links,E21Links,E22Links,A2Links};
-        std::vector<std::string> RamanLabels{"A1","E21","E22","A2"};
+        // std::vector<std::vector<Link<dataType>>> LinksList{A1Links,E21Links,E22Links,A2Links};
+        // std::vector<std::string> RamanLabels{"A1","E21","E22","A2"};
         
-        for(int opidx=0;opidx<4;opidx++){
-            H->clearBuf();
-            Basis *B = new Basis(model, &Lattice, occList, kIndex);
-            if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
-            else B->gen();
-            Heisenberg<dataType> R(&Lattice, B);
-            R.pushLinks(LinksList.at(opidx));
-            R.genMatPara();
-            delete B;
+        // for(int opidx=0;opidx<4;opidx++){
+        //     H->clearBuf();
+        //     Basis *B = new Basis(model, &Lattice, occList, kIndex);
+        //     if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
+        //     else B->gen();
+        //     Heisenberg<dataType> R(&Lattice, B);
+        //     R.pushLinks(LinksList.at(opidx));
+        //     R.genMatPara();
+        //     delete B;
 
-            timer.tok();
-            if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
-            for(auto idx : gs_idx){
-                cdouble w0 = ws[idx];
-                dataType* state = PDiag.getEigvec(idx);
-                SPECTRASolver<dataType> spectra(H, w0, &R, state, H->get_dim(), krylovDim);
-                spectra.compute();
-                // save alpha, beta
-                if (workerID==MPI_MASTER){
-                    std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+RamanLabels.at(opidx)+"_state_"+tostr(idx);
-                    spectra.saveData(dataPath);
-                } 
-                MPI_Barrier(MPI_COMM_WORLD);
-            }
-            MPI_Barrier(MPI_COMM_WORLD);
-        }
-
-        // VecD plzX{1.0,0.0,0.0}, plzY{1.0,std::sqrt(3),0.0};
-        // std::vector<VecD> plz{plzX,plzY};
-        // std::vector<std::string> plzLabel{"x","y"};
-        // if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Raman ..."<<std::endl<<"********************"<<std::endl;
-        // timer.tik();
-        // if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndex<<std::endl<<"********************"<<std::endl;
-        // for(int i = 0; i < 1; i++){
-        //     for(int j = 0; j < plz.size(); j++){
-        //         H->clearBuf();
-        //         Basis *B = new Basis(model, &Lattice, occList, kIndex);
-        //         if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
-        //         else B->gen();
-
-        //         RamanOp<dataType> R(&Lattice, B);
-        //         R.pushLinks({J1Link,J2Link});
-        //         R.setplz(plz[i],plz[j]);
-        //         R.genMatPara();
-
-        //         delete B;
-                
-        //         timer.tok();
-        //         if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
-        //         for(auto idx : gs_idx){
-        //             cdouble w0 = ws[idx];
-        //             dataType* state = PDiag.getEigvec(idx);
-        //             SPECTRASolver<dataType> spectra(H, w0, &R, state, H->get_dim(), krylovDim);
-        //             spectra.compute();
-        //             // save alpha, beta
-        //             if (workerID==MPI_MASTER){
-        //                 std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+plzLabel[i]+plzLabel[j]+"_state_"+tostr(idx);
-        //                 spectra.saveData(dataPath);
-        //             } 
-        //             MPI_Barrier(MPI_COMM_WORLD);
-        //         }
+        //     timer.tok();
+        //     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+        //     for(auto idx : gs_idx){
+        //         cdouble w0 = ws[idx];
+        //         dataType* state = PDiag.getEigvec(idx);
+        //         SPECTRASolver<dataType> spectra(H, w0, &R, state, H->get_dim(), krylovDim);
+        //         spectra.compute();
+        //         // save alpha, beta
+        //         if (workerID==MPI_MASTER){
+        //             std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+RamanLabels.at(opidx)+"_state_"+tostr(idx);
+        //             spectra.saveData(dataPath);
+        //         } 
         //         MPI_Barrier(MPI_COMM_WORLD);
         //     }
-        // }       
+        //     MPI_Barrier(MPI_COMM_WORLD);
+        // }
+
+        VecD plzX{1.0,0.0,0.0}, plzY{-1.0,2.0,0.0};
+        std::vector<VecD> plz{plzX,plzY};
+        std::vector<std::string> plzLabel{"x","y"};
+        if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Raman ..."<<std::endl<<"********************"<<std::endl;
+        timer.tik();
+        if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndex<<std::endl<<"********************"<<std::endl;
+        for(int i = 0; i < 1; i++){
+            for(int j = 0; j < plz.size(); j++){
+                H->clearBuf();
+                Basis *B = new Basis(model, &Lattice, occList, kIndex);
+                if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
+                else B->gen();
+
+                RamanOp<dataType> R(&Lattice, B);
+                R.pushLinks({J1Link,J2Link});
+                R.setplz(plz[i],plz[j]);
+                R.genMatPara();
+
+                delete B;
+                
+                timer.tok();
+                if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+                for(auto idx : gs_idx){
+                    cdouble w0 = ws[idx];
+                    dataType* state = PDiag.getEigvec(idx);
+                    SPECTRASolver<dataType> spectra(H, w0, &R, state, H->get_dim(), krylovDim);
+                    spectra.compute();
+                    // save alpha, beta
+                    if (workerID==MPI_MASTER){
+                        std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+plzLabel[i]+plzLabel[j]+"_state_"+tostr(idx);
+                        spectra.saveData(dataPath);
+                    } 
+                    MPI_Barrier(MPI_COMM_WORLD);
+                }
+                MPI_Barrier(MPI_COMM_WORLD);
+            }
+        }       
 
         timer.tok();
         if (workerID==MPI_MASTER) std::cout<<"Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
