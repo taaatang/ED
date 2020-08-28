@@ -320,7 +320,7 @@ int main(int argc, const char * argv[]) {
                 spectra.compute();
                 // save alpha, beta
                 if (workerID==MPI_MASTER){
-                    std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+RamanLabels.at(opidx)+"_state_"+tostr(idx);
+                    std::string dataPath = dataDir + "/raman_k" + std::to_string(kIndex)+"_"+RamanLabels.at(opidx)+"_state_"+tostr(idx);
                     spectra.saveData(dataPath);
                 } 
                 MPI_Barrier(MPI_COMM_WORLD);
