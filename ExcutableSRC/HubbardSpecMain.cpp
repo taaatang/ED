@@ -43,11 +43,11 @@ int main(int argc, const char * argv[]) {
 
     infile<int>({&Nx, &Ny, &Nu, &Nd}, "Input/lattice_input.txt");
     infile<int>({&kIndex, &PGRepIndex}, "Input/symm_input.txt");
-    infile<int>({&rowCount, &rowPerIt}, "Input/genmatBuf_input.txt");
+    // infile<int>({&rowCount, &rowPerIt}, "Input/genmatBuf_input.txt");
     N = Nx * Ny;
 
     // data directory
-    std::string subDir = "sqOcta"+std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
+    std::string subDir = "sqTetra"+std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
     // std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Conductivity";
@@ -66,7 +66,7 @@ int main(int argc, const char * argv[]) {
     // geometry class
     SquareLattice Lattice(Nx,Ny);
     Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
-    Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}}).addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
+    Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}})//.addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
     // Lattice.addOrb({ORBITAL::Py,5,{0.0,-0.5,0.0}});
     Lattice.construct();
     
@@ -173,26 +173,26 @@ int main(int argc, const char * argv[]) {
             * Conductivity *
             * **************
         */
-            // timer.tik();
-            // Current Jz(&Lattice, &B);
-            // Jz.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
-            // #ifdef DISTRIBUTED_BASIS
-            //     Jz.genMatPara(rowCount, rowPerIt);
-            // #else
-            //     Jz.genMatPara();
-            // #endif
+            timer.tik();
+            Current Jz(&Lattice, &B);
+            Jz.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
+            #ifdef DISTRIBUTED_BASIS
+                Jz.genMatPara(rowCount, rowPerIt);
+            #else
+                Jz.genMatPara();
+            #endif
 
-            // int krylovDim=400;
-            // SPECTRASolver<dataType> spectra(&H, w0[0], &Jz, gstate, H.get_dim(), krylovDim);
-            // spectra.compute();
-            // // save alpha, beta
-            // if (workerID==MPI_MASTER){
-            //     std::string dataPath = dataDir + "/k" + std::to_string(kIndex);
-            //     system(("mkdir -p " + dataPath).c_str());
-            //     // spectra.saveData(dataPath);
-            // } 
-            // timer.tok();
-            // if (workerID==MPI_MASTER) std::cout<<"SigmaW time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+            int krylovDim=400;
+            SPECTRASolver<dataType> spectra(&H, w0[0], &Jz, gstate, H.get_dim(), krylovDim);
+            spectra.compute();
+            // save alpha, beta
+            if (workerID==MPI_MASTER){
+                std::string dataPath = dataDir + "/k" + std::to_string(kIndex);
+                system(("mkdir -p " + dataPath).c_str());
+                // spectra.saveData(dataPath);
+            } 
+            timer.tok();
+            if (workerID==MPI_MASTER) std::cout<<"SigmaW time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
     //     }
     // }
     }

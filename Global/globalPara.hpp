@@ -86,9 +86,9 @@ const int MPI_MASTER = 0;
 // acer
 const std::string ROOT_DATA_PATH = "/home/tatang/Project/DATA"; 
 
-// const std::string PROJECT_DATA_PATH = ROOT_DATA_PATH + "/Photodoping";
+const std::string PROJECT_DATA_PATH = ROOT_DATA_PATH + "/Photodoping";
 // const std::string PROJECT_DATA_PATH = ROOT_DATA_PATH + "/TriAngtJ";
-const std::string PROJECT_DATA_PATH = ROOT_DATA_PATH + "/TriAngHeis";
+// const std::string PROJECT_DATA_PATH = ROOT_DATA_PATH + "/TriAngHeis";
 /*
     ******************
     * Math Constants *
