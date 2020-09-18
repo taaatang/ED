@@ -5,7 +5,7 @@ if(HOST STREQUAL "cori")
     set(CMAKE_CXX_COMPILER CC)
 elseif(HOST STREQUAL "sherlock" OR HOST STREQUAL "acer")
     set(CMAKE_CXX_COMPILER mpiicpc)
-    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED True)
 endif()
 

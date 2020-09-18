@@ -15,7 +15,13 @@
 #include <stdio.h>
 #include <random>
 #include <iostream>
+
+#ifdef CPP_17
+#include <filesystem>
+#else
 #include <boost/filesystem.hpp>
+#endif //CPP_17
+
 #include <iomanip>
 #include <fstream>
 #include <list>
@@ -348,13 +354,19 @@ inline void MPI_Alltoallv(cdouble *sendBuff,int *sendCounts,int *sdispls,cdouble
     * I/O *
     *******
 */
-
+#ifdef CPP_17
+inline void mkdir_fs(std::string dir){
+     bool succeed = std::filesystem::create_directories(dir);
+     assert_msg(succeed, dir + " failed to creat!");
+}
+#else
 inline void mkdir_fs(std::string dir){
     boost::filesystem::path p(dir);
     boost::filesystem::create_directories(p);
 	bool succeed = boost::filesystem::is_directory(p);
     assert_msg(succeed, dir + " failed to creat!");
 }
+#endif //CPP_17
 
 template <class T>
 inline void save(T *d_pt, int size, std::ofstream *f_pt, std::string filename, bool is_app=false){
