@@ -464,12 +464,14 @@ TriAngLattice::TriAngLattice(int numSites, bool PBC){
     kzlist.resize(Nsite,0.0);
     VecD vtmp(3);
     vecXAdd(0.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(0.0, R1.data(), 1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(-1.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(0.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    if(is_PBC){
+        vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(0.0, R1.data(), 1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(-1.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(0.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    }
     
     // construct();
 };
@@ -506,23 +508,25 @@ TriAngLattice::TriAngLattice(int N1, int N2, bool PBC){
     kzlist.resize(Nsite,0.0);
     VecD vtmp(3);
     vecXAdd(0.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    if (N1==1 and N2>1){
-        vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(0.0, R1.data(), -1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    }
-    else if (N1>1 and N2==1){
-        vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    }
-    else if (N1>1 and N2>1){
-        vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(1.0, R1.data(), 1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(-1.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(-1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(0.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    if(is_PBC){
+        if (N1==1 and N2>1){
+            vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(0.0, R1.data(), -1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        }
+        else if (N1>1 and N2==1){
+            vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        }
+        else if (N1>1 and N2>1){
+            vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(1.0, R1.data(), 1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(-1.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(-1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(0.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        }
     }
     
     // construct();
@@ -565,24 +569,26 @@ SquareLattice::SquareLattice(int N1, int N2, bool PBC){
     kzlist.resize(Nsite,0.0);
     VecD vtmp(3);
     vecXAdd(0.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    if (N1==1 and N2>1){
-        vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(0.0, R1.data(), -1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    if(is_PBC){
+        if (N1==1 and N2>1){
+            vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(0.0, R1.data(), -1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        }
+        else if (N1>1 and N2==1){
+            vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        }
+        else if (N1>1 and N2>1){
+            vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(1.0, R1.data(), 1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(-1.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(-1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(0.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+            vecXAdd(1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        }    
     }
-    else if (N1>1 and N2==1){
-        vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    }
-    else if (N1>1 and N2>1){
-        vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(1.0, R1.data(), 1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(-1.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(-1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(0.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-        vecXAdd(1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    }    
 }
 
 SquareLattice::SquareLattice(int N, bool PBC){
@@ -618,12 +624,14 @@ SquareLattice::SquareLattice(int N, bool PBC){
     kzlist.resize(Nsite,0.0);
     VecD vtmp(3);
     vecXAdd(0.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(1.0, R1.data(), 1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(-1.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(-1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(0.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
-    vecXAdd(1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    if(is_PBC){
+        vecXAdd(1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(1.0, R1.data(), 1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(0.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(-1.0, R1.data(), 1.0 , R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(-1.0, R1.data(), 0.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(-1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(0.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+        vecXAdd(1.0, R1.data(), -1.0, R2.data(), vtmp.data(), getDim()); TranVecs.push_back(vtmp);
+    }
 }
