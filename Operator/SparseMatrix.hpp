@@ -124,6 +124,7 @@ protected:
     Basis *Bi, *Bf;
     int dmNum; // number of diagonal matrix
     int spmNum; // number of sparse matrix in csr format
+    bool isMatrixFree{true};
 #ifdef DISTRIBUTED_STATE
     int blockNum;
     std::vector<std::vector<T>> diagValList;
@@ -159,6 +160,8 @@ protected:
     std::vector<T> diagParameters; // diagParameters[i]*diagValList[i]. parameter for i-th diagonal matrix
     std::vector<T> parameters; // parameters[i]*valList[i]. parameter for i-th sparse matrix
 
+    ind_int nlocmax_col;
+    ind_int ntot_col;
     static std::vector<T> vecBuf; // common buffer for matrix vector multiplication
     static bool is_vecBuf; // common status of the buffer. true means the buffer has been allocated.
     
@@ -190,6 +193,8 @@ SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, ind_int totDim_ , int spmN
     #else
         partition = MATRIX_PARTITION::ROW_PARTITION;   
         if (vecBuf.size() != BaseMatrix<T>::ntot) is_vecBuf = false;
+        nlocmax_col = (Bi_->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
+        ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
     #endif
     #ifdef DISTRIBUTED_STATE
         blockNum = BaseMatrix<T>::workerNum;
@@ -267,9 +272,9 @@ void SparseMatrix<T>::clear(){
 template <class T>
 void SparseMatrix<T>::setBuf(){
     #ifdef DISTRIBUTED_BASIS
-        vecBuf.resize(BaseMatrix<T>::nlocmax);
+        vecBuf.resize(nlocmax_col);
     #else
-        vecBuf.resize(BaseMatrix<T>::ntot);
+        vecBuf.resize(ntot_col);
     #endif
     is_vecBuf = true;
 }
@@ -390,6 +395,7 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
             ind_int rowNum = bid<(blockNum-1) ? BaseMatrix<T>::nlocmax:(BaseMatrix<T>::dim - BaseMatrix<T>::nlocmax * (blockNum-1));
             MKL::create(A.at(matID).at(bid), rowNum, BaseMatrix<T>::nloc, rowInitList.at(matID).at(bid), colList.at(matID).at(bid), valList.at(matID).at(bid));
         } 
+        isMatrixFree = false;
     }
 #else
     template <class T>
@@ -463,6 +469,7 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
             }
         }
         for (int i = 0; i < spmNum; i++) MKL::create(A.at(i), BaseMatrix<T>::nloc, Bi->getSubDim(), rowInitList.at(i), colList.at(i), valList.at(i));
+        isMatrixFree = false;
     }
 #endif
 
@@ -471,42 +478,63 @@ void SparseMatrix<T>::setMpiBuff(ind_int idx_val){
  */
 template <class T>
 void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
-    if(!is_vecBuf) setBuf();
-    #ifdef DISTRIBUTED_BASIS
-        for (int id = 0; id < BaseMatrix<T>::workerNum; id++){
-            // initialization
-            #pragma omp parallel for
-            for (ind_int i = 0; i < BaseMatrix<T>::nlocmax; i++){
-                vecBuf[i] = 0.0;
-            }
-            ind_int rowStart = id * BaseMatrix<T>::nlocmax;
-            ind_int rowEnd = (rowStart + BaseMatrix<T>::nlocmax)<BaseMatrix<T>::dim?(rowStart + BaseMatrix<T>::nlocmax):BaseMatrix<T>::dim;
+    if(!isMatrixFree){
+        if(!is_vecBuf) setBuf();
+        #ifdef DISTRIBUTED_BASIS
+            for (int id = 0; id < BaseMatrix<T>::workerNum; id++){
+                // initialization
+                #pragma omp parallel for
+                for (ind_int i = 0; i < BaseMatrix<T>::nlocmax; i++){
+                    vecBuf[i] = 0.0;
+                }
+                ind_int rowStart = id * BaseMatrix<T>::nlocmax;
+                ind_int rowEnd = (rowStart + BaseMatrix<T>::nlocmax)<BaseMatrix<T>::dim?(rowStart + BaseMatrix<T>::nlocmax):BaseMatrix<T>::dim;
 
-            for (int matID = 0; matID < spmNum; matID++){
-                MKL::MxV(A.at(matID).at(id),vecIn,vecBuf.data(),parameters.at(matID));  
+                for (int matID = 0; matID < spmNum; matID++){
+                    MKL::MxV(A.at(matID).at(id),vecIn,vecBuf.data(),parameters.at(matID));  
+                }
+                MPI_Barrier(MPI_COMM_WORLD);
+                MPI_Reduce(vecBuf.data(), vecOut, rowEnd - rowStart, id);
             }
-            MPI_Barrier(MPI_COMM_WORLD);
-            MPI_Reduce(vecBuf.data(), vecOut, rowEnd - rowStart, id);
+        #else
+            #pragma omp parallel for
+            for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] = 0.0;
+            MPI_Allgather(vecIn,vecBuf.data(),nlocmax_col);
+            for (int i = 0; i < spmNum; i++){MKL::MxV(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
+        #endif
+        // diagonal part
+        if (dmNum>0){
+            // constant diagVal
+            if (!diagValList.at(0).empty()){
+                #pragma omp parallel for
+                for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] += diagValList[0][i]*vecIn[i];
+            }
+            // time dependent diagVal
+            for (int j = 1; j < dmNum; j++){
+                #pragma omp parallel for
+                for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] += diagParameters[j]*diagValList[j][i]*vecIn[i];
+            }
         }
-    #else
+    }else{
         #pragma omp parallel for
         for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] = 0.0;
-        // MPI_Allgather(vecIn,vecBuf.data(),BaseMatrix<T>::nlocmax);
-        ind_int nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
-        MPI_Allgather(vecIn,vecBuf.data(),nlocmax_col);
-        for (int i = 0; i < spmNum; i++){MKL::MxV(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
-    #endif
-    // diagonal part
-    if (dmNum>0){
-        // constant diagVal
-        if (!diagValList.at(0).empty()){
-            #pragma omp parallel for
-            for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] += diagValList[0][i]*vecIn[i];
-        }
-        // time dependent diagVal
-        for (int j = 1; j < dmNum; j++){
-            #pragma omp parallel for
-            for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] += diagParameters[j]*diagValList[j][i]*vecIn[i];
+        #pragma omp parallel for
+        for(ind_int rowID = BaseMatrix::startRow; rowID < BaseMatrix::endRow; ++rowID){
+            ind_int rowID_loc = rowID - BaseMatrix::startRow;
+            std::vector<MAP> rowMaps; rowMaps.resize(spmNum);
+            row(rowID, rowMaps);
+            int matID = 0;
+            // off diagonal
+            for(const auto& rowMap:rowMaps){
+                for(const auto& kv:rowMap){
+                    vecOut[rowID_loc] += parameters.at(matID)*kv.second * vecIn[kv.first];
+                }
+                matID++;
+            }
+            // diagonal
+            for (int j = 1; j < dmNum; j++){
+                vecOut[rowID_loc] += diagParameters[j]*diagValList[j][rowID_loc]*vecIn[rowID_loc];
+            }
         }
     }        
 }
