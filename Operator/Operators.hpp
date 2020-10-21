@@ -283,7 +283,7 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     ind_int repI = pt_Basis->getRepI(rowID);
     pairIndex pairRepI = pt_Basis->getPairRepI(repI);
     pt_lattice->orbOCC(pairRepI, occ, docc);
-    double val = diagVal(occ,docc);
+    T val = diagVal(occ,docc);
     for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
         if((*linkit).getLinkType()!=LINK_TYPE::HUBBARD_U)continue;
         for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
