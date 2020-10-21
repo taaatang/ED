@@ -519,8 +519,8 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
         #pragma omp parallel for
         for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] = 0.0;
         #pragma omp parallel for
-        for(ind_int rowID = BaseMatrix::startRow; rowID < BaseMatrix::endRow; ++rowID){
-            ind_int rowID_loc = rowID - BaseMatrix::startRow;
+        for(ind_int rowID = BaseMatrix<T>::startRow; rowID < BaseMatrix<T>::endRow; ++rowID){
+            ind_int rowID_loc = rowID - BaseMatrix<T>::startRow;
             std::vector<MAP> rowMaps; rowMaps.resize(spmNum);
             row(rowID, rowMaps);
             int matID = 0;
