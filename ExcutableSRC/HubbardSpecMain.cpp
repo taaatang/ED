@@ -47,7 +47,7 @@ int main(int argc, const char * argv[]) {
     N = Nx * Ny;
 
     // data directory
-    std::string subDir = "sqTetra"+std::to_string(Nx) + "by" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
+    std::string subDir = "sqOcta_Udp_"+std::to_string(Nx) + "x" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
     // std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Conductivity";
@@ -66,8 +66,8 @@ int main(int argc, const char * argv[]) {
     // geometry class
     SquareLattice Lattice(Nx,Ny);
     Lattice.addOrb({ORBITAL::Dx2y2,0,{0.0,0.0,0.0}}).addOrb({ORBITAL::Px,1,{0.5,0.0,0.0}}).addOrb({ORBITAL::Py,2,{0.0,0.5,0.0}});
-    Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}});//.addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
-    // Lattice.addOrb({ORBITAL::Py,5,{0.0,-0.5,0.0}});
+    Lattice.addOrb({ORBITAL::Pzu,3,{0.0,0.0,0.5}});.addOrb({ORBITAL::Pzd,4,{0.0,0.0,-0.5}});
+    Lattice.addOrb({ORBITAL::Py,5,{0.0,-0.5,0.0}});
     Lattice.construct();
     
     int siteDim = 2;
@@ -80,7 +80,7 @@ int main(int argc, const char * argv[]) {
         * Basis Construction *
         **********************
     */
-    for(kIndex=0; kIndex<N; kIndex++){
+    
     timer.tik();
     Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
@@ -111,7 +111,7 @@ int main(int argc, const char * argv[]) {
             */
             // double tdp_val=1.13, tpp_val=0.49, tppz_val=0.3, Vd=0.0, Vp=3.24, Vpz=3.0, Ud=8.5, Up=4.1;
             // double tdp_val=1, tpp_val=0.5, tppz_val=0.0+idx_tpz*0.5/(num-1), Vd=0.0, Vp=3.2, Vpz=2.0+idx_vpz*(3.2-2.0)/(num-1), Ud=8.5, Up=4;
-            double tdp_val=1.0, tpp_val=0.5, tppz_val=0.3, Vd=0.0, Vp=3.2, Vpz=3.0, Ud=8.5, Up=4;
+            double tdp_val=1.0, tpp_val=0.5, tppz_val=0.3, Vd=0.0, Vp=3.2, Vpz=3.0, Ud=8.5, Up=4,Upd=2.0;
             Link<dataType> tdpx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px}, -tdp_val); tdpx.addLinkVec({0.5,0.0,0.0});
             Link<dataType> tdpy(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Py}, tdp_val); tdpy.addLinkVec({0.0,0.5,0.0});
             Link<dataType> tpxd(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Dx2y2}, tdp_val); tpxd.addLinkVec({0.5,0.0,0.0});
@@ -119,7 +119,7 @@ int main(int argc, const char * argv[]) {
             Link<dataType> tpxpyp(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Py}, tpp_val); tpxpyp.addLinkVec({0.5,-0.5,0.0}).addLinkVec({-0.5,0.5,0.0});
             Link<dataType> tpyd(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Dx2y2}, -tdp_val); tpyd.addLinkVec({0.0,0.5,0.0});
 
-            bool NotConst=false, isOrdered=true;
+            bool NotConst=true, isOrdered=false;
             Link<dataType> tpxpz(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Pzu}, tppz_val, NotConst, isOrdered); tpxpz.addLinkVec({-0.5,0.0,0.5});
             Link<dataType> tpzpx(LINK_TYPE::HOPPING_T, {ORBITAL::Pzd, ORBITAL::Px}, -tppz_val, NotConst, isOrdered); tpzpx.addLinkVec({0.5,0.0,0.5});
             Link<dataType> tpypz(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Pzu}, tppz_val, NotConst, isOrdered); tpypz.addLinkVec({0.0,-0.5,0.5});
@@ -130,10 +130,13 @@ int main(int argc, const char * argv[]) {
             Link<dataType> tpypzp(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Pzu}, -tppz_val, NotConst, isOrdered); tpypzp.addLinkVec({0.0,0.5,0.5});
             Link<dataType> tpzpyp(LINK_TYPE::HOPPING_T, {ORBITAL::Pzd, ORBITAL::Py}, tppz_val, NotConst, isOrdered); tpzpyp.addLinkVec({0.0,-0.5,0.5});
 
+            Link<dataType> ndnpx(LINK_TYPE::HUBBARD_U, {ORBITAL::Dx2y2, ORBITAL::Px}, Upd); ndnpx.addLinkVec({0.5,0.0,0.0}).addLinkVec({-0.5,0.0,0.0});
+            Link<dataType> ndnpy(LINK_TYPE::HUBBARD_U, {ORBITAL::Dx2y2, ORBITAL::Py}, Upd); ndnpy.addLinkVec({0.0,0.5,0.0}).addLinkVec({0.5,-0.5,0.0});
+            
             timer.tik();
-            Hubbard<dataType> H(&Lattice, &B, 3);
-            H.pushLinks({tdpx,tdpy,tpxd,tpxpy,tpxpyp,tpyd});
-            H.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
+            Hubbard<dataType> H(&Lattice, &B, 1);
+            H.pushLinks({tdpx,tdpy,tpxd,tpxpy,tpxpyp,tpyd,tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp,ndnpx,ndnpy});
+            // H.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
             H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp).pushV({ORBITAL::Pzu, ORBITAL::Pzd},Vpz);
             H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
             if(workerID==MPI_MASTER) std::cout<<"begin H gen..."<<std::endl;
@@ -157,15 +160,15 @@ int main(int argc, const char * argv[]) {
             dataType* gstate = PDiag.getEigvec();
             MPI_Barrier(MPI_COMM_WORLD);
 
-            Nocc occ(&Lattice, &B); 
-            occ.genMat();
-            for(int state=0;state<nev;state++){
-                dataType* vecpt = PDiag.getEigvec(state);
-                double Nd = occ.count(ORBITAL::Dx2y2, vecpt);
-                double Npx = occ.count(ORBITAL::Px, vecpt);
-                double Npy = occ.count(ORBITAL::Py, vecpt);
-                if(workerID==MPI_MASTER)std::cout<<"state "<<state<<": Nd "<<Nd<<", Npx "<<Npx<<", Npy "<<Npy<<"\n";
-            }
+            // Nocc occ(&Lattice, &B); 
+            // occ.genMat();
+            // for(int state=0;state<nev;state++){
+            //     dataType* vecpt = PDiag.getEigvec(state);
+            //     double Nd = occ.count(ORBITAL::Dx2y2, vecpt);
+            //     double Npx = occ.count(ORBITAL::Px, vecpt);
+            //     double Npy = occ.count(ORBITAL::Py, vecpt);
+            //     if(workerID==MPI_MASTER)std::cout<<"state "<<state<<": Nd "<<Nd<<", Npx "<<Npx<<", Npy "<<Npy<<"\n";
+            // }
 
 
         /*
@@ -188,14 +191,12 @@ int main(int argc, const char * argv[]) {
             // save alpha, beta
             if (workerID==MPI_MASTER){
                 std::string dataPath = dataDir + "/k" + std::to_string(kIndex);
-                system(("mkdir -p " + dataPath).c_str());
-                // spectra.saveData(dataPath);
+                spectra.saveData(dataPath);
             } 
             timer.tok();
             if (workerID==MPI_MASTER) std::cout<<"SigmaW time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
     //     }
     // }
-    }
 
 /*
     *******

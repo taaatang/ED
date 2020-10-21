@@ -284,6 +284,15 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     pairIndex pairRepI = pt_Basis->getPairRepI(repI);
     pt_lattice->orbOCC(pairRepI, occ, docc);
     double val = diagVal(occ,docc);
+    for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+        if((*linkit).getLinkType()!=LINK_TYPE::HUBBARD_U)continue;
+        for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+            int siteI = (*bondit).at(0);
+            int siteJ = (*bondit).at(1);
+            assert(siteI!=siteJ);
+            val += (*linkit).getVal()*(bitTest(pairRepI.first,siteI)+bitTest(pairRepI.second,siteI))*(bitTest(pairRepI.first,siteJ)+bitTest(pairRepI.second,siteJ));
+        }
+    }
     SparseMatrix<T>::putDiag(val,rowID);
     // off diagonal part
     std::vector<ind_int> finalIndList;
@@ -293,6 +302,7 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
         bool isfminRep = pt_Basis->isfMin(pairRepI.first);
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+            if((*linkit).getLinkType()!=LINK_TYPE::HOPPING_T)continue;
             int matID = (*linkit).getmatid();
             int matIDp = matID; 
             if ((*linkit).isOrdered()) matIDp++;
