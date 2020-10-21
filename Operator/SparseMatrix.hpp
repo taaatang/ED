@@ -516,6 +516,8 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
             }
         }
     }else{
+        if(!is_vecBuf) setBuf();
+        MPI_Allgather(vecIn,vecBuf.data(),nlocmax_col);
         #pragma omp parallel for
         for (ind_int i = 0; i < BaseMatrix<T>::nloc; i++) vecOut[i] = 0.0;
         #pragma omp parallel for
@@ -527,7 +529,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
             // off diagonal
             for(const auto& rowMap:rowMaps){
                 for(const auto& kv:rowMap){
-                    vecOut[rowID_loc] += parameters.at(matID)*kv.second * vecIn[kv.first];
+                    vecOut[rowID_loc] += parameters.at(matID) * kv.second * vecBuf.at(kv.first);
                 }
                 matID++;
             }
