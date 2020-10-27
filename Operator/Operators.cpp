@@ -15,6 +15,7 @@
 */
 void Current::row(ind_int rowID, std::vector<MAP>& rowMaps){
     // off diagonal part
+    int idx = 0; if(plz=="x") idx = 0; else if(plz=="y") idx = 1; else if(plz=="z") idx=2; else exit(1);
     std::vector<ind_int> finalIndList;
     std::vector<cdouble> factorList;
     pt_Basis->genSymm(rowID, finalIndList, factorList);
@@ -25,14 +26,18 @@ void Current::row(ind_int rowID, std::vector<MAP>& rowMaps){
             int matID = (*linkit).getmatid();
             cdouble factor = CPLX_I * factorList.at(i) * (*linkit).getVal();
             for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                auto bondid = bondit - (*linkit).begin();
+                auto linkVec = linkit->getvec(linkit->getvecid(bondid));
+                double sign = -1.0; if(linkVec.at(idx)<0.) sign = 1.0; else if(linkVec.at(idx)==0.) sign = 0.0;
+                cdouble factor_s = factor*sign;
                 int siteI = (*bondit).at(0);
                 int siteJ = (*bondit).at(1);
                 // cp.siteI * cm.siteJ
-                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                cpcm(SPIN::SPIN_UP, siteJ, siteI, -factor, finalIndList[i], &rowMaps[matID]);
+                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor_s, finalIndList[i], &rowMaps[matID]);
+                cpcm(SPIN::SPIN_UP, siteJ, siteI, -factor_s, finalIndList[i], &rowMaps[matID]);
                 if(isfminRep){
-                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, -factor, finalIndList[i], &rowMaps[matID]);   
+                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor_s, finalIndList[i], &rowMaps[matID]);
+                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, -factor_s, finalIndList[i], &rowMaps[matID]);   
                 } 
             }
         }
