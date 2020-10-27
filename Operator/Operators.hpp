@@ -76,7 +76,7 @@ public:
         // int idx = 0; if(plz=="x") idx = 0; else if(plz=="y") idx = 1; else if(plz=="z") idx=2; else exit(1);
         // auto linkVec = link.getvec(0);
         // double sign = 1.0; if(linkVec.at(idx)>0.) sign = -1.0; else if(linkVec.at(idx)==0.) sign = 0.0;
-        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); Links[linkCount].setVal(link.getVal()*sign);
+        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); //Links[linkCount].setVal(link.getVal()*sign);
         linkCount++;
         return *this;
     }
