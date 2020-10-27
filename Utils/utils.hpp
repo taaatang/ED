@@ -526,9 +526,9 @@ inline UnsignedType nextLexicographicalNumber(UnsignedType x) {
 inline void MapPush(MAP* map_pt, ind_int key, dataType val){
     auto it = map_pt->find(key);
     if (it == map_pt->end()){
-        (*map_pt)[key] = val;
+        (*map_pt)[key] = std::conj(val);
     }else{
-        it->second += val;
+        it->second += std::conj(val);
     }
 }
 
