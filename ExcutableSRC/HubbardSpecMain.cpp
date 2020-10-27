@@ -41,10 +41,12 @@ int main(int argc, const char * argv[]) {
     int rowCount = 50;
     int rowPerIt = 1000;
     std::string label;
-
+    double tdp_val=1.0, tpp_val=0.5, tppz_val=0.3, Vd=0.0, Vp=3.2, Vpz=3.0, Ud=8.5, Up=4, Upd=0.0;
+    
     infile<std::string>({&label},"../Input/current_label.txt");
     infile<int>({&Nx, &Ny, &Nu, &Nd}, "../Input/lattice_input.txt");
     infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
+    infile<double>({&tdp_val,&tpp_val,&tppz_val,&Vd,&Vp,&Vpz,&Ud,&Up,&Udp},"../Input/Hubbard_params.txt");
     // infile<int>({&rowCount, &rowPerIt}, "Input/genmatBuf_input.txt");
     N = Nx * Ny;
 
@@ -113,7 +115,6 @@ int main(int argc, const char * argv[]) {
             */
             // double tdp_val=1.13, tpp_val=0.49, tppz_val=0.3, Vd=0.0, Vp=3.24, Vpz=3.0, Ud=8.5, Up=4.1;
             // double tdp_val=1, tpp_val=0.5, tppz_val=0.0+idx_tpz*0.5/(num-1), Vd=0.0, Vp=3.2, Vpz=2.0+idx_vpz*(3.2-2.0)/(num-1), Ud=8.5, Up=4;
-            double tdp_val=1.0, tpp_val=0.5, tppz_val=0.3, Vd=0.0, Vp=3.2, Vpz=3.0, Ud=8.5, Up=4, Upd=0.0;
             Link<dataType> tdpx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px}, -tdp_val); tdpx.addLinkVec({0.5,0.0,0.0});
             Link<dataType> tdpy(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Py}, tdp_val); tdpy.addLinkVec({0.0,0.5,0.0});
             Link<dataType> tpxd(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Dx2y2}, tdp_val); tpxd.addLinkVec({0.5,0.0,0.0});
