@@ -68,11 +68,15 @@ class Current: public FermionOperator, public SparseMatrix<cdouble>{
     int spmCount;
     std::vector<Link<cdouble>> Links;
     Geometry *pt_lattice;
+    std::string plz;
 public:
-    Current(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1):FermionOperator(pt_Ba),SparseMatrix<cdouble>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0){}
+    Current(Geometry *pt_lat, Basis *pt_Ba, std::string plzIn, int spmNum_=1):FermionOperator(pt_Ba),SparseMatrix<cdouble>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0),plz(plzIn){}
     ~Current(){};
     Current& pushLink(Link<cdouble> link, int matID){
-        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); 
+        int idx = 0; if(plz=="x") idx = 0; else if(plz=="y") idx = 1; else if(plz=="z") idx=2; else exit(1);
+        auto linkVec = link.getvec(0);
+        double sign = 1.0; if(linkVec.at(idx)>0.) sign = -1.0; else if(linkVec.at(idx)==0.) sign = 0.0;
+        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); Links[linkCount].setVal(link.getVal()*sign);
         linkCount++;
         return *this;
     }

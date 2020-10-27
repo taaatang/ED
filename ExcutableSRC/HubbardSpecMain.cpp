@@ -40,9 +40,11 @@ int main(int argc, const char * argv[]) {
     int rowPerThread = 1;
     int rowCount = 50;
     int rowPerIt = 1000;
+    std::string label;
 
-    infile<int>({&Nx, &Ny, &Nu, &Nd}, "Input/lattice_input.txt");
-    infile<int>({&kIndex, &PGRepIndex}, "Input/symm_input.txt");
+    infile<std::string>({&label},"../Input/current_label.txt");
+    infile<int>({&Nx, &Ny, &Nu, &Nd}, "../Input/lattice_input.txt");
+    infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
     // infile<int>({&rowCount, &rowPerIt}, "Input/genmatBuf_input.txt");
     N = Nx * Ny;
 
@@ -50,7 +52,7 @@ int main(int argc, const char * argv[]) {
     std::string subDir = "sqOcta_Udp_"+std::to_string(Nx) + "x" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
     // std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
-    std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Conductivity";
+    std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Conductivity_"+label;
     std::ofstream outfile;
     // basis data path
     bool BASIS_IS_SAVED = false;
@@ -177,16 +179,24 @@ int main(int argc, const char * argv[]) {
             * **************
         */
             timer.tik();
-            Current Jz(&Lattice, &B);
-            Jz.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
+            Current J(&Lattice, &B, label);
+             if(label=="z"){
+                 J.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp}); // Jz
+             }else if(label=="y"){
+                 J.pushLinks({tdpy,tpyd,tpxpy,tpxpyp,tpypz,tpypzp,tpzpy,tpzpyp}); // Jy
+             }else if(label=="x"){
+                 J.pushLinks({tdpx,tpxd,tpzpx,tpzpxp,tpxpz,tpxpzp,tpxpy,tpxpyp}); // Jx
+             }else{
+                 exit(1);
+             }
             #ifdef DISTRIBUTED_BASIS
-                Jz.genMatPara(rowCount, rowPerIt);
+                J.genMatPara(rowCount, rowPerIt);
             #else
-                Jz.genMatPara();
+                J.genMatPara();
             #endif
 
             int krylovDim=400;
-            SPECTRASolver<dataType> spectra(&H, w0[0], &Jz, gstate, H.get_dim(), krylovDim);
+            SPECTRASolver<dataType> spectra(&H, w0[0], &J, gstate, H.get_dim(), krylovDim);
             spectra.compute();
             // save alpha, beta
             if (workerID==MPI_MASTER){
