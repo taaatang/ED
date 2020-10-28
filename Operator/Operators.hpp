@@ -238,7 +238,7 @@ private:
     Geometry *pt_lattice;
     Basis *pt_Bi, *pt_Bf;
     int Ki,Kf;
-    std::vector<double>expFactor;
+    std::vector<cdouble>expFactor;
     VecI posList;
 public:
     CkOp(SPIN spin_, ORBITAL orb_, Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1):spin(spin_),orb(orb_),pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
@@ -266,7 +266,7 @@ private:
     Geometry *pt_lattice;
     Basis *pt_Bi, *pt_Bf;
     int Ki,Kf;
-    std::vector<double>expFactor;
+    std::vector<cdouble>expFactor;
     VecI posList;
 public:
     CDagkOp(SPIN spin_, ORBITAL orb_, Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1):spin(spin_),orb(orb_),pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
@@ -346,7 +346,7 @@ void CkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     for (int i = 0; i < finalIndList.size(); i++){
         for (int r = 0; r < posList.size(); ++r){
             cdouble factor = factorList.at(i) * expFactor.at(i);
-            cp(spin, siteI, factor, finalIndList[i], &rowMaps[matID]);
+            cp(spin, posList(r), factor, finalIndList[i], &rowMaps[0]);
         }
     } 
     #endif
@@ -363,7 +363,7 @@ void CDagkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     for (int i = 0; i < finalIndList.size(); i++){
         for (int r = 0; r < posList.size(); ++r){
             cdouble factor = factorList.at(i) * expFactor.at(i);
-            cm(spin, siteI, factor, finalIndList[i], &rowMaps[matID]);
+            cm(spin, posList(r), factor, finalIndList[i], &rowMaps[0]);
         }
     } 
     #endif

@@ -246,7 +246,7 @@ public:
             if(cp(siteI, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
                 if(pt_Basis->search(pairRepIf,colidx)){
                     dataType val = factor * sign;
-                    val /= pt_Basis->getNorm(colidx)
+                    val /= pt_Basis->getNorm(colidx);
                     MapPush(rowMap,colidx,val);
                 }
             }
@@ -258,7 +258,7 @@ public:
                     int count = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))count++;
                     if(count%2==1)sign *= -1;
                     dataType val = factor * sign;
-                    val /= pt_Basis->getNorm(colidx)
+                    val /= pt_Basis->getNorm(colidx);
                     MapPush(rowMap,colidx,val);
                 }
             }
@@ -278,7 +278,7 @@ public:
             if(cm(siteI, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
                 if(pt_Basis->search(pairRepIf,colidx)){
                     dataType val = factor * sign;
-                    val /= pt_Basis->getNorm(colidx)
+                    val /= pt_Basis->getNorm(colidx);
                     MapPush(rowMap,colidx,val);
                 }
             }
@@ -290,7 +290,7 @@ public:
                     int count = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))count++;
                     if(count%2==1)sign *= -1;
                     dataType val = factor * sign;
-                    val /= pt_Basis->getNorm(colidx)
+                    val /= pt_Basis->getNorm(colidx);
                     MapPush(rowMap,colidx,val);
                 }
             }
