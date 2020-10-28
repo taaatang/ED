@@ -193,7 +193,7 @@ int main(int argc, const char * argv[]) {
             #else
                 Ck.genMatPara();
             #endif
-            std::cout<<"\n----------------\n"<<"Ck nzcount:"<<Ck.nzCount()<<"\n--------------------\n";
+            std::cout<<"\n----------------\n"<<"spin:"<<spin_label<<",orb:"<<orb_label<<",occ:{"<<occListf[0]<<","<<occListf[1]<<"}, Ck nzcount:"<<Ck.nzCount()<<"\n--------------------\n";
             Hubbard<dataType> Hf(&Lattice, &Bf, 1);
             Hf.pushLinks({tdpx,tdpy,tpxd,tpxpy,tpxpyp,tpyd,tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp,ndnpx,ndnpy});
             // H.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
