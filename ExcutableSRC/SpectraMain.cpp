@@ -114,7 +114,7 @@ int main(int argc, const char * argv[]) {
     // HtJ<dataType> H(&Lattice, B, 1);
     // H.pushLinks({t1Link, t2Link, J1Link, J2Link});
     H->genMatPara();
-    delete B;
+    // delete B; // Bug! after delete B, H.MxV will use B 
     timer.tok();
     std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H->get_nloc()<<"/"<<H->get_dim()<<", Local Hamiltonian non-zero elements count:"<<H->nzCount()\
             <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
