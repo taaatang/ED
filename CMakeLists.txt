@@ -30,7 +30,7 @@ set(MKL -Wl,--start-group MKL_ilp64 MKL_thread MKL_core -Wl,--end-group iomp5 pt
 # Boost
 set(BOOSTROOT $ENV{BOOST_ROOT})
 set(BOOSTLIB $ENV{BOOST_LIB})
-set(BOOST boost_filesystem)
+set(BOOST boost_system boost_filesystem)
 
 # Compiler Flags
 set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall -qopenmp")
