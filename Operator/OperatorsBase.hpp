@@ -153,7 +153,40 @@ public:
             MapPush(rowMap,rowID,factor);
         #endif
     }
-
+    bool cp(int siteI, ind_int repI, ind_int repIp, ind_int& repIf, int &sign){
+        repIf = repI;
+        switch(fmodel){
+            case HUBBARD:{
+                if(!bitTest(repI,siteI)){
+                    bitFlip(repIf,siteI);
+                    int counter = 0;
+                    for(int i = 0; i < siteI; i++)if(bitTest(repI,i))counter++;
+                    sign = (counter%2==0)?1:-1;
+                    return true;
+                }
+                break;
+            }
+            default:exit(1);
+        }
+        return false;
+    }
+    bool cm(int siteI, ind_int repI, ind_int repIp, ind_int& repIf, int &sign){
+        repIf = repI;
+        switch(fmodel){
+            case HUBBARD:{
+                if(bitTest(repI,siteI)){
+                    bitFlip(repIf,siteI);
+                    int counter = 0;
+                    for(int i = 0; i < siteI; i++)if(bitTest(repI,i))counter++;
+                    sign = (counter%2==0)?1:-1;
+                    return true;
+                }
+                break;
+            }
+            default:exit(1);
+        }
+        return false;    
+    }
     bool cpcm(int siteI, int siteJ, ind_int repI, ind_int repIp, ind_int& repIf, int& sign){
         repIf = repI;
         if (siteI==siteJ){
@@ -201,6 +234,70 @@ public:
             }
         }
         return false;
+    }
+    void cp(SPIN spin, int siteI, dataType factor, ind_int repI, MAP* rowMap){
+        pairIndex pairRepI=pt_Basis->getPairRepI(repI);
+        pairIndex pairRepIf = pairRepI;
+        int sign;
+        ind_int colidx;
+        switch (spin)
+        {
+        case SPIN_UP:
+            if(cp(siteI, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
+                if(pt_Basis->search(pairRepIf,colidx)){
+                    dataType val = factor * sign;
+                    val /= pt_Basis->getNorm(colidx)
+                    MapPush(rowMap,colidx,val);
+                }
+            }
+            break;
+        case SPIN_DOWN:
+            if(cp(siteI, pairRepI.second, pairRepI.first, pairRepIf.second, sign)){
+                if(pt_Basis->search(pairRepIf,colidx)){
+                    auto N = pt_Basis->getOrbNum();
+                    int count = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))count++;
+                    if(count%2==1)sign *= -1;
+                    dataType val = factor * sign;
+                    val /= pt_Basis->getNorm(colidx)
+                    MapPush(rowMap,colidx,val);
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    void cm(SPIN spin, int siteI, dataType factor, ind_int repI, MAP* rowMap){
+        pairIndex pairRepI=pt_Basis->getPairRepI(repI);
+        pairIndex pairRepIf = pairRepI;
+        int sign;
+        ind_int colidx;
+        switch (spin)
+        {
+        case SPIN_UP:
+            if(cm(siteI, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
+                if(pt_Basis->search(pairRepIf,colidx)){
+                    dataType val = factor * sign;
+                    val /= pt_Basis->getNorm(colidx)
+                    MapPush(rowMap,colidx,val);
+                }
+            }
+            break;
+        case SPIN_DOWN:
+            if(cm(siteI, pairRepI.second, pairRepI.first, pairRepIf.second, sign)){
+                if(pt_Basis->search(pairRepIf,colidx)){
+                    auto N = pt_Basis->getOrbNum();
+                    int count = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))count++;
+                    if(count%2==1)sign *= -1;
+                    dataType val = factor * sign;
+                    val /= pt_Basis->getNorm(colidx)
+                    MapPush(rowMap,colidx,val);
+                }
+            }
+            break;
+        default:
+            break;
+        }
     }
     void cpcm(SPIN spin, int siteI, int siteJ, dataType factor, ind_int repI, MAP* rowMap){
         pairIndex pairRepI=pt_Basis->getPairRepI(repI);

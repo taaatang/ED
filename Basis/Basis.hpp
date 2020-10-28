@@ -74,6 +74,7 @@ public:
     void gen(std::string basisfile, std::string normfile, int workerID, int workerNum);
     
     int getSiteDim() const {return siteDim;}
+    int getOrbNum() const {return N;}
     ind_int getTotDim() const {return totDim;}
     ind_int getSubDim() const {return subDim;}
     ind_int getLocDim() const {return locDim;}

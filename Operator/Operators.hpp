@@ -230,6 +230,61 @@ public:
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
 };
 
+template <class T>
+class CkOp: public FermionOperator, public SparseMatrix<T>{
+private:
+    SPIN spin;
+    ORBITAL orb;
+    Geometry *pt_lattice;
+    Basis *pt_Bi, *pt_Bf;
+    int Ki,Kf;
+    std::vector<double>expFactor;
+    VecI posList;
+public:
+    CkOp(SPIN spin_, ORBITAL orb_, Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1):spin(spin_),orb(orb_),pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
+        FermionOperator(pt_Bi_),SparseMatrix<T>(pt_Bi_,pt_Bf_,pt_Bf_->getSubDim(),spmNum_){
+            assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
+            Ki = pt_Bi->getkIndex();
+            Kf = pt_Bf->getkIndex();
+            // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
+            for (int i = 0; i < pt_lattice->getSiteNum(); i++) {
+                expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
+            }
+            auto Norb = pt_lattice->getOrbNum();
+            for(int i = 0; i < Norb; ++i)if(pt_lattice->is_Orbital(i,orb))posList.push_back(i);
+            assert(posList.size()==pt_lattice->getSiteNum());
+        }
+    ~CkOp(){}
+    void row(ind_int rowID, std::vector<MAP>& rowMaps);
+};
+
+template <class T>
+class CDagkOp: public FermionOperator, public SparseMatrix<T>{
+private:
+    SPIN spin;
+    ORBITAL orb;
+    Geometry *pt_lattice;
+    Basis *pt_Bi, *pt_Bf;
+    int Ki,Kf;
+    std::vector<double>expFactor;
+    VecI posList;
+public:
+    CDagkOp(SPIN spin_, ORBITAL orb_, Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1):spin(spin_),orb(orb_),pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
+        FermionOperator(pt_Bi_),SparseMatrix<T>(pt_Bi_,pt_Bf_,pt_Bf_->getSubDim(),spmNum_){
+            assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
+            Ki = pt_Bi->getkIndex();
+            Kf = pt_Bf->getkIndex();
+            // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
+            for (int i = 0; i < pt_lattice->getSiteNum(); i++) {
+                expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
+            }
+            auto Norb = pt_lattice->getOrbNum();
+            for(int i = 0; i < Norb; ++i)if(pt_lattice->is_Orbital(i,orb))posList.push_back(i);
+            assert(posList.size()==pt_lattice->getSiteNum());
+        }
+    ~CDagkOp(){}
+    void row(ind_int rowID, std::vector<MAP>& rowMaps);
+};
 
 template <class T>
 class SzkOp: public SpinOperator, public SparseMatrix<cdouble>{
@@ -279,6 +334,40 @@ public:
     * Operator Implementations *
     ****************************
 */
+
+template <class T>
+void CkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
+    #ifdef DISTRIBUTED_BASIS
+        
+    #else
+    std::vector<ind_int> finalIndList;
+    std::vector<cdouble> factorList;
+    pt_Bf->genSymm(rowID, finalIndList, factorList);
+    for (int i = 0; i < finalIndList.size(); i++){
+        for (int r = 0; r < posList.size(); ++r){
+            cdouble factor = factorList.at(i) * expFactor.at(i);
+            cp(spin, siteI, factor, finalIndList[i], &rowMaps[matID]);
+        }
+    } 
+    #endif
+}
+
+template <class T>
+void CDagkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
+    #ifdef DISTRIBUTED_BASIS
+        
+    #else
+    std::vector<ind_int> finalIndList;
+    std::vector<cdouble> factorList;
+    pt_Bf->genSymm(rowID, finalIndList, factorList);
+    for (int i = 0; i < finalIndList.size(); i++){
+        for (int r = 0; r < posList.size(); ++r){
+            cdouble factor = factorList.at(i) * expFactor.at(i);
+            cm(spin, siteI, factor, finalIndList[i], &rowMaps[matID]);
+        }
+    } 
+    #endif
+}
 
 template <class T>
 void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
