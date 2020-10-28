@@ -182,9 +182,9 @@ int main(int argc, const char * argv[]) {
         int ki = kIndex;
         SPIN spin; if(spin_label=="up")spin = SPIN_UP;else spin = SPIN_DOWN;
         ORBITAL orb; switch(orb_label){case "Dx2y2":orb=Dx2y2;break; case "Px": orb=Px;break; case "Py":orb=Py;break; case "Pzu":orb=Pzu;break; case "Pzd":orb=Pzd;break; default:exit(1);}
+        VecI occListf; if(spin==SPIN_UP)occListf = VecI{Nu-1,Nd}; else occListf = VecI{Nu,Nd-1};
         for(int kf=0; kf<N; ++kf){
             timer.tik();
-            VecI occListf{Nu-1,Nd};
             Basis Bf(LATTICE_MODEL::HUBBARD, &Lattice, occListf, kf, PGRepIndex);
             Bf.gen();
             CkOp<dataType> Ck(spin,orb, &Lattice, &B, &Bf);
