@@ -74,6 +74,9 @@ target_link_libraries(Spectra.out ${MKL} ${BOOST} parpack)
 add_executable(HubbardSpec.out ${EXE_SRC}/HubbardSpecMain.cpp ${SPECTRA_DEP})
 target_link_libraries(HubbardSpec.out ${MKL} ${BOOST} parpack)
 
+add_executable(HubbardCond.out ${EXE_SRC}/HubbardCondMain.cpp ${SPECTRA_DEP})
+target_link_libraries(HubbardCond.out ${MKL} ${BOOST} parpack)
+
 # Test
 set(TEST_SRC Test)
 

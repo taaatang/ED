@@ -40,10 +40,10 @@ int main(int argc, const char * argv[]) {
     int rowPerThread = 1;
     int rowCount = 50;
     int rowPerIt = 1000;
-    std::string orb_label, spin_label;
-    double tdp_val=1.0, tpp_val=0.5, tppz_val=0.3, Vd=0.0, Vp=3.2, Vpz=3.0, Ud=8.5, Up=4, Udp=0.0;
+    std::string label;
+    double tdp_val=1.0, tpp_val=0.5, tppz_val=0.3, Vd=0.0, Vp=3.2, Vpz=3.0, Ud=8.5, Up=4, Upd=0.0;
     
-    infile<std::string>({&orb_label,&spin_label},"../Input/spectra_label.txt");
+    infile<std::string>({&label},"../Input/current_label.txt");
     infile<int>({&Nx, &Ny, &Nu, &Nd}, "../Input/lattice_input.txt");
     infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
     infile<double>({&tdp_val,&tpp_val,&tppz_val,&Vd,&Vp,&Vpz,&Ud,&Up,&Udp},"../Input/Hubbard_params.txt");
@@ -54,7 +54,7 @@ int main(int argc, const char * argv[]) {
     std::string subDir = "sqOcta_Udp_"+std::to_string(Nx) + "x" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
     // std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
-    std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Spectra/"+orb_label+"_"+spin_label;
+    std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Conductivity_"+label;
     std::ofstream outfile;
     // basis data path
     bool BASIS_IS_SAVED = false;
@@ -133,8 +133,8 @@ int main(int argc, const char * argv[]) {
             Link<dataType> tpypzp(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Pzu}, -tppz_val, NotConst, isOrdered); tpypzp.addLinkVec({0.0,0.5,0.5});
             Link<dataType> tpzpyp(LINK_TYPE::HOPPING_T, {ORBITAL::Pzd, ORBITAL::Py}, tppz_val, NotConst, isOrdered); tpzpyp.addLinkVec({0.0,-0.5,0.5});
 
-            Link<dataType> ndnpx(LINK_TYPE::HUBBARD_U, {ORBITAL::Dx2y2, ORBITAL::Px}, Udp); ndnpx.addLinkVec({0.5,0.0,0.0}).addLinkVec({-0.5,0.0,0.0});
-            Link<dataType> ndnpy(LINK_TYPE::HUBBARD_U, {ORBITAL::Dx2y2, ORBITAL::Py}, Udp); ndnpy.addLinkVec({0.0,0.5,0.0}).addLinkVec({0.0,-0.5,0.0});
+            Link<dataType> ndnpx(LINK_TYPE::HUBBARD_U, {ORBITAL::Dx2y2, ORBITAL::Px}, Upd); ndnpx.addLinkVec({0.5,0.0,0.0}).addLinkVec({-0.5,0.0,0.0});
+            Link<dataType> ndnpy(LINK_TYPE::HUBBARD_U, {ORBITAL::Dx2y2, ORBITAL::Py}, Upd); ndnpy.addLinkVec({0.0,0.5,0.0}).addLinkVec({0.0,-0.5,0.0});
             
             timer.tik();
             Hubbard<dataType> H(&Lattice, &B, 1);
@@ -179,43 +179,34 @@ int main(int argc, const char * argv[]) {
             * Conductivity *
             * **************
         */
-        int ki = kIndex;
-        SPIN spin; if(spin_label=="up")spin = SPIN_UP;else spin = SPIN_DOWN;
-        ORBITAL orb; switch(orb_label){case "Dx2y2":orb=Dx2y2;break; case "Px": orb=Px;break; case "Py":orb=Py;break; case "Pzu":orb=Pzu;break; case "Pzd":orb=Pzd;break; default:exit(1);}
-        for(int kf=0; kf<N; ++kf){
             timer.tik();
-            VecI occListf{Nu-1,Nd};
-            Basis Bf(LATTICE_MODEL::HUBBARD, &Lattice, occListf, kf, PGRepIndex);
-            Bf.gen();
-            CkOp<dataType> Ck(spin,orb, &Lattice, &B, &Bf);
+            Current J(&Lattice, &B, label);
+             if(label=="z"){
+                 J.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp}); // Jz
+             }else if(label=="y"){
+                 J.pushLinks({tdpy,tpyd,tpxpy,tpxpyp,tpypz,tpypzp,tpzpy,tpzpyp}); // Jy
+             }else if(label=="x"){
+                 J.pushLinks({tdpx,tpxd,tpzpx,tpzpxp,tpxpz,tpxpzp,tpxpy,tpxpyp}); // Jx
+             }else{
+                 exit(1);
+             }
             #ifdef DISTRIBUTED_BASIS
-                Ck.genMatPara(rowCount, rowPerIt);
+                J.genMatPara(rowCount, rowPerIt);
             #else
-                Ck.genMatPara();
-            #endif
-
-            Hubbard<dataType> Hf(&Lattice, &Bf, 1);
-            Hf.pushLinks({tdpx,tdpy,tpxd,tpxpy,tpxpyp,tpyd,tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp,ndnpx,ndnpy});
-            // H.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
-            Hf.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp).pushV({ORBITAL::Pzu, ORBITAL::Pzd},Vpz);
-            Hf.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
-            #ifdef DISTRIBUTED_BASIS
-                Hf.genMatPara(rowCount,rowPerIt);
-            #else
-                Hf.genMatPara();
+                J.genMatPara();
             #endif
 
             int krylovDim=400;
-            SPECTRASolver<dataType> spectra(&Hf, w0[0], &Ck, gstate, B.getSubDim(), krylovDim);
+            SPECTRASolver<dataType> spectra(&H, w0[0], &J, gstate, H.get_dim(), krylovDim);
             spectra.compute();
             // save alpha, beta
             if (workerID==MPI_MASTER){
-                std::string dataPath = dataDir + "/ki" + tostr(ki) + "_kf" + tostr(kf);
+                std::string dataPath = dataDir + "/k" + std::to_string(kIndex);
                 spectra.saveData(dataPath);
             } 
             timer.tok();
-            if (workerID==MPI_MASTER) std::cout<<"Spectar time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
-        }
+            if (workerID==MPI_MASTER) std::cout<<"SigmaW time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+    //     }
     // }
 
 /*
