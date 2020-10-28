@@ -346,7 +346,8 @@ void CkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     for (int i = 0; i < finalIndList.size(); i++){
         for (int r = 0; r < posList.size(); ++r){
             cdouble factor = factorList.at(i) * expFactor.at(i);
-            cp(spin, posList[r], factor, finalIndList[i], &rowMaps[0]);
+            pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
+            cp(spin, posList[r], factor, pairRepI, &rowMaps[0]);
         }
     } 
     #endif
@@ -363,7 +364,8 @@ void CDagkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     for (int i = 0; i < finalIndList.size(); i++){
         for (int r = 0; r < posList.size(); ++r){
             cdouble factor = factorList.at(i) * expFactor.at(i);
-            cm(spin, posList[r], factor, finalIndList[i], &rowMaps[0]);
+            pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
+            cm(spin, posList[r], factor, pairRepI, &rowMaps[0]);
         }
     } 
     #endif

@@ -235,8 +235,7 @@ public:
         }
         return false;
     }
-    void cp(SPIN spin, int siteI, dataType factor, ind_int repI, MAP* rowMap){
-        pairIndex pairRepI=pt_Basis->getPairRepI(repI);
+    void cp(SPIN spin, int siteI, dataType factor, pairIndex pairRepI, MAP* rowMap){
         pairIndex pairRepIf = pairRepI;
         int sign;
         ind_int colidx;
@@ -267,8 +266,7 @@ public:
             break;
         }
     }
-    void cm(SPIN spin, int siteI, dataType factor, ind_int repI, MAP* rowMap){
-        pairIndex pairRepI=pt_Basis->getPairRepI(repI);
+    void cm(SPIN spin, int siteI, dataType factor, pairIndex pairRepI, MAP* rowMap){
         pairIndex pairRepIf = pairRepI;
         int sign;
         ind_int colidx;
