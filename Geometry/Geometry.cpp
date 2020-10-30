@@ -280,7 +280,8 @@ void Geometry::construct(){
         else if(getUnitOrbNum()==5) PG=PointGroup::D4m5;
         else PG=PointGroup::NONE;
     }
-    Norb = Nsite * unitSite.size();
+    if(boundary.size()>0)assert(!is_PBC);
+    Norb = Nsite * unitSite.size()+boundary.size();
     Norb_enlg = is_PBC?Norb*TranVecs.size():Norb;
     assert(Nsite>0 and Norb>0 and Norb_enlg>=Norb);
     assert(xlist.size()==getSiteNum() and ylist.size()==getSiteNum() and zlist.size()==getSiteNum());
@@ -298,6 +299,11 @@ void Geometry::construct(){
             orbs.at(id).id = id;
             id++;
         }
+    }
+    for(auto orb:boundary){
+        orb.id = id;
+        id++;
+        orbs.push_back(orb);
     }
     // construc enlarged orbs (periodic boundary condition)
     int count = 0;

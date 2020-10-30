@@ -86,7 +86,7 @@ protected:
 
     std::vector<Site> Lattice; // A vector of Site in the Lattice
     std::vector<Site> KLattice; // Dual K space Lattice
-    std::vector<Orbital> unitSite, orbs, enlgOrbs; // vectos of orbitals and orbitals in enlarged Lattice
+    std::vector<Orbital> unitSite, boundary, orbs, enlgOrbs; // vectos of orbitals and orbitals in enlarged Lattice
 
 public:
     Geometry(int dim_=3):dim(dim_), Nsite(0), Norb(0), Norb_enlg(0), is_PBC(true), PG(PointGroup::NONE){
@@ -102,6 +102,7 @@ public:
 
     // add an Orbital to the unit cell
     Geometry& addOrb(Orbital orb) {unitSite.push_back(orb);return *this;}
+    Geometry& addBoundary(Orbital orb) {assert(!is_PBC);boundary.push_back(orb);return *this;}
     // lattice dimension. default is 3
     int getDim() const {return dim;}
     // id of an orbital (0~unitCell size - 1)
