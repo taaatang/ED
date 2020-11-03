@@ -278,7 +278,7 @@ public:
             // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
             int N = pt_lattice->getSiteNum();
             for (int i = 0; i < N; i++) {
-                expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i)/std::sqrt(N);
+                expFactor[i] = pt_lattice->expKR(Ki,i)/pt_lattice->expKR(Kf,i)/std::sqrt(N);
             }
             auto Norb = pt_lattice->getOrbNum();
             for(int i = 0; i < Norb; ++i)if(pt_lattice->is_Orbital(i,orb))posList.push_back(i);
