@@ -247,8 +247,9 @@ public:
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
             // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
-            for (int i = 0; i < pt_lattice->getSiteNum(); i++) {
-                expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
+            int N = pt_lattice->getSiteNum();
+            for (int i = 0; i < N; i++) {
+                expFactor[i] = pt_lattice->expKR(Ki,i)/pt_lattice->expKR(Kf,i)/std::sqrt(N);
             }
             auto Norb = pt_lattice->getOrbNum();
             for(int i = 0; i < Norb; ++i)if(pt_lattice->is_Orbital(i,orb))posList.push_back(i);
@@ -275,8 +276,9 @@ public:
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
             // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
-            for (int i = 0; i < pt_lattice->getSiteNum(); i++) {
-                expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
+            int N = pt_lattice->getSiteNum();
+            for (int i = 0; i < N; i++) {
+                expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i)/std::sqrt(N);
             }
             auto Norb = pt_lattice->getOrbNum();
             for(int i = 0; i < Norb; ++i)if(pt_lattice->is_Orbital(i,orb))posList.push_back(i);
@@ -302,7 +304,7 @@ public:
             Kf = pt_Bf->getkIndex();
             // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
             for (int i = 0; i < pt_lattice->getSiteNum(); i++) {
-                expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
+                expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i)/std::sqrt();
             }
         };
     ~SzkOp(){};
@@ -345,7 +347,7 @@ void CkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     pt_Bf->genSymm(rowID, finalIndList, factorList);
     for (int i = 0; i < finalIndList.size(); i++){
         for (int r = 0; r < posList.size(); ++r){
-            cdouble factor = factorList.at(i) * expFactor.at(i);
+            cdouble factor = factorList.at(i) * expFactor.at(r);
             pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
             cp(spin, posList[r], factor, pairRepI, &rowMaps[0]);
         }
@@ -363,7 +365,7 @@ void CDagkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     pt_Bf->genSymm(rowID, finalIndList, factorList);
     for (int i = 0; i < finalIndList.size(); i++){
         for (int r = 0; r < posList.size(); ++r){
-            cdouble factor = factorList.at(i) * expFactor.at(i);
+            cdouble factor = factorList.at(i) * expFactor.at(r);
             pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
             cm(spin, posList[r], factor, pairRepI, &rowMaps[0]);
         }
