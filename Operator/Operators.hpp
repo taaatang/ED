@@ -233,6 +233,7 @@ public:
 template <class T>
 class CkOp: public FermionOperator, public SparseMatrix<T>{
 private:
+    std::string pm_option;
     SPIN spin;
     ORBITAL orb;
     Geometry *pt_lattice;
@@ -241,7 +242,7 @@ private:
     std::vector<cdouble>expFactor;
     VecI posList;
 public:
-    CkOp(SPIN spin_, ORBITAL orb_, Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1):spin(spin_),orb(orb_),pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
+    CkOp(std::string pm_option_, SPIN spin_, ORBITAL orb_, Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1):pm_option(pm_option_),spin(spin_),orb(orb_),pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
         FermionOperator(pt_Bi_),SparseMatrix<T>(pt_Bi_,pt_Bf_,pt_Bf_->getSubDim(),spmNum_){
             assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
             Ki = pt_Bi->getkIndex();
@@ -256,35 +257,6 @@ public:
             assert(posList.size()==pt_lattice->getSiteNum());
         }
     ~CkOp(){}
-    void row(ind_int rowID, std::vector<MAP>& rowMaps);
-};
-
-template <class T>
-class CDagkOp: public FermionOperator, public SparseMatrix<T>{
-private:
-    SPIN spin;
-    ORBITAL orb;
-    Geometry *pt_lattice;
-    Basis *pt_Bi, *pt_Bf;
-    int Ki,Kf;
-    std::vector<cdouble>expFactor;
-    VecI posList;
-public:
-    CDagkOp(SPIN spin_, ORBITAL orb_, Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1):spin(spin_),orb(orb_),pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
-        FermionOperator(pt_Bi_),SparseMatrix<T>(pt_Bi_,pt_Bf_,pt_Bf_->getSubDim(),spmNum_){
-            assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
-            Ki = pt_Bi->getkIndex();
-            Kf = pt_Bf->getkIndex();
-            // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
-            int N = pt_lattice->getSiteNum();
-            for (int i = 0; i < N; i++) {
-                expFactor[i] = pt_lattice->expKR(Ki,i)/pt_lattice->expKR(Kf,i)/std::sqrt(N);
-            }
-            auto Norb = pt_lattice->getOrbNum();
-            for(int i = 0; i < Norb; ++i)if(pt_lattice->is_Orbital(i,orb))posList.push_back(i);
-            assert(posList.size()==pt_lattice->getSiteNum());
-        }
-    ~CDagkOp(){}
     void row(ind_int rowID, std::vector<MAP>& rowMaps);
 };
 
@@ -345,31 +317,23 @@ void CkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
     std::vector<ind_int> finalIndList;
     std::vector<cdouble> factorList;
     pt_Bf->genSymm(rowID, finalIndList, factorList);
-    for (int i = 0; i < finalIndList.size(); i++){
-        for (int r = 0; r < posList.size(); ++r){
-            cdouble factor = factorList.at(i) * expFactor.at(r);
-            pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
-            cp(spin, posList[r], factor, pairRepI, &rowMaps[0]);
+    if(pm_option=="minus"){
+        for (int i = 0; i < finalIndList.size(); i++){
+            for (int r = 0; r < posList.size(); ++r){
+                cdouble factor = factorList.at(i) * expFactor.at(r);
+                pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
+                cp(spin, posList[r], factor, pairRepI, &rowMaps[0]);
+            }
         }
-    } 
-    #endif
-}
-
-template <class T>
-void CDagkOp<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
-    #ifdef DISTRIBUTED_BASIS
-        
-    #else
-    std::vector<ind_int> finalIndList;
-    std::vector<cdouble> factorList;
-    pt_Bf->genSymm(rowID, finalIndList, factorList);
-    for (int i = 0; i < finalIndList.size(); i++){
-        for (int r = 0; r < posList.size(); ++r){
-            cdouble factor = factorList.at(i) * expFactor.at(r);
-            pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
-            cm(spin, posList[r], factor, pairRepI, &rowMaps[0]);
-        }
-    } 
+    } else if(pm_option=="plus"){
+        for (int i = 0; i < finalIndList.size(); i++){
+            for (int r = 0; r < posList.size(); ++r){
+                cdouble factor = factorList.at(i) * expFactor.at(r);
+                pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
+                cm(spin, posList[r], factor, pairRepI, &rowMaps[0]);
+            }
+        } 
+    }
     #endif
 }
 
