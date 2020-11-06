@@ -371,12 +371,14 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
             for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
                 int siteI = (*bondit).at(0);
                 int siteJ = (*bondit).at(1);
+                cdouble phase = pt_lattice->twistPhase(siteI,siteJ);
+                cdouble phase_c = std::conj(phase);
                 // cp.siteI * cm.siteJ
-                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);
+                cpcm(SPIN::SPIN_UP, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
+                cpcm(SPIN::SPIN_UP, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);
                 if(isfminRep){
-                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);   
+                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
+                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);   
                 }
             }
         }

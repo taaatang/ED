@@ -131,6 +131,7 @@ public:
     int getSiteid(int id) const {return orbs.at(id).siteid;}
     // exp(i*2pi*k*r)
     cdouble expKR(int kid, int siteid) const {if (kid==-1) return 1.0; return std::exp(2*PI*CPLX_I*(KLattice.at(kid).coord[0]*Lattice.at(siteid).coord[0] + KLattice.at(kid).coord[1]*Lattice.at(siteid).coord[1]));}
+    cdouble twistPhase(int orbI, int orbJ) const {if(!is_TBC)return 1.0;int siteI = getSiteid(orbI), siteJ=getSiteid(orbJ);return std::exp(CPLX_I*(dPhase.at(0)*(Lattice.at(siteJ).coord[0]-Lattice.at(siteI).coord[0]) + dPhase.at(1)*(Lattice.at(siteJ).coord[1]-Lattice.at(siteI).coord[1])));}
     cdouble getChi(int PGRepInd, int OpInd) const {return CharacterList.at(PGRepInd).at(OpInd);}
     // Lattice name
     std::string getName() const {return name;}
