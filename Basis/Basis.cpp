@@ -563,7 +563,7 @@ double Basis::minNorm(ind_int repI) const {
             for (auto symm = (*repSymmIt).second.begin(); symm != (*repSymmIt).second.end(); symm++){
                 int r = *symm;
                 pairIndex pairRepIp{0,0};
-                cdouble tbc;
+                cdouble tbc=1.0;
                 seq.clear();
                 seqp.clear();
                 for(int i = 0; i < pt_lattice->getOrbNum(); i++){

@@ -384,7 +384,7 @@ void Geometry::printTrans() const {
     for (int r = 0; r < Nsite; r++){
         std::cout<<"r("<<r<<"):"<<std::endl;
         for (int i = 0; i < Norb; i++){
-            std::cout<<getOrbTran(r,i)<<" ";
+            std::cout<<getOrbTran(r,i)<<" "<<"phase:"<<getOrbTranPhase(r,i)<<" ";
         }
         std::cout<<std::endl;
     }
