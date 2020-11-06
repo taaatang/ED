@@ -563,13 +563,14 @@ double Basis::minNorm(ind_int repI) const {
             for (auto symm = (*repSymmIt).second.begin(); symm != (*repSymmIt).second.end(); symm++){
                 int r = *symm;
                 pairIndex pairRepIp{0,0};
+                cdouble tbc;
                 seq.clear();
                 seqp.clear();
                 for(int i = 0; i < pt_lattice->getOrbNum(); i++){
-                    if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));}
-                    if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seqp.push_back(pt_lattice->getOrbTran(r,i));}
+                    if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));tbc *= pt_lattice->getOrbTranPhase(r,i);}
+                    if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seqp.push_back(pt_lattice->getOrbTran(r,i));tbc *= pt_lattice->getOrbTranPhase(r,i);}
                 }
-                if (pairRepIp==pairRepI) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r);
+                if (pairRepIp==pairRepI) norm += tbc * seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r);
             }
             norm /= pt_lattice->getSiteNum();
         }else{
@@ -632,13 +633,14 @@ double Basis::Norm(ind_int repI) const {
             if(PGRepIndex==-1){
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     pairIndex pairRepIp{0,0};
+                    cdouble tbc=1.0;
                     seq.clear();
                     seqp.clear();
                     for(int i = 0; i < pt_lattice->getOrbNum(); i++){
-                        if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));}
-                        if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seqp.push_back(pt_lattice->getOrbTran(r,i));}
+                        if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));tbc *= pt_lattice->getOrbTranPhase(r,i);}
+                        if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seqp.push_back(pt_lattice->getOrbTran(r,i));tbc *= pt_lattice->getOrbTranPhase(r,i);}
                     }
-                    if (pairRepIp==pairRepI) norm += seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r);
+                    if (pairRepIp==pairRepI) norm += tbc * seqSign(seq) * seqSign(seqp) * pt_lattice->expKR(kIndex,r);
                 }
                 norm /= pt_lattice->getSiteNum();
             }else{
@@ -816,16 +818,17 @@ void Basis::genSymm(ind_int rowid, std::vector<ind_int>& finalInd, std::vector<c
             VecI seq, seqp;
             if(PGRepIndex==-1){
                 initNorm *= pt_lattice->getSiteNum();
+                cdouble tbc = 1.0;
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     pairIndex pairRepIp{0,0};
                     seq.clear();
                     seqp.clear();
                     for(int i = 0; i < pt_lattice->getOrbNum(); i++){
-                        if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));}
-                        if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seqp.push_back(pt_lattice->getOrbTran(r,i));}
+                        if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));tbc *= pt_lattice->getOrbTranPhase(r,i);}
+                        if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seqp.push_back(pt_lattice->getOrbTran(r,i));tbc *= pt_lattice->getOrbTranPhase(r,i);}
                     }
                     finalInd.push_back(search(pairRepIp));
-                    factorList.push_back(pt_lattice->expKR(kIndex,r)/initNorm*seqSign(seq) * seqSign(seqp));
+                    factorList.push_back(tbc*pt_lattice->expKR(kIndex,r)/initNorm*seqSign(seq) * seqSign(seqp));
                 }
             }else{
                 initNorm *= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);

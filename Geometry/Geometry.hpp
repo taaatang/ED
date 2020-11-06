@@ -65,7 +65,11 @@ protected:
     int Norb; // Number of orbitals
     int Norb_enlg; // Number of orbitals in the enlarged Lattice (Used for mapping Site interacting with boundary Site back to Lattice).
     bool is_PBC; // Boundary condition
+    bool is_TBC{false}; // twisted boundary condition
+    VecD phase{0.0,0.0,0.0};
+    VecD dPhase{0.0,0.0,0.0};
     std::vector<std::vector<int>> TransList; // Nsite*Norb. TransList[r][orbid] is the orbid' obtained by translating orbid by a vector r.
+    std::vector<std::vector<cdouble>> TransPhaseList;
     PointGroup PG;
     std::vector<std::vector<int>> PGList; 
     std::vector<std::vector<cdouble>> CharacterList;
@@ -78,6 +82,7 @@ protected:
     // dual Lattice basis, ai*bj=2pi*delta(i,j)
     VecD b1, b2, b3, bx, by, bz; 
     VecD b10, b20, b30;
+    double tol{1e-8};
 
     VecD xlist, ylist, zlist, kxlist, kylist, kzlist;
 
@@ -137,13 +142,14 @@ public:
     int getOrbNum() const {return Norb;}
     // return the id' obtained by translate id by r
     int getOrbTran(int r, int id) const {return TransList.at(r).at(id);}
+    cdouble getOrbTranPhase(int r, int id) const {return TransPhaseList.at(r).at(id);}
     // return number of ireps of the point group
     int getPGRepNum() const {return CharacterList.size();}
     int getPGOpNum(int PGRepInd) const {return CharacterList.at(PGRepInd).size();}
     // return the id' obtained by transform id by r-th Point Group Element
     int getOrbPG(int r, int id) const {return PGList.at(r).at(id);}
     // a1-a2 coord -> orbid
-    bool coordToOrbid(double* coord, int &orbid, double tol = 1e-8) const;
+    bool coordToOrbid(double* coord, int &orbid) const;
     // orbital occupancy count
     void orbOCC(VecI& vec, VecI& occ) const {occ = VecI(getUnitOrbNum(),0); for(int i = 0; i < getOrbNum(); i++) if(vec[i]) occ.at(orbs.at(i).id) += 1;};
     void orbOCC(VecI& vecu, VecI& vecd, VecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); i++){if(vecu[i])occ.at(orbs.at(i).orbid) += 1;if(vecd[i])occ.at(orbs.at(i).orbid) += 1;}}
@@ -187,6 +193,8 @@ public:
     bool mirror(int orbid, int& orbidf) const;
     void genPGList();
     void genTransList();
+    bool crossBoundx(const VecD& coord) const;
+    bool crossBoundy(const VecD& coord) const;
     // construct Lattice, KLattice, orbs, enlg_orbs and TransList
     void construct();
 };
@@ -203,7 +211,7 @@ public:
 class SquareLattice: public Geometry{
 public:
     SquareLattice(int N, bool PBC=true);
-    SquareLattice(int N1, int N2, bool PBC=true);
+    SquareLattice(int N1, int N2, bool PBC=true, bool TBC=false, double phase_x=0.0, double phase_y=0.0);
     ~SquareLattice(){};
 };
 

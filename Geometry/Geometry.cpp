@@ -15,7 +15,7 @@
    ***************************
 */
 
-bool Geometry::coordToOrbid(double* coord, int &orbid, double tol) const {
+bool Geometry::coordToOrbid(double* coord, int &orbid) const {
     bool cond;
     for (auto it = enlgOrbs.begin(); it != enlgOrbs.end(); it++){
         cond = true;
@@ -28,25 +28,46 @@ bool Geometry::coordToOrbid(double* coord, int &orbid, double tol) const {
     return false;
 }
 
+bool crossBoundx(const VecD& coord) const {
+    for(auto const& orb:orbs){
+        if(std::abs(coord.at(0)-orb.coord.at(0))<tol)return false;
+    }
+    return true;
+}
+
+bool crossBoundy(const VecD& coord) const {
+    for(auto const& orb:orbs){
+        if(std::abs(coord.at(1)-orb.coord.at(1))<tol)return false;
+    }
+    return true;    
+}
+
 void Geometry::genTransList(){
     VecD coordi(3), coordr(3), coordf(3);
     TransList.clear();
     std::vector<int> tmp;
+    std::vector<cdouble> phasetmp;
     for (int r = 0; r < getSiteNum(); r++){
         tmp.clear();
+        phasetmp.clear();
         getSiteR(r,coordr.data());
         for(int orbidi = 0; orbidi < getOrbNum(); orbidi++){
             getOrbR(orbidi,coordi.data());
             vecXAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), dim);
             int orbidf;
             if (coordToOrbid(coordf.data(), orbidf)){
+                cdouble tranPhase = 1.0;
+                if(crossBoundx(coordf))tranPhase *= std::exp(-CPLX_I*phase.at(0));
+                if(crossBoundy(coordf))tranPhase *= std::exp(-CPLX_I*phase.at(1));
                 tmp.push_back(orbidf);
+                phasetmp.push_back(tranPhase);
             }else{
                 std::cout<<"translation position not found for orbid = "<<orbidi<<", transVecid = "<<r<<std::endl;
                 exit(1);
             }
         }
         TransList.push_back(tmp);
+        TransPhaseList.push_back(phasetmp);
     }
 }
 
@@ -320,9 +341,11 @@ void Geometry::construct(){
     // construct corresponding k-space lattice
     if(is_PBC){
         assert(kxlist.size()==getSiteNum() and kylist.size()==getSiteNum() and kzlist.size()==getSiteNum());
+        VecD vsite_phase(3,0.0);
         for (int siteid = 0; siteid < getSiteNum(); siteid++){
             vecXAdd(kxlist.at(siteid), b10.data(), kylist.at(siteid), b20.data(), kzlist.at(siteid), b30.data(), vsite.data(), getDim());
-            KLattice.push_back(Site{siteid, vsite});
+            vecXAdd(1.0,vsite.data(),1.0,dPhase.data(),vsite_phase.data());
+            KLattice.push_back(Site{siteid, vsite_phase});
         }
         // generate transformation matrix for translation operation
         genTransList();
@@ -544,12 +567,15 @@ TriAngLattice::TriAngLattice(int N1, int N2, bool PBC){
     * Square Lattice *
     ******************
 */
-SquareLattice::SquareLattice(int N1, int N2, bool PBC){
+SquareLattice::SquareLattice(int N1, int N2, bool PBC, bool TBC, double phase_x, double phase_y){
     if(N1==N2) {
         PG = PointGroup::D4;
         center = {double(N1-1)/2.0, double(N2-1)/2.0, 0.0};
     }
     is_PBC = PBC;
+    is_TBC = TBC;
+    phase = VecD{phase_x, phase_y,0.0};
+    dPhase = VecD{phase_x/N1,phase_y/N2,0.0};
     Nsite = N1 * N2;
     name = "Square"+std::to_string(N1)+"x"+std::to_string(N2);
     ax = VecD {1.0, 0.0, 0.0};
