@@ -28,14 +28,14 @@ bool Geometry::coordToOrbid(double* coord, int &orbid) const {
     return false;
 }
 
-bool crossBoundx(const VecD& coord) const {
+bool Geometry::crossBoundx(const VecD& coord) const {
     for(auto const& orb:orbs){
         if(std::abs(coord.at(0)-orb.coord.at(0))<tol)return false;
     }
     return true;
 }
 
-bool crossBoundy(const VecD& coord) const {
+bool Geometry::crossBoundy(const VecD& coord) const {
     for(auto const& orb:orbs){
         if(std::abs(coord.at(1)-orb.coord.at(1))<tol)return false;
     }
@@ -344,7 +344,7 @@ void Geometry::construct(){
         VecD vsite_phase(3,0.0);
         for (int siteid = 0; siteid < getSiteNum(); siteid++){
             vecXAdd(kxlist.at(siteid), b10.data(), kylist.at(siteid), b20.data(), kzlist.at(siteid), b30.data(), vsite.data(), getDim());
-            vecXAdd(1.0,vsite.data(),1.0,dPhase.data(),vsite_phase.data());
+            vecXAdd(1.0,vsite.data(),1.0,dPhase.data(),vsite_phase.data(),getDim());
             KLattice.push_back(Site{siteid, vsite_phase});
         }
         // generate transformation matrix for translation operation
