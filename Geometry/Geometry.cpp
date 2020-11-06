@@ -567,7 +567,7 @@ TriAngLattice::TriAngLattice(int N1, int N2, bool PBC){
     * Square Lattice *
     ******************
 */
-SquareLattice::SquareLattice(int N1, int N2, bool PBC, bool TBC, int particleNum, double phase_x, double phase_y){
+SquareLattice::SquareLattice(int N1, int N2, bool PBC, bool TBC, double phase_x, double phase_y){
     if(N1==N2) {
         PG = PointGroup::D4;
         center = {double(N1-1)/2.0, double(N2-1)/2.0, 0.0};
@@ -575,7 +575,7 @@ SquareLattice::SquareLattice(int N1, int N2, bool PBC, bool TBC, int particleNum
     is_PBC = PBC;
     is_TBC = TBC;
     phase = VecD{phase_x, phase_y,0.0};
-    dPhase = VecD{phase_x/N1*particleNum,phase_y/N2*particleNum,0.0};
+    dPhase = VecD{phase_x/N1,phase_y/N2,0.0};
     Nsite = N1 * N2;
     name = "Square"+std::to_string(N1)+"x"+std::to_string(N2);
     ax = VecD {1.0, 0.0, 0.0};
