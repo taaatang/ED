@@ -336,6 +336,139 @@ public:
         }
     };
 
+    bool cp(int siteI, SPIN spin, pairIndex& pairRepI, int &sign){
+        switch(fmodel){
+            case HUBBARD:{
+                if(spin == SPIN_UP){
+                    if(!bitTest(pairRepI.first,siteI)){
+                        bitFlip(pairRepI.first,siteI);
+                        int counter = 0;
+                        for(int i = 0; i < siteI; i++)if(bitTest(pairRepI.first,i))counter++;
+                        int tmp = (counter%2==0)?1:-1;
+                        sign *= tmp;
+                        return true;
+                    }
+                }else{
+                    if(!bitTest(pairRepI.second,siteI)){
+                        auto N = pt_Basis->getOrbNum();
+                        int counter = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))counter++;
+                        bitFlip(pairRepI.second,siteI);
+                        for(int i = 0; i < siteI; i++)if(bitTest(pairRepI.second,i))counter++;
+                        int tmp = (counter%2==0)?1:-1;
+                        sign *= tmp;
+                        return true;
+                    }
+                }
+                break;
+            }
+            default:exit(1);
+        }
+        return false;
+    }
+
+    bool cm(int siteI, SPIN spin, pairIndex& pairRepI, int &sign){
+        switch(fmodel){
+            case HUBBARD:{
+                if(spin == SPIN_UP){
+                    if(bitTest(pairRepI.first,siteI)){
+                        bitFlip(pairRepI.first,siteI);
+                        int counter = 0;
+                        for(int i = 0; i < siteI; i++)if(bitTest(pairRepI.first,i))counter++;
+                        int tmp = (counter%2==0)?1:-1;
+                        sign *= tmp;
+                        return true;
+                    }
+                }else{
+                    if(bitTest(pairRepI.second,siteI)){
+                        auto N = pt_Basis->getOrbNum();
+                        int counter = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))counter++;
+                        bitFlip(pairRepI.second,siteI);
+                        for(int i = 0; i < siteI; i++)if(bitTest(pairRepI.second,i))counter++;
+                        int tmp = (counter%2==0)?1:-1;
+                        sign *= tmp;
+                        return true;
+                    }
+                }
+                break;
+            }
+            default:exit(1);
+        }
+        return false;
+    }
+
+    void exchange(int siteI, int siteJ, dataType factor, ind_int repI, MAP* rowMap){
+        auto pairRepI = pt_Basis->getPairRepI(repI);
+        ind_int colidx;
+        std::vector<SPIN> spins{SPIN_UP,SPIN_DOWN};
+        for(auto spinI:spins){
+            for(auto spinJ:spins){
+                auto pairRepIf = pairRepI;
+                int sign = 1;
+                if(cm(siteI,spinI,pairRepIf,sign)){
+                    if(cm(siteJ,spinJ,pairRepIf,sign)){
+                        if(cp(siteJ,spinI,pairRepIf,sign)){
+                            if(cp(siteI,spinJ,pairRepIf,sign)){
+                                #ifdef DISTRIBUTED_BASIS
+                                MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
+                                #else
+                                if (pt_Basis->search(pairRepIf, colidx)){
+                                    dataType val = factor * sign;
+                                    double finalNorm = pt_Basis->getNorm(colidx);
+                                    val /= finalNorm;
+                                    MapPush(rowMap,colidx,val);
+                                }
+                                #endif 
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void pairHopping(int siteI, int siteJ, dataType factor, ind_int repI, MAP* rowMap){
+        auto pairRepIf = pt_Basis->getPairRepI(repI);
+        ind_int colidx;
+        int sign = 1;
+        if(cm(siteI,SPIN_UP,pairRepIf,sign)){
+            if(cm(siteI,SPIN_DOWN,pairRepIf,sign)){
+                if(cp(siteJ,SPIN_DOWN,pairRepIf,sign)){
+                    if(cp(siteJ,SPIN_UP,pairRepIf,sign)){
+                        #ifdef DISTRIBUTED_BASIS
+                        MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
+                        #else
+                        if (pt_Basis->search(pairRepIf, colidx)){
+                            dataType val = factor * sign;
+                            double finalNorm = pt_Basis->getNorm(colidx);
+                            val /= finalNorm;
+                            MapPush(rowMap,colidx,val);
+                        }
+                        #endif 
+                    }
+                }
+            }
+        }
+
+        if(cm(siteJ,SPIN_UP,pairRepIf,sign)){
+            if(cm(siteJ,SPIN_DOWN,pairRepIf,sign)){
+                if(cp(siteI,SPIN_DOWN,pairRepIf,sign)){
+                    if(cp(siteI,SPIN_UP,pairRepIf,sign)){
+                        #ifdef DISTRIBUTED_BASIS
+                        MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
+                        #else
+                        if (pt_Basis->search(pairRepIf, colidx)){
+                            dataType val = factor * sign;
+                            double finalNorm = pt_Basis->getNorm(colidx);
+                            val /= finalNorm;
+                            MapPush(rowMap,colidx,val);
+                        }
+                        #endif 
+                    }
+                }
+            }
+        }
+    }
+
     // void cmcp(SPIN spin, int siteI, int siteJ, dataType factor, pairIndex pairInd, int* initVec, int* initVecp, Basis* pt_Basis, MAP* rowMap){
     //     cpcm(spin, siteJ, siteI, factor, pairInd, initVec, initVecp, pt_Basis, rowMap);
     // };

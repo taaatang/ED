@@ -46,9 +46,9 @@ const bool DEBUG = false;
     D4m5: include 2 Pz orbitals. the symmetry is {I, RZ}x{I, M}. M is the mirror symmetry about the xy plane.
 */
 enum PointGroup {NONE,D6, C6, D4, D4m, D4m5, C4, D3, C3};
-enum ORBITAL {SINGLE, Dx2y2, Px, Py, Pzu, Pzd, TypeA, TypeB};
+enum ORBITAL {SINGLE, Dx2y2, Dz2, Px, Py, Pzu, Pzd, TypeA, TypeB};
 enum LATTICE_MODEL {HUBBARD,t_J,HEISENBERG};
-enum LINK_TYPE {SUPER_EXCHANGE_J, CHIRAL_K, HOPPING_T, CHARGE_TRANSFER_V, HUBBARD_U};
+enum LINK_TYPE {SUPER_EXCHANGE_J, CHIRAL_K, HOPPING_T, CHARGE_TRANSFER_V, HUBBARD_U, EXCHANGE_J, PAIR_HOPPING_J};
 const LATTICE_MODEL MODEL=HEISENBERG;
 
 /*
