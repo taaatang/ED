@@ -364,22 +364,39 @@ void Hubbard<T>::row(ind_int rowID, std::vector<MAP>& rowMaps){
         pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
         bool isfminRep = pt_Basis->isfMin(pairRepI.first);
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
-            if((*linkit).getLinkType()!=LINK_TYPE::HOPPING_T)continue;
-            int matID = (*linkit).getmatid();
-            int matIDp = matID; 
-            if ((*linkit).isOrdered()) matIDp++;
-            cdouble factor = factorList.at(i) * (*linkit).getVal();
-            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                int siteI = (*bondit).at(0);
-                int siteJ = (*bondit).at(1);
-                cdouble phase = pt_lattice->twistPhase(siteI,siteJ);
-                cdouble phase_c = std::conj(phase);
-                // cp.siteI * cm.siteJ
-                cpcm(SPIN::SPIN_UP, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
-                cpcm(SPIN::SPIN_UP, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);
-                if(isfminRep){
-                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
-                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);   
+            if((*linkit).getLinkType()!=LINK_TYPE::HOPPING_T){
+                int matID = (*linkit).getmatid();
+                int matIDp = matID; 
+                if ((*linkit).isOrdered()) matIDp++;
+                cdouble factor = factorList.at(i) * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                    int siteI = (*bondit).at(0);
+                    int siteJ = (*bondit).at(1);
+                    cdouble phase = pt_lattice->twistPhase(siteI,siteJ);
+                    cdouble phase_c = std::conj(phase);
+                    // cp.siteI * cm.siteJ
+                    cpcm(SPIN::SPIN_UP, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
+                    cpcm(SPIN::SPIN_UP, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);
+                    if(isfminRep){
+                        cpcm(SPIN::SPIN_DOWN, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
+                        cpcm(SPIN::SPIN_DOWN, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);   
+                    }
+                }
+            }else if((*linkit).getLinkType()!=LINK_TYPE::EXCHANGE_J){
+                int matID = (*linkit).getmatid();
+                cdouble factor = factorList.at(i) * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                    int siteI = (*bondit).at(0);
+                    int siteJ = (*bondit).at(1);
+                    exchange(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                }
+            }else if((*linkit).getLinkType()!=LINK_TYPE::PAIR_HOPPING_J){
+                int matID = (*linkit).getmatid();
+                cdouble factor = factorList.at(i) * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                    int siteI = (*bondit).at(0);
+                    int siteJ = (*bondit).at(1);
+                    pairHopping(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
                 }
             }
         }
