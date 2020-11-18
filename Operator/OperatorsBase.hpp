@@ -449,6 +449,7 @@ public:
             }
         }
 
+        sign = 1;
         if(cm(siteJ,SPIN_UP,pairRepIf,sign)){
             if(cm(siteJ,SPIN_DOWN,pairRepIf,sign)){
                 if(cp(siteI,SPIN_DOWN,pairRepIf,sign)){
