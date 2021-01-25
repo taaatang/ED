@@ -1,9 +1,9 @@
-Lattice Type:s:square
-Lx:i:2
-Ly:i:2
+lattice type:s:square
+boundary condition:s:periodic # periodic|open|twist
+lx:i:2
+ly:i:2
 nu:i:2
 nd:i:2
-Boundary:s:periodic # periodic|open|twist
-kid:i:0 # translation symm rep id
-pid:i:-1 # point group symm rep id
-TwistPhase:d:0.0 # twisted boundary phase
+kidx:i:0 # translation symm rep id
+pidx:i:-1 # point group symm rep id
+#twist phase:d:0.0 # twisted boundary phase

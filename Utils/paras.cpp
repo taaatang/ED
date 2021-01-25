@@ -51,5 +51,5 @@ bool Parameters::read(const std::string& filename){
 }
 
 void Parameters::print(std::ostream& os){
-    os<<mapi<<mapd<<maps<<mapvecs<<mapvecd<<maparrd;
+    os<<maps<<mapi<<mapd<<mapvecs<<mapvecd<<maparrd;
 }

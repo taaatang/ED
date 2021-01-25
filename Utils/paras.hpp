@@ -8,20 +8,24 @@
 #include <string>
 #include <vector>
 #include <regex>
+#include <map>
 #include <unordered_map>
 #include <utility>
 #include <type_traits>
 
 template<typename T>
-using map = std::unordered_map<std::string,T>;
+using map = std::map<std::string,T>;
 
 class Parameters{
 public:
     Parameters(){};
     ~Parameters(){};
-
     bool read(const std::string& filename);
     void print(std::ostream& os);
+
+    friend void setlatt(const Parameters&);
+    friend void setham(const Parameters&);
+    friend void setpath(const Parameters&);
 private:
     map<int> mapi;
     map<double> mapd;

@@ -4,7 +4,7 @@ int main(){
     Parameters para;
     para.read("../Input/lattice.txt");
     para.read("../Input/HubbardMultiband.txt");
-    para.print(std::cout);
-    std::cout<<3.0<<"\n";
+    std::ofstream outfile("para.txt");
+    para.print(outfile);
     return 0;
 }

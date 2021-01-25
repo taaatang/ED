@@ -1,6 +1,6 @@
-Model Name:s:HubbardMultiband
+model name:s:HubbardMultiband
 
-Orbitals:vecs:
+orbitals:vecs:
 dx2y2,px,py,pzu,pzd
 
 t:arrd:

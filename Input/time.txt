@@ -1,1 +1,6 @@
-40
+frequency:d:
+sigma:d:
+duration:d:
+strength:d:
+polarization:vecd:
+0.0, 0.0, 1.0
