@@ -2,6 +2,7 @@
 #define __PARAS_H__
 
 #include <iostream>
+#include <memory>
 #include <iomanip>
 #include <fstream>
 #include <sstream>
@@ -12,21 +13,35 @@
 #include <unordered_map>
 #include <utility>
 #include <type_traits>
+#include <assert.h>
+
+#include "../Geometry/Geometry.hpp"
+#include "../Basis/Basis.hpp"
+#include "../Operator/Operators.hpp"
 
 template<typename T>
 using map = std::map<std::string,T>;
 
 class Parameters{
 public:
-    Parameters(){};
+    Parameters(){}
+    Parameters(std::string configFile){config(configFile);}
     ~Parameters(){};
+    void config(std::string configFile);
+    void clear();
     bool read(const std::string& filename);
     void print(std::ostream& os);
 
-    friend void setlatt(const Parameters&);
+    friend void setpath(const Parameters&, std::unique_ptr<Geometry>& latt);
+    friend void setlatt(const Parameters&, Geometry*);
+    friend void setbasis(const Parameters&, Basis*);
     friend void setham(const Parameters&);
-    friend void setpath(const Parameters&);
+    friend void setmeasure(const Parameters&);
+
+    LATTICE getlatt();
+
 private:
+    std::string rootDataPath,project;
     map<int> mapi;
     map<double> mapd;
     map<std::string> maps;
@@ -74,4 +89,11 @@ std::ostream& operator<<(std::ostream& os, const map<T>& mymap){
     }
     return os;
 }
+
+void setpath(const Parameters&);
+void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
+void setbasis(const Parameters&, Geometry*);
+void setham(const Parameters&);
+void setmeasure(const Parameters&);
+
 #endif // __PARAS_H__

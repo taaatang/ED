@@ -1,5 +1,65 @@
 #include "paras.hpp"
 
+void setpath(Parameters& para){
+    
+}
+
+void setlatt(Parameters& para, std::unique_ptr<Geometry>& latt){
+    auto lx = para.mapi["lx"];
+    auto ly = para.mapi["ly"];
+    auto lattType = getlatt();
+    bool BC = (maps["boundary condition"] == "periodic");
+    switch (lattType) {
+        case LATTICE::TRIANGULAR:
+            if(ly > 0) {
+                latt = std::unique_ptr<Geometry>(new  TriAngLattice(lx, ly, BC));
+            } else {
+                latt = std::unique_ptr<Geometry>(new TriAngLattice(lx, BC));
+            }
+            break;
+        case LATTICE::SQUARE:
+            if(ly > 0) {
+                latt = std::unique_ptr<Geometry>(new SquareLattice(lx, ly, BC));
+            } else {
+                latt = std::unique_ptr<Geometry>(new SquareLattice(lx, BC));
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+LATTICE Parameters::getlatt(){
+    std::string name = maps["lattice type"];
+    if(name == "square") {
+        return LATTICE::SQUARE;
+    } else if(name == "triangular") {
+        return LATTICE::TRIANGULAR;
+    } else {
+        std::cout<<"lattice type: "<<name<<" is not defined!";
+        exit(1);
+    }
+}
+void Parameters::config(std::string configFile){
+    clear();
+    if(!read(configFile)){std::cout<<"Parameters read err.\n";exit(1);}
+    assert(maps.find("rootDataPath")!=maps.end()); rootDataPath = maps["rootDataPath"];maps.erase("rootDataPath");
+    assert(maps.find("project")!=maps.end()); project = maps["project"];maps.erase("project");
+    assert(mapvecs.find("inputfiles")!=mapvecs.end());
+    assert(maps.find("inputDir")!=maps.end()); std::string inputDir = maps["inputDir"];maps.erase("inputDir");
+    assert(!mapvecs["inputfiles"].empty());
+    for(auto const& file:mapvecs["inputfiles"]){
+        if(!read(inputDir+"/"+file)){std::cout<<"Parameters read err.\n";exit(1);}
+    }
+    mapvecs.erase("inputfiles");
+}
+
+void Parameters::clear(){
+    rootDataPath.clear(); project.clear();
+    mapi.clear(); mapd.clear(); maps.clear();
+    mapvecd.clear(); mapvecs.clear(); maparrd.clear();
+}
+
 bool Parameters::read(const std::string& filename){
     std::ifstream infile(filename);
     if(infile.is_open()){
