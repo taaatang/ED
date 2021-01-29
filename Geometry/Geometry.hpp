@@ -54,6 +54,8 @@ struct Site{
     }
 };
 
+enum LATTICE {CHAIN, SQUARE, TRIANGULAR};
+
 class Geometry{
 protected:
     /*
@@ -103,7 +105,7 @@ public:
         b10 = b1; b20 = b2; b30 = b3;
         bx.resize(dim,0.0); by.resize(dim,0.0); bz.resize(dim,0.0);
     }
-    ~Geometry(){};
+    virtual ~Geometry(){};
 
     // add an Orbital to the unit cell
     Geometry& addOrb(Orbital orb) {unitSite.push_back(orb);return *this;}
