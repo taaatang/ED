@@ -1,0 +1,5 @@
+rootDataPath:s:/oak/stanford/groups/tpd/tatang
+project:s:photodoping
+inputDir:s:/Users/tatang/Documents/work/projects/Code/ED/Input
+inputfiles:vecs:
+lattice.txt, Hubbard.txt, measurement.txt, time.txt

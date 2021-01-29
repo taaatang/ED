@@ -1,5 +1,5 @@
-lattice type:s:square
-boundary condition:s:periodic # periodic|open|twist
+lattice type:s:square # square | triangular
+boundary condition:s:periodic # periodic | open | twist
 lx:i:2
 ly:i:2
 nu:i:2
