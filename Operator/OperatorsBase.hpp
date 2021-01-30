@@ -26,20 +26,21 @@
 
 template <class T>
 class Link{
-    LINK_TYPE link_type;
-    T val;
+    LINK_TYPE link_type{HOPPING_T};
+    T val{0.0};
     // same group ids will be contained in the same sparse matrix
-    int linkid,matid;
-    bool is_Const, is_Ordered;
+    int linkid{0},matid{0};
+    bool is_Const{true}, is_Ordered{false};
     T (*timeFunc)(int);
-    bool is_timeFunc_set;
-    int timeStep;
+    bool is_timeFunc_set{false};
+    int timeStep{0};
     std::vector<ORBITAL> orbList;
     std::vector<VecD> LinkVecs;
     std::vector<VecI> LinkList;
     // LinkVecIdList[i] is the id of LinkVec for i-th bond in LinkList
     VecI LinkVecIdList;
 public:
+    Link(){}
     Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, bool is_Const_ = true, bool is_Ordered_ = false):timeStep(0), is_timeFunc_set(false){
         link_type = link_type_;
         orbList = orbList_;
