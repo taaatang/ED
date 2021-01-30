@@ -29,7 +29,18 @@ void setlatt(Parameters& para, std::unique_ptr<Geometry>& latt){
     }
 }
 
-LATTICE Parameters::getlatt(){
+void setbasis(Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt){
+    int kid = mapi["kid"];
+    int pid = mapi["pid"];
+    int nu = mapi["nu"];
+    int nd = mapi["nd"];
+    ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nu,nd}, kid, pid));
+}
+void setbasis(Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt, int nuf, int ndf, int kf, int pf) {
+    ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nuf,ndf}, kf, pf));
+}
+
+LATTICE Parameters::getlatt() const {
     std::string name = maps["lattice type"];
     if(name == "square") {
         return LATTICE::SQUARE;
@@ -40,6 +51,21 @@ LATTICE Parameters::getlatt(){
         exit(1);
     }
 }
+
+LATTICE_MODEL Parameters::getmodel() const {
+    std::string name = maps["model name"];
+    if (name == "Hubbard") {
+        return LATTICE_MODEL::HUBBARD;
+    } else if (name == "Heisenberg") {
+        return LATTICE_MODEL::HEISENBERG;
+    } else if (name == "tJ") {
+        return LATTICE_MODEL::t_J;
+    } else {
+        std::cout<<"Model name: "<<name<<", not defined!";
+        exit(1);
+    }
+}
+
 void Parameters::config(std::string configFile){
     clear();
     if(!read(configFile)){std::cout<<"Parameters read err.\n";exit(1);}
@@ -53,6 +79,7 @@ void Parameters::config(std::string configFile){
     }
     mapvecs.erase("inputfiles");
 }
+
 
 void Parameters::clear(){
     rootDataPath.clear(); project.clear();
