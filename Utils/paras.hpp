@@ -34,11 +34,13 @@ public:
 
     friend void setpath(const Parameters&);
     friend void setlatt(const Parameters&, std::unique_ptr<Geometry>&);
-    friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, std::unique_ptr<Geometry>&);
+    friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
+    friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int, int, int, int);
     friend void setham(const Parameters&);
     friend void setmeasure(const Parameters&);
 
-    LATTICE getlatt();
+    LATTICE getlatt() const;
+    LATTICE_MODEL getmodel const();
 
 private:
     std::string rootDataPath,project;
@@ -92,7 +94,8 @@ std::ostream& operator<<(std::ostream& os, const map<T>& mymap){
 
 void setpath(const Parameters&);
 void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
-void setbasis(const Parameters&, Geometry*);
+void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
+void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int nuf, int ndf, int kf, int pf);
 void setham(const Parameters&);
 void setmeasure(const Parameters&);
 
