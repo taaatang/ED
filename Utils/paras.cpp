@@ -36,8 +36,13 @@ void setbasis(Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt){
     int nd = mapi["nd"];
     ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nu,nd}, kid, pid));
 }
+
 void setbasis(Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt, int nuf, int ndf, int kf, int pf) {
     ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nuf,ndf}, kf, pf));
+}
+
+void setham() {
+    
 }
 
 LATTICE Parameters::getlatt() const {
