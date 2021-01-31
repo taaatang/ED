@@ -102,7 +102,7 @@ public:
     void setBuf(idx_t size){vecBuf.resize(size); is_vecBuf = true;}
     void setBuf();
     void clearBuf(){vecBuf.clear(); is_vecBuf=false;}
-
+    void setVal(int matID, T val) {parameters.at(matID) = val;}
     // create one row. store sparse matrixes data in corresponding rowMaps. (repI, val) for distributed basis. (idx,val) otherwise
     virtual void row(idx_t rowID, std::vector<MAP>& rowMaps) = 0;
 

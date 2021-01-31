@@ -8,6 +8,7 @@
 #define globalPara_hpp
 
 #include <iostream>
+#include <cmath>
 #include <assert.h>
 #include <chrono>
 #include <vector>
@@ -111,7 +112,7 @@ typedef unsigned long long int idx_t;
 typedef unsigned int uint;
 typedef std::complex<double> cdouble;
 // #ifdef COMPLEX_DATA
-typedef std::complex<double> dataType;
+typedef cdouble dataType;
 // #else
 //     typedef double dataType;
 // #endif

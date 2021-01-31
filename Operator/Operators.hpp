@@ -9,23 +9,46 @@
 #ifndef Operators_hpp
 #define Operators_hpp
 
+#include <iostream>
 #include "../Operator/OperatorsBase.hpp"
 
 /* Operators_hpp */
 
+/***************
+ * HAMILTONIAN *
+ ***************/
+
+template <LATTICE_MODEL MODEL, typename T> 
+class Hamiltonian : public OperatorBase<T> {
+public:
+    Hamiltonian( ) { }
+    Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_ = 1, int dmNum_ = 0);
+    ~Hamiltonian( ) { }
+
+    // Add onsite energy V
+    Hamiltonian& pushV(const std::vector<ORBITAL>& orbList, double val);
+
+    // Add onsite Coulomb interaction U
+    Hamiltonian& pushU(const std::vector<ORBITAL>& orbList, double val);
+
+    void printV(std::ostream& os) const;
+
+    void printU(std::ostream& os) const;
+
+    // Calculate the sum of onsite energy and Coulomb interaction
+    double diagVal(const VecI& occ, const VecI& docc) const;
+
+    void row(idx_t rowidx, std::vector<MAP>& rowMaps);
+
+private:
+    VecD V, U;
+};
 
 /*
     ***********
     * Hubbard *
     ***********
 */
-template <class T> 
-class Hamiltonian : public OperatorBase<T> {
-public:
-    void row(idx_t rowidx, std::vector<MAP>& rowMaps);
-private:
-};
-
 template <class T>
 class Hubbard: public FermionOperator, public SparseMatrix<T>{
 private:
@@ -315,6 +338,238 @@ public:
     ****************************
 */
 
+template<LATTICE_MODEL MODEL, typename T>
+Hamiltonian<MODEL, T>::Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_, int dmNum_):\
+OperatorBase<T>(latt, Bi, Bf, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
+
+}
+
+template <LATTICE_MODEL MODEL, typename T>
+Hamiltonian<MODEL, T>& Hamiltonian<MODEL, T>::pushV(const std::vector<ORBITAL>& orbList, double val) {
+    for (const auto& orb : orbList) {
+        auto ids = latt->getOrbID(orb);
+        for (auto& id : ids) {
+            V.at(id) = val;
+        }
+    }
+    return *this;
+}
+
+template <LATTICE_MODEL MODEL, typename T>
+Hamiltonian<MODLE, T>& Hamiltonian<MODEL, T>::pushU(const std::vector<ORBITAL>& orbList, double val) {
+    for (const auto& orb : orbList) {
+        auto ids = latt->getOrbID(orb);
+        for (auto& id : ids) {
+            U.at(id) = val;
+        }
+    }
+    return *this;
+}
+
+template <LATTICE_MODEL MODEL, typename T>
+void Hamiltonian<MODEL, T>::printV(std::ostream& os) const {
+    os<<"V: ";
+    for (auto val : V) {
+        os<<val<<", ";
+    }
+    os<<"\n";
+}
+
+template <LATTICE_MODEL MODEL, typename T>
+void Hamiltonian<MODEL, T>::printU(std::ostream& os) const {
+    os<<"U: ";
+    for (auto val : U) {
+        os<<val<<", ";
+    }
+    os<<"\n";
+}
+
+template <LATTICE_MODEL MODEL, typename T>
+double Hamiltonian<MODEL, T>::diagVal(const VecI& occ, const VecI& docc) const {
+    double val{0.0};
+    for (int i = 0; i < latt->getUnitOrbNum(); i++) {
+        val += occ.at(i) * V.at(i) + docc.at(i) * U.at(i);
+    }
+    return val;
+}
+
+template <LATTICE_MODEL MODEL, typename T>
+void Hamiltonian<MODEL, T>::row(idx_t rowidx, std::vector<MAP>& rowMaps) {
+    if constexpr (MODEL == LATTICE_MODEL::HUBBARD){
+        // diagonal part. occupancy and double-occ
+        VecI occ, docc;
+        idx_t repI = pt_Basis->getRepI(rowID);
+        pairIndex pairRepI = pt_Basis->getPairRepI(repI);
+        pt_lattice->orbOCC(pairRepI, occ, docc);
+        T val = diagVal(occ,docc);
+        for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+            if((*linkit).getLinkType()!=LINK_TYPE::HUBBARD_U)continue;
+            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                int siteI = (*bondit).at(0);
+                int siteJ = (*bondit).at(1);
+                assert(siteI!=siteJ);
+                val += (*linkit).getVal()*(bitTest(pairRepI.first,siteI)+bitTest(pairRepI.second,siteI))*(bitTest(pairRepI.first,siteJ)+bitTest(pairRepI.second,siteJ));
+            }
+        }
+        SparseMatrix<T>::putDiag(val,rowID);
+        // off diagonal part
+        std::vector<idx_t> finalIndList;
+        std::vector<cdouble> factorList;
+        pt_Basis->genSymm(rowID, finalIndList, factorList);
+        for (int i = 0; i < finalIndList.size(); i++){
+            pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
+            bool isfminRep = pt_Basis->isfMin(pairRepI.first);
+            for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+                if((*linkit).getLinkType()==LINK_TYPE::HOPPING_T){
+                    int matID = (*linkit).getmatid();
+                    int matIDp = matID; 
+                    if ((*linkit).isOrdered()) matIDp++;
+                    cdouble factor = factorList.at(i) * (*linkit).getVal();
+                    for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                        int siteI = (*bondit).at(0);
+                        int siteJ = (*bondit).at(1);
+                        cdouble phase = pt_lattice->twistPhase(siteI,siteJ);
+                        cdouble phase_c = std::conj(phase);
+                        // cp.siteI * cm.siteJ
+                        cpcm(SPIN::SPIN_UP, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
+                        cpcm(SPIN::SPIN_UP, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);
+                        if(isfminRep){
+                            cpcm(SPIN::SPIN_DOWN, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
+                            cpcm(SPIN::SPIN_DOWN, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);   
+                        }
+                    }
+                }else if((*linkit).getLinkType()==LINK_TYPE::EXCHANGE_J){
+                    int matID = (*linkit).getmatid();
+                    cdouble factor = factorList.at(i) * (*linkit).getVal();
+                    for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                        int siteI = (*bondit).at(0);
+                        int siteJ = (*bondit).at(1);
+                        exchange(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                    }
+                }else if((*linkit).getLinkType()==LINK_TYPE::PAIR_HOPPING_J){
+                    int matID = (*linkit).getmatid();
+                    cdouble factor = factorList.at(i) * (*linkit).getVal();
+                    for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                        int siteI = (*bondit).at(0);
+                        int siteJ = (*bondit).at(1);
+                        pairHopping(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                    }
+                }
+            }
+        }
+    } else if constexpr(MODEL == LATTICE_MODEL::t_J) {
+        // off diagonal part
+        std::vector<idx_t> finalIndList;
+        std::vector<cdouble> factorList;
+        pt_Basis->genSymm(rowID, finalIndList, factorList);
+        for (int i = 0; i < finalIndList.size(); i++){
+            pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
+            bool isfminRep = pt_Basis->isfMin(pairRepI.first);
+            for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+                LINK_TYPE type = (*linkit).getLinkType();
+                int matID = (*linkit).getmatid();
+                int matIDp = matID; 
+                if ((*linkit).isOrdered()) matIDp++;
+                cdouble factor = factorList.at(i) * (*linkit).getVal();
+                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                    int siteI = (*bondit).at(0);
+                    int siteJ = (*bondit).at(1);
+                    switch(type){
+                        case LINK_TYPE::HOPPING_T:{
+                            // cp.siteI * cm.siteJ
+                            cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                            cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);
+                            if(isfminRep){
+                                cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                                cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);   
+                            }
+                            break;
+                        }
+                        case LINK_TYPE::SUPER_EXCHANGE_J:{
+                            // szi * szj - 1/4*ni*nj 
+                            szsznn(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                            // 1/2 * sm.siteID * sp.siteIDp
+                            spsm(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                            // 1/2 * sp.siteID * sm.siteIDp
+                            smsp(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                            break;
+                        }
+                        default:{
+                            std::cout<<"Interaction type not defined for tJ (HtJ::row)\n";
+                            exit(1);
+                        }
+                    }   
+                }
+            }
+        }
+        // diag(rowID,val,&rowMaps[0]);
+    } else if constexpr(MODEL == LATTICE_MODEL::HEISENBERG) {
+        if(pt_Basis->getSiteDim()==2){
+            int kIndex = pt_Basis->getkIndex();
+            std::vector<idx_t> finalIndList;
+            std::vector<cdouble> factorList;
+            pt_Basis->genSymm(rowID, finalIndList, factorList);
+            for (int i = 0; i < finalIndList.size(); i++){
+                for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+                    int matID = (*linkit).getmatid();
+                    cdouble factor = factorList.at(i) * (*linkit).getVal();
+                    switch((*linkit).getLinkType()){
+                        case LINK_TYPE::SUPER_EXCHANGE_J:{
+                            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                                int siteID = (*bondit).at(0);
+                                int siteIDp = (*bondit).at(1);
+                                // sz.siteID * sz.siteIDp
+                                szsz(siteID, siteIDp, factor, finalIndList[i], &rowMaps[matID]);
+                                // 1/2 * sm.siteID * sp.siteIDp
+                                spsm(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                                // 1/2 * sp.siteID * sm.siteIDp
+                                smsp(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                            }
+                            break;
+                        }
+                        case LINK_TYPE::CHIRAL_K:{
+                            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                                int siteI = (*bondit).at(0);
+                                int siteJ = (*bondit).at(1);
+                                int siteK = (*bondit).at(2);
+                                chiral(siteI, siteJ, siteK, factor, finalIndList[i], &rowMaps[matID]);
+                            }
+                            break;
+                        }
+                        default: break;
+                    }
+                    
+                }
+            }
+        } else {
+            int kIndex = pt_Basis->getkIndex();
+            VecI initVec(pt_lattice->getOrbNum());
+            std::vector<idx_t> finalIndList;
+            std::vector<cdouble> factorList;
+            pt_Basis->genSymm(rowID, finalIndList, factorList);
+            for (int i = 0; i < finalIndList.size(); i++){
+                pt_Basis->repToVec(finalIndList[i], initVec);
+                for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
+                    int matID = (*linkit).getmatid();
+                    cdouble factor = factorList.at(i) * (*linkit).getVal();
+                    for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
+                        int siteID = (*bondit).at(0);
+                        int siteIDp = (*bondit).at(1);
+                        // sz.siteID * sz.siteIDp
+                        szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMaps[matID]);
+                        // 1/2 * sm.siteID * sp.siteIDp
+                        spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
+                        // 1/2 * sp.siteID * sm.siteIDp
+                        smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
+                    }
+                }
+            }
+        }  
+    } else {
+        std::cout<<" Input Lattice Model is not defined!\n";
+        exit(1);
+    }
+}
 template <class T>
 void CkOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
     #ifdef DISTRIBUTED_BASIS

@@ -11,6 +11,9 @@
 
 #include "OperatorBasics.hpp"
 #include "SparseMatrix.hpp"
+#include "../Global/globalPara.hpp"
+#include "../Basis/Basis.hpp"
+#include "../Geometry/Geometry.hpp"
 
 template<typename T>
 class OperatorBase: public FermionOperator<T>, public SpinOperator<T>, public SparseMatrix<T>{
@@ -34,7 +37,9 @@ protected:
 template<typename T>
 OperatorBase<T>::Operator(Geometry *latt, Basis *Bi, Basis *Bf, int spmNum_, int dmNum_) :\
  FermionOperator<T>(Bi), SpinOperator<T>(Bi), SparseMatrix<T>(Bi, Bf, Bf->getSubDim(), spmNum_. dmNum_){
-
+    this->latt = latt;
+    this->model = Bi->getModel();
+    assert(model == MODEL && Bi->getModel() == Bf->getModel());
 }
 
 template<typename T>
