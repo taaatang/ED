@@ -59,9 +59,9 @@ inline void mpi_info(int& workerID, int& workerNum){
     OMP_Info(workerID);
 }
 
-inline void work_load(ind_int size, int workerID, int workerNum, ind_int& idxStart, ind_int& idxEnd){
+inline void work_load(idx_t size, int workerID, int workerNum, idx_t& idxStart, idx_t& idxEnd){
     assert((workerNum>0) && (workerID<workerNum));
-    ind_int nlocmax = (size + workerNum - 1)/workerNum;
+    idx_t nlocmax = (size + workerNum - 1)/workerNum;
     idxStart = workerID * nlocmax;
     idxEnd = (idxStart + nlocmax)<size?(idxStart + nlocmax):size;
 }
@@ -210,35 +210,35 @@ inline void vecInit(T *vec, U size, T val){
 }
 
 template <class T>
-inline void veqv(T* vecOut, T* vecIn, ind_int size){
+inline void veqv(T* vecOut, T* vecIn, idx_t size){
     #ifdef OMP_
     #pragma omp parallel for
     #endif
-    for (ind_int i = 0; i < size; i++) vecOut[i] = vecIn[i];
+    for (idx_t i = 0; i < size; i++) vecOut[i] = vecIn[i];
 }
 
 template <class T>
-inline void veqatv(T* vecOut, T a, T* vecIn, ind_int size){
+inline void veqatv(T* vecOut, T a, T* vecIn, idx_t size){
     #ifdef OMP_
     #pragma omp parallel for
     #endif
-    for (ind_int i = 0; i < size; i++) vecOut[i] = a * vecIn[i];
+    for (idx_t i = 0; i < size; i++) vecOut[i] = a * vecIn[i];
 }
 
 template <class T>
-inline void saxpy(T* x, T a, T* y, ind_int size){
+inline void saxpy(T* x, T a, T* y, idx_t size){
     #ifdef OMP_
     #pragma omp parallel for
     #endif
-    for (ind_int i = 0; i < size; i++) x[i] += a * y[i];
+    for (idx_t i = 0; i < size; i++) x[i] += a * y[i];
 }
 
 template <class T>
-inline void vdeva(T* x, T a, ind_int size){
+inline void vdeva(T* x, T a, idx_t size){
     #ifdef OMP_
     #pragma omp parallel for
     #endif
-    for (ind_int i = 0; i < size; i++) x[i] /= a;
+    for (idx_t i = 0; i < size; i++) x[i] /= a;
 }
 
 inline double vdotv(VecD v1, VecD v2){
@@ -253,14 +253,14 @@ inline double vdotv(VecD v1, VecD v2){
 
 // vector dot prodoct
 template <class T1, class T2>
-inline void vConjDotv(T1* vconj, T2* v, cdouble* result, ind_int size){
+inline void vConjDotv(T1* vconj, T2* v, cdouble* result, idx_t size){
     cdouble partResult = 0.0;
 #ifdef OMP_
     cdouble tmp = 0.0;
     double partResultReal = 0.0, partResultImag = 0.0;
     #pragma omp parallel for private(tmp) reduction(+:partResultReal,partResultImag)
 #endif
-    for (ind_int i = 0; i < size; i++){
+    for (idx_t i = 0; i < size; i++){
 #ifdef OMP_
         tmp = std::conj(vconj[i]) * v[i];
         partResultReal += std::real(tmp);
@@ -284,19 +284,19 @@ inline void MPI_Recv(int* buf, int count, int source){
     MPI_Recv(buf,count,MPI_INT,source,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 }
 /* MPI all gather */
-inline void MPI_Allgather(int *vec, int *vec_tot, ind_int nloc) {
+inline void MPI_Allgather(int *vec, int *vec_tot, idx_t nloc) {
     MPI_Allgather(vec, nloc, MPI_INT, vec_tot, nloc, MPI_INT, MPI_COMM_WORLD);
 }
-inline void MPI_Allgather(long long *vec, long long *vec_tot, ind_int nloc){
+inline void MPI_Allgather(long long *vec, long long *vec_tot, idx_t nloc){
     MPI_Allgather(vec, nloc, MPI_LONG_LONG, vec_tot, nloc, MPI_LONG_LONG, MPI_COMM_WORLD);
 }
-inline void MPI_Allgather(unsigned long long *vec, unsigned long long *vec_tot, ind_int nloc){
+inline void MPI_Allgather(unsigned long long *vec, unsigned long long *vec_tot, idx_t nloc){
     MPI_Allgather(vec, nloc, MPI_UNSIGNED_LONG_LONG, vec_tot, nloc, MPI_UNSIGNED_LONG_LONG, MPI_COMM_WORLD);
 }
-inline void MPI_Allgather(double *vec, double *vec_tot, ind_int nloc) {
+inline void MPI_Allgather(double *vec, double *vec_tot, idx_t nloc) {
     MPI_Allgather(vec, nloc, MPI_DOUBLE, vec_tot, nloc, MPI_DOUBLE, MPI_COMM_WORLD);
 }
-inline void MPI_Allgather(cdouble *vec, cdouble *vec_tot, ind_int nloc) {
+inline void MPI_Allgather(cdouble *vec, cdouble *vec_tot, idx_t nloc) {
     MPI_Allgather(vec, nloc, MPI_DOUBLE_COMPLEX, vec_tot, nloc, MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD);
 }
 
@@ -384,7 +384,7 @@ inline void save(T *d_pt, int size, std::ofstream *f_pt, std::string filename, b
 }
 
 template <class T>
-inline void save(T *d_pt, ind_int size, std::ofstream *f_pt, std::string filename, bool is_app=false){
+inline void save(T *d_pt, idx_t size, std::ofstream *f_pt, std::string filename, bool is_app=false){
     if(is_app)f_pt->open(filename, std::ios::binary|std::ios::app);
     else f_pt->open(filename, std::ios::binary);
     if (f_pt->is_open()){
@@ -414,7 +414,7 @@ inline void read(T *d_pt, int size, std::ifstream *f_pt, std::string filename){
 }
 
 template <class T>
-inline void read(T *d_pt, ind_int size, std::ifstream *f_pt, std::string filename){
+inline void read(T *d_pt, idx_t size, std::ifstream *f_pt, std::string filename){
     f_pt->open(filename, std::ios::binary);
     if (f_pt->is_open()){
         f_pt->read(reinterpret_cast<char*>(d_pt), size * sizeof(T));
@@ -432,7 +432,7 @@ inline void read(std::vector<T> *d_pt, std::string filename){
     infile.open(filename, std::ios::in|std::ios::binary);
     if (infile.is_open()){
         infile.seekg(0, infile.end);
-        ind_int size = infile.tellg();
+        idx_t size = infile.tellg();
         infile.seekg(0, infile.beg);
         assert((size % sizeof(T))==0);
         d_pt->resize(size/sizeof(T));
@@ -452,14 +452,14 @@ inline void read(std::vector<T> *d_pt, std::string filename, int workerID, int w
     if (infile.is_open()){
         int el_size = sizeof(T);
         infile.seekg(0, infile.end);
-        ind_int size = infile.tellg();
+        idx_t size = infile.tellg();
         infile.seekg(0, infile.beg);
         assert((size % el_size)==0);
-        ind_int dim = size/el_size;
-        ind_int nlocmax = (dim + workerNum - 1)/workerNum;
-        ind_int startRow = workerID * nlocmax;
-        ind_int endRow = (startRow + nlocmax)<dim?(startRow + nlocmax):dim;
-        ind_int nloc = endRow - startRow;
+        idx_t dim = size/el_size;
+        idx_t nlocmax = (dim + workerNum - 1)/workerNum;
+        idx_t startRow = workerID * nlocmax;
+        idx_t endRow = (startRow + nlocmax)<dim?(startRow + nlocmax):dim;
+        idx_t nloc = endRow - startRow;
         infile.seekg(startRow*el_size, infile.beg);
         d_pt->resize(nloc);
         infile.read(reinterpret_cast<char*>(d_pt->data()), nloc*el_size);
@@ -493,25 +493,25 @@ inline void infile(std::vector<T*> para, std::string filename){
     * Bit Operations *
     * ****************
 */
-inline ind_int bitMask(int pos){
-    return ind_int{1}<<pos;
+inline idx_t bitMask(int pos){
+    return idx_t{1}<<pos;
 }
-inline bool bitTest(ind_int n, int pos){
-    return (n>>pos) & ind_int{1};
+inline bool bitTest(idx_t n, int pos){
+    return (n>>pos) & idx_t{1};
 }
-inline void bitSet(ind_int& n, int pos){
+inline void bitSet(idx_t& n, int pos){
     n |= bitMask(pos);
 }
-inline void bitFlip(ind_int& n, int pos){
+inline void bitFlip(idx_t& n, int pos){
     n ^= bitMask(pos);
 }
-inline ind_int bitCount(ind_int& n, const VecI& idxs){
-    ind_int sum = 0;
-    for(auto it=idxs.begin(); it!=idxs.end(); it++) sum += n>>(*it) & ind_int{1};
+inline idx_t bitCount(idx_t& n, const VecI& idxs){
+    idx_t sum = 0;
+    for(auto it=idxs.begin(); it!=idxs.end(); it++) sum += n>>(*it) & idx_t{1};
     return sum; 
 }
-inline void bitPrint(ind_int n, int range){
-    for(int pos=range-1;pos>=0;pos--)std::cout<<((n>>pos) & ind_int{1});
+inline void bitPrint(idx_t n, int range){
+    for(int pos=range-1;pos>=0;pos--)std::cout<<((n>>pos) & idx_t{1});
     std::cout<<std::endl;
 }
 // From Yao's code
@@ -523,7 +523,7 @@ inline UnsignedType nextLexicographicalNumber(UnsignedType x) {
 }
 
 // push data to an unordered map
-inline void MapPush(MAP* map_pt, ind_int key, dataType val){
+inline void MapPush(MAP* map_pt, idx_t key, dataType val){
     auto it = map_pt->find(key);
     if (it == map_pt->end()){
         (*map_pt)[key] = std::conj(val);

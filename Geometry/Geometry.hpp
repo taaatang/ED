@@ -167,7 +167,7 @@ public:
         }
     };
     // binary rep
-    void orbOCC(ind_int repI, VecI& occ) const {occ = VecI(getUnitOrbNum(),0); for(int i = 0; i < getOrbNum(); i++) if(bitTest(repI,i)) occ.at(orbs.at(i).id) += 1;};
+    void orbOCC(idx_t repI, VecI& occ) const {occ = VecI(getUnitOrbNum(),0); for(int i = 0; i < getOrbNum(); i++) if(bitTest(repI,i)) occ.at(orbs.at(i).id) += 1;};
     void orbOCC(pairIndex pairRepI, VecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); i++){if(bitTest(pairRepI.first,i))occ.at(orbs.at(i).orbid) += 1;if(bitTest(pairRepI.second,i))occ.at(orbs.at(i).orbid) += 1;}}
     void orbOCC(pairIndex pairRepI, VecI& occ, VecI& docc) const {
         occ = VecI(getUnitOrbNum(),0); docc = VecI(getUnitOrbNum(),0);

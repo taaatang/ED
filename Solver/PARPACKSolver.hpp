@@ -293,7 +293,7 @@ template <class T>
 void PARPACKComplexSolver<T>::setStartVec(std::complex<T>* vec){
     info_ = 1;
     #pragma omp parallel for
-    for (ind_int i = 0; i < nloc_; i++){
+    for (idx_t i = 0; i < nloc_; i++){
         resid_pt[i] = vec[i];
     }
 }

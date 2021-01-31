@@ -16,20 +16,26 @@ template<typename T>
 class OperatorBase: public FermionOperator<T>, public SpinOperator<T>, public SparseMatrix<T>{
 public:
     OperatorBase( ) { }
-    OperatorBase(Geometry* latt, Basis* Bi, Basis* Bf, );
+    OperatorBase(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_ = 1, int dmNum_ = 0);
     virtual ~OperatorBase( ) { }
     
     OperatorBase& pushLink(Link<T> link, int matidx);
     OperatorBase& pushLinks(std::vector<T> links);
-
+    virtual void row(idx_t rowID, std::vector<MAP>& rowMaps) = 0;
 protected:
-    Basis* Bi{nullptr}, Bf{nullptr};
-    Geometry* latt{nullptr};
+    Basis *Bi{nullptr}, *Bf{nullptr};
+    Geometry *latt{nullptr};
     LATTICE_MODEL model{HUBBARD};
     int linkCount{0};
     int spmCount{0};
     std::vector<Link<T>> Links, NCLinks;
 };
+
+template<typename T>
+OperatorBase<T>::Operator(Geometry *latt, Basis *Bi, Basis *Bf, int spmNum_, int dmNum_) :\
+ FermionOperator<T>(Bi), SpinOperator<T>(Bi), SparseMatrix<T>(Bi, Bf, Bf->getSubDim(), spmNum_. dmNum_){
+
+}
 
 template<typename T>
 OperatorBase<T>& OperatorBase<T>::pushLink(Link<T> link, int matID){

@@ -134,20 +134,21 @@ void Link<T>::print() const {
 template<typename T>
 class FermionOperator{
 protected:
-    Basis* pt_Basis;
-    LATTICE_MODEL fmodel;
+    Basis* pt_Basis{nullptr};
+    LATTICE_MODEL fmodel{HUBBARD};
 public:
+    FermionOperator( ) { }
     FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->getModel()){}
     ~FermionOperator(){};
-    void diag(ind_int rowID, T factor, MAP* rowMap){
+    void diag(idx_t rowID, T factor, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
-            ind_int repI = pt_Basis->getRepI(rowID);
+            idx_t repI = pt_Basis->getRepI(rowID);
             MapPush(rowMap,repI,factor);
         #else
             MapPush(rowMap,rowID,factor);
         #endif
     }
-    bool cp(int siteI, ind_int repI, ind_int repIp, ind_int& repIf, int &sign){
+    bool cp(int siteI, idx_t repI, idx_t repIp, idx_t& repIf, int &sign){
         repIf = repI;
         switch(fmodel){
             case HUBBARD:{
@@ -164,7 +165,7 @@ public:
         }
         return false;
     }
-    bool cm(int siteI, ind_int repI, ind_int repIp, ind_int& repIf, int &sign){
+    bool cm(int siteI, idx_t repI, idx_t repIp, idx_t& repIf, int &sign){
         repIf = repI;
         switch(fmodel){
             case HUBBARD:{
@@ -181,7 +182,7 @@ public:
         }
         return false;    
     }
-    bool cpcm(int siteI, int siteJ, ind_int repI, ind_int repIp, ind_int& repIf, int& sign){
+    bool cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx_t& repIf, int& sign){
         repIf = repI;
         if (siteI==siteJ){
             if (bitTest(repI,siteJ)){
@@ -232,7 +233,7 @@ public:
     void cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP* rowMap){
         pairIndex pairRepIf = pairRepI;
         int sign;
-        ind_int colidx;
+        idx_t colidx;
         switch (spin)
         {
         case SPIN_UP:
@@ -263,7 +264,7 @@ public:
     void cm(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP* rowMap){
         pairIndex pairRepIf = pairRepI;
         int sign;
-        ind_int colidx;
+        idx_t colidx;
         switch (spin)
         {
         case SPIN_UP:
@@ -291,11 +292,11 @@ public:
             break;
         }
     }
-    void cpcm(SPIN spin, int siteI, int siteJ, T factor, ind_int repI, MAP* rowMap){
+    void cpcm(SPIN spin, int siteI, int siteJ, T factor, idx_t repI, MAP* rowMap){
         pairIndex pairRepI=pt_Basis->getPairRepI(repI);
         pairIndex pairRepIf = pairRepI;
         int sign;
-        ind_int colidx;
+        idx_t colidx;
         switch(spin){
             case SPIN_UP:{
                 if (cpcm(siteI, siteJ, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
@@ -390,9 +391,9 @@ public:
         return false;
     }
 
-    void exchange(int siteI, int siteJ, T factor, ind_int repI, MAP* rowMap){
+    void exchange(int siteI, int siteJ, T factor, idx_t repI, MAP* rowMap){
         auto pairRepI = pt_Basis->getPairRepI(repI);
-        ind_int colidx;
+        idx_t colidx;
         std::vector<SPIN> spins{SPIN_UP,SPIN_DOWN};
         for(auto spinI:spins){
             for(auto spinJ:spins){
@@ -420,9 +421,9 @@ public:
         }
     }
 
-    void pairHopping(int siteI, int siteJ, T factor, ind_int repI, MAP* rowMap){
+    void pairHopping(int siteI, int siteJ, T factor, idx_t repI, MAP* rowMap){
         auto pairRepIf = pt_Basis->getPairRepI(repI);
-        ind_int colidx;
+        idx_t colidx;
         int sign = 1;
         if(cm(siteI,SPIN_UP,pairRepIf,sign)){
             if(cm(siteI,SPIN_DOWN,pairRepIf,sign)){
@@ -480,11 +481,12 @@ class SpinOperator{
         The basis state is stored as [su0,su1,...], [sd0,sd1,...]
 */
 protected:
-    Basis* pt_Basis;
-    LATTICE_MODEL smodel;
-    int spinDim;
+    Basis* pt_Basis{nullptr};
+    LATTICE_MODEL smodel{HEISENBERG};
+    int spinDim{2};
     std::vector<double> szMat, spMat, smMat;
-public: 
+public:
+    SpinOperator( ) { }
     SpinOperator(Basis* pt_Ba):pt_Basis(pt_Ba),smodel(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()){
         double s = (double)(spinDim - 1)/2.0;
         double m = s;
@@ -495,13 +497,13 @@ public:
             m -= 1.0;
         }
     }
-    ~SpinOperator(){};
+    ~SpinOperator( ) { };
 
-    void push(ind_int repIf, T val, MAP* rowMap){
+    void push(idx_t repIf, T val, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
             MapPush(rowMap,repIf,val);
         #else
-            ind_int colID;
+            idx_t colID;
             if (pt_Basis->search(repIf,colID)){
                 double finalNorm = pt_Basis->getNorm(colID);
                 val /= finalNorm;
@@ -511,12 +513,12 @@ public:
     }
     
     double getSz(int siteI, VecI& initVec) const {return szMat.at(initVec.at(siteI));}
-    void szsz(int siteI, int siteJ, T factor, ind_int initInd, VecI& initVec, MAP* rowMap){
+    void szsz(int siteI, int siteJ, T factor, idx_t initInd, VecI& initVec, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
             T dval = factor * szMat.at(initVec[siteI]) * szMat.at(initVec[siteJ]);
             MapPush(rowMap,initInd,dval);
         #else
-            ind_int colID;
+            idx_t colID;
             if (pt_Basis->search(initInd,colID)){
                 T dval = factor * szMat.at(initVec[siteI]) * szMat.at(initVec[siteJ]);
                 double finalNorm = pt_Basis->getNorm(colID);
@@ -526,14 +528,14 @@ public:
         #endif
     };
     
-    void spsm(int siteI, T factor, ind_int initInd, VecI& initVec, MAP* rowMap){
+    void spsm(int siteI, T factor, idx_t initInd, VecI& initVec, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
             if (initVec[siteI] < (spinDim-1)){
                 T val = factor * spMat[initVec[siteI]+1] * smMat[initVec[siteI]];
                 MapPush(rowMap,initInd,val);
             }
         #else
-            ind_int colID;
+            idx_t colID;
             if (pt_Basis->search(initInd, colID)){
                 if (initVec[siteI] < (spinDim-1)){
                     T val = factor * spMat[initVec[siteI]+1] * smMat[initVec[siteI]];
@@ -545,14 +547,14 @@ public:
         #endif
     };
     
-    void smsp(int siteI, T factor, ind_int initInd, VecI& initVec, MAP* rowMap){
+    void smsp(int siteI, T factor, idx_t initInd, VecI& initVec, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
             if (initVec[siteI] > 0){
                 T val = factor * smMat[initVec[siteI]-1] * spMat[initVec[siteI]];
                 MapPush(rowMap,initInd,val);
             }
         #else
-            ind_int colID;
+            idx_t colID;
             if (pt_Basis->search(initInd, colID)){
                 if (initVec[siteI] > 0){
                     T val = factor * smMat[initVec[siteI]-1] * spMat[initVec[siteI]];
@@ -564,18 +566,18 @@ public:
         #endif
     }
     
-    void spsm(int siteI, int siteJ, T factor, ind_int initInd, VecI& initVec, MAP* rowMap){
+    void spsm(int siteI, int siteJ, T factor, idx_t initInd, VecI& initVec, MAP* rowMap){
         if (siteI==siteJ){
             spsm(siteI, factor, initInd, initVec, rowMap);
             return;
         }
         if (initVec[siteI] > 0 and initVec[siteJ] < (spinDim-1)){
-            ind_int finalInd = initInd - pt_Basis->getmul(siteI) + pt_Basis->getmul(siteJ);
+            idx_t finalInd = initInd - pt_Basis->getmul(siteI) + pt_Basis->getmul(siteJ);
             #ifdef Distributde_Basis
                 T val = factor * spMat[initVec[siteI]] * smMat[initVec[siteJ]];
                 MapPush(rowMap,initInd,val);
             #else
-                ind_int colID;
+                idx_t colID;
                 if (pt_Basis->search(finalInd, colID)){
                     T val = factor * spMat[initVec[siteI]] * smMat[initVec[siteJ]];
                     double finalNorm = pt_Basis->getNorm(colID);
@@ -586,7 +588,7 @@ public:
         }
     };
     
-    void smsp(int siteI, int siteJ, T factor, ind_int initInd, VecI& initVec, MAP* rowMap){
+    void smsp(int siteI, int siteJ, T factor, idx_t initInd, VecI& initVec, MAP* rowMap){
         if (siteI==siteJ){
             smsp(siteI, factor, initInd, initVec, rowMap);
             return;
@@ -596,7 +598,7 @@ public:
     /*
         Binary Reps For Spindim=2
     */
-    double getSz(int siteI, ind_int repI) const {
+    double getSz(int siteI, idx_t repI) const {
         switch(smodel){
             case LATTICE_MODEL::HEISENBERG:{
                 return szMat.at(1&(repI>>siteI));
@@ -619,12 +621,12 @@ public:
             }
         }   
     }
-    void szsz(int siteI, int siteJ, T factor, ind_int repI, MAP* rowMap){
+    void szsz(int siteI, int siteJ, T factor, idx_t repI, MAP* rowMap){
         #ifdef DISTRIBUTED_BASIS
             T dval = factor * getSz(siteI,repI) * getSz(siteJ,repI);
             MapPush(rowMap,repI,dval);
         #else
-            ind_int colID;
+            idx_t colID;
             if (pt_Basis->search(repI,colID)){
                 T dval = factor * getSz(siteI,repI) * getSz(siteJ,repI);
                 double finalNorm = pt_Basis->getNorm(colID);
@@ -634,7 +636,7 @@ public:
         #endif
     };
 
-    void szsznn(int siteI, int siteJ, T factor, ind_int repI, MAP* rowMap){
+    void szsznn(int siteI, int siteJ, T factor, idx_t repI, MAP* rowMap){
         // for tJ model, szi*szj -1/4*ni*nj
         assert_msg(smodel==LATTICE_MODEL::t_J,"SpinOperator::szsznn only defined for tJ model");
         pairIndex pairRepI = pt_Basis->getPairRepI(repI);
@@ -643,7 +645,7 @@ public:
                 T dval = -0.5*factor;
                 MapPush(rowMap,repI,dval);
             #else
-                ind_int colID;
+                idx_t colID;
                 if (pt_Basis->search(repI,colID)){
                     T dval = -0.5*factor;
                     double finalNorm = pt_Basis->getNorm(colID);
@@ -654,7 +656,7 @@ public:
         }
     }
     
-    void spsm(int siteI, T factor, ind_int repI, MAP* rowMap){
+    void spsm(int siteI, T factor, idx_t repI, MAP* rowMap){
         bool condition;
         switch(smodel){
             case LATTICE_MODEL::HEISENBERG:{
@@ -676,7 +678,7 @@ public:
                 T val = factor * spMat[1] * smMat[0];
                 MapPush(rowMap,repI,val);
             #else
-                ind_int colID;
+                idx_t colID;
                 if (pt_Basis->search(repI, colID)){
                     T val = factor * spMat[1] * smMat[0];
                     double finalNorm = pt_Basis->getNorm(colID);
@@ -687,7 +689,7 @@ public:
         }
     };
     
-    void smsp(int siteI, T factor, ind_int repI, MAP* rowMap){
+    void smsp(int siteI, T factor, idx_t repI, MAP* rowMap){
         bool condition;
         switch(smodel){
             case LATTICE_MODEL::HEISENBERG:{
@@ -709,7 +711,7 @@ public:
                 T val = factor * spMat[1] * smMat[0];
                 MapPush(rowMap,repI,val);
             #else
-                ind_int colID;
+                idx_t colID;
                 if (pt_Basis->search(repI, colID)){
                     T val = factor * spMat[1] * smMat[0];
                     double finalNorm = pt_Basis->getNorm(colID);
@@ -720,8 +722,8 @@ public:
         }
     }
     
-    void spsm(int siteI, int siteJ, T factor, ind_int repI, MAP* rowMap){
-        ind_int colID;
+    void spsm(int siteI, int siteJ, T factor, idx_t repI, MAP* rowMap){
+        idx_t colID;
         if (siteI==siteJ){
             spsm(siteI, factor, repI, rowMap);
             return;
@@ -735,7 +737,7 @@ public:
                     #ifdef DISTRIBUTED_BASIS
                         MapPush(rowMap,repI,val);
                     #else
-                        ind_int colID;
+                        idx_t colID;
                         if (pt_Basis->search(repI, colID)){
                             double finalNorm = pt_Basis->getNorm(colID);
                             val /= finalNorm;
@@ -757,7 +759,7 @@ public:
                     #ifdef DISTRIBUTED_BASIS
                         MapPush(rowMap,repI,val);
                     #else
-                    ind_int colID;
+                    idx_t colID;
                     if (pt_Basis->search(repI, colID)){
                         double finalNorm = pt_Basis->getNorm(colID);
                         val /= finalNorm;
@@ -775,7 +777,7 @@ public:
         
     };
     
-    void smsp(int siteI, int siteJ, T factor, ind_int repI, MAP* rowMap){
+    void smsp(int siteI, int siteJ, T factor, idx_t repI, MAP* rowMap){
         if (siteI==siteJ){
             smsp(siteI, factor, repI,rowMap);
             return;
@@ -783,7 +785,7 @@ public:
         spsm(siteJ, siteI, factor, repI,rowMap);
     };
 
-    void szspsm(int siteI, int siteJ, int siteK, T factor, ind_int repI, MAP* rowMap){
+    void szspsm(int siteI, int siteJ, int siteK, T factor, idx_t repI, MAP* rowMap){
         /*
             Jk/norm(repI)/norm(repfI) * I/2 * sz(i) * [sp(j)sm(k) - sm(j)sp(k)]
             factor = Jk/norm(repI)
@@ -808,7 +810,7 @@ public:
                         T val = factor * sign * getSz(siteI, repI) * spMat[1] * smMat[0];
                         MapPush(rowMap,repI,val);
                     #else
-                        ind_int colID;
+                        idx_t colID;
                         if (pt_Basis->search(repI, colID)){
                             T val = sign * factor * getSz(siteI, repI) * spMat[1] * smMat[0];
                             double finalNorm = pt_Basis->getNorm(colID);
@@ -826,7 +828,7 @@ public:
        }
     }
 
-    void chiral(int siteI, int siteJ, int siteK, T factor, ind_int repI, MAP* rowMap){
+    void chiral(int siteI, int siteJ, int siteK, T factor, idx_t repI, MAP* rowMap){
         /*
             Jk/norm(repI)/norm(repfI) * si * (sj x sk)
             factor = Jk/norm(repI)

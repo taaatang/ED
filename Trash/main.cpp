@@ -94,8 +94,8 @@ int main(int argc, const char * argv[]) {
         auto tic = std::chrono::system_clock::now();
         Basis B(siteDim, dimList);
         B.genTransReps(&Lattice);
-//         ind_int count = 0;
-//         for (ind_int j = 0; j < B.repCount.size(); j++) count += Lattice.N/B.repCount[j];
+//         idx_t count = 0;
+//         for (idx_t j = 0; j < B.repCount.size(); j++) count += Lattice.N/B.repCount[j];
 //         if(workerID==MPI_MASTER) std::cout<<"Total Rep number:"<<B.repIndList.size()<<". count = "<<count<<std::endl;
 //         count = 0;
 //         for (int i = 0; i < Lattice.N; i++){
@@ -103,7 +103,7 @@ int main(int argc, const char * argv[]) {
 //             count += B.subDim;
 //             if (workerID==MPI_MASTER) std::cout<<"subspace kInd = "<<i<<", size = "<<B.subDim<<std::endl;
 //         }
-        ind_int totDim = 0;
+        idx_t totDim = 0;
         for (int kIndex = 0;  kIndex < Lattice.N; kIndex++){
 //         int kIndex = 2;
         B.genKReps(kIndex, &Lattice);
@@ -231,7 +231,7 @@ int main(int argc, const char * argv[]) {
 //             Szq.genMat(&Lattice, &B, q);
 //     //         cdouble* vecTmp = new cdouble[Szq.nlocmax];
 //     //         cdouble* gstate = new cdouble[Szq.nlocmax];
-//             for (ind_int j = 0; j < Szq.nloc; j++) gstate[j] = (cdouble) PDiag.V_pt[j];
+//             for (idx_t j = 0; j < Szq.nloc; j++) gstate[j] = (cdouble) PDiag.V_pt[j];
 //         //     cdouble *vecBuf = new cdouble[Szq.nlocmax];
 //             Szq.MxV(gstate, vecTmp, vecBuf, PARTITION);
 //             cdouble val;

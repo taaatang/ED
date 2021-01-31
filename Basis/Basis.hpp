@@ -50,13 +50,13 @@ public:
 
     // Rep integer access
     // rowidx->repI
-    ind_int getRepI(ind_int idx) const {if(kIndex==-1 and model==LATTICE_MODEL::HUBBARD)return idx; return indexList.at(idx);}
+    idx_t getRepI(idx_t idx) const {if(kIndex==-1 and model==LATTICE_MODEL::HUBBARD)return idx; return indexList.at(idx);}
     // repI->pairRepI
-    pairIndex getPairRepI(ind_int repI) const {assert_msg(model!=LATTICE_MODEL::HEISENBERG,"PairRepI not defined for Heisenberg Model!");return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));}
+    pairIndex getPairRepI(idx_t repI) const {assert_msg(model!=LATTICE_MODEL::HEISENBERG,"PairRepI not defined for Heisenberg Model!");return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));}
     // pairRepI->repI
-    ind_int getRepI(pairIndex pairRepI) const {return fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);}
+    idx_t getRepI(pairIndex pairRepI) const {return fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);}
     
-    ind_int getmul(int orbid) const {return mul.at(orbid);}
+    idx_t getmul(int orbid) const {return mul.at(orbid);}
 
     void initMinMaxRep() const;
 
@@ -75,11 +75,11 @@ public:
     
     int getSiteDim() const {return siteDim;}
     int getOrbNum() const {return N;}
-    ind_int getTotDim() const {return totDim;}
-    ind_int getSubDim() const {return subDim;}
-    ind_int getLocDim() const {return locDim;}
+    idx_t getTotDim() const {return totDim;}
+    idx_t getSubDim() const {return subDim;}
+    idx_t getLocDim() const {return locDim;}
     
-    double getNorm(ind_int rowid) const {
+    double getNorm(idx_t rowid) const {
         if (kIndex==-1) return 1.0;
         #ifdef KEEP_BASIS_NORM
             return normList.at(rowid);
@@ -89,27 +89,27 @@ public:
     };
     
     // vec to Basis index
-    ind_int vecToRep(VecI& v) const;
+    idx_t vecToRep(VecI& v) const;
     pairIndex vecToRep(VecI& v, VecI& vp) const;
     
     // Basis index to Basis vec
-    void repToVec(ind_int index, VecI& v) const;
+    void repToVec(idx_t index, VecI& v) const;
     void repToVec(pairIndex pairInd, VecI& v, VecI& vp) const;
-    void repToVec(ind_int index, VecI& v, VecI& vp) const;
+    void repToVec(idx_t index, VecI& v, VecI& vp) const;
 
     // for distributed basis. get the workerID where repI is possiblely stored
-    bool getBid(ind_int repI, int &bid) const;
+    bool getBid(idx_t repI, int &bid) const;
 
     // Binary search the position of index in indexList
 
     //search full hilbert space
-    ind_int search(ind_int repI, const std::vector<ind_int> &indList) const;
-    ind_int search(ind_int repI) const;
-    ind_int search(pairIndex pairRepI) const;
+    idx_t search(idx_t repI, const std::vector<idx_t> &indList) const;
+    idx_t search(idx_t repI) const;
+    idx_t search(pairIndex pairRepI) const;
     //search current symm sector subspace
-    bool search(ind_int repI, ind_int &idx, const std::vector<ind_int> &indList) const;
-    bool search(ind_int repI, ind_int &idx) const;
-    bool search(pairIndex pairRepI, ind_int &idx) const;
+    bool search(idx_t repI, idx_t &idx, const std::vector<idx_t> &indList) const;
+    bool search(idx_t repI, idx_t &idx) const;
+    bool search(pairIndex pairRepI, idx_t &idx) const;
 
     /*
         ************
@@ -118,20 +118,20 @@ public:
     */
     // apply all translation operations to a Basis vec indexed by ind.
     // finalInd contains all resulting basis indexes.
-    void genSymm(ind_int ind, std::vector<ind_int>& finalInd) const;
-    void genSymm(ind_int ind, std::vector<ind_int>& finalInd, std::vector<cdouble>& factorList) const;
+    void genSymm(idx_t ind, std::vector<idx_t>& finalInd) const;
+    void genSymm(idx_t ind, std::vector<idx_t>& finalInd, std::vector<cdouble>& factorList) const;
     
     // judge if repI is min repI. append symm operations tp symmList if symm(repI)==repI. not guanranteed to be MinRep since its norm might = 0
-    bool isMin(ind_int repI, VecI& symmList);
-    bool isfMin(ind_int frepI) const {return kIndex==-1?true:fMinRepSymmHash.find(frepI)!=fMinRepSymmHash.end();}
+    bool isMin(idx_t repI, VecI& symmList);
+    bool isfMin(idx_t frepI) const {return kIndex==-1?true:fMinRepSymmHash.find(frepI)!=fMinRepSymmHash.end();}
     // judge if a basis vec belongs to k-subspace rep vecs
     // rep: smallest index and norm!=0
-    bool isMinRep(ind_int repI, double& norm) const;
+    bool isMinRep(idx_t repI, double& norm) const;
     
     // calculate the norm of a genery repI
-    double Norm(ind_int repI) const;
+    double Norm(idx_t repI) const;
     // calculate the norm of a minimum repI in a symm cycle. only defined for Hubbard and t_J model.
-    double minNorm(ind_int repI) const;
+    double minNorm(idx_t repI) const;
     
     // I/O
     void saveBasis(std::string basisfile, bool is_app=false);
@@ -149,10 +149,10 @@ private:
     int PGRepIndex; // default -1 -> do not use point group symm
 
     int siteDim; // Hilbert Space dimension of a single Site
-    ind_int totDim; // Total Hilbert Space dimension
-    ind_int subDim; // Total subspace dimension of corresponding symm
-    ind_int locDim; // Local stored dimension
-    ind_int fDim, sDim;
+    idx_t totDim; // Total Hilbert Space dimension
+    idx_t subDim; // Total subspace dimension of corresponding symm
+    idx_t locDim; // Local stored dimension
+    idx_t fDim, sDim;
 
     // Heisenberg:Sztot in unit of hbar/2
     int Sztot;
@@ -165,26 +165,26 @@ private:
         repI = fIdx * len(sIndexList) + sIdx.
         pairRepI = (fIndexList(fidx), sIndexList(sidx))
     */
-    std::vector<ind_int> fIndexList, sIndexList;
-    std::unordered_map<ind_int,ind_int> fRepIdxHash,sRepIdxHash;
-    std::vector<ind_int> fMinRepList;
-    std::unordered_map<ind_int,VecI> fMinRepSymmHash;
+    std::vector<idx_t> fIndexList, sIndexList;
+    std::unordered_map<idx_t,idx_t> fRepIdxHash,sRepIdxHash;
+    std::vector<idx_t> fMinRepList;
+    std::unordered_map<idx_t,VecI> fMinRepSymmHash;
 
     /* 
         repI list in corresponding subspace in ascending order
         For Hubbard, if no symm is used, this is empty.
     */
-    std::vector<ind_int> indexList;
-    std::unordered_map<ind_int,ind_int> repHashTable;
+    std::vector<idx_t> indexList;
+    std::unordered_map<idx_t,idx_t> repHashTable;
     // repIStratList[workerID] is the smallest repI stored in workerID's RAM
-    std::vector<ind_int> repIStartList; 
+    std::vector<idx_t> repIStartList; 
     // repIEndList[workerID] is the largest repI stored in workerID's RAM
-    std::vector<ind_int> repIEndList;
+    std::vector<idx_t> repIEndList;
     // norm for reps in symmetrized indexList
     std::vector<double> normList; 
     
     // used for siteDim=2. Binary Rep
-    mutable ind_int fminRep,fmaxRep,sminRep,smaxRep;
+    mutable idx_t fminRep,fmaxRep,sminRep,smaxRep;
     /*
         used only if siteDim>2
         Heisenberg model: vec: 0 for spin-up 1 for spin-down
@@ -192,7 +192,7 @@ private:
     */
     mutable std::vector<int> vec, vecp; // mutable:can be modified in const function
     // Multipliers. Basis vec index = sum(i):vec(i)*mul(i)
-    std::vector<ind_int> mul;
+    std::vector<idx_t> mul;
 };
 
 #endif // Basis_hpp

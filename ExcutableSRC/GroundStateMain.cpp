@@ -69,7 +69,7 @@ int main(int argc, const char * argv[]) {
     // if (workerID==MPI_MASTER) Lattice.print();
     int siteDim = 2;
     VecI occList{Nu, Nd};
-    ind_int fullDim=0, totDim=0;
+    idx_t fullDim=0, totDim=0;
     // scan kIndex
     for (int PGRepIndex = 0;  PGRepIndex < 8; PGRepIndex++){
         std::ofstream outfile;

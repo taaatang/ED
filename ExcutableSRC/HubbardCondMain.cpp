@@ -76,7 +76,7 @@ int main(int argc, const char * argv[]) {
     
     int siteDim = 2;
     VecI occList{Nu, Nd};
-    ind_int fullDim=0, totDim=0;
+    idx_t fullDim=0, totDim=0;
     // std::cout<<"Nu:"<<Nu<<", Nd:"<<Nd<<"\n";
     
     /*

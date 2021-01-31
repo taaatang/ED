@@ -112,7 +112,7 @@ int main(int argc, const char * argv[]) {
         // elapsed_seconds = toc - tic;
 
         // std::cout<<"WorkerID:"<<workerID<<", kInd ="<<Bp.kIndex<<", size="<<Bp.subDim<<"/"<<Bp.totDim<<". Basis construction time:"<<elapsed_seconds.count()*1000<<" milliseconds."<<std::endl<<"Bp.kRepList size:"<<Bp.indexList.size()<<", Bp.norm size:"<<Bp.normList.size()<<std::endl;
-        // for (ind_int i = 0; i < B.subDim; i++){
+        // for (idx_t i = 0; i < B.subDim; i++){
         //     if ((Bp.indexList.at(i)!=B.indexList.at(i)) or (Bp.normList.at(i)!=B.normList.at(i))){
         //         std::cout<<"workerID:"<<workerID<<", inconsistent data at i="<<i<<std::endl;
         //         exit(1);

@@ -107,7 +107,7 @@ const std::complex<double> CPLX_I(0.0, 1.0);
     ***************
 */
 // Matrix index datatype
-typedef unsigned long long int ind_int; 
+typedef unsigned long long int idx_t; 
 typedef unsigned int uint;
 typedef std::complex<double> cdouble;
 // #ifdef COMPLEX_DATA
@@ -116,8 +116,8 @@ typedef std::complex<double> dataType;
 //     typedef double dataType;
 // #endif
 
-typedef std::unordered_map<ind_int,dataType> MAP;
-typedef std::unordered_map<ind_int,dataType>::iterator MAPIT;
+typedef std::unordered_map<idx_t,dataType> MAP;
+typedef std::unordered_map<idx_t,dataType>::iterator MAPIT;
 
 /*
     ******************
@@ -146,7 +146,7 @@ const int MAX_BOND_NUM = 6;
     #define DISTRIBUTED_STATE
 #endif
 
-typedef std::pair<ind_int,ind_int> pairIndex;
+typedef std::pair<idx_t,idx_t> pairIndex;
 #define KEEP_BASIS_NORM
 
 /*

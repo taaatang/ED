@@ -56,7 +56,7 @@ int main(int argc, const char * argv[]){
 
     int siteDim = 2;
     VecI occList{Nu, Nd};
-    ind_int fullDim=0, totDim=0;
+    idx_t fullDim=0, totDim=0;
     std::ofstream outfile;
     std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";

@@ -198,7 +198,7 @@ int main(int argc, const char * argv[]) {
 */
     if (COMPUTE_SQW){
         int krylovDim = 400;
-        ind_int Hdim = H->get_dim();
+        idx_t Hdim = H->get_dim();
         H->clearBuf();
         delete H;
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Sqw ..."<<std::endl<<"********************"<<std::endl;
