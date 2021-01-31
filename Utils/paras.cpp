@@ -12,7 +12,7 @@ void setlatt(Parameters& para, std::unique_ptr<Geometry>& latt){
     switch (lattType) {
         case LATTICE::TRIANGULAR:
             if(ly > 0) {
-                latt = std::unique_ptr<Geometry>(new  TriAngLattice(lx, ly, BC));
+                latt = std::unique_ptr<Geometry>(new TriAngLattice(lx, ly, BC));
             } else {
                 latt = std::unique_ptr<Geometry>(new TriAngLattice(lx, BC));
             }

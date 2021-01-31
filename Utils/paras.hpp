@@ -32,9 +32,9 @@ public:
     bool read(const std::string& filename);
     void print(std::ostream& os);
 
-    friend void setpath(const Parameters&, std::unique_ptr<Geometry>& latt);
-    friend void setlatt(const Parameters&, Geometry*);
-    friend void setbasis(const Parameters&, Basis*);
+    friend void setpath(const Parameters&);
+    friend void setlatt(const Parameters&, std::unique_ptr<Geometry>&);
+    friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, std::unique_ptr<Geometry>&);
     friend void setham(const Parameters&);
     friend void setmeasure(const Parameters&);
 
