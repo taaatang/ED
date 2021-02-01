@@ -10,5 +10,6 @@ std::unique_ptr<Basis> Bi;
 std::unique_ptr<Basis> Bf;
 std::vector<Link<dataType>> links;
 
+
 setlatt(para, latt);
 setbasis(para, Bi, latt.get());

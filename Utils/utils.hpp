@@ -83,7 +83,7 @@ inline void printModel(LATTICE_MODEL model){
         case LATTICE_MODEL::HEISENBERG:
             std::cout<<"Heisenberg Model\n";
             break;
-        case LATTICE_MODEL::t_J:
+        case LATTICE_MODEL::tJ:
             std::cout<<"tJ Model\n";
             break;
         default:

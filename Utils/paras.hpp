@@ -15,8 +15,10 @@
 #include <type_traits>
 #include <assert.h>
 
+#include "../Global/globalPara.hpp"
 #include "../Geometry/Geometry.hpp"
 #include "../Basis/Basis.hpp"
+#include "../Operator/OperatorsBase.hpp"
 #include "../Operator/Operators.hpp"
 
 template<typename T>
@@ -36,7 +38,7 @@ public:
     friend void setlatt(const Parameters&, std::unique_ptr<Geometry>&);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int, int, int, int);
-    friend void setham(const Parameters&);
+    friend void setham(const Parameters&, OperatorBase<dataType>&);
     friend void setmeasure(const Parameters&);
 
     LATTICE getlatt() const;
@@ -96,7 +98,7 @@ void setpath(const Parameters&);
 void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int nuf, int ndf, int kf, int pf);
-void setham(const Parameters&);
+void setham(const Parameters&, OperatorBase<dataType>& H);
 void setmeasure(const Parameters&);
 
 #endif // __PARAS_H__

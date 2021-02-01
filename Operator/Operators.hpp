@@ -457,7 +457,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowidx, std::vector<MAP>& rowMaps) {
                 }
             }
         }
-    } else if constexpr(MODEL == LATTICE_MODEL::t_J) {
+    } else if constexpr(MODEL == LATTICE_MODEL::tJ) {
         // off diagonal part
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;

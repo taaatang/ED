@@ -41,7 +41,23 @@ void setbasis(Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt, int 
     ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nuf,ndf}, kf, pf));
 }
 
-void setham() {
+void setham(Parameters& para, OperatorBase<dataType>& H, Geometry* latt, Basis* B) {
+    LATTICE_MODEL model = para.getmodel();
+    switch (model) {
+        case LATTICE_MODEL::HUBBARD:
+            H = std::unique_ptr<OperatorBase>(new Hamiltonian<HUBBARD,dataType>(latt, B, B, 1, 1));
+            break;
+        case LATTICE_MODEL::tJ:
+            H = std::unique_ptr<OperatorBase>(new Hamiltonian<tJ,dataType>(latt, B, B, 1, 1));
+            break;
+        case LATTICE_MODEL::HEISENBERG:
+            H = std::unique_ptr<OperatorBase>(new Hamiltonian<HEISENBERG,dataType>(latt, B, B, 1, 1));
+            break;
+        default:
+            std::cout<<"Input Lattice Model not defined!\n";
+            exit(1);
+            break;
+    }
     
 }
 
@@ -64,7 +80,7 @@ LATTICE_MODEL Parameters::getmodel() const {
     } else if (name == "Heisenberg") {
         return LATTICE_MODEL::HEISENBERG;
     } else if (name == "tJ") {
-        return LATTICE_MODEL::t_J;
+        return LATTICE_MODEL::tJ;
     } else {
         std::cout<<"Model name: "<<name<<", not defined!";
         exit(1);

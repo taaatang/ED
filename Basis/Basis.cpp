@@ -38,7 +38,7 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
             sDim = combination<idx_t>((idx_t)N, (idx_t)(Nocc[1]));
             totDim = fDim * sDim;
             break;
-        case LATTICE_MODEL::t_J:
+        case LATTICE_MODEL::tJ:
             Nocc = occList;
             assert((Nocc.at(0)+Nocc.at(1))<=N);
             fDim = combination<idx_t>((idx_t)N, (idx_t)(Nocc[0]));
@@ -78,7 +78,7 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
 void Basis::initMinMaxRep() const {
 #ifdef BINARY_REP
     assert(siteDim==2);
-    if(model==LATTICE_MODEL::HUBBARD or model==LATTICE_MODEL::t_J){
+    if(model==LATTICE_MODEL::HUBBARD or model==LATTICE_MODEL::tJ){
         fminRep=0;fmaxRep=0;
         for(int i=0; i<Nocc.at(0); i++){
             bitSet(fminRep,i);
@@ -101,7 +101,7 @@ void Basis::initMinMaxRep() const {
     vec.clear();
     vecp.clear();
     switch(model){
-        case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::t_J:
+        case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::tJ:
             for (idx_t i = 0; i < (N - Nocc); i++) vec.push_back(0);
             for (idx_t i = 0; i < Nocc; i++) vec.push_back(1);
             for (idx_t i = 0; i < (Np - Npocc); i++) vecp.push_back(0);
@@ -113,7 +113,7 @@ void Basis::initMinMaxRep() const {
 }
 
 void Basis::gendcmp(){
-    if(model==LATTICE_MODEL::HUBBARD || model==LATTICE_MODEL::t_J){
+    if(model==LATTICE_MODEL::HUBBARD || model==LATTICE_MODEL::tJ){
         fIndexList.clear(); sIndexList.clear();
         fIndexList.reserve(fDim); sIndexList.reserve(sDim);
 
@@ -158,7 +158,7 @@ void Basis::gen(){
     idx_t repI;
     double norm;
     switch(model){
-        case HUBBARD:case t_J:{
+        case HUBBARD:case tJ:{
             if (!(kIndex==-1 and model==LATTICE_MODEL::HUBBARD)){ 
                 for(idx_t fidx=0;fidx<fDim;fidx++){
                     if(!isfMin(fIndexList[fidx])) continue;
@@ -214,7 +214,7 @@ void Basis::gen(){
 
 void Basis::gen(int workerID, int workerNum){
     locDim = 0;
-    assert(model==LATTICE_MODEL::HUBBARD or model==LATTICE_MODEL::t_J);
+    assert(model==LATTICE_MODEL::HUBBARD or model==LATTICE_MODEL::tJ);
     if(model==LATTICE_MODEL::HUBBARD) assert(kIndex!=-1);
     idx_t repI;
     double norm;
@@ -372,10 +372,10 @@ idx_t Basis::search(pairIndex pairRepI) const {
     idx_t repI = fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);
     if(model==LATTICE_MODEL::HUBBARD){
         return repI;
-    }else if(model==LATTICE_MODEL::t_J && !(pairRepI.first & pairRepI.second)){
+    }else if(model==LATTICE_MODEL::tJ && !(pairRepI.first & pairRepI.second)){
         return repI;
     }else{
-        std::cerr<<"pairRepI only defined for Hubbard and t_J!"<<std::endl;
+        std::cerr<<"pairRepI only defined for Hubbard and tJ!"<<std::endl;
         exit(EXIT_FAILURE);
     } 
 }
@@ -414,7 +414,7 @@ bool Basis::isMin(idx_t repI, VecI& symmList){
 
 bool Basis::isMinRep(idx_t repI, double& norm) const {
     // project out double occp
-    if (model==LATTICE_MODEL::t_J){
+    if (model==LATTICE_MODEL::tJ){
         pairIndex pairRepI;
         pairRepI = getPairRepI(repI);
         if((pairRepI.first & pairRepI.second))return false;
@@ -426,7 +426,7 @@ bool Basis::isMinRep(idx_t repI, double& norm) const {
     }
     // smallest index in the cycle?
     switch(model){
-        case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::t_J:{
+        case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::tJ:{
             pairIndex pairRepI = getPairRepI(repI);
             if(PGRepIndex==-1){
                 auto it = fMinRepSymmHash.find(pairRepI.first);
@@ -589,7 +589,7 @@ double Basis::minNorm(idx_t repI) const {
         }
         assert(std::abs(std::imag(norm))<INFINITESIMAL);
         return std::sqrt(std::real(norm));
-    }else if(model==LATTICE_MODEL::t_J){
+    }else if(model==LATTICE_MODEL::tJ){
         VecI seq;
         if(PGRepIndex==-1){
             for (auto symm = (*repSymmIt).second.begin(); symm != (*repSymmIt).second.end(); symm++){
@@ -619,7 +619,7 @@ double Basis::minNorm(idx_t repI) const {
         assert(std::abs(std::imag(norm))<INFINITESIMAL);
         return std::sqrt(std::real(norm));
     }else{
-        std::cout<<"Basis::minNorm only defined fro Hubbard and t_J"<<std::endl;
+        std::cout<<"Basis::minNorm only defined fro Hubbard and tJ"<<std::endl;
         exit(1);
     }
 }
@@ -663,7 +663,7 @@ double Basis::Norm(idx_t repI) const {
             break;
         }
 
-        case t_J:{
+        case tJ:{
             pairIndex pairRepI = getPairRepI(repI);
             VecI seq;
             if(PGRepIndex==-1){
@@ -761,7 +761,7 @@ void Basis::genSymm(idx_t ind, std::vector<idx_t>& finalInd) const {
     */
     if (kIndex == -1){finalInd.push_back(ind);return;}
     switch(model){
-        case HUBBARD:case t_J:{
+        case HUBBARD:case tJ:{
             pairIndex repI;
             repI = getPairRepI(ind);
             for (int r = 0; r < pt_lattice->getSiteNum(); r++){
@@ -800,7 +800,7 @@ void Basis::genSymm(idx_t ind, std::vector<idx_t>& finalInd) const {
         }
 
         default:{
-            std::cout<<"model not defined! must be: HUBBARD,t_J,HEISENBERG."<<std::endl;
+            std::cout<<"model not defined! must be: HUBBARD,tJ,HEISENBERG."<<std::endl;
             exit(1);
             break;
         }
@@ -849,7 +849,7 @@ void Basis::genSymm(idx_t rowid, std::vector<idx_t>& finalInd, std::vector<cdoub
             break;
         }
 
-        case LATTICE_MODEL::t_J:{
+        case LATTICE_MODEL::tJ:{
             pairIndex pairRepI;
             pairRepI = getPairRepI(repI);
             VecI seq;
@@ -939,7 +939,7 @@ void Basis::genSymm(idx_t rowid, std::vector<idx_t>& finalInd, std::vector<cdoub
         }
         
         default:{
-            std::cout<<"model not defined! must be: HUBBARD,t_J,HEISENBERG."<<std::endl;
+            std::cout<<"model not defined! must be: HUBBARD,tJ,HEISENBERG."<<std::endl;
             exit(1);
             break;
         }

@@ -130,7 +130,7 @@ public:
     
     // calculate the norm of a genery repI
     double Norm(idx_t repI) const;
-    // calculate the norm of a minimum repI in a symm cycle. only defined for Hubbard and t_J model.
+    // calculate the norm of a minimum repI in a symm cycle. only defined for Hubbard and tJ model.
     double minNorm(idx_t repI) const;
     
     // I/O
