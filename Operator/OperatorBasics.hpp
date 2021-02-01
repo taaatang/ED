@@ -209,7 +209,7 @@ public:
                 }
 
                 // no double occupancy
-                case t_J:{
+                case tJ:{
                     if(bitTest(repI,siteJ) && (!bitTest(repI,siteI)) && (!bitTest(repIp,siteI))){
                         bitFlip(repIf,siteI);
                         bitFlip(repIf,siteJ);
@@ -391,7 +391,29 @@ public:
         return false;
     }
 
+    /**
+     * @brief Coulomb interactions
+     * https://doi.org/10.1016/S0370-1573(00)00121-6
+     * i is the orbital index on the same site
+     * Intraband Coulomb interaction: U * n_i_up * n_i_dn
+     * Interband Coulomb interaction: U' * (n_i_up + n_i_dn) * (n_j_up + n_j_dn), i != j
+     * U = U' + 2J
+     * J = J'
+     * 
+     */
+    
+    /**
+     * @brief Interband exchange interaction: J * d_dag_j_si * d_dag_i_sj * d_j_sj * d_i_si, i != j 
+     * 
+     * 
+     * @param siteI 
+     * @param siteJ 
+     * @param factor 
+     * @param repI 
+     * @param rowMap 
+     */
     void exchange(int siteI, int siteJ, T factor, idx_t repI, MAP* rowMap){
+        if (siteI == siteJ) return;
         auto pairRepI = pt_Basis->getPairRepI(repI);
         idx_t colidx;
         std::vector<SPIN> spins{SPIN_UP,SPIN_DOWN};
@@ -401,8 +423,8 @@ public:
                 int sign = 1;
                 if(cm(siteI,spinI,pairRepIf,sign)){
                     if(cm(siteJ,spinJ,pairRepIf,sign)){
-                        if(cp(siteJ,spinI,pairRepIf,sign)){
-                            if(cp(siteI,spinJ,pairRepIf,sign)){
+                        if(cp(siteI,spinJ,pairRepIf,sign)){
+                            if(cp(siteJ,spinI,pairRepIf,sign)){
                                 #ifdef DISTRIBUTED_BASIS
                                 MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
                                 #else
@@ -420,8 +442,18 @@ public:
             }
         }
     }
-
+    /**
+     * @brief Pair hopping: J' * d_dag_i_up * d_dag_i_dn * d_j_dn * d_j_up, i != j
+     * https://doi.org/10.1016/S0370-1573(00)00121-6
+     * 
+     * @param siteI 
+     * @param siteJ 
+     * @param factor 
+     * @param repI 
+     * @param rowMap 
+     */
     void pairHopping(int siteI, int siteJ, T factor, idx_t repI, MAP* rowMap){
+        if (siteI == siteJ) return;
         auto pairRepIf = pt_Basis->getPairRepI(repI);
         idx_t colidx;
         int sign = 1;
@@ -604,7 +636,7 @@ public:
                 return szMat.at(1&(repI>>siteI));
                 break;
             }
-            case LATTICE_MODEL::t_J:{
+            case LATTICE_MODEL::tJ:{
                 pairIndex pairRepI=pt_Basis->getPairRepI(repI);
                 if(bitTest(pairRepI.first,siteI)){
                     return szMat.at(0);
@@ -638,7 +670,7 @@ public:
 
     void szsznn(int siteI, int siteJ, T factor, idx_t repI, MAP* rowMap){
         // for tJ model, szi*szj -1/4*ni*nj
-        assert_msg(smodel==LATTICE_MODEL::t_J,"SpinOperator::szsznn only defined for tJ model");
+        assert_msg(smodel==LATTICE_MODEL::tJ,"SpinOperator::szsznn only defined for tJ model");
         pairIndex pairRepI = pt_Basis->getPairRepI(repI);
         if((bitTest(pairRepI.first,siteI) && bitTest(pairRepI.second,siteJ)) || (bitTest(pairRepI.first,siteJ) && bitTest(pairRepI.second,siteI))){
             #ifdef DISTRIBUTED_BASIS
@@ -663,7 +695,7 @@ public:
                 condition = !bitTest(repI,siteI);
                 break;
             }
-            case LATTICE_MODEL::t_J:{
+            case LATTICE_MODEL::tJ:{
                 pairIndex pairRepI = pt_Basis->getPairRepI(repI);
                 condition = bitTest(pairRepI.first,siteI);
                 break;
@@ -696,7 +728,7 @@ public:
                 condition = bitTest(repI,siteI);
                 break;
             }
-            case LATTICE_MODEL::t_J:{
+            case LATTICE_MODEL::tJ:{
                 pairIndex pairRepI = pt_Basis->getPairRepI(repI);
                 condition = bitTest(pairRepI.second,siteI);
                 break;
@@ -747,7 +779,7 @@ public:
                 }
                 break;
             }
-            case LATTICE_MODEL::t_J:{
+            case LATTICE_MODEL::tJ:{
                 pairIndex pairRepI = pt_Basis->getPairRepI(repI);
                 if (bitTest(pairRepI.first,siteJ) && bitTest(pairRepI.second,siteI)){
                     bitFlip(pairRepI.first,siteI);
