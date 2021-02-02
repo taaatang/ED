@@ -15,14 +15,15 @@
    ***************************
 */
 
-bool Geometry::coordToOrbid(double* coord, int &orbid) const {
+bool Geometry::coordToOrbid(ORBITAL orb, double* coord, int &orbid) const {
     bool cond;
-    for (auto it = enlgOrbs.begin(); it != enlgOrbs.end(); it++){
+    for (const auto& Orb:enlgOrbs){
+        if (Orb.orb != orb) continue;
         cond = true;
         for (int i = 0; i < dim; i++){
-            if(std::abs(coord[i]-(*it).coord[i])>tol) {cond = false; break;}
+            if(std::abs(coord[i]-Orb.coord[i])>tol) {cond = false; break;}
         }
-        if (cond) {orbid = (*it).id; return cond;}
+        if (cond) {orbid = Orb.id; return cond;}
         else{continue;}
     }
     return false;
@@ -55,7 +56,7 @@ void Geometry::genTransList(){
             getOrbR(orbidi,coordi.data());
             vecXAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), dim);
             int orbidf;
-            if (coordToOrbid(coordf.data(), orbidf)){
+            if (coordToOrbid(orbs.at(orbidi).orb, coordf.data(), orbidf)){
                 cdouble tranPhase = 1.0;
                 if(crossBoundx(coordf))tranPhase *= std::exp(-CPLX_I*phase.at(0));
                 if(crossBoundy(coordf))tranPhase *= std::exp(-CPLX_I*phase.at(1));
@@ -105,7 +106,7 @@ bool Geometry::rotate(int orbid, int& orbidf) const {
             break;   
     }
     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
-    return coordToOrbid(coordf.data(), orbidf);
+    return coordToOrbid(orbs.at(orbid).orb, coordf.data(), orbidf);
 }
 
 VecD Geometry::rotate(VecD coordr) const {
@@ -175,7 +176,7 @@ bool Geometry::reflect(int orbid, int& orbidf) const {
             break;   
     }
     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
-    return coordToOrbid(coordf.data(), orbidf);
+    return coordToOrbid(orbs.at(orbid).orb, coordf.data(), orbidf);
 }
 bool Geometry::mirror(int orbid, int& orbidf) const {
     VecD coordi(3), coordr(3), coordrp(3), coordf(3);
@@ -193,7 +194,7 @@ bool Geometry::mirror(int orbid, int& orbidf) const {
             break;   
     }
     vecXAdd(1.0, center.data(), 1.0, coordrp.data(), coordf.data(), dim);
-    return coordToOrbid(coordf.data(), orbidf);
+    return coordToOrbid(orbs.at(orbid).orb, coordf.data(), orbidf);
 }
 void Geometry::genPGList(){
     int PGdeg;

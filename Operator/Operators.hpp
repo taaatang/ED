@@ -977,7 +977,7 @@ SSOp<T>::SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_, int spindim):r(-1),pt
             pt_lattice->getOrbR(i,coordi.data());
             vecXAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), 3);
             int siteJ;
-            if (pt_lattice->coordToOrbid(coordf.data(), siteJ)){
+            if (pt_lattice->coordToOrbid(pt_lattice->getOrb(), coordf.data(), siteJ)){
                 siteJList.at(rIndex).at(i) = siteJ;
             }else{
                 std::cout<<"translation position not found for orbid = "<<i<<", transVecid = "<<rIndex<<std::endl;

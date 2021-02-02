@@ -96,7 +96,7 @@ void Link<T>::genLinkMaps(Geometry* pt_lattice){
                 for (int k = j; k < j+getLinkSize(); k++){
                     vecXAdd(1.0,coordi.data(),1.0,LinkVecs.at(k).data(),coordf.data(),3);
                     int orbidf;
-                    if (pt_lattice->coordToOrbid(coordf.data(), orbidf)){
+                    if (pt_lattice->coordToOrbid(orbList.at(k-j+1), coordf.data(), orbidf)){
                         assert(pt_lattice->getOrb(orbidf) == orbList.at(k-j+1));
                         tmp.push_back(orbidf);
                     }else{
@@ -104,8 +104,10 @@ void Link<T>::genLinkMaps(Geometry* pt_lattice){
                         break;
                     }
                 }
-                if(is_bond)push_back(tmp);
-                LinkVecIdList.push_back(j);
+                if(is_bond){
+                    push_back(tmp);
+                    LinkVecIdList.push_back(j);
+                }
             }
         }   
     }

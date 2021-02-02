@@ -152,7 +152,7 @@ public:
     // return the id' obtained by transform id by r-th Point Group Element
     int getOrbPG(int r, int id) const {return PGList.at(r).at(id);}
     // a1-a2 coord -> orbid
-    bool coordToOrbid(double* coord, int &orbid) const;
+    bool coordToOrbid(ORBITAL orb, double* coord, int &orbid) const;
     // orbital occupancy count
     void orbOCC(VecI& vec, VecI& occ) const {occ = VecI(getUnitOrbNum(),0); for(int i = 0; i < getOrbNum(); i++) if(vec[i]) occ.at(orbs.at(i).id) += 1;};
     void orbOCC(VecI& vecu, VecI& vecd, VecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); i++){if(vecu[i])occ.at(orbs.at(i).orbid) += 1;if(vecd[i])occ.at(orbs.at(i).orbid) += 1;}}
