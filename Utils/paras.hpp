@@ -24,6 +24,10 @@
 template<typename T>
 using map = std::map<std::string,T>;
 
+/**
+ * @brief Parameter class. Handling the input
+ * 
+ */
 class Parameters{
 public:
     Parameters(){}
@@ -94,11 +98,6 @@ std::ostream& operator<<(std::ostream& os, const map<T>& mymap){
     return os;
 }
 
-void setpath(const Parameters&);
-void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
-void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
-void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int nuf, int ndf, int kf, int pf);
-void setham(const Parameters&, OperatorBase<dataType>& H);
-void setmeasure(const Parameters&);
+Orbital stringToOrb(std::string name, int id);
 
 #endif // __PARAS_H__

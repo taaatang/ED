@@ -1,64 +1,34 @@
 #include "paras.hpp"
 
-void setpath(Parameters& para){
-    
-}
-
-void setlatt(Parameters& para, std::unique_ptr<Geometry>& latt){
-    auto lx = para.mapi["lx"];
-    auto ly = para.mapi["ly"];
-    auto lattType = getlatt();
-    bool BC = (maps["boundary condition"] == "periodic");
-    switch (lattType) {
-        case LATTICE::TRIANGULAR:
-            if(ly > 0) {
-                latt = std::unique_ptr<Geometry>(new TriAngLattice(lx, ly, BC));
-            } else {
-                latt = std::unique_ptr<Geometry>(new TriAngLattice(lx, BC));
-            }
-            break;
-        case LATTICE::SQUARE:
-            if(ly > 0) {
-                latt = std::unique_ptr<Geometry>(new SquareLattice(lx, ly, BC));
-            } else {
-                latt = std::unique_ptr<Geometry>(new SquareLattice(lx, BC));
-            }
-            break;
-        default:
-            break;
+Orbital stringToOrb(std::string name, int id) {
+    ORBITAL orb;
+    VecD coord;
+    if (name == "single") {
+        orb = ORBITAL::SINGLE;
+        coord = VecD{0.0, 0.0, 0.0};
+    } else if (name == "dx2y2") {
+        orb = ORBITAL::Dx2y2;
+        coord = VecD{0.0, 0.0, 0.0};
+    } else if (name == "dz2") {
+        orb = ORBITAL::Dz2;
+        coord = VecD{0.0, 0.0, 0.0};
+    } else if (name == "px") {
+        orb = ORBITAL::Px;
+        coord = VecD{0.5, 0.0, 0.0};
+    } else if (name == "py") {
+        orb = ORBITAL::Py;
+        coord = VecD{0.0, 0.5, 0.0};
+    } else if (name == "pzu") {
+        orb = ORBITAL::Pzu;
+        coord = VecD{0.0, 0.0, 0.5};
+    } else if (name == "pzd") {
+        orb = ORBITAL::Pzd;
+        coord = VecD{0.0, 0.0, -0.5};
+    } else {
+        std::cout<<"Orbital: "<<name<<", is not defined!\n"
+        exit(1);
     }
-}
-
-void setbasis(Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt){
-    int kid = mapi["kid"];
-    int pid = mapi["pid"];
-    int nu = mapi["nu"];
-    int nd = mapi["nd"];
-    ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nu,nd}, kid, pid));
-}
-
-void setbasis(Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt, int nuf, int ndf, int kf, int pf) {
-    ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nuf,ndf}, kf, pf));
-}
-
-void setham(Parameters& para, OperatorBase<dataType>& H, Geometry* latt, Basis* B) {
-    LATTICE_MODEL model = para.getmodel();
-    switch (model) {
-        case LATTICE_MODEL::HUBBARD:
-            H = std::unique_ptr<OperatorBase>(new Hamiltonian<HUBBARD,dataType>(latt, B, B, 1, 1));
-            break;
-        case LATTICE_MODEL::tJ:
-            H = std::unique_ptr<OperatorBase>(new Hamiltonian<tJ,dataType>(latt, B, B, 1, 1));
-            break;
-        case LATTICE_MODEL::HEISENBERG:
-            H = std::unique_ptr<OperatorBase>(new Hamiltonian<HEISENBERG,dataType>(latt, B, B, 1, 1));
-            break;
-        default:
-            std::cout<<"Input Lattice Model not defined!\n";
-            exit(1);
-            break;
-    }
-    
+    return Orbital(orb, id, coord);
 }
 
 LATTICE Parameters::getlatt() const {
