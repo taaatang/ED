@@ -26,10 +26,10 @@ public:
     ~Hamiltonian( ) { }
 
     // Add onsite energy V
-    Hamiltonian& pushV(const std::vector<ORBITAL>& orbList, double val);
+    void pushV(const std::vector<ORBITAL>& orbList, double val);
 
     // Add onsite Coulomb interaction U
-    Hamiltonian& pushU(const std::vector<ORBITAL>& orbList, double val);
+    void pushU(const std::vector<ORBITAL>& orbList, double val);
 
     void printV(std::ostream& os) const;
 
@@ -352,7 +352,6 @@ Hamiltonian<MODEL, T>& Hamiltonian<MODEL, T>::pushV(const std::vector<ORBITAL>& 
             V.at(id) = val;
         }
     }
-    return *this;
 }
 
 template <LATTICE_MODEL MODEL, typename T>
@@ -363,7 +362,6 @@ Hamiltonian<MODLE, T>& Hamiltonian<MODEL, T>::pushU(const std::vector<ORBITAL>& 
             U.at(id) = val;
         }
     }
-    return *this;
 }
 
 template <LATTICE_MODEL MODEL, typename T>
