@@ -52,6 +52,7 @@ public:
     VecD getvec(int vecid) const {return LinkVecs.at(vecid);}
     // rep orbital of the link
     ORBITAL getRepOrb() const {return orbList.at(0);}
+    std::vector<ORBITAL> getOrbs() const {return orbList;}
     // number of orbs in one link
     int getLinkSize() const {return orbList.size()-1;}
     // size of LinkVecs
