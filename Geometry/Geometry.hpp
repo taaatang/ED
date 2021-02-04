@@ -112,6 +112,7 @@ public:
     Geometry& addBoundary(Orbital orb) {assert(!is_PBC);boundary.push_back(orb);return *this;}
     // lattice dimension. default is 3
     int getDim() const {return dim;}
+    std::vector<Orbital> getUnitCell() const {return unitSite;}
     // id of an orbital (0~unitCell size - 1)
     VecI getOrbID(ORBITAL orb) const {VecI ids; for(auto it = unitSite.begin(); it != unitSite.end(); it++) if (orb==(*it).orb) ids.push_back((*it).orbid); return ids;}
     // test if the orbital at position id is orb_test
