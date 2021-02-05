@@ -10,7 +10,7 @@
 #ifndef utils_hpp
 #define utils_hpp
 
-#include "../Global/globalPara.hpp"
+#include "Global/globalPara.hpp"
 
 #include <stdio.h>
 #include <random>
@@ -154,15 +154,15 @@ Type combination(Type n, Type k){
 }
 
 // calculate (-1)^# of permutations -> fermion sign
-inline int seqSign(std::vector<int>& seq){
+inline double seqSign(std::vector<int>& seq){
     int counter = 0;
     for(auto it = seq.begin(); it != seq.end(); it++){
         for (auto itp = it + 1; itp != seq.end(); itp++){
             if (*it > *itp) counter++;
         }
     }
-    if (counter%2==0) return 1;
-    return -1;
+    if (counter%2==0) return 1.0;
+    return -1.0;
 }
 
 // Gaussian Pulse

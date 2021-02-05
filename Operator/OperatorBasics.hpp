@@ -1,7 +1,7 @@
 #ifndef __OPERATORBASICS_H__
 #define __OPERATORBASICS_H__
 
-#include "../Basis/Basis.hpp"
+#include "Basis/Basis.hpp"
 
 #include <stdio.h>
 #include <algorithm>
@@ -242,7 +242,7 @@ public:
         case SPIN_UP:
             if(cp(siteI, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
                 if(pt_Basis->search(pairRepIf,colidx)){
-                    T val = factor * sign;
+                    T val = factor * (double)sign;
                     val /= pt_Basis->getNorm(colidx);
                     MapPush(rowMap,colidx,val);
                 }
@@ -254,7 +254,7 @@ public:
                     auto N = pt_Basis->getOrbNum();
                     int count = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))count++;
                     if(count%2==1)sign *= -1;
-                    T val = factor * sign;
+                    T val = factor * (double)sign;
                     val /= pt_Basis->getNorm(colidx);
                     MapPush(rowMap,colidx,val);
                 }
@@ -273,7 +273,7 @@ public:
         case SPIN_UP:
             if(cm(siteI, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
                 if(pt_Basis->search(pairRepIf,colidx)){
-                    T val = factor * sign;
+                    T val = factor * (double)sign;
                     val /= pt_Basis->getNorm(colidx);
                     MapPush(rowMap,colidx,val);
                 }
@@ -285,7 +285,7 @@ public:
                     auto N = pt_Basis->getOrbNum();
                     int count = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))count++;
                     if(count%2==1)sign *= -1;
-                    T val = factor * sign;
+                    T val = factor * (double)sign;
                     val /= pt_Basis->getNorm(colidx);
                     MapPush(rowMap,colidx,val);
                 }
@@ -307,7 +307,7 @@ public:
                     if(pt_Basis->isfMin(pairRepIf.first)) MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
                     #else
                     if (pt_Basis->search(pairRepIf, colidx)){
-                        T val = factor * sign;
+                        T val = factor * (double)sign;
                         double finalNorm = pt_Basis->getNorm(colidx);
                         val /= finalNorm;
                         MapPush(rowMap,colidx,val);
@@ -322,7 +322,7 @@ public:
                     MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
                     #else
                     if (pt_Basis->search(pairRepIf, colidx)){
-                        T val = factor * sign;
+                        T val = factor * (double)sign;
                         double finalNorm = pt_Basis->getNorm(colidx);
                         val /= finalNorm;
                         MapPush(rowMap,colidx,val);
@@ -331,6 +331,8 @@ public:
                 }
                 break;
             }
+            default:
+                break;
         }
     };
 
@@ -432,7 +434,7 @@ public:
                                 MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
                                 #else
                                 if (pt_Basis->search(pairRepIf, colidx)){
-                                    T val = factor * sign;
+                                    T val = factor * (double)sign;
                                     double finalNorm = pt_Basis->getNorm(colidx);
                                     val /= finalNorm;
                                     MapPush(rowMap,colidx,val);
@@ -468,7 +470,7 @@ public:
                         MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
                         #else
                         if (pt_Basis->search(pairRepIf, colidx)){
-                            T val = factor * sign;
+                            T val = factor * (double)sign;
                             double finalNorm = pt_Basis->getNorm(colidx);
                             val /= finalNorm;
                             MapPush(rowMap,colidx,val);
@@ -488,7 +490,7 @@ public:
                         MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
                         #else
                         if (pt_Basis->search(pairRepIf, colidx)){
-                            T val = factor * sign;
+                            T val = factor * (double)sign;
                             double finalNorm = pt_Basis->getNorm(colidx);
                             val /= finalNorm;
                             MapPush(rowMap,colidx,val);
@@ -842,7 +844,7 @@ public:
                     bitFlip(repI,siteJ);
                     bitFlip(repI,siteK);
                     #ifdef DISTRIBUTED_BASIS
-                        T val = factor * sign * getSz(siteI, repI) * spMat[1] * smMat[0];
+                        T val = factor * (double)sign * getSz(siteI, repI) * spMat[1] * smMat[0];
                         MapPush(rowMap,repI,val);
                     #else
                         idx_t colID;

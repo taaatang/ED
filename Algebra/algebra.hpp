@@ -13,7 +13,7 @@
 #define algebra_hpp
 // #include <Eigen/Dense>
 // #include <Eigen/Eigenvalues>
-#include "../Global/globalPara.hpp"
+#include "Global/globalPara.hpp"
 #define _MKL_
 #define MKL_INT idx_t
 #define MKL_Complex16 cdouble

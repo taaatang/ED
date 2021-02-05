@@ -25,14 +25,14 @@ Orbital stringToOrb(std::string name, int id) {
         orb = ORBITAL::Pzd;
         coord = VecD{0.0, 0.0, -0.5};
     } else {
-        std::cout<<"Orbital: "<<name<<", is not defined!\n"
+        std::cout<<"Orbital: "<<name<<", is not defined!\n";
         exit(1);
     }
     return Orbital(orb, id, coord);
 }
 
 LATTICE Parameters::getlatt() const {
-    std::string name = maps["lattice type"];
+    std::string name = maps.at("lattice type");
     if(name == "square") {
         return LATTICE::SQUARE;
     } else if(name == "triangular") {
@@ -44,7 +44,7 @@ LATTICE Parameters::getlatt() const {
 }
 
 LATTICE_MODEL Parameters::getmodel() const {
-    std::string name = maps["model name"];
+    std::string name = maps.at("model name");
     if (name == "Hubbard") {
         return LATTICE_MODEL::HUBBARD;
     } else if (name == "Heisenberg") {

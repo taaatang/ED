@@ -3,10 +3,17 @@ cmake_minimum_required(VERSION 3.10)
 set(HOST $ENV{MY_HOST})
 if(HOST STREQUAL "cori")
     set(CMAKE_CXX_COMPILER CC)
+    set(OPENMP_FLAG -qopenmp)
 elseif(HOST STREQUAL "sherlock" OR HOST STREQUAL "acer")
     set(CMAKE_CXX_COMPILER mpiicpc)
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED True)
+    set(OPENMP_FLAG -qopenmp)
+elseif(HOST STREQUAL "mac")
+    set(CMAKE_CXX_COMPILER /usr/local/bin/g++-10)
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED True)
+    set(OPENMP_FLAG -fopenmp)
 endif()
 
 project(ED VERSION 1.0.0 LANGUAGES CXX)
@@ -18,25 +25,41 @@ set(ARPACKLIB $ENV{ARPACKLIB})
 # MKL library with ilp64 support
 set(MKLROOT $ENV{MKLROOT})
 set(MKLINC ${MKLROOT}/include)
+
+if(HOST STREQUAL "mac")
+    set(MPIINC /usr/local/Cellar/open-mpi/4.0.5/include)
+    set(MPILIB /usr/local/Cellar/open-mpi/4.0.5/lib)
+    set(MPI mpi)
+    set(MKLLIB ${MKLROOT}/lib)
+else()
+    set(MPIINC )
+    set(MPILIB ) 
+    set(MPI )
+    set(MKLLIB ${MKLROOT}/lib/intel64)
+endif()
+
 set(MKL_FLAGS "-DMKL_ILP64")
 add_library(MKL_ilp64 STATIC IMPORTED)
-set_target_properties(MKL_ilp64 PROPERTIES IMPORTED_LOCATION ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a)
+set_target_properties(MKL_ilp64 PROPERTIES IMPORTED_LOCATION ${MKLLIB}/libmkl_intel_ilp64.a)
 add_library(MKL_thread STATIC IMPORTED)
-set_target_properties(MKL_thread PROPERTIES IMPORTED_LOCATION ${MKLROOT}/lib/intel64/libmkl_intel_thread.a)
+set_target_properties(MKL_thread PROPERTIES IMPORTED_LOCATION ${MKLLIB}/libmkl_intel_thread.a)
 add_library(MKL_core STATIC IMPORTED)
-set_target_properties(MKL_core PROPERTIES IMPORTED_LOCATION ${MKLROOT}/lib/intel64/libmkl_core.a) 
-set(MKL -Wl,--start-group MKL_ilp64 MKL_thread MKL_core -Wl,--end-group iomp5 pthread m dl)
+set_target_properties(MKL_core PROPERTIES IMPORTED_LOCATION ${MKLLIB}/libmkl_core.a) 
+# set(MKL -Wl,--start-group MKL_ilp64 MKL_thread MKL_core -Wl,--end-group iomp5 pthread m dl)
+set(MKL MKL_ilp64 MKL_thread MKL_core MKL_ilp64 MKL_thread MKL_core iomp5 pthread m dl)
 
 # Boost
 set(BOOSTROOT $ENV{BOOST_ROOT})
 set(BOOSTLIB $ENV{BOOST_LIB})
 set(BOOST boost_system boost_filesystem)
 
+set(LINKS ${MKL} ${BOOST} parpack ${MPI})
+
 # Compiler Flags
-set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall -qopenmp")
+set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall ${OPENMP_FLAG}")
 # Include/Library Path
-include_directories(${ARPACKINC} ${MKLINC} ${BOOSTROOT})
-link_directories(${ARPACKLIB} ${BOOSTLIB})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${BOOSTROOT} ${MPIINC})
+link_directories(${ARPACKLIB} ${BOOSTLIB} ${MPILIB} /opt/intel/lib)
 
 
 # SRC and Hearder files
@@ -66,16 +89,16 @@ add_executable(genBasis.out ${EXE_SRC}/genBasisMain.cpp ${BASIS_DEP})
 target_link_libraries(genBasis.out ${BOOST})
 
 add_executable(GroundState.out ${EXE_SRC}/GroundStateMain.cpp ${GROUND_STATE_DEP})
-target_link_libraries(GroundState.out ${MKL} ${BOOST} parpack)
+target_link_libraries(GroundState.out ${LINKS})
 
 add_executable(Spectra.out ${EXE_SRC}/SpectraMain.cpp ${SPECTRA_DEP})
-target_link_libraries(Spectra.out ${MKL} ${BOOST} parpack)
+target_link_libraries(Spectra.out ${LINKS})
 
 add_executable(HubbardSpec.out ${EXE_SRC}/HubbardSpecMain.cpp ${SPECTRA_DEP})
-target_link_libraries(HubbardSpec.out ${MKL} ${BOOST} parpack)
+target_link_libraries(HubbardSpec.out ${LINKS})
 
 add_executable(HubbardCond.out ${EXE_SRC}/HubbardCondMain.cpp ${SPECTRA_DEP})
-target_link_libraries(HubbardCond.out ${MKL} ${BOOST} parpack)
+target_link_libraries(HubbardCond.out ${LINKS})
 
 # Test
 set(TEST_SRC Test)

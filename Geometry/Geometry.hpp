@@ -9,8 +9,8 @@
 #ifndef Geometry_hpp
 #define Geometry_hpp
 
-#include "../Global/globalPara.hpp"
-#include "../Utils/utils.hpp"
+#include "Global/globalPara.hpp"
+#include "Utils/utils.hpp"
 #include <stdio.h>
 #include <algorithm>
 #include <vector>

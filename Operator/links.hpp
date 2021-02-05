@@ -2,8 +2,8 @@
 #define __LINKS_H__
 
 #include <vector>
-#include "../Operator/OperatorBasics.hpp"
-#include "../Global/globalPara.hpp"
+#include "Operator/OperatorBasics.hpp"
+#include "Global/globalPara.hpp"
 
 /**********************
  *   SQUARE LATTICE   *

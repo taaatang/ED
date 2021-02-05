@@ -15,11 +15,11 @@
 #include <type_traits>
 #include <assert.h>
 
-#include "../Global/globalPara.hpp"
-#include "../Geometry/Geometry.hpp"
-#include "../Basis/Basis.hpp"
-#include "../Operator/OperatorsBase.hpp"
-#include "../Operator/Operators.hpp"
+#include "Global/globalPara.hpp"
+#include "Geometry/Geometry.hpp"
+#include "Basis/Basis.hpp"
+#include "Operator/OperatorsBase.hpp"
+#include "Operator/Operators.hpp"
 
 template<typename T>
 using map = std::map<std::string,T>;
@@ -46,7 +46,7 @@ public:
     friend void setmeasure(const Parameters&);
 
     LATTICE getlatt() const;
-    LATTICE_MODEL getmodel const();
+    LATTICE_MODEL getmodel() const;
 
 private:
     std::string rootDataPath,project;

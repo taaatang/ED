@@ -28,7 +28,7 @@ public:
         H->setBuf();
     }
     ~SPECTRASolver(){}
-    void compute(){run(vec.data());}
+    void compute(){this->run(vec.data());}
     void saveData(std::string dataPath){
         mkdir_fs(dataPath);
         std::ofstream outfile;

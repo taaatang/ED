@@ -211,7 +211,7 @@ void PARPACKRealSolver<T>::diag(){
     if (workerID==MPI_MASTER) std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" milliseconds"<<std::endl;
     if (workerID==MPI_MASTER) {
         std::cout<<"Eigenvalues: ";
-        for (int i = 0; i < nev; i++) std::cout<<d_pt[i]<<", ";
+        for (int i = 0; i < nev_; i++) std::cout<<d_pt[i]<<", ";
         std::cout<<std::endl;
     }
 }

@@ -1,8 +1,11 @@
-#include "../Global/global.hpp"
-#include "../Utils/paras.hpp"
-#include "../Geometry/Geometry.hpp"
-#include "../Operator/OperatorBasics.hpp"
-#include "../Operator/links.hpp"
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
+
+#include "Global/global.hpp"
+#include "Utils/paras.hpp"
+#include "Geometry/Geometry.hpp"
+#include "Operator/OperatorBasics.hpp"
+#include "Operator/links.hpp"
 #include <memory>
 
 void setpath(const Parameters&);
@@ -142,3 +145,4 @@ void setham(Parameters& para, OperatorBase<dataType>& H, Geometry* latt, Basis* 
 
     }
 }
+#endif // __CONFIG_H__

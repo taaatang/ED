@@ -30,7 +30,7 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
     assert(kIndex<pt_lattice->getSiteNum());
     assert(PGRepIndex<pt_lattice->getPGRepNum());
     switch(model){
-        case LATTICE_MODEL::HUBBARD:
+        case LATTICE_MODEL::HUBBARD: {
             Nocc = occList;
             assert(Nocc.at(0)<=N);
             assert(Nocc.at(1)<=N);
@@ -38,14 +38,16 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
             sDim = combination<idx_t>((idx_t)N, (idx_t)(Nocc[1]));
             totDim = fDim * sDim;
             break;
-        case LATTICE_MODEL::tJ:
+        }
+        case LATTICE_MODEL::tJ: {
             Nocc = occList;
             assert((Nocc.at(0)+Nocc.at(1))<=N);
             fDim = combination<idx_t>((idx_t)N, (idx_t)(Nocc[0]));
             sDim = combination<idx_t>((idx_t)N, (idx_t)(Nocc[1]));
             totDim = fDim * combination<idx_t>((idx_t)(N-Nocc[0]), (idx_t)(Nocc[1]));
             break;
-        case LATTICE_MODEL::HEISENBERG:
+        }
+        case LATTICE_MODEL::HEISENBERG: {
             Sztot = occList.at(0) - occList.at(1);
             Nocc = occList;;
             #ifdef BINARY_REP
@@ -64,7 +66,9 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kIn
                 }
             #endif
             break;
-        default:break;
+        }
+        default:
+            break;
     }
     initMinMaxRep();
     // default full hilbert space

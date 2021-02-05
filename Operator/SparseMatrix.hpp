@@ -8,11 +8,11 @@
 #ifndef SparseMatrix_hpp
 #define SparseMatrix_hpp
 
-#include "../Global/globalPara.hpp"
-#include "../Basis/Basis.hpp"
-#include "../Algebra/algebra.hpp"
-#include "../Utils/utils.hpp"
-#include "../Utils/timer.hpp"
+#include "Global/globalPara.hpp"
+#include "Basis/Basis.hpp"
+#include "Algebra/algebra.hpp"
+#include "Utils/utils.hpp"
+#include "Utils/timer.hpp"
 #include <climits>
 #include "mpi.h"
 #include <omp.h>
@@ -76,7 +76,7 @@ public:
     // local matrix nonzero elements count
     idx_t nzCount() const;    
     // reserve memory for diagonal part
-    void reserveDiag(){for(int i = 0; i < dmNum; i++) diagValList.reserve(get_nloc());}
+    void reserveDiag(){for(int i = 0; i < dmNum; i++) diagValList.reserve(this->get_nloc());}
     // reserve memory for off diagonal part
     void reserve(idx_t sizePerRow, int matID=0);
     // clear memory of sparse matrixes
