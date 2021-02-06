@@ -14,7 +14,7 @@
     ***************
 */
 // initialize
-Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kInd, int PGRepInd, int siteD):\
+Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI occList, int kInd, int PGRepInd, int siteD):\
     model(input_model), pt_lattice(pt_lat),kIndex(kInd),PGRepIndex(PGRepInd),siteDim(siteD){
     /*
      siteDim is the Hilbert space dimension of a single site. usually equals to spin dimension: 2*s+1

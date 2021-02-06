@@ -41,7 +41,7 @@ class Basis{
 public:  
     Basis():model(MODEL), kIndex(-1), PGRepIndex(-1){};
     // occList contains occupation number on each site dimension
-    Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI& occList, int kInd=-1, int PGRepInd = -1, int siteD=2);
+    Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI occList, int kInd=-1, int PGRepInd = -1, int siteD=2);
     ~Basis(){};
 
     LATTICE_MODEL getModel() const {return model;}
