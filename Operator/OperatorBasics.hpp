@@ -39,7 +39,17 @@ public:
         val = val_;
         is_Const = is_Const_;
         is_Ordered = is_Ordered_;
-    };
+    }
+    Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, const std::vector<std::vector<double>>& vecs, bool is_Const_ = true, bool is_Ordered_ = false):timeStep(0), is_timeFunc_set(false){
+        link_type = link_type_;
+        orbList = orbList_;
+        val = val_;
+        is_Const = is_Const_;
+        is_Ordered = is_Ordered_;
+        for (auto& vec : vecs) {
+            addLinkVec(vec);
+        }
+    }
     ~Link(){};
     
     LINK_TYPE getLinkType() const {return link_type;}

@@ -25,10 +25,10 @@ public:
     OperatorBase& pushLink(Link<T> link, int matidx);
     OperatorBase& pushLinks(std::vector<T> links);
     // Add onsite energy V
-    virtual void pushV(const std::vector<ORBITAL>& orbList, double val) { }
+    virtual void pushV(std::vector<ORBITAL> orbList, double val) { }
 
     // Add onsite Coulomb interaction U
-    virtual void pushU(const std::vector<ORBITAL>& orbList, double val) { }
+    virtual void pushU(std::vector<ORBITAL> orbList, double val) { }
 
     virtual void row(idx_t rowID, std::vector<MAP>& rowMaps) = 0;
 protected:

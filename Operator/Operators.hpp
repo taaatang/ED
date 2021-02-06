@@ -26,10 +26,10 @@ public:
     ~Hamiltonian( ) { }
 
     // Add onsite energy V
-    void pushV(const std::vector<ORBITAL>& orbList, double val);
+    void pushV(std::vector<ORBITAL> orbList, double val);
 
     // Add onsite Coulomb interaction U
-    void pushU(const std::vector<ORBITAL>& orbList, double val);
+    void pushU(std::vector<ORBITAL> orbList, double val);
 
     void printV(std::ostream& os) const;
 
@@ -345,7 +345,7 @@ OperatorBase<T>(latt, Bi, Bf, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(
 }
 
 template <LATTICE_MODEL MODEL, typename T>
-void Hamiltonian<MODEL, T>::pushV(const std::vector<ORBITAL>& orbList, double val) {
+void Hamiltonian<MODEL, T>::pushV(std::vector<ORBITAL> orbList, double val) {
     for (const auto& orb : orbList) {
         auto ids = this->latt->getOrbID(orb);
         for (auto& id : ids) {
@@ -355,7 +355,7 @@ void Hamiltonian<MODEL, T>::pushV(const std::vector<ORBITAL>& orbList, double va
 }
 
 template <LATTICE_MODEL MODEL, typename T>
-void Hamiltonian<MODEL, T>::pushU(const std::vector<ORBITAL>& orbList, double val) {
+void Hamiltonian<MODEL, T>::pushU(std::vector<ORBITAL> orbList, double val) {
     for (const auto& orb : orbList) {
         auto ids = this->latt->getOrbID(orb);
         for (auto& id : ids) {
@@ -406,7 +406,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP>& rowMaps) {
                 int siteI = (*bondit).at(0);
                 int siteJ = (*bondit).at(1);
                 assert(siteI!=siteJ);
-                val += (*linkit).getVal()*(bitTest(pairRepI.first,siteI)+bitTest(pairRepI.second,siteI))*(bitTest(pairRepI.first,siteJ)+bitTest(pairRepI.second,siteJ));
+                val += (*linkit).getVal()*(double)(bitTest(pairRepI.first,siteI)+bitTest(pairRepI.second,siteI))*(double)(bitTest(pairRepI.first,siteJ)+bitTest(pairRepI.second,siteJ));
             }
         }
         SparseMatrix<T>::putDiag(val,rowID);

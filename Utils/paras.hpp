@@ -20,6 +20,7 @@
 #include "Basis/Basis.hpp"
 #include "Operator/OperatorsBase.hpp"
 #include "Operator/Operators.hpp"
+#include "Operator/links.hpp"
 
 template<typename T>
 using map = std::map<std::string,T>;
@@ -29,6 +30,12 @@ using map = std::map<std::string,T>;
  * 
  */
 class Parameters{
+    friend void setpath(Parameters&);
+    friend void setlatt(const Parameters&, std::unique_ptr<Geometry>&);
+    friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
+    friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int, int, int, int);
+    friend void setham(const Parameters&, std::unique_ptr<OperatorBase<dataType>>&, Geometry*, Basis*);
+    friend void setmeasure(const Parameters&);
 public:
     Parameters(){}
     Parameters(std::string configFile){config(configFile);}
@@ -37,13 +44,6 @@ public:
     void clear();
     bool read(const std::string& filename);
     void print(std::ostream& os);
-
-    friend void setpath(const Parameters&);
-    friend void setlatt(const Parameters&, std::unique_ptr<Geometry>&);
-    friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
-    friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int, int, int, int);
-    friend void setham(const Parameters&, OperatorBase<dataType>&);
-    friend void setmeasure(const Parameters&);
 
     LATTICE getlatt() const;
     LATTICE_MODEL getmodel() const;
@@ -57,6 +57,14 @@ private:
     map<std::vector<double>> mapvecd;
     map<std::vector<std::vector<double>>> maparrd;
 };
+
+void setpath(Parameters&);
+void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
+void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
+void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int nuf, int ndf, int kf, int pf);
+void setham(const Parameters&, std::unique_ptr<OperatorBase<dataType>>& H, Geometry*, Basis*);
+void setPeierls(OperatorBase<dataType>& H, const std::vector<double>& pol);
+void setmeasure(const Parameters&);
 
 inline void removeComment(std::string& s, char delim){
     std::istringstream ins (s);
