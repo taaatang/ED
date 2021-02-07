@@ -170,8 +170,8 @@ void setlatt(const Parameters& para, std::unique_ptr<Geometry>& latt){
 }
 
 void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt){
-    int kid = para.mapi.at("kid");
-    int pid = para.mapi.at("pid");
+    int kid = para.mapi.at("kidx");
+    int pid = para.mapi.at("pidx");
     int nu = para.mapi.at("nu");
     int nd = para.mapi.at("nd");
     ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nu,nd}, kid, pid));
@@ -222,10 +222,9 @@ void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, 
                 orbids.push_back(ids.at(0));
             }
             if (!validLink) {
-                break;
+                continue;
             }
             assert(orbids.size()==2 and orbids[0]!=orbids[1]);
-
             const std::vector<std::vector<double>>* arrdPtr = nullptr;
             switch (link.getLinkType()) {
                 case LINK_TYPE::HOPPING_T:
@@ -242,7 +241,6 @@ void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, 
                     break;
                 default:
                     break;
-
             }
             if (arrdPtr) {
                 auto val = arrdPtr->at(orbids[0]).at(orbids[1]);

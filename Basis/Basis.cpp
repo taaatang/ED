@@ -273,6 +273,11 @@ void Basis::gen(std::string basisfile, std::string normfile, int workerID, int w
     assert(normList.size()==indexList.size());
 }
 
+void Basis::print(std::ostream& os) const {
+    os<<"Basis Info:\n"<<model<<"\nkid:"<<kIndex<<". pid:"<<PGRepIndex<<"\n";
+    os<<"tot/sub/loc dim:"<<totDim<<" / "<<subDim<<" / "<<locDim<<"\n";
+}
+
 void Basis::saveBasis(std::string basisfile, bool is_app) {
     std::ofstream outfile;
     idx_t *d_pt = indexList.data();

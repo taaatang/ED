@@ -13,6 +13,7 @@ Parameters para(configFile);
 std::unique_ptr<Geometry> latt;
 std::unique_ptr<Basis> Bi;
 std::unique_ptr<Basis> Bf;
+std::unique_ptr<OperatorBase<dataType>> H;
 
 
 #endif // __CONFIG_H__

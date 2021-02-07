@@ -24,6 +24,7 @@ public:
     
     OperatorBase& pushLink(Link<T> link, int matidx);
     OperatorBase& pushLinks(std::vector<T> links);
+    void printLinks() const;
     // Add onsite energy V
     virtual void pushV(std::vector<ORBITAL> orbList, double val) { }
 
@@ -43,9 +44,11 @@ protected:
 template<typename T>
 OperatorBase<T>::OperatorBase (Geometry *latt, Basis *Bi, Basis *Bf, int spmNum_, int dmNum_) :\
  FermionOperator<T>(Bi), SpinOperator<T>(Bi), SparseMatrix<T>(Bi, Bf, Bf->getSubDim(), spmNum_, dmNum_){
+    this->Bi = Bi;
+    this->Bf = Bf;
     this->latt = latt;
     this->model = Bi->getModel();
-    assert(model == MODEL && Bi->getModel() == Bf->getModel());
+    assert(Bi->getModel() == Bf->getModel());
 }
 
 template<typename T>
@@ -55,6 +58,16 @@ OperatorBase<T>& OperatorBase<T>::pushLink(Link<T> link, int matID){
     Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(latt); 
     linkCount++;
     return *this;
+}
+
+template<typename T>
+void OperatorBase<T>::printLinks( ) const {
+    for (const auto& link:Links) {
+        link.print();
+    }
+    for (const auto& link:NCLinks) {
+        link.print();
+    }
 }
 
 template<typename T>

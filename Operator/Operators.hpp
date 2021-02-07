@@ -393,7 +393,7 @@ double Hamiltonian<MODEL, T>::diagVal(const VecI& occ, const VecI& docc) const {
 
 template <LATTICE_MODEL MODEL, typename T>
 void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP>& rowMaps) {
-    if constexpr (MODEL == LATTICE_MODEL::HUBBARD){
+    if constexpr (MODEL == LATTICE_MODEL::HUBBARD) {
         // diagonal part. occupancy and double-occ
         VecI occ, docc;
         idx_t repI = this->Bf->getRepI(rowID);

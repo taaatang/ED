@@ -19,7 +19,7 @@ Link<dataType> tdpx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px}, -1.0, {
 Link<dataType> tdpy(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Py}, 1.0, {{0.0,0.5,0.0}});
 Link<dataType> tpxd(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Dx2y2}, 1.0, {{0.5,0.0,0.0}});
 Link<dataType> tpxpy(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Py}, -1.0, {{0.5,0.5,0.0}});
-Link<dataType> tpypx(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Px}, -1.0, {{0.5,0.5,0.5}});
+Link<dataType> tpypx(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Px}, -1.0, {{0.5,0.5,0.0}});
 Link<dataType> tpxpyp(LINK_TYPE::HOPPING_T, {ORBITAL::Px, ORBITAL::Py}, 1.0, {{0.5,-0.5,0.0}});
 Link<dataType> tpypxp(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Px}, 1.0, {{0.5,-0.5,0.0}});
 Link<dataType> tpyd(LINK_TYPE::HOPPING_T, {ORBITAL::Py, ORBITAL::Dx2y2}, -1.0, {{0.0,0.5,0.0}});

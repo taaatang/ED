@@ -275,6 +275,10 @@ inline void vConjDotv(T1* vconj, T2* v, cdouble* result, idx_t size){
     MPI_Allreduce(&partResult, result, 1, MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
 }
 
+/*******
+ * MPI *
+ *******/
+
 /* MPI send */
 inline void MPI_Send(int* buf, int count, int dest){
     MPI_Send(buf,count,MPI_INT,dest,0,MPI_COMM_WORLD);
@@ -354,6 +358,25 @@ inline void MPI_Alltoallv(cdouble *sendBuff,int *sendCounts,int *sdispls,cdouble
     * I/O *
     *******
 */
+
+inline std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model) {
+    switch (model) {
+        case LATTICE_MODEL::HUBBARD:
+            os<<"HUBBARD Model";
+            break;
+        case LATTICE_MODEL::tJ:
+            os<<"tJ Model";
+            break;
+        case LATTICE_MODEL::HEISENBERG:
+            os<<"HEISENBERG Model";
+            break;
+        default:
+            os<<"UNDEFINED Model";
+            break;
+    }
+    return os;
+}
+
 #ifdef CPP_17
 inline void mkdir_fs(std::string dir){
      bool succeed = std::filesystem::create_directories(dir);

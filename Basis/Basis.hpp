@@ -9,9 +9,9 @@
 #ifndef Basis_hpp
 #define Basis_hpp
 
-#include "../Global/globalPara.hpp"
-#include "../Geometry/Geometry.hpp"
-#include "../Utils/utils.hpp"
+#include "Global/globalPara.hpp"
+#include "Geometry/Geometry.hpp"
+#include "Utils/utils.hpp"
 
 #include <stdio.h>
 #include <algorithm>
@@ -39,7 +39,7 @@ class Basis{
         pairRepI = (fIndexList[fidx], sIndexList[sidx])
 */
 public:  
-    Basis():model(MODEL), kIndex(-1), PGRepIndex(-1){};
+    Basis():model(LATTICE_MODEL::HUBBARD), kIndex(-1), PGRepIndex(-1){};
     // occList contains occupation number on each site dimension
     Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI occList, int kInd=-1, int PGRepInd = -1, int siteD=2);
     ~Basis(){};
@@ -134,6 +134,7 @@ public:
     double minNorm(idx_t repI) const;
     
     // I/O
+    void print(std::ostream& os = std::cout) const;
     void saveBasis(std::string basisfile, bool is_app=false);
     void saveBasis(std::string basisfile, std::string normfile, bool is_app=false);
 

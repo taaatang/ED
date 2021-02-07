@@ -35,7 +35,7 @@ int main(int argc, const char * argv[]) {
     Timer timer;
     a_int nev = 3;
     int N, Nx=2, Ny=2, Nu=2, Nd=2;
-    int kIndex = 3; // 0 is Gamma Point
+    int kIndex = 0; // 0 is Gamma Point
     int PGRepIndex = -1;
     int rowPerThread = 1;
     int rowCount = 50;
