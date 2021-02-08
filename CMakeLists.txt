@@ -67,13 +67,13 @@ endif()
 
 
 # SRC and Hearder files
-set(GLOBAL_PARA "Global/globalPara.hpp")
-set(UTILS "Utils/utils.cpp" "Utils/utils.hpp" "Utils/timer.hpp")
+set(GLOBAL_PARA "Global/globalType.hpp" "Global/globalPara.hpp" "Global/config.hpp")
+set(UTILS "Utils/utils.cpp" "Utils/paras.cpp" "Utils/utils.hpp" "Utils/timer.hpp" "Utils/paras.hpp")
 set(PULSE "Pulse/pulse.cpp" "Pulse/pulse.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp")
 set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp")
 set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
-set(OPERATOR "Operator/OperatorsBase.hpp" "Operator/Operators.cpp" "Operator/Operators.hpp" "Operator/SparseMatrix.hpp")
+set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/OperatorBasics.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
 
 set(ARPACK "Solver/PARPACKSolver.hpp")
 set(LANCZOS "Solver/LANCZOSIterator.hpp")
@@ -88,6 +88,9 @@ set(TIME_DEP ${GROUND_STATE_DEP} ${TIME} ${PULSE})
 
 # Excutables
 set(EXE_SRC ExcutableSRC)
+
+add_executable(main.out ${EXE_SRC}/main.cpp ${TIME_DEP})
+target_link_libraries(main.out ${LINKS} gsl gslcblas)
 
 add_executable(genBasis.out ${EXE_SRC}/genBasisMain.cpp ${BASIS_DEP})
 target_link_libraries(genBasis.out ${BOOST})
