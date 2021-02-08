@@ -2,6 +2,7 @@
 #include "Utils/paras.hpp"
 #include "Global/config.hpp"
 #include "Solver/PARPACKSolver.hpp"
+#include "Solver/TimeEvolver.hpp"
 
 using namespace std;
 
@@ -19,8 +20,7 @@ int main(){
     Bi->gen();
     setham(para, H, latt.get(), Bi.get());
     H->printLinks();
-    H->genMatPara();
-
+    H->construct();
     // if (workerID == MPI_MASTER) {
     //     latt->print();
     //     Bi->print();
@@ -28,6 +28,27 @@ int main(){
     cout<<setprecision(10);
     PARPACKComplexSolver<double> PDiag(H.get(), 1);
     PDiag.diag();
+    cdouble* gstate = PDiag.getEigvec();
+
+    setpulse(pulsePara, pulse);
+    H->setPeierls(&pulse);
+    H->construct();
+    TimeEvolver<cdouble> Tevol(gstate, H.get(), 15);
+    Nocc occ(latt.get(), Bi.get()); 
+    occ.genMat();
+    int tstep = 0;
+    while (H->next()) {
+        Tevol.evolve(-0.01);
+        if(tstep%150==0){
+            if(workerID==MPI_MASTER) std::cout<<"\ntime step: "<<tstep<<"\n"\
+                        <<"d:"<<occ.count(ORBITAL::Dx2y2,Tevol.getVec())<<"\n"\
+                        <<"px:"<<occ.count(ORBITAL::Px,Tevol.getVec())<<"\n"\
+                        <<"py:"<<occ.count(ORBITAL::Py,Tevol.getVec())<<"\n"\
+                        <<"pzu:"<<occ.count(ORBITAL::Pzu,Tevol.getVec())<<"\n"\
+                        <<"pzd:"<<occ.count(ORBITAL::Pzd,Tevol.getVec())<<"\n";
+        }
+        ++tstep;
+    }
     MPI_Finalize();
     return 0;
 }

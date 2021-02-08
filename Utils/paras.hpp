@@ -36,9 +36,11 @@ class Parameters{
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int, int, int, int);
     friend void setham(const Parameters&, std::unique_ptr<OperatorBase<dataType>>&, Geometry*, Basis*);
     friend void setmeasure(const Parameters&);
+    friend void setpulse(const Parameters&, Pulse&);
 public:
     Parameters(){}
     Parameters(std::string configFile){config(configFile);}
+    Parameters(std::string InputDir, std::vector<std::string> files);
     ~Parameters(){};
     void config(std::string configFile);
     void clear();
@@ -63,8 +65,10 @@ void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int nuf, int ndf, int kf, int pf);
 void setham(const Parameters&, std::unique_ptr<OperatorBase<dataType>>& H, Geometry*, Basis*);
-void setPeierls(OperatorBase<dataType>& H, const std::vector<double>& pol);
 void setmeasure(const Parameters&);
+void setpulse(const Parameters&, Pulse&);
+
+void setPeierls(OperatorBase<dataType>& H, const std::vector<double>& pol);
 
 inline void removeComment(std::string& s, char delim){
     std::istringstream ins (s);
@@ -89,7 +93,7 @@ template<typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& myvec){
     if(!std::is_same<T,std::vector<double>>::value)os<<"\n";
     if(std::is_floating_point<T>::value)os<<std::setprecision(2)<<std::fixed;
-    for(int i=0;i<myvec.size()-1;i++){
+    for(int i=0;i<myvec.size()-1;++i){
         os<<myvec.at(i);
         if(!std::is_same<T,std::vector<double>>::value)os<<", ";
     }

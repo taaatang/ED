@@ -43,6 +43,12 @@ LATTICE Parameters::getlatt() const {
     }
 }
 
+Parameters::Parameters(std::string inputDir, std::vector<std::string> files) {
+    for(auto const& file:files){
+        if(!read(inputDir+"/"+file)){std::cout<<"Parameters read err.\n";exit(1);}
+    }
+}
+
 LATTICE_MODEL Parameters::getmodel() const {
     std::string name = maps.at("model name");
     if (name == "Hubbard") {
@@ -256,6 +262,16 @@ void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, 
     }
 }
 
-void setPeierls(OperatorBase<dataType>& H, const std::vector<double>& pol) {
-
+void setpulse(const Parameters& para, Pulse& pulse) {
+    auto freq = para.mapd.at("frequency");
+    auto phase = para.mapd.at("phase");
+    auto dt = para.mapd.at("dt");
+    auto numSteps = para.mapi.at("numSteps");
+    auto width = para.mapd.at("width");
+    auto fluence = para.mapd.at("fluence");
+    auto pol = para.mapvecd.at("polarization");
+    pulse = Pulse(freq, width, dt, numSteps);
+    pulse.setFuncPara();
+    pulse.setPol(pol);
+    pulse.setFluence(fluence);
 }

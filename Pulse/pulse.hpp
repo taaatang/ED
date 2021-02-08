@@ -9,10 +9,12 @@
 #ifndef pulse_hpp
 #define pulse_hpp
 
-#include "../Global/globalPara.hpp"
-#include "../Utils/utils.hpp"
 #include <gsl/gsl_integration.h>
 #include <cmath>
+#include <iostream>
+
+#include "Global/globalPara.hpp"
+#include "Utils/utils.hpp"
 
 double GaussPulse(double t, void* params);
 
@@ -26,36 +28,43 @@ class Pulse{
           tu = hbar/eV, Lu = c*tu, Eu = eV/e/Lu
 */
 public:
-    Pulse(double w_/*eV*/, double width = 10.0/*fs*/, double dt_ = 0.01/*tu*/, int numSteps_ = 15000);
+    Pulse(double w_ = 0.0/*eV*/, double width = 10.0/*fs*/, double dt_ = 0.01/*tu*/, int numSteps_ = 15000);
     ~Pulse(){};
 
     double getE(int stepIdx) const;
-    double getFluence() const {return Fluence;}
-    double computeFluence() const;
-    double getA() const;
-    double getAa() const {return a*getA();} // return A*a
+    double getFluence( ) const { return Fluence; }
+    double computeFluence( ) const;
+    double getA( ) const;
+    double getAa( ) const { return a*getA(); } // return A*a
+    VecD getPol( ) const { return pol; }
 
-    void setE0(double E0){params.at(0)=E0;}
-    void setWidth(double width){params.at(1)=width*std::sqrt(2);}
-    void setW(double w){params.at(2)=w;}
-    void setPhase(double phase){params.at(3)=phase;}
+    void setE0(double E0) { params.at(0)=E0; }
+    void setWidth(double width) { params.at(1)=width*std::sqrt(2); }
+    void setW(double w) { params.at(2)=w; }
+    void setPhase(double phase) { params.at(3)=phase; }
     void setFluence(double Flu /* mJ/cm^2 */);
+    void setPol(VecD pol) { this->pol = pol;}
+    void setFuncPara( );
 
-    void seta(double a_/*nm*/){a = a_/Lu;}
+    void seta(double a_/*nm*/) { a = a_/Lu; }
 
-    void print() const;
+    bool next( ) { ++count; t += dt; return count<numSteps;}
+
+    void print(std::ostream& os = std::cout) const;
 
 private:
     mutable double E, A;
 
     double Eu, Au; // electric field unit
-    std::vector<double> params; // params = {E0, sigma, w, phase}, sigma = sqrt(2)*width, where I(width) = I(0)/e
+    VecD pol; // polarization in x-y-z coordinates
+    VecD params; // params = {E0, sigma, w, phase}, sigma = sqrt(2)*width, where I(width) = I(0)/e
     double Fluence;
 
     double Lu, a;
 
     double dt;
-    int numSteps;
+    int count{0};
+    int numSteps{0};
     double tu; // time unit: hbar/eV, fs
     double ti,tc,tf; 
     mutable double t;

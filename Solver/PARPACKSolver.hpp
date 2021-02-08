@@ -211,7 +211,7 @@ void PARPACKRealSolver<T>::diag(){
     if (workerID==MPI_MASTER) std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" milliseconds"<<std::endl;
     if (workerID==MPI_MASTER) {
         std::cout<<"Eigenvalues: ";
-        for (int i = 0; i < nev_; i++) std::cout<<d_pt[i]<<", ";
+        for (int i = 0; i < nev_; ++i) std::cout<<d_pt[i]<<", ";
         std::cout<<std::endl;
     }
 }
@@ -293,7 +293,7 @@ template <class T>
 void PARPACKComplexSolver<T>::setStartVec(std::complex<T>* vec){
     info_ = 1;
     #pragma omp parallel for
-    for (idx_t i = 0; i < nloc_; i++){
+    for (idx_t i = 0; i < nloc_; ++i){
         resid_pt[i] = vec[i];
     }
 }
@@ -353,7 +353,7 @@ void PARPACKComplexSolver<T>::run(std::complex<T>* states, int statesNum, double
                   V_pt, ldv_, iparam_.data(), ipntr_.data(), workd_pt,
                   workl_pt, lworkl_, rwork_pt, info_);
     M_->MxV(&(workd_pt[ipntr_[0] - 1]), &(workd_pt[ipntr_[1] - 1]));
-    for (int i = 0; i < statesNum; i++){
+    for (int i = 0; i < statesNum; ++i){
         cdouble overlap;
         vConjDotv(states+i*nloc_, &(workd_pt[ipntr_[0]-1], overlap, nloc_));
         saxpy(&(workd_pt[ipntr_[1] - 1]), overlap*penalty, states+i*nloc_, nloc_);
@@ -416,7 +416,7 @@ void PARPACKComplexSolver<T>::diag(){
     if (workerID==MPI_MASTER) std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" milliseconds"<<std::endl;
     if (workerID==MPI_MASTER) {
         std::cout<<"Eigenvalues: ";
-        for (int i = 0; i < nev_; i++) std::cout<<d_pt[i]<<", ";
+        for (int i = 0; i < nev_; ++i) std::cout<<d_pt[i]<<", ";
         std::cout<<std::endl;
     }
 }
@@ -438,7 +438,7 @@ void PARPACKComplexSolver<T>::diag(double spin, SSOp<std::complex<T>>* SS){
     if (workerID==MPI_MASTER) std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" milliseconds"<<std::endl;
     if (workerID==MPI_MASTER) {
         std::cout<<"Eigenvalues: ";
-        for (int i = 0; i < nev_; i++) std::cout<<d_pt[i]<<", ";
+        for (int i = 0; i < nev_; ++i) std::cout<<d_pt[i]<<", ";
         std::cout<<std::endl;
     }
 }

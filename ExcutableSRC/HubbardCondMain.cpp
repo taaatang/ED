@@ -144,9 +144,9 @@ int main(int argc, const char * argv[]) {
             H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
             if(workerID==MPI_MASTER) std::cout<<"begin H gen..."<<std::endl;
             #ifdef DISTRIBUTED_BASIS
-                H.genMatPara(rowCount,rowPerIt);
+                H.construct(rowCount,rowPerIt);
             #else
-                H.genMatPara();
+                H.construct();
             #endif
             timer.tok();
 
@@ -191,9 +191,9 @@ int main(int argc, const char * argv[]) {
                  exit(1);
              }
             #ifdef DISTRIBUTED_BASIS
-                J.genMatPara(rowCount, rowPerIt);
+                J.construct(rowCount, rowPerIt);
             #else
-                J.genMatPara();
+                J.construct();
             #endif
 
             int krylovDim=400;

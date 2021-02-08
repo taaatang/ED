@@ -70,12 +70,16 @@ public:
     // is this a const link or time dependent link
     bool isConst() const {return is_Const;}
     bool isOrdered() const {return is_Ordered;}
+    void setConst(bool cond) {is_Const = cond;}
+    void setOrdered(bool cond) {is_Ordered = cond;}
     // begin/end iterator for LinkList
     std::vector<VecI>::iterator begin() {return LinkList.begin();}
     std::vector<VecI>::iterator end() {return LinkList.end();}
+    const std::vector<VecI>& bond() const {return LinkList;}
 
     void setVal(T val_){val = val_;}
-    void setid(int linkid_, int matid_=0){linkid = linkid_; matid = matid_;}
+    void setid(int linkid_, int matid_ = 0){linkid = linkid_; matid = matid_;}
+    void setmatid(int matid_ = 0) { matid = matid_;}
     // set time evolve function for val
     void setTimeFunc(T (*timeFunc_)(int)){timeFunc = timeFunc_; is_timeFunc_set = true;}
     void setVal(){
@@ -168,7 +172,7 @@ public:
                 if(!bitTest(repI,siteI)){
                     bitFlip(repIf,siteI);
                     int counter = 0;
-                    for(int i = 0; i < siteI; i++)if(bitTest(repI,i))counter++;
+                    for(int i = 0; i < siteI; ++i)if(bitTest(repI,i))counter++;
                     sign = (counter%2==0)?1:-1;
                     return true;
                 }
@@ -185,7 +189,7 @@ public:
                 if(bitTest(repI,siteI)){
                     bitFlip(repIf,siteI);
                     int counter = 0;
-                    for(int i = 0; i < siteI; i++)if(bitTest(repI,i))counter++;
+                    for(int i = 0; i < siteI; ++i)if(bitTest(repI,i))counter++;
                     sign = (counter%2==0)?1:-1;
                     return true;
                 }
@@ -210,9 +214,9 @@ public:
                         bitFlip(repIf,siteJ);
                         int counter = 0;
                         if (siteI < siteJ) {
-                            for (int i = siteI + 1; i < siteJ; i++) if (bitTest(repI,i)) counter++;
+                            for (int i = siteI + 1; i < siteJ; ++i) if (bitTest(repI,i)) counter++;
                         }else{
-                            for (int i = siteJ + 1; i < siteI; i++) if (bitTest(repI,i)) counter++;
+                            for (int i = siteJ + 1; i < siteI; ++i) if (bitTest(repI,i)) counter++;
                         }
                         if (counter%2==0) sign = 1;
                         else sign = -1;
@@ -228,9 +232,9 @@ public:
                         bitFlip(repIf,siteJ);
                         int counter = 0;
                         if (siteI < siteJ) {
-                            for (int i = siteI + 1; i < siteJ; i++) {if (bitTest(repI,i)) counter++; else if (bitTest(repIp,i)) counter++;}
+                            for (int i = siteI + 1; i < siteJ; ++i) {if (bitTest(repI,i)) counter++; else if (bitTest(repIp,i)) counter++;}
                         }else{
-                            for (int i = siteJ + 1; i < siteI; i++) {if (bitTest(repI,i)) counter++; else if (bitTest(repIp,i)) counter++;}
+                            for (int i = siteJ + 1; i < siteI; ++i) {if (bitTest(repI,i)) counter++; else if (bitTest(repIp,i)) counter++;}
                         }
                         if (counter%2==0) sign = 1;
                         else sign = -1;
@@ -353,7 +357,7 @@ public:
                     if(!bitTest(pairRepI.first,siteI)){
                         bitFlip(pairRepI.first,siteI);
                         int counter = 0;
-                        for(int i = 0; i < siteI; i++)if(bitTest(pairRepI.first,i))counter++;
+                        for(int i = 0; i < siteI; ++i)if(bitTest(pairRepI.first,i))counter++;
                         int tmp = (counter%2==0)?1:-1;
                         sign *= tmp;
                         return true;
@@ -363,7 +367,7 @@ public:
                         auto N = pt_Basis->getOrbNum();
                         int counter = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))counter++;
                         bitFlip(pairRepI.second,siteI);
-                        for(int i = 0; i < siteI; i++)if(bitTest(pairRepI.second,i))counter++;
+                        for(int i = 0; i < siteI; ++i)if(bitTest(pairRepI.second,i))counter++;
                         int tmp = (counter%2==0)?1:-1;
                         sign *= tmp;
                         return true;
@@ -383,7 +387,7 @@ public:
                     if(bitTest(pairRepI.first,siteI)){
                         bitFlip(pairRepI.first,siteI);
                         int counter = 0;
-                        for(int i = 0; i < siteI; i++)if(bitTest(pairRepI.first,i))counter++;
+                        for(int i = 0; i < siteI; ++i)if(bitTest(pairRepI.first,i))counter++;
                         int tmp = (counter%2==0)?1:-1;
                         sign *= tmp;
                         return true;
@@ -393,7 +397,7 @@ public:
                         auto N = pt_Basis->getOrbNum();
                         int counter = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))counter++;
                         bitFlip(pairRepI.second,siteI);
-                        for(int i = 0; i < siteI; i++)if(bitTest(pairRepI.second,i))counter++;
+                        for(int i = 0; i < siteI; ++i)if(bitTest(pairRepI.second,i))counter++;
                         int tmp = (counter%2==0)?1:-1;
                         sign *= tmp;
                         return true;
@@ -537,7 +541,7 @@ public:
     SpinOperator(Basis* pt_Ba):pt_Basis(pt_Ba),smodel(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()){
         double s = (double)(spinDim - 1)/2.0;
         double m = s;
-        for (int i = 0; i < spinDim; i++){
+        for (int i = 0; i < spinDim; ++i){
             szMat.push_back(m);
             spMat.push_back(std::sqrt(s*(s+1.0)-m*(m+1.0)));
             smMat.push_back(std::sqrt(s*(s+1.0)-m*(m-1.0)));

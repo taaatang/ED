@@ -1,6 +1,0 @@
-frequency:d:1.5
-sigma:d:-1.0
-duration:d:-1.0
-fluence:d:2.0
-polarization:vecd:
-0.0, 0.0, 1.0

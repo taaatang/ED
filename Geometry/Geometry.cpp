@@ -20,7 +20,7 @@ bool Geometry::coordToOrbid(ORBITAL orb, double* coord, int &orbid) const {
     for (const auto& Orb:enlgOrbs){
         if (Orb.orb != orb) continue;
         cond = true;
-        for (int i = 0; i < dim; i++){
+        for (int i = 0; i < dim; ++i){
             if(std::abs(coord[i]-Orb.coord[i])>tol) {cond = false; break;}
         }
         if (cond) {orbid = Orb.id; return cond;}
@@ -52,7 +52,7 @@ void Geometry::genTransList(){
         tmp.clear();
         phasetmp.clear();
         getSiteR(r,coordr.data());
-        for(int orbidi = 0; orbidi < getOrbNum(); orbidi++){
+        for(int orbidi = 0; orbidi < getOrbNum(); ++orbidi){
             getOrbR(orbidi,coordi.data());
             vecXAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), dim);
             int orbidf;
@@ -259,7 +259,7 @@ void Geometry::genPGList(){
         case PointGroup::D3: case PointGroup::D4: case PointGroup::D6:
             for(orbid = 0; orbid < getOrbNum(); orbid++) PGList.at(0).push_back(orbid);    
             // rotation
-            for(int i = 1; i < PGdeg/2; i++){
+            for(int i = 1; i < PGdeg/2; ++i){
                 for(int j = 0; j < getOrbNum(); j++){
                     orbid = PGList.at(i-1).at(j);
                     if(rotate(orbid,orbidf)) PGList.at(i).push_back(orbidf);
@@ -267,7 +267,7 @@ void Geometry::genPGList(){
                 }
             }
             // reflection
-            for(int i = PGdeg/2; i < PGdeg; i++){
+            for(int i = PGdeg/2; i < PGdeg; ++i){
                 for(int j = 0; j < getOrbNum(); j++){
                     orbid = PGList.at(i-PGdeg/2).at(j);
                     if(reflect(orbid,orbidf)) PGList.at(i).push_back(orbidf);
@@ -314,7 +314,7 @@ void Geometry::construct(){
     for (int siteid = 0; siteid < getSiteNum(); siteid++){
         vecXAdd(xlist.at(siteid), a1.data(), ylist.at(siteid), a2.data(), zlist.at(siteid), a3.data(), vsite.data(), getDim());
         Lattice.push_back(Site{siteid, vsite});
-        for (int i = 0; i < unitSite.size(); i++){
+        for (int i = 0; i < unitSite.size(); ++i){
             vecXAdd(1.0, vsite.data(), 1.0, unitSite.at(i).coord.data(), vorb.data(), getDim());
             orbs.push_back(Orbital{unitSite.at(i).orb,unitSite.at(i).orbid,vorb});
             orbs.at(id).siteid = siteid;
@@ -384,7 +384,7 @@ void Geometry::printTrans() const {
     std::cout<<"TransList:"<<std::endl;
     for (int r = 0; r < Nsite; r++){
         std::cout<<"r("<<r<<"):"<<std::endl;
-        for (int i = 0; i < Norb; i++){
+        for (int i = 0; i < Norb; ++i){
             std::cout<<getOrbTran(r,i)<<" "<<"phase:"<<getOrbTranPhase(r,i)<<" ";
         }
         std::cout<<std::endl;
@@ -395,7 +395,7 @@ void Geometry::printPG() const {
     std::cout<<"Point Group Transformation List:"<<std::endl;
     for (int r = 0; r < PGList.size(); r++){
         std::cout<<"PG("<<r<<"):"<<std::endl;
-        for (int i = 0; i < PGList[r].size(); i++){
+        for (int i = 0; i < PGList[r].size(); ++i){
             std::cout<<getOrbPG(r,i)<<" ";
         }
         std::cout<<std::endl;
@@ -581,7 +581,7 @@ SquareLattice::SquareLattice(int N1, int N2, bool PBC, bool TBC, double phase_x,
     name = "Square"+std::to_string(N1)+"x"+std::to_string(N2);
     ax = VecD {1.0, 0.0, 0.0};
     ay = VecD {0.0, 1.0, 0.0};
-    az = VecD {0.0, 0.0, 1.0};
+    az = VecD {0.0, 0.0, 2.429/1.89};
     bx = VecD {2*PI, 0.0, 0.0};
     by = VecD {0.0, 2*PI, 0.0};
     bz = VecD {0.0, 0.0, 2*PI};
@@ -631,7 +631,7 @@ SquareLattice::SquareLattice(int N, bool PBC){
     name = "Square"+std::to_string(N);
     ax = VecD {1.0, 0.0, 0.0};
     ay = VecD {0.0, 1.0, 0.0};
-    az = VecD {0.0, 0.0, 1.0};
+    az = VecD {0.0, 0.0, 2.429/1.89};
     bx = VecD {2*PI, 0.0, 0.0};
     by = VecD {0.0, 2*PI, 0.0};
     bz = VecD {0.0, 0.0, 2*PI};

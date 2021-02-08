@@ -89,7 +89,7 @@ int main() {
     printf( "   ALPHA = %4.1f  BETA = %4.1f    \n", alpha, beta );
     printf( "   SPARSE_OPERATION_NON_TRANSPOSE \n" );
     printf( "   Input vector                   \n" );
-    for ( i = 0; i < N; i++ )
+    for ( i = 0; i < N; ++i )
     {
         printf( "%7.1f\n", x[i] );
     };
@@ -125,7 +125,7 @@ int main() {
     printf( "   OUTPUT DATA FOR mkl_sparse_d_mv \n" );
 
     // y should be equal { -16.0, 23.0, 32.0, 26.0, 35.0 }
-    for ( i = 0; i < N; i++ )
+    for ( i = 0; i < N; ++i )
     {
         printf( "%7.1f\n", y[i] );
     };

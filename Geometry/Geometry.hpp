@@ -120,11 +120,11 @@ public:
     // return the orbital at position id
     ORBITAL getOrb(int id) const {return orbs.at(id).orb;}
     // return the siteid unitcell coord
-    void getSiteR(int siteid, double* r) const {for (int i = 0; i < dim; i++) r[i] = Lattice.at(siteid).coord[i];}
+    void getSiteR(int siteid, double* r) const {for (int i = 0; i < dim; ++i) r[i] = Lattice.at(siteid).coord[i];}
     // return the id orbital coord
-    void getOrbR(int id, double* r) const {for (int i = 0; i < dim; i++) r[i] = orbs.at(id).coord[i];}
+    void getOrbR(int id, double* r) const {for (int i = 0; i < dim; ++i) r[i] = orbs.at(id).coord[i];}
     // return the kid site coord
-    void getK(int kid, double* k) const {for (int i = 0; i < dim; i++) k[i] = KLattice.at(kid).coord[i];}
+    void getK(int kid, double* k) const {for (int i = 0; i < dim; ++i) k[i] = KLattice.at(kid).coord[i];}
     void getSiteRxy(int siteid, double* rxy) const {assert(dim==3); vecXAdd(Lattice.at(siteid).coord[0],ax.data(),Lattice.at(siteid).coord[1],ay.data(),Lattice.at(siteid).coord[2],az.data(),rxy,dim);}
     void getOrbRxy(int orbid, double* rxy) const {assert(dim==3); vecXAdd(orbs.at(orbid).coord[0],ax.data(),orbs.at(orbid).coord[1],ay.data(),orbs.at(orbid).coord[2],az.data(),rxy,dim);}
     VecD RtoRxy(VecD R) const {VecD Rxy(3); vecXAdd(R.at(0),ax.data(),R.at(1),ay.data(),R.at(2),az.data(),Rxy.data(),dim); return Rxy;}
@@ -155,11 +155,11 @@ public:
     // a1-a2 coord -> orbid
     bool coordToOrbid(ORBITAL orb, double* coord, int &orbid) const;
     // orbital occupancy count
-    void orbOCC(VecI& vec, VecI& occ) const {occ = VecI(getUnitOrbNum(),0); for(int i = 0; i < getOrbNum(); i++) if(vec[i]) occ.at(orbs.at(i).id) += 1;};
-    void orbOCC(VecI& vecu, VecI& vecd, VecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); i++){if(vecu[i])occ.at(orbs.at(i).orbid) += 1;if(vecd[i])occ.at(orbs.at(i).orbid) += 1;}}
+    void orbOCC(VecI& vec, VecI& occ) const {occ = VecI(getUnitOrbNum(),0); for(int i = 0; i < getOrbNum(); ++i) if(vec[i]) occ.at(orbs.at(i).id) += 1;};
+    void orbOCC(VecI& vecu, VecI& vecd, VecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); ++i){if(vecu[i])occ.at(orbs.at(i).orbid) += 1;if(vecd[i])occ.at(orbs.at(i).orbid) += 1;}}
     void orbOCC(VecI& vecu, VecI& vecd, VecI& occ, VecI& docc) const {
         occ = VecI(getUnitOrbNum(),0); docc = VecI(getUnitOrbNum(),0);
-        for(int i = 0; i < getOrbNum(); i++) {
+        for(int i = 0; i < getOrbNum(); ++i) {
             if(vecu[i]) {
                 occ.at(orbs.at(i).orbid) += 1;
                 if(vecd[i])docc.at(orbs.at(i).orbid) += 1;
@@ -168,11 +168,11 @@ public:
         }
     };
     // binary rep
-    void orbOCC(idx_t repI, VecI& occ) const {occ = VecI(getUnitOrbNum(),0); for(int i = 0; i < getOrbNum(); i++) if(bitTest(repI,i)) occ.at(orbs.at(i).id) += 1;};
-    void orbOCC(pairIndex pairRepI, VecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); i++){if(bitTest(pairRepI.first,i))occ.at(orbs.at(i).orbid) += 1;if(bitTest(pairRepI.second,i))occ.at(orbs.at(i).orbid) += 1;}}
+    void orbOCC(idx_t repI, VecI& occ) const {occ = VecI(getUnitOrbNum(),0); for(int i = 0; i < getOrbNum(); ++i) if(bitTest(repI,i)) occ.at(orbs.at(i).id) += 1;};
+    void orbOCC(pairIndex pairRepI, VecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); ++i){if(bitTest(pairRepI.first,i))occ.at(orbs.at(i).orbid) += 1;if(bitTest(pairRepI.second,i))occ.at(orbs.at(i).orbid) += 1;}}
     void orbOCC(pairIndex pairRepI, VecI& occ, VecI& docc) const {
         occ = VecI(getUnitOrbNum(),0); docc = VecI(getUnitOrbNum(),0);
-        for(int i = 0; i < getOrbNum(); i++) {
+        for(int i = 0; i < getOrbNum(); ++i) {
             if(bitTest(pairRepI.first,i)) {
                 occ.at(orbs.at(i).orbid) += 1;
                 if(bitTest(pairRepI.second,i))docc.at(orbs.at(i).orbid) += 1;

@@ -144,9 +144,9 @@ int main(int argc, const char * argv[]) {
             H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
             if(workerID==MPI_MASTER) std::cout<<"begin H gen..."<<std::endl;
             #ifdef DISTRIBUTED_BASIS
-                H.genMatPara(rowCount,rowPerIt);
+                H.construct(rowCount,rowPerIt);
             #else
-                H.genMatPara();
+                H.construct();
             #endif
             timer.tok();
 
@@ -190,9 +190,9 @@ int main(int argc, const char * argv[]) {
         //     Bf.gen();
         //     CkOp<dataType> Ck(pm_option, spin,orb, &Lattice, &B, &Bf);
         //     #ifdef DISTRIBUTED_BASIS
-        //         Ck.genMatPara(rowCount, rowPerIt);
+        //         Ck.construct(rowCount, rowPerIt);
         //     #else
-        //         Ck.genMatPara();
+        //         Ck.construct();
         //     #endif
         //     std::cout<<"\n----------------\n"<<"spin:"<<spin_label<<",orb:"<<orb_label<<",occ:{"<<occListf[0]<<","<<occListf[1]<<"}, Ck nzcount:"<<Ck.nzCount()<<"\n--------------------\n";
         //     Hubbard<dataType> Hf(&Lattice, &Bf, 1);
@@ -201,9 +201,9 @@ int main(int argc, const char * argv[]) {
         //     Hf.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp).pushV({ORBITAL::Pzu, ORBITAL::Pzd},Vpz);
         //     Hf.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
         //     #ifdef DISTRIBUTED_BASIS
-        //         Hf.genMatPara(rowCount,rowPerIt);
+        //         Hf.construct(rowCount,rowPerIt);
         //     #else
-        //         Hf.genMatPara();
+        //         Hf.construct();
         //     #endif
 
         //     int krylovDim=400;

@@ -10,7 +10,11 @@
 #define Operators_hpp
 
 #include <iostream>
+#include <cmath>
+#include <algorithm>
 #include "Operator/OperatorsBase.hpp"
+#include "Utils/utils.hpp"
+#include "Pulse/pulse.hpp"
 
 /* Operators_hpp */
 
@@ -37,11 +41,17 @@ public:
 
     // Calculate the sum of onsite energy and Coulomb interaction
     double diagVal(const VecI& occ, const VecI& docc) const;
+    
+    void setPeierls(Pulse* pulse = nullptr);
+
+    bool next( );
 
     void row(idx_t rowidx, std::vector<MAP>& rowMaps);
 
 private:
     VecD V, U;
+    Pulse* pulse{nullptr};
+    VecD PeierlsOverlap;
 };
 
 /*
@@ -75,7 +85,7 @@ public:
     }
     Hubbard& pushLinks(std::vector<Link<T>> Links_){
         assert(spmCount<SparseMatrix<T>::spmNum);
-        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], spmCount);
+        for (int i = 0; i < Links_.size(); ++i) pushLink(Links_[i], spmCount);
         if (Links_.at(0).isOrdered()) spmCount += 2;
         else spmCount++;
         assert(spmCount<=SparseMatrix<T>::spmNum);
@@ -85,7 +95,7 @@ public:
     Hubbard& pushU(std::vector<ORBITAL> orbList, double val){for(auto it=orbList.begin();it!=orbList.end();it++){VecI ids = pt_lattice->getOrbID(*it); for(auto id=ids.begin();id!=ids.end();id++)U.at(*id)=val;} return *this;}
     void printV() const {std::cout<<"V:"<<std::endl;for(auto it=V.begin();it!=V.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
     void printU() const {std::cout<<"U:"<<std::endl;for(auto it=U.begin();it!=U.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
-    double diagVal(VecI occ, VecI docc) const {double val=0.0; for(int i=0;i<pt_lattice->getUnitOrbNum();i++)val += occ.at(i)*V.at(i)+docc.at(i)*U.at(i);return val;}
+    double diagVal(VecI occ, VecI docc) const {double val=0.0; for(int i=0;i<pt_lattice->getUnitOrbNum();++i)val += occ.at(i)*V.at(i)+docc.at(i)*U.at(i);return val;}
     void setVal(int matID, T val){(SparseMatrix<T>::parameters).at(matID) = val;}
     void row(idx_t rowID, std::vector<MAP>& rowMaps);
     void genMat();
@@ -109,7 +119,7 @@ public:
         return *this;
     }
     Current& pushLinks(std::vector<Link<cdouble>> Links_){
-        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], 0);
+        for (int i = 0; i < Links_.size(); ++i) pushLink(Links_[i], 0);
         spmCount++;
         assert(spmCount<=SparseMatrix<cdouble>::spmNum);
         return *this;
@@ -164,7 +174,7 @@ public:
     }
     HtJ& pushLinks(std::vector<Link<T>> Links_){
         assert(spmCount<SparseMatrix<T>::spmNum);
-        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], spmCount);
+        for (int i = 0; i < Links_.size(); ++i) pushLink(Links_[i], spmCount);
         if (Links_.at(0).isOrdered()) spmCount += 2;
         else spmCount++;
         assert(spmCount<=SparseMatrix<T>::spmNum);
@@ -205,7 +215,7 @@ public:
     }
     Heisenberg& pushLinks(std::vector<Link<T>> Links_){
         assert(spmCount<SparseMatrix<T>::spmNum);
-        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], spmCount);
+        for (int i = 0; i < Links_.size(); ++i) pushLink(Links_[i], spmCount);
         spmCount++;
         assert(spmCount<=SparseMatrix<T>::spmNum);
         return *this;
@@ -247,7 +257,7 @@ public:
     }
     RamanOp& pushLinks(std::vector<Link<T>> Links_){
         assert(spmCount<SparseMatrix<T>::spmNum);
-        for (int i = 0; i < Links_.size(); i++) pushLink(Links_[i], spmCount);
+        for (int i = 0; i < Links_.size(); ++i) pushLink(Links_[i], spmCount);
         spmCount++;
         assert(spmCount<=SparseMatrix<T>::spmNum);
         return *this;
@@ -277,7 +287,7 @@ public:
             Kf = pt_Bf->getkIndex();
             // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
             int N = pt_lattice->getSiteNum();
-            for (int i = 0; i < N; i++) {
+            for (int i = 0; i < N; ++i) {
                 expFactor[i] = pt_lattice->expKR(Ki,i)/pt_lattice->expKR(Kf,i)/std::sqrt(N);
                 // expFactor[i] = pt_lattice->expKR(kidx,i)/std::sqrt(N); 
             }
@@ -304,7 +314,7 @@ public:
             Ki = pt_Bi->getkIndex();
             Kf = pt_Bf->getkIndex();
             // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
-            for (int i = 0; i < pt_lattice->getSiteNum(); i++) {
+            for (int i = 0; i < pt_lattice->getSiteNum(); ++i) {
                 expFactor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
             }
         };
@@ -365,6 +375,56 @@ void Hamiltonian<MODEL, T>::pushU(std::vector<ORBITAL> orbList, double val) {
 }
 
 template <LATTICE_MODEL MODEL, typename T>
+void Hamiltonian<MODEL, T>::setPeierls(Pulse* pulse) {
+    this->pulse = pulse;
+    if (pulse) {
+        auto epol = pulse->getPol();
+        normalize(epol);
+        VecD overlap;
+        for(const auto& link : this->hoppingT) {
+            assert(link.getLinkVecNum()==1);
+            auto dr = link.getvec(0);
+            dr = this->latt->RtoRxy(dr);
+            auto val = vdotv(epol,dr);
+            overlap.push_back(val);
+            if (val!=0.0){
+                PeierlsOverlap.push_back(val);
+            }
+        }
+        std::sort(PeierlsOverlap.begin(), PeierlsOverlap.end());
+        std::unique(PeierlsOverlap.begin(), PeierlsOverlap.end());
+        for (int idx = 0; idx < overlap.size(); ++idx) {
+            auto low = std::lower_bound(PeierlsOverlap.begin(), PeierlsOverlap.end(), overlap[idx]);
+            if (low != PeierlsOverlap.end() and overlap[idx] == *low) {
+                int matid = 1 + 2 * (low - PeierlsOverlap.begin());
+                auto& link = this->hoppingT.at(idx);
+                link.setmatid(matid);
+                link.setConst(false);
+                link.setOrdered(true);
+            }
+        }
+        this->setSpmNum(1 + 2 * PeierlsOverlap.size());
+        PeierlsOverlap.insert(PeierlsOverlap.begin(), 0.0);
+    }
+}
+
+template<LATTICE_MODEL MODEL, typename T>
+bool Hamiltonian<MODEL, T>::next( ) {
+    if (pulse) {
+        auto A = pulse->getAa();
+        for (int i = 1; i < PeierlsOverlap.size(); ++i) {
+            auto factor = std::exp(CPLX_I * A * PeierlsOverlap[i]);
+            auto idx = 2 * i - 1;
+            this->setVal(idx, factor);
+            this->setVal(idx + 1, std::conj(factor));
+        }
+        return pulse->next();
+    } else {
+        return false;
+    }
+}
+
+template <LATTICE_MODEL MODEL, typename T>
 void Hamiltonian<MODEL, T>::printV(std::ostream& os) const {
     os<<"V: ";
     for (auto val : V) {
@@ -385,7 +445,7 @@ void Hamiltonian<MODEL, T>::printU(std::ostream& os) const {
 template <LATTICE_MODEL MODEL, typename T>
 double Hamiltonian<MODEL, T>::diagVal(const VecI& occ, const VecI& docc) const {
     double val{0.0};
-    for (int i = 0; i < this->latt->getUnitOrbNum(); i++) {
+    for (int i = 0; i < this->latt->getUnitOrbNum(); ++i) {
         val += occ.at(i) * V.at(i) + docc.at(i) * U.at(i);
     }
     return val;
@@ -400,13 +460,13 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP>& rowMaps) {
         pairIndex pairRepI = this->Bf->getPairRepI(repI);
         this->latt->orbOCC(pairRepI, occ, docc);
         T val = diagVal(occ,docc);
-        for (auto linkit = this->Links.begin(); linkit != this->Links.end(); linkit++){
-            if((*linkit).getLinkType()!=LINK_TYPE::HUBBARD_U)continue;
-            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                int siteI = (*bondit).at(0);
-                int siteJ = (*bondit).at(1);
+        for (const auto& link : this->interBandU){
+            // auto bonds = link.bond();
+            for (const auto& bond : link.bond()){
+                auto siteI = bond.at(0);
+                auto siteJ = bond.at(1);
                 assert(siteI!=siteJ);
-                val += (*linkit).getVal()*(double)(bitTest(pairRepI.first,siteI)+bitTest(pairRepI.second,siteI))*(double)(bitTest(pairRepI.first,siteJ)+bitTest(pairRepI.second,siteJ));
+                val += link.getVal()*(double)(bitTest(pairRepI.first,siteI)+bitTest(pairRepI.second,siteI))*(double)(bitTest(pairRepI.first,siteJ)+bitTest(pairRepI.second,siteJ));
             }
         }
         SparseMatrix<T>::putDiag(val,rowID);
@@ -414,44 +474,46 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP>& rowMaps) {
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->Bf->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i) {
             pairIndex pairRepI = this->Bf->getPairRepI(finalIndList[i]);
             bool isfminRep = this->Bf->isfMin(pairRepI.first);
-            for (auto linkit = this->Links.begin(); linkit != this->Links.end(); linkit++){
-                if((*linkit).getLinkType()==LINK_TYPE::HOPPING_T){
-                    int matID = (*linkit).getmatid();
-                    int matIDp = matID; 
-                    if ((*linkit).isOrdered()) matIDp++;
-                    cdouble factor = factorList.at(i) * (*linkit).getVal();
-                    for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                        int siteI = (*bondit).at(0);
-                        int siteJ = (*bondit).at(1);
-                        cdouble phase = this->latt->twistPhase(siteI,siteJ);
-                        cdouble phase_c = std::conj(phase);
-                        // cp.siteI * cm.siteJ
-                        this->cpcm(SPIN::SPIN_UP, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
-                        this->cpcm(SPIN::SPIN_UP, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);
-                        if(isfminRep){
-                            this->cpcm(SPIN::SPIN_DOWN, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
-                            this->cpcm(SPIN::SPIN_DOWN, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);   
-                        }
+            for (const auto& link:this->hoppingT) {
+                int matID = link.getmatid();
+                int matIDp = matID; 
+                if (link.isOrdered()) matIDp++;
+                cdouble factor = factorList.at(i) * link.getVal();
+                for (const auto& bond : link.bond()) {
+                    int siteI = bond.at(0);
+                    int siteJ = bond.at(1);
+                    cdouble phase = this->latt->twistPhase(siteI,siteJ);
+                    cdouble phase_c = std::conj(phase);
+                    // cp.siteI * cm.siteJ
+                    this->cpcm(SPIN::SPIN_UP, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
+                    this->cpcm(SPIN::SPIN_UP, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);
+                    if(isfminRep){
+                        this->cpcm(SPIN::SPIN_DOWN, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
+                        this->cpcm(SPIN::SPIN_DOWN, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);   
                     }
-                }else if((*linkit).getLinkType()==LINK_TYPE::EXCHANGE_J){
-                    int matID = (*linkit).getmatid();
-                    cdouble factor = factorList.at(i) * (*linkit).getVal();
-                    for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                        int siteI = (*bondit).at(0);
-                        int siteJ = (*bondit).at(1);
-                        this->exchange(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                    }
-                }else if((*linkit).getLinkType()==LINK_TYPE::PAIR_HOPPING_J){
-                    int matID = (*linkit).getmatid();
-                    cdouble factor = factorList.at(i) * (*linkit).getVal();
-                    for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                        int siteI = (*bondit).at(0);
-                        int siteJ = (*bondit).at(1);
-                        this->pairHopping(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                    }
+                }
+            }
+
+            for (const auto& link:this->exchangeJ) {
+                int matID = link.getmatid();
+                cdouble factor = factorList.at(i) * link.getVal();
+                for (const auto& bond : link.bond()){
+                    int siteI = bond.at(0);
+                    int siteJ = bond.at(1);
+                    this->exchange(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                }
+            }
+
+            for (const auto& link:this->pairHoppingJ) {
+                int matID = link.getmatid();
+                cdouble factor = factorList.at(i) * link.getVal();
+                for (const auto& bond : link.bond()){
+                    int siteI = bond.at(0);
+                    int siteJ = bond.at(1);
+                    this->pairHopping(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
                 }
             }
         }
@@ -460,7 +522,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP>& rowMaps) {
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->Bf->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i){
             pairIndex pairRepI = this->Bf->getPairRepI(finalIndList[i]);
             bool isfminRep = this->Bf->isfMin(pairRepI.first);
             for (auto linkit = this->Links.begin(); linkit != this->Links.end(); linkit++){
@@ -507,7 +569,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP>& rowMaps) {
             std::vector<idx_t> finalIndList;
             std::vector<cdouble> factorList;
             this->Bf->genSymm(rowID, finalIndList, factorList);
-            for (int i = 0; i < finalIndList.size(); i++){
+            for (int i = 0; i < finalIndList.size(); ++i){
                 for (auto linkit = this->Links.begin(); linkit != this->Links.end(); linkit++){
                     int matID = (*linkit).getmatid();
                     cdouble factor = factorList.at(i) * (*linkit).getVal();
@@ -545,7 +607,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP>& rowMaps) {
             std::vector<idx_t> finalIndList;
             std::vector<cdouble> factorList;
             this->Bf->genSymm(rowID, finalIndList, factorList);
-            for (int i = 0; i < finalIndList.size(); i++){
+            for (int i = 0; i < finalIndList.size(); ++i){
                 this->Bf->repToVec(finalIndList[i], initVec);
                 for (auto linkit = this->Links.begin(); linkit != this->Links.end(); linkit++){
                     int matID = (*linkit).getmatid();
@@ -577,7 +639,7 @@ void CkOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
     std::vector<cdouble> factorList;
     pt_Bf->genSymm(rowID, finalIndList, factorList);
     if(pm_option=="minus"){
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i){
             for (int r = 0; r < posList.size(); ++r){
                 cdouble factor = factorList.at(i) * expFactor.at(r);
                 pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
@@ -585,7 +647,7 @@ void CkOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
             }
         }
     } else if(pm_option=="plus"){
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i){
             for (int r = 0; r < posList.size(); ++r){
                 cdouble factor = factorList.at(i) * expFactor.at(r);
                 pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
@@ -618,7 +680,7 @@ void Hubbard<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
     std::vector<idx_t> finalIndList;
     std::vector<cdouble> factorList;
     this->pt_Basis->genSymm(rowID, finalIndList, factorList);
-    for (int i = 0; i < finalIndList.size(); i++){
+    for (int i = 0; i < finalIndList.size(); ++i){
         pairIndex pairRepI = this->pt_Basis->getPairRepI(finalIndList[i]);
         bool isfminRep = this->pt_Basis->isfMin(pairRepI.first);
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
@@ -668,7 +730,7 @@ void Hubbard<T>::genMat(){
     SparseMatrix<T>::clear();
     MAP rowMap;
     // initialize rowInitList
-    for (int i = 0; i < this->spmNum; i++) SparseMatrix<T>::pushRow(&rowMap,i);
+    for (int i = 0; i < this->spmNum; ++i) SparseMatrix<T>::pushRow(&rowMap,i);
     VecI initVec(pt_lattice->getOrbNum()), initVecp(pt_lattice->getOrbNum());
     for (idx_t rowID = BaseMatrix<T>::startRow; rowID < BaseMatrix<T>::endRow; rowID++){
         /*
@@ -688,7 +750,7 @@ void Hubbard<T>::genMat(){
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->pt_Basis->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i){
             this->pt_Basis->repToVec(finalIndList[i], initVec, initVecp);
             if(finalIndList[i]==initInd)diag_val += val*factorList[i];
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
@@ -714,7 +776,7 @@ void Hubbard<T>::genMat(){
         */
         for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
             rowMap.clear();
-            for (int i = 0; i < finalIndList.size(); i++){
+            for (int i = 0; i < finalIndList.size(); ++i){
                 this->pt_Basis->repToVec(finalIndList[i], initVec, initVecp);
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
                 for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
@@ -738,7 +800,7 @@ inline void Nocc::row(idx_t rowID){
     pairIndex pairRepI = pt_Basis->getPairRepI(repI);
     pt_lattice->orbOCC(pairRepI, occ);
     idx_t loc_rowID = rowID - BaseMatrix<cdouble>::startRow;
-    for (int i = 0; i < pt_lattice->getUnitOrbNum(); i++) {SparseMatrix<cdouble>::diagValList[i][loc_rowID] = occ[i];}
+    for (int i = 0; i < pt_lattice->getUnitOrbNum(); ++i) {SparseMatrix<cdouble>::diagValList[i][loc_rowID] = occ[i];}
 }
 
 template <class T>
@@ -747,7 +809,7 @@ void HtJ<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
     std::vector<idx_t> finalIndList;
     std::vector<cdouble> factorList;
     pt_Basis->genSymm(rowID, finalIndList, factorList);
-    for (int i = 0; i < finalIndList.size(); i++){
+    for (int i = 0; i < finalIndList.size(); ++i){
         pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
         bool isfminRep = pt_Basis->isfMin(pairRepI.first);
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
@@ -811,7 +873,7 @@ void RamanOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
     std::vector<idx_t> finalIndList;
     std::vector<cdouble> factorList;
     this->pt_Basis->genSymm(rowID, finalIndList, factorList);
-    for (int i = 0; i < finalIndList.size(); i++){
+    for (int i = 0; i < finalIndList.size(); ++i){
         int linkid = 0;
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
             int matID = (*linkit).getmatid();
@@ -845,7 +907,7 @@ void Heisenberg<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->pt_Basis->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i){
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
                 int matID = (*linkit).getmatid();
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
@@ -886,7 +948,7 @@ void Heisenberg<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->pt_Basis->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i){
             this->pt_Basis->repToVec(finalIndList[i], initVec);
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
                 int matID = (*linkit).getmatid();
@@ -912,7 +974,7 @@ void Heisenberg<T>::genMat(){
     SparseMatrix<T>::clear();
     MAP rowMap;
     // initialize rowInitList
-    for (int i = 0; i < SparseMatrix<T>::spmNum; i++) SparseMatrix<T>::pushRow(&rowMap,i);
+    for (int i = 0; i < SparseMatrix<T>::spmNum; ++i) SparseMatrix<T>::pushRow(&rowMap,i);
     VecI initVec(pt_lattice->getOrbNum());
     // calculate <R1k|H*Pk|R2k>/norm1/norm2
     for (idx_t rowID = SparseMatrix<T>::startRow; rowID < SparseMatrix<T>::endRow; rowID++){
@@ -920,7 +982,7 @@ void Heisenberg<T>::genMat(){
         std::vector<cdouble> factorList;
         std::vector<idx_t> finalIndList;
         this->pt_Basis->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i){
             this->pt_Basis->repToVec(finalIndList[i], initVec);
             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
@@ -940,7 +1002,7 @@ void Heisenberg<T>::genMat(){
 
         for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
             rowMap.clear();
-            for (int i = 0; i < finalIndList.size(); i++){
+            for (int i = 0; i < finalIndList.size(); ++i){
                 this->pt_Basis->repToVec(finalIndList[i], initVec);
                 cdouble factor = factorList.at(i) * (*linkit).getVal();
                 for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
@@ -971,7 +1033,7 @@ SSOp<T>::SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_, int spindim):r(-1),pt
     for (int rIndex = 0; rIndex < pt_lat->getSiteNum();rIndex++){
         siteJList.at(rIndex).resize(pt_lat->getSiteNum());
         pt_lattice->getSiteR(rIndex, coordr.data());
-        for (int i = 0; i < pt_lattice->getOrbNum(); i++){
+        for (int i = 0; i < pt_lattice->getOrbNum(); ++i){
             pt_lattice->getOrbR(i,coordi.data());
             vecXAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), 3);
             int siteJ;
@@ -993,9 +1055,9 @@ void SSOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->pt_Basis->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i){
             cdouble factor = factorList.at(i);
-            for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
+            for (int siteI = 0; siteI < pt_lattice->getOrbNum(); ++siteI){
                 if (r >= 0){
                     int siteJ = siteJList[r][siteI];
                     // sz.siteI * sz.siteJ
@@ -1025,10 +1087,10 @@ void SSOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->pt_Basis->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i){
             this->pt_Basis->repToVec(finalIndList[i], initVec);
             cdouble factor = factorList.at(i);
-            for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
+            for (int siteI = 0; siteI < pt_lattice->getOrbNum(); ++siteI){
                 if (r >= 0){
                     int siteJ = siteJList[r][siteI];
                     // sz.siteI * sz.siteJ
@@ -1065,7 +1127,7 @@ void SSOp<T>::project(double s, T* vec){
             MxV(vec, tmp.data());
             double stoti = si * (si+1.0);
             #pragma omp parallel for
-            for(idx_t i =0; i < BaseMatrix<T>::get_nloc();i++) vec[i] = (tmp[i]-stoti*vec[i])/(stot-stoti);
+            for(idx_t i =0; i < BaseMatrix<T>::get_nloc();++i) vec[i] = (tmp[i]-stoti*vec[i])/(stot-stoti);
         }
     }
 }
@@ -1088,10 +1150,10 @@ void SSOp<T>::genPairMat(int rIndex){
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->pt_Basis->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); i++){
+        for (int i = 0; i < finalIndList.size(); ++i){
             this->pt_Basis->repToVec(finalIndList[i], initVec);
             cdouble factor = factorList.at(i);
-            for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
+            for (int siteI = 0; siteI < pt_lattice->getOrbNum(); ++siteI){
                 int siteJ = siteJList[rIndex][siteI];
                 // sz.siteI * sz.siteJ
                 this->szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMap);

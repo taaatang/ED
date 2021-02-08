@@ -113,7 +113,7 @@ int main(int argc, const char * argv[]) {
         H.pushLinks({t1Link, t2Link, J1Link, J2Link});
         // Heisenberg<dataType> H(&Lattice, &B, 1);
         // H.pushLinks({J1Link, J2Link});
-        H.genMatPara(rowPerThread);
+        H.construct(rowPerThread);
         timer.tok();
         /*
             ***********
@@ -144,7 +144,7 @@ int main(int argc, const char * argv[]) {
         // H.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp});
         // H.pushV({ORBITAL::Dx2y2},Vd).pushV({ORBITAL::Px,ORBITAL::Py},Vp).pushV({ORBITAL::Pzu, ORBITAL::Pzd},Vpz);
         // H.pushU({ORBITAL::Dx2y2},Ud).pushU({ORBITAL::Px,ORBITAL::Py,ORBITAL::Pzu, ORBITAL::Pzd},Up);
-        // H.genMatPara();
+        // H.construct();
         // timer.tok();
 
         if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
@@ -152,7 +152,7 @@ int main(int argc, const char * argv[]) {
 
         // timer.tik();
         // SSOp<dataType> SS(&Lattice,&B);
-        // SS.genMatPara();
+        // SS.construct();
         // timer.tok();
         // if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local SS dimension:"<<SS.get_nloc()<<"/"<<SS.get_dim()<<", Local Hamiltonian non-zero elements count:"<<SS.nzCount()\
         //     <<". Construction time:"<<timer.elapse()<<"ms."<<std::endl;
@@ -186,7 +186,7 @@ int main(int argc, const char * argv[]) {
             PDiag.diag();
 
             // std::vector<cdouble> stot(nev);
-            // for (int i = 0; i < nev; i++){
+            // for (int i = 0; i < nev; ++i){
             //     stot[i] = SS.vMv(PDiag.getEigvec(i),PDiag.getEigvec(i));
             //     if(workerID==MPI_MASTER)std::cout<<i<<"th eigen state total spin s(s+1) = "<<stot[i]<<std::endl;
             // }

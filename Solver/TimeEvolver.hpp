@@ -46,18 +46,18 @@ void TimeEvolver<T>::evolve(double expFac){
     // Tri = Z*Diag*Z^
     MKL::diagTri(&(LANCZOSIterator<T>::alpha), &(LANCZOSIterator<T>::beta), &U);
     #pragma omp parallel for
-    for (int i = 0; i < LANCZOSIterator<T>::krylovDim; i++){
+    for (int i = 0; i < LANCZOSIterator<T>::krylovDim; ++i){
         tmp1[i] = std::exp(CPLX_I*expFac*LANCZOSIterator<T>::alpha.at(i))*U[i*LANCZOSIterator<T>::krylovDim];
         tmp2[i] = 0.0;
     } 
     #pragma omp parallel for
-    for (int i = 0; i < LANCZOSIterator<T>::krylovDim; i++){
+    for (int i = 0; i < LANCZOSIterator<T>::krylovDim; ++i){
         for (int j = 0; j < LANCZOSIterator<T>::krylovDim; j++){
             tmp2[i] += U[i+j*LANCZOSIterator<T>::krylovDim] * tmp1[j];
         }
     }
     #pragma omp parallel for
-    for (int i = 0; i < LANCZOSIterator<T>::M_->get_nloc(); i++){
+    for (int i = 0; i < LANCZOSIterator<T>::M_->get_nloc(); ++i){
         cdouble sum = 0.0;
         for(int j = 0; j < LANCZOSIterator<T>::krylovDim; j++){
             sum += LANCZOSIterator<T>::Q[i + j *LANCZOSIterator<T>::M_->get_nloc()] * tmp2[j];

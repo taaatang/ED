@@ -60,6 +60,10 @@ set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall ${OPENMP_FLAG}")
 # Include/Library Path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${BOOSTROOT} ${MPIINC})
 link_directories(${ARPACKLIB} ${BOOSTLIB} ${MPILIB} /opt/intel/lib)
+if(HOST STREQUAL "mac")
+    include_directories(/usr/local/Cellar/gsl/2.6/include)
+    link_directories(/usr/local/Cellar/gsl/2.6/lib)
+endif()
 
 
 # SRC and Hearder files
@@ -106,6 +110,6 @@ set(TEST_SRC Test)
 add_executable(geometryTest.out ${TEST_SRC}/geometryTest.cpp ${GEOMETRY_DEP})
 
 add_executable(timeTest.out ${TEST_SRC}/timeTest.cpp ${TIME_DEP})
-target_link_libraries(timeTest.out ${MKL} ${BOOST} parpack gsl gslcblas)
+target_link_libraries(timeTest.out ${LINKS} parpack gsl gslcblas)
 
 # add_executable(Time.out timeTest.cpp algebra.cpp utils.cpp Basis.cpp Geometry.cpp Operators.cpp) 

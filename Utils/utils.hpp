@@ -129,7 +129,7 @@ Type combination(Type n, Type k){
     Type n1 = k<(n-k)?k:n-k;
     Type* v1 = new Type[n1];
     Type* v2 = new Type[n1];
-    for (Type i = 0; i < n1; i++){
+    for (Type i = 0; i < n1; ++i){
         v1[i] = i + 1;
         v2[i] = n - n1 + i + 1;
     }
@@ -144,7 +144,7 @@ Type combination(Type n, Type k){
     }
     Type result1 = 1;
     Type result2 = 1;
-    for (Type i = 0; i < n1; i++){
+    for (Type i = 0; i < n1; ++i){
         result1 *= v1[i];
         result2 *= v2[i];
     }
@@ -183,19 +183,19 @@ inline void randInit(std::vector<T>& vec, int range=100){
     for (auto it = vec.begin(); it!=vec.end();it++) *it = T(dist(rng))/ranget;
 }
 inline void vecXAdd(int mul1, const int* input1, int mul2, const int* input2, int* output, int size){
-    for (int i = 0; i < size; i++){
+    for (int i = 0; i < size; ++i){
         output[i] = mul1 * input1[i] + mul2 * input2[i];
     }
 }
 
 inline void vecXAdd(double mul1, const double* input1, double mul2, const double* input2, double* output, int size){
-    for (int i = 0; i < size; i++){
+    for (int i = 0; i < size; ++i){
         output[i] = mul1 * input1[i] + mul2 * input2[i];
     }
 }
 
 inline void vecXAdd(double mul1, const double* input1, double mul2, const double* input2, double mul3, const double* input3, double* output, int size){
-    for (int i = 0; i < size; i++){
+    for (int i = 0; i < size; ++i){
         output[i] = mul1 * input1[i] + mul2 * input2[i] + mul3 * input3[i];
     }
 }
@@ -206,7 +206,7 @@ inline void vecInit(T *vec, U size, T val){
 #ifdef OMP_
     #pragma omp parallel for
 #endif
-    for (U i = 0; i < size; i++) vec[i] = val;
+    for (U i = 0; i < size; ++i) vec[i] = val;
 }
 
 template <class T>
@@ -214,7 +214,7 @@ inline void veqv(T* vecOut, T* vecIn, idx_t size){
     #ifdef OMP_
     #pragma omp parallel for
     #endif
-    for (idx_t i = 0; i < size; i++) vecOut[i] = vecIn[i];
+    for (idx_t i = 0; i < size; ++i) vecOut[i] = vecIn[i];
 }
 
 template <class T>
@@ -222,7 +222,7 @@ inline void veqatv(T* vecOut, T a, T* vecIn, idx_t size){
     #ifdef OMP_
     #pragma omp parallel for
     #endif
-    for (idx_t i = 0; i < size; i++) vecOut[i] = a * vecIn[i];
+    for (idx_t i = 0; i < size; ++i) vecOut[i] = a * vecIn[i];
 }
 
 template <class T>
@@ -230,7 +230,7 @@ inline void saxpy(T* x, T a, T* y, idx_t size){
     #ifdef OMP_
     #pragma omp parallel for
     #endif
-    for (idx_t i = 0; i < size; i++) x[i] += a * y[i];
+    for (idx_t i = 0; i < size; ++i) x[i] += a * y[i];
 }
 
 template <class T>
@@ -238,17 +238,21 @@ inline void vdeva(T* x, T a, idx_t size){
     #ifdef OMP_
     #pragma omp parallel for
     #endif
-    for (idx_t i = 0; i < size; i++) x[i] /= a;
+    for (idx_t i = 0; i < size; ++i) x[i] /= a;
 }
 
 inline double vdotv(VecD v1, VecD v2){
     assert_msg(v1.size()==v2.size(),"utils::vdotv, v1.size() != v2.size().");
     double result = 0.0;
     #pragma omp parallel for reduction(+:result)
-    for(int i = 0; i < v1.size(); i++){
+    for(int i = 0; i < v1.size(); ++i){
         result += v1[i]*v2[i];
     }
     return result;
+}
+
+inline void normalize(VecD& v) {
+    vdeva(v.data(),std::sqrt(vdotv(v,v)),v.size());
 }
 
 // vector dot prodoct
@@ -260,7 +264,7 @@ inline void vConjDotv(T1* vconj, T2* v, cdouble* result, idx_t size){
     double partResultReal = 0.0, partResultImag = 0.0;
     #pragma omp parallel for private(tmp) reduction(+:partResultReal,partResultImag)
 #endif
-    for (idx_t i = 0; i < size; i++){
+    for (idx_t i = 0; i < size; ++i){
 #ifdef OMP_
         tmp = std::conj(vconj[i]) * v[i];
         partResultReal += std::real(tmp);

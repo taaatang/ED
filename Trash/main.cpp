@@ -98,7 +98,7 @@ int main(int argc, const char * argv[]) {
 //         for (idx_t j = 0; j < B.repCount.size(); j++) count += Lattice.N/B.repCount[j];
 //         if(workerID==MPI_MASTER) std::cout<<"Total Rep number:"<<B.repIndList.size()<<". count = "<<count<<std::endl;
 //         count = 0;
-//         for (int i = 0; i < Lattice.N; i++){
+//         for (int i = 0; i < Lattice.N; ++i){
 //             B.genKReps(i, &Lattice);
 //             count += B.subDim;
 //             if (workerID==MPI_MASTER) std::cout<<"subspace kInd = "<<i<<", size = "<<B.subDim<<std::endl;
@@ -154,7 +154,7 @@ int main(int argc, const char * argv[]) {
         if (workerID==MPI_MASTER) std::cout<<"INFO:"<<PDiag.info_<<". Total ev found:"<<PDiag.iparam_[4]<<". Total time:"<<elapsed_seconds.count()*1000<<" milliseconds"<<std::endl;
         if (workerID==MPI_MASTER) {
             std::cout<<"Eigenvalues: ";
-            for (int i = 0; i < nev; i++) std::cout<<PDiag.d_pt[i]<<", ";
+            for (int i = 0; i < nev; ++i) std::cout<<PDiag.d_pt[i]<<", ";
             std::cout<<std::endl;
         }
         MPI_Barrier(MPI_COMM_WORLD);
@@ -187,7 +187,7 @@ int main(int argc, const char * argv[]) {
 //         SSOneHalf SS(B.totDim); 
 //         cdouble val;
 //         std::vector<cdouble> ssvals;
-//         for (int i = 0; i < Lattice.N; i++){
+//         for (int i = 0; i < Lattice.N; ++i){
 //             SS.genPairMat(&Lattice, &B, i);
 //             SS.MxV(PDiag.V_pt, vecTmp1, vecBuf1,PARTITION);
 //             vConjDotv<dataType, dataType>(PDiag.V_pt, vecTmp1, &val, PDiag.nloc_);
@@ -224,7 +224,7 @@ int main(int argc, const char * argv[]) {
 //         if (workerID==MPI_MASTER) std::cout<<"Begin dynamic spin-spin structure calculation..."<<std::endl;
 //         SzqOneHalf Szq(B.totDim);
 //         if (workerID==MPI_MASTER) std::cout<<"ntot:"<<Szq.ntot<<". nlocmax:"<<Szq.nlocmax<<". nloc:"<<Szq.nloc<<std::endl;
-//         for (int i = 1; i < Lattice.N; i++){
+//         for (int i = 1; i < Lattice.N; ++i){
 //             BasisXY q; 
 //             q[0] = Lattice.KLattice_[i].coordxy[0];
 //             q[1] = Lattice.KLattice_[i].coordxy[1];
@@ -243,9 +243,9 @@ int main(int argc, const char * argv[]) {
 //             lanczos.run(vecTmp);
 //     //         if (workerID==MPI_MASTER){
 //     //             std::cout<<std::endl;
-//     //             for (int i = 0; i < krylovDim; i++) std::cout<<"a["<<i<<"] = "<<lanczos.alpha[i]<<std::endl;
+//     //             for (int i = 0; i < krylovDim; ++i) std::cout<<"a["<<i<<"] = "<<lanczos.alpha[i]<<std::endl;
 //     //             std::cout<<std::endl;
-//     //             for (int i = 0; i < krylovDim - 1; i++) std::cout<<"b["<<i<<"] = "<<lanczos.beta[i]<<std::endl;
+//     //             for (int i = 0; i < krylovDim - 1; ++i) std::cout<<"b["<<i<<"] = "<<lanczos.beta[i]<<std::endl;
 //     //             std::cout<<std::endl;
 //     //         }
 

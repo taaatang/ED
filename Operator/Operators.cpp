@@ -19,7 +19,7 @@ void Current::row(idx_t rowID, std::vector<MAP>& rowMaps){
     std::vector<idx_t> finalIndList;
     std::vector<cdouble> factorList;
     pt_Basis->genSymm(rowID, finalIndList, factorList);
-    for (int i = 0; i < finalIndList.size(); i++){
+    for (int i = 0; i < finalIndList.size(); ++i){
         pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
         bool isfminRep = pt_Basis->isfMin(pairRepI.first);
         for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
@@ -45,7 +45,7 @@ void Current::row(idx_t rowID, std::vector<MAP>& rowMaps){
 }
 
 Nocc::Nocc(Geometry *pt_lat, Basis *pt_Ba):pt_lattice(pt_lat),pt_Basis(pt_Ba),SparseMatrix<cdouble>(pt_Ba,pt_Ba,pt_Ba->getSubDim(),0,pt_lat->getUnitOrbNum()){
-    for(int i = 0; i < pt_lat->getUnitOrbNum(); i++) diagValList.resize(BaseMatrix<cdouble>::nloc);
+    for(int i = 0; i < pt_lat->getUnitOrbNum(); ++i) diagValList.resize(BaseMatrix<cdouble>::nloc);
 }
 void Nocc::genMat(){
     #pragma omp parallel for
@@ -58,7 +58,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
         int id = *it;
         double sum = 0.0, part_sum = 0.0;
         #pragma omp parallel for reduction(+:part_sum)
-        for(idx_t i = 0; i < BaseMatrix<cdouble>::nloc; i++){
+        for(idx_t i = 0; i < BaseMatrix<cdouble>::nloc; ++i){
             part_sum += std::real(diagValList[id][i])*(std::real(vec[i])*std::real(vec[i])+std::imag(vec[i])*std::imag(vec[i]));
         }
         MPI_Allreduce(&part_sum, &sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -71,7 +71,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //     clear();
 //     MAP rowMap;
 //     // initialize rowInitList
-//     for (int i = 0; i < spmNum; i++) pushRow(&rowMap,i);
+//     for (int i = 0; i < spmNum; ++i) pushRow(&rowMap,i);
 //     VecI initVec(pt_lattice->getOrbNum()), initVecp(pt_lattice->getOrbNum());
 //     for (idx_t rowID = startRow; rowID < endRow; rowID++){
 //         /*
@@ -91,7 +91,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //         std::vector<idx_t> finalIndList;
 //         std::vector<cdouble> factorList;
 //         pt_Basis->genSymm(rowID, finalIndList, factorList);
-//         for (int i = 0; i < finalIndList.size(); i++){
+//         for (int i = 0; i < finalIndList.size(); ++i){
 //             pt_Basis->repToVec(finalIndList[i], initVec, initVecp);
 //             if(finalIndList[i]==initInd)diag_val += val*factorList[i];
 //             for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
@@ -117,7 +117,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //         */
 //         for (auto linkit = NCLinks.begin(); linkit != NCLinks.end(); linkit++){
 //             rowMap.clear();
-//             for (int i = 0; i < finalIndList.size(); i++){
+//             for (int i = 0; i < finalIndList.size(); ++i){
 //                 pt_Basis->repToVec(finalIndList[i], initVec, initVecp);
 //                 cdouble factor = factorList.at(i) * (*linkit)->getVal();
 //                 for (auto bondit = (*linkit)->begin(); bondit != (*linkit)->end(); bondit++){
@@ -153,7 +153,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //     pushRow(&rowMap);
 //     // factor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
 //     std::vector<cdouble> factor(pt_lattice->getOrbNum());
-//     for (int i = 0; i < pt_lattice->getOrbNum(); i++) factor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
+//     for (int i = 0; i < pt_lattice->getOrbNum(); ++i) factor[i] = pt_lattice->expKR(Kf,i)/pt_lattice->expKR(Ki,i);
 //     cdouble dval;
 //     VecI initVec(pt_lattice->getOrbNum());
 //     switch(PARTITION){
@@ -205,7 +205,7 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //     VecI siteJList(pt_lattice->getOrbNum());
 //     VecD coordi(3), coordr(3), coordf(3);
 //     pt_lattice->getSiteR(rIndex, coordr.data());
-//     for (int i = 0; i < pt_lattice->getOrbNum(); i++){
+//     for (int i = 0; i < pt_lattice->getOrbNum(); ++i){
 //         pt_lattice->getOrbR(i,coordi.data());
 //         vecXAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), 3);
 //         int siteJ;
@@ -227,10 +227,10 @@ double Nocc::count(ORBITAL orbital, dataType* vec){
 //         initNorm = pt_Basis->getNorm(rowID);
 //         std::vector<idx_t> finalIndList;
 //         pt_Basis->genSymm(pt_Basis->getRepI(rowID), finalIndList);
-//         for (int i = 0; i < finalIndList.size(); i++){
+//         for (int i = 0; i < finalIndList.size(); ++i){
 //             pt_Basis->repToVec(finalIndList[i], initVec);
 //             cdouble factor = (kIndex==-1)?1.0:pt_lattice->expKR(pt_Basis->getkIndex(),i)/pt_lattice->getSiteNum()/initNorm;
-//             for (int siteI = 0; siteI < pt_lattice->getOrbNum(); siteI++){
+//             for (int siteI = 0; siteI < pt_lattice->getOrbNum(); site++i){
 //                 int siteJ = siteJList[siteI];
 //                 // sz.siteI * sz.siteJ
 //                 szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMap);

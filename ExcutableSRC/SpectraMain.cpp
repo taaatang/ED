@@ -113,7 +113,7 @@ int main(int argc, const char * argv[]) {
     H->pushLinks({J1Link, J2Link, JkLink});
     // HtJ<dataType> H(&Lattice, B, 1);
     // H.pushLinks({t1Link, t2Link, J1Link, J2Link});
-    H->genMatPara();
+    H->construct();
     // delete B; // Bug! after delete B, H.MxV will use B 
     timer.tok();
     std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H->get_nloc()<<"/"<<H->get_dim()<<", Local Hamiltonian non-zero elements count:"<<H->nzCount()\
@@ -167,10 +167,10 @@ int main(int argc, const char * argv[]) {
         std::vector<dataType> vecTmp(SS.get_nlocmax());
         cdouble val;
         std::vector<cdouble> ssvals;
-        for (int i = 0; i < Lattice.getSiteNum(); i++){
+        for (int i = 0; i < Lattice.getSiteNum(); ++i){
             val = 0.0;
             SS.setr(i);
-            SS.genMatPara();
+            SS.construct();
             for(auto idx : gs_idx){
                 dataType* state = PDiag.getEigvec(idx);
                 SS.MxV(state, vecTmp.data());
@@ -216,13 +216,13 @@ int main(int argc, const char * argv[]) {
             }else{Bp->gen();}
             // <Bp|Szq|B>, q = k_B - k_Bp
             SzkOp<dataType> Szq(&Lattice, B, Bp);
-            Szq.genMatPara();
+            Szq.construct();
 
             delete B;
 
             Heisenberg<dataType> Hp(&Lattice, Bp, 1);
             Hp.pushLinks({J1Link,J2Link,JkLink});
-            Hp.genMatPara();
+            Hp.construct();
 
             delete Bp;
 
@@ -308,7 +308,7 @@ int main(int argc, const char * argv[]) {
         //     else B->gen();
         //     Heisenberg<dataType> R(&Lattice, B);
         //     R.pushLinks(LinksList.at(opidx));
-        //     R.genMatPara();
+        //     R.construct();
         //     delete B;
 
         //     timer.tok();
@@ -334,7 +334,7 @@ int main(int argc, const char * argv[]) {
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Raman ..."<<std::endl<<"********************"<<std::endl;
         timer.tik();
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndex<<std::endl<<"********************"<<std::endl;
-        for(int i = 0; i < 1; i++){
+        for(int i = 0; i < 1; ++i){
             for(int j = 0; j < plz.size(); j++){
                 H->clearBuf();
                 Basis *B = new Basis(model, &Lattice, occList, kIndex);
@@ -344,7 +344,7 @@ int main(int argc, const char * argv[]) {
                 RamanOp<dataType> R(&Lattice, B);
                 R.pushLinks({J1Link,J2Link});
                 R.setplz(plz[i],plz[j]);
-                R.genMatPara();
+                R.construct();
 
                 delete B;
                 
@@ -374,7 +374,7 @@ int main(int argc, const char * argv[]) {
         // Heisenberg<dataType> Rc(&Lattice, B, 1);
         // JkLink.setVal(1.0);
         // Rc.pushLinks({JkLink});
-        // Rc.genMatPara();
+        // Rc.construct();
         // timer.tok();
         // if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Chiral Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
         // MPI_Barrier(MPI_COMM_WORLD);

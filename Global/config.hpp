@@ -7,13 +7,17 @@
 #include "Utils/paras.hpp"
 #include "Geometry/Geometry.hpp"
 #include "Operator/OperatorBasics.hpp"
+#include "Pulse/pulse.hpp"
 
-std::string configFile = "../Input/config.txt";
-Parameters para(configFile);
+// std::string configFile = "../Input/config.txt";
+// Parameters para(configFile);
+std::string inputDir = "/Users/tatang/Documents/work/projects/Code/ED/Input";
+Parameters para(inputDir, {"lattice.txt", "Hubbard.txt"});
+Parameters pulsePara(inputDir, {"pulse.txt"});
 std::unique_ptr<Geometry> latt;
-std::unique_ptr<Basis> Bi;
-std::unique_ptr<Basis> Bf;
+std::unique_ptr<Basis> Bi, Bf;
 std::unique_ptr<OperatorBase<dataType>> H;
+Pulse pulse;
 
 
 #endif // __CONFIG_H__

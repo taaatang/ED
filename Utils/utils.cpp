@@ -15,7 +15,7 @@ void errExit(std::string msg){
 
 unsigned long long pow(unsigned long long base, unsigned long long power){
     unsigned long long result = 1;
-    for (unsigned long long i = 0; i < power; i++){
+    for (unsigned long long i = 0; i < power; ++i){
         result *= base;
     }
     return result;
@@ -23,7 +23,7 @@ unsigned long long pow(unsigned long long base, unsigned long long power){
 
 long long pow(long long base, long long power){
     long long result = 1;
-    for (long long i = 0; i < power; i++){
+    for (long long i = 0; i < power; ++i){
         result *= base;
     }
     return result;

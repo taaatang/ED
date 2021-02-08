@@ -102,7 +102,7 @@ void LANCZOSIterator<T>::run(cdouble* vec){
         return;
     }
     
-    for (int i = 1; i < krylovDim; i++){
+    for (int i = 1; i < krylovDim; ++i){
         // q_pre = q
         veqv(q_pre, q, M_->get_nloc());
         // q = r/beta[i-1]

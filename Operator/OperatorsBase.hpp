@@ -14,6 +14,7 @@
 #include "Global/globalPara.hpp"
 #include "Basis/Basis.hpp"
 #include "Geometry/Geometry.hpp"
+#include "Pulse/pulse.hpp"
 
 template<typename T>
 class OperatorBase: public FermionOperator<T>, public SpinOperator<T>, public SparseMatrix<T>{
@@ -31,6 +32,11 @@ public:
     // Add onsite Coulomb interaction U
     virtual void pushU(std::vector<ORBITAL> orbList, double val) { }
 
+    virtual void setPeierls(Pulse* pulse = nullptr) { }
+
+    // O(t) --> O(t+dt)
+    virtual bool next( ) {return false;}
+
     virtual void row(idx_t rowID, std::vector<MAP>& rowMaps) = 0;
 protected:
     Basis *Bi{nullptr}, *Bf{nullptr};
@@ -39,6 +45,8 @@ protected:
     int linkCount{0};
     int spmCount{0};
     std::vector<Link<T>> Links, NCLinks;
+    std::vector<Link<T>> superExchangeJ, chiralTermK;
+    std::vector<Link<T>> hoppingT, interBandU, exchangeJ, pairHoppingJ;
 };
 
 template<typename T>
@@ -55,19 +63,39 @@ template<typename T>
 OperatorBase<T>& OperatorBase<T>::pushLink(Link<T> link, int matID){
     if(matID==0)assert(link.isConst());
     else assert(!link.isConst());
-    Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(latt); 
+    link.setid(linkCount, matID);
+    link.genLinkMaps(latt);
+    switch (link.getLinkType()) {
+        case LINK_TYPE::SUPER_EXCHANGE_J:
+            superExchangeJ.push_back(link);
+            break;
+        case LINK_TYPE::CHIRAL_K:
+            chiralTermK.push_back(link);
+            break;
+        case LINK_TYPE::HOPPING_T:
+            hoppingT.push_back(link);
+            break;
+        case LINK_TYPE::HUBBARD_U:
+            interBandU.push_back(link);
+            break;
+        case LINK_TYPE::EXCHANGE_J:
+            exchangeJ.push_back(link);
+            break;
+        case LINK_TYPE::PAIR_HOPPING_J:
+            pairHoppingJ.push_back(link);
+            break;
+        default:
+            std::cout<<"link_type not defined!\n";
+            exit(1);
+            break;
+    }
     linkCount++;
     return *this;
-}
-
-template<typename T>
-void OperatorBase<T>::printLinks( ) const {
-    for (const auto& link:Links) {
-        link.print();
-    }
-    for (const auto& link:NCLinks) {
-        link.print();
-    }
+    // if(matID==0)assert(link.isConst());
+    // else assert(!link.isConst());
+    // Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(latt); 
+    // linkCount++;
+    // return *this;
 }
 
 template<typename T>
@@ -80,4 +108,13 @@ OperatorBase<T>& OperatorBase<T>::pushLinks(std::vector<T> links){
     return *this;
 }
 
+template<typename T>
+void OperatorBase<T>::printLinks( ) const {
+    for (const auto& link:Links) {
+        link.print();
+    }
+    for (const auto& link:NCLinks) {
+        link.print();
+    }
+}
 #endif // OperatorsBase_hpp
