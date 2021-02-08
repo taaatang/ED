@@ -32,7 +32,7 @@ public:
     ~Pulse(){};
 
     double getE(int stepIdx) const;
-    double getw( ) const { return params.at(0); }
+    double getw( ) const { return params.at(2); }
     double getFluence( ) const { return Fluence; }
     double computeFluence( ) const;
     double getA( ) const;
