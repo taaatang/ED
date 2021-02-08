@@ -14,7 +14,8 @@
 #include <omp.h>
 
 // for filesystem. if not c++ 17, use boost library
-#define CPP_17
+// #define CPP_17
+
 /*
     *****************
     * Compile Macro *

@@ -11,7 +11,7 @@
 
 // std::string configFile = "../Input/config.txt";
 // Parameters para(configFile);
-std::string inputDir = "/Users/tatang/Documents/work/projects/Code/ED/Input";
+std::string inputDir = "Input";
 Parameters para(inputDir, {"lattice.txt", "Hubbard.txt"});
 Parameters pulsePara(inputDir, {"pulse.txt"});
 std::unique_ptr<Geometry> latt;

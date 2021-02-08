@@ -12,8 +12,6 @@ int main(){
     int workerID, workerNum;
     mpi_info(workerID, workerNum);
 
-    std::string TimePath = "Test/Data/";
-    mkdir_fs(TimePath);
     std::ofstream outfile("para.txt");
     MPI_Barrier(MPI_COMM_WORLD);
     if (workerID == MPI_MASTER) {
@@ -31,6 +29,8 @@ int main(){
     cdouble* gstate = PDiag.getEigvec();
 
     setpulse(pulsePara, pulse);
+    std::string TimePath = PROJECT_DATA_PATH + "/sqOcta/2x2/3u2d/k1/pump/x/" + tostr(pulse.getw());
+    mkdir_fs(TimePath);
     H->setPeierls(&pulse);
     H->construct();
     TimeEvolver<cdouble> Tevol(gstate, H.get(), 15);
@@ -45,13 +45,15 @@ int main(){
         pzu.push_back(occ.count(ORBITAL::Pzu,Tevol.getVec()));
         pzd.push_back(occ.count(ORBITAL::Pzd,Tevol.getVec()));
     }
+
+
     if (workerID == MPI_MASTER) {
         std::ofstream outfile;
-        save<double>(dx2y2.data(),(int)dx2y2.size(),&outfile,TimePath+"dx2y2");
-        save<double>(px.data(),(int)px.size(),&outfile,TimePath+"px");
-        save<double>(py.data(),(int)py.size(),&outfile,TimePath+"py");
-        save<double>(pzu.data(),(int)pzu.size(),&outfile,TimePath+"pzu");
-        save<double>(pzd.data(),(int)pzd.size(),&outfile,TimePath+"pzd");
+        save<double>(dx2y2.data(),(int)dx2y2.size(),&outfile,TimePath+"/dx2y2");
+        save<double>(px.data(),(int)px.size(),&outfile,TimePath+"/px");
+        save<double>(py.data(),(int)py.size(),&outfile,TimePath+"/py");
+        save<double>(pzu.data(),(int)pzu.size(),&outfile,TimePath+"/pzu");
+        save<double>(pzd.data(),(int)pzd.size(),&outfile,TimePath+"/pzd");
     }
     MPI_Finalize();
     return 0;
