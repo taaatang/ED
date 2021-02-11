@@ -149,16 +149,16 @@ private:
     int kIndex; // default initial value kIndex=-1 ==> full hilbertspace
     int PGRepIndex; // default -1 -> do not use point group symm
 
-    int siteDim; // Hilbert Space dimension of a single Site
-    idx_t totDim; // Total Hilbert Space dimension
-    idx_t subDim; // Total subspace dimension of corresponding symm
-    idx_t locDim; // Local stored dimension
-    idx_t fDim, sDim;
+    int siteDim{2}; // Hilbert Space dimension of a single Site
+    idx_t totDim{0}; // Total Hilbert Space dimension
+    idx_t subDim{0}; // Total subspace dimension of corresponding symm
+    idx_t locDim{0}; // Local stored dimension
+    idx_t fDim{0}, sDim{0};
 
     // Heisenberg:Sztot in unit of hbar/2
-    int Sztot;
+    int Sztot{0};
     // Hubbard/tJ: N sites for spin-up, Np sites for spin-down.
-    int N;
+    int N{0};
     // Nocc[i] is the occupation number at site dimension i.
     VecI Nocc; 
     /*
@@ -185,7 +185,7 @@ private:
     std::vector<double> normList; 
     
     // used for siteDim=2. Binary Rep
-    mutable idx_t fminRep,fmaxRep,sminRep,smaxRep;
+    mutable idx_t fminRep{0},fmaxRep{0},sminRep{0},smaxRep{0};
     /*
         used only if siteDim>2
         Heisenberg model: vec: 0 for spin-up 1 for spin-down
