@@ -1,8 +1,8 @@
 lattice type:s:square # square | triangular
 boundary condition:s:periodic # periodic | open | twist
-lx:i:2
-ly:i:2
-nu:i:3
+lx:i:4
+ly:i:1
+nu:i:2
 nd:i:2
 kidx:i:0 # translation symm rep id
 pidx:i:-1 # point group symm rep id

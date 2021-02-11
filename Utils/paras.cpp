@@ -15,10 +15,13 @@ Orbital stringToOrb(std::string name, int id) {
     } else if (name == "px") {
         orb = ORBITAL::Px;
         coord = VecD{0.5, 0.0, 0.0};
-    } else if (name == "py") {
+    } else if (name == "py" or name == "py+") {
         orb = ORBITAL::Py;
         coord = VecD{0.0, 0.5, 0.0};
-    } else if (name == "pzu") {
+    } else if (name == "py-") {
+        orb = ORBITAL::Py;
+        coord = VecD{0.0, -0.5, 0.0};
+    } else if (name == "pz" or name == "pzu") {
         orb = ORBITAL::Pzu;
         coord = VecD{0.0, 0.0, 0.5};
     } else if (name == "pzd") {
@@ -138,10 +141,6 @@ void Parameters::print(std::ostream& os){
     os<<maps<<mapi<<mapd<<mapvecs<<mapvecd<<maparrd;
 }
 
-void setpath(Parameters& para){
-    para.project = "Photodoping";
-}
-
 void setlatt(const Parameters& para, std::unique_ptr<Geometry>& latt){
     auto lx = para.mapi.at("lx");
     auto ly = para.mapi.at("ly");
@@ -173,6 +172,8 @@ void setlatt(const Parameters& para, std::unique_ptr<Geometry>& latt){
     }
 
     latt->construct();
+
+    std::cout<<"lattice set!\n";
 }
 
 void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt){
@@ -181,10 +182,12 @@ void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt
     int nu = para.mapi.at("nu");
     int nd = para.mapi.at("nd");
     ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nu,nd}, kid, pid));
+    std::cout<<"basis set!\n";
 }
 
 void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt, int nuf, int ndf, int kf, int pf) {
     ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nuf,ndf}, kf, pf));
+    std::cout<<"basis set!\n";
 }
 
 void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, Geometry* latt, Basis* B) {
@@ -260,6 +263,17 @@ void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, 
         auto links = HeisenbergLink();
 
     }
+
+    std::cout<<"hamiltonian set!\n";
+}
+
+void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<OperatorBase<dataType>>& H) {
+    setlatt(para, latt);
+    setbasis(para, B, latt.get());
+    setham(para, H, latt.get(), B.get());
+    B->gen();
+    H->construct();
+    B->print();
 }
 
 void setpulse(const Parameters& para, Pulse& pulse) {

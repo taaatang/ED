@@ -1,7 +1,9 @@
 model name:s:Hubbard
 
+parameter label:s:Upd
+
 orbitals:vecs:
-dx2y2,px,py,pzu,pzd
+dx2y2,px,py+,pzu,pzd,py-
 
 coords:arrd:
 0.0, 0.0, 0.0
