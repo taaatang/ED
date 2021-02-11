@@ -4,6 +4,6 @@ lx:i:4
 ly:i:1
 nu:i:2
 nd:i:2
-kidx:i:0 # translation symm rep id
+kidx:i:2 # translation symm rep id
 pidx:i:-1 # point group symm rep id
 #twist phase:d:0.0 # twisted boundary phase
