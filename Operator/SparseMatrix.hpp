@@ -96,8 +96,13 @@ public:
 
     void setVal(int matID, T val) { parameters.at(matID) = val; }
 
+    void MxV(T *vecIn, T *vecOut);
+
+    cdouble vMv(T *vecL, T *vecR);
+
     // create one row. store sparse matrixes data in corresponding rowMaps. (repI, val) for distributed basis. (idx,val) otherwise
     virtual void row(idx_t rowID, std::vector<MAP>& rowMaps) = 0;
+
 
 #ifdef DISTRIBUTED_BASIS
 
@@ -115,17 +120,22 @@ public:
 
 #endif // DISTRIBUTED_BASIS
 
-    void MxV(T *vecIn, T *vecOut);
-
-    cdouble vMv(T *vecL, T *vecR);
-
 protected:
+
     MATRIX_PARTITION partition{ROW_PARTITION};
     // <Bf|Op|Bi>.
     Basis *Bi{nullptr}, *Bf{nullptr};
     int dmNum{0}; // number of diagonal matrix
     int spmNum{0}; // number of sparse matrix in csr format
     bool isMatrixFree{true};
+
+    std::vector<T> diagParameters; // diagParameters[i]*diagValList[i]. parameter for i-th diagonal matrix
+    std::vector<T> parameters; // parameters[i]*valList[i]. parameter for i-th sparse matrix
+
+    idx_t nlocmax_col;
+    idx_t ntot_col;
+    static std::vector<T> vecBuf; // common buffer for matrix vector multiplication
+    static bool is_vecBuf; // common status of the buffer. true means the buffer has been allocated.
 
 #ifdef DISTRIBUTED_STATE
     int blockNum;
@@ -134,17 +144,6 @@ protected:
     std::vector<std::vector<std::vector<T>>> valList;
     std::vector<std::vector<std::vector<idx_t>>> colList, rowInitList;
 
-    /*
-        sendBuff layout:
-        [matrix_1, matrix_2, ....]
-        matrix_i is represented by a single vector_i
-        matrix_i:
-        [block_1,block_2,...]
-        block_i is of size sendCount
-        block_i:
-        [row_1,row_2,...]
-        row_i is of size rowCount
-    */
     std::vector<std::vector<idx_t>> idxSendBuff, idxRecvBuff;
     std::vector<std::vector<T>> valSendBuff, valRecvBuff;
 
@@ -162,14 +161,6 @@ protected:
 
 #endif
 
-    std::vector<T> diagParameters; // diagParameters[i]*diagValList[i]. parameter for i-th diagonal matrix
-    std::vector<T> parameters; // parameters[i]*valList[i]. parameter for i-th sparse matrix
-
-    idx_t nlocmax_col;
-    idx_t ntot_col;
-    static std::vector<T> vecBuf; // common buffer for matrix vector multiplication
-    static bool is_vecBuf; // common status of the buffer. true means the buffer has been allocated.
-    
 };
 
 template <class T>
@@ -400,6 +391,17 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
 #ifdef DISTRIBUTED_BASIS
     template <class T>
     void SparseMatrix<T>::construct(int rowCount, int rowPerIt){
+        /*
+            sendBuff layout:
+            [matrix_1, matrix_2, ....]
+            matrix_i is represented by a single vector_i
+            matrix_i:
+            [block_1,block_2,...]
+            block_i is of size sendCount
+            block_i:
+            [row_1,row_2,...]
+            row_i is of size rowCount
+        */
         Timer timer;
         Timer tInit, tMPI;
         setDim(Bf->getSubDim());
