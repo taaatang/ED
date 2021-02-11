@@ -197,7 +197,7 @@ void PARPACKRealSolver<T>::postRun(){
 template <class T>
 void PARPACKRealSolver<T>::diag(){
     Timer timer;
-    int workerID = M_->get_workerID();
+    int workerID = M_->getWorkerID();
     if (workerID==MPI_MASTER) std::cout<<"Begin PARPACK Iteration and timer started..."<<std::endl;
     timer.tik();
     run();
@@ -424,7 +424,7 @@ void PARPACKComplexSolver<T>::diag(){
 template <class T>
 void PARPACKComplexSolver<T>::diag(double spin, SSOp<std::complex<T>>* SS){
     Timer timer;
-    int workerID = M_->get_workerID();
+    int workerID = M_->getWorkerID();
     if (workerID==MPI_MASTER) std::cout<<"Begin PARPACK Iteration and timer started..."<<std::endl;
     timer.tik();
     run(spin, SS);

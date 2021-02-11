@@ -97,7 +97,7 @@ void LANCZOSIterator<T>::run(cdouble* vec){
     // beta[1] = |r|
     vConjDotv(r, r, &result, M_->getnloc());
     beta.push_back(std::real(std::sqrt(result)));
-    if (M_->get_workerID()==MPI_MASTER && beta[0]==0.0){
+    if (M_->getWorkerID()==MPI_MASTER && beta[0]==0.0){
         std::cout<<"LANZOSIteration stops for beta[0] = 0."<<std::endl;
         return;
     }
@@ -121,7 +121,7 @@ void LANCZOSIterator<T>::run(cdouble* vec){
         // beta[i] = |r|
         vConjDotv(r, r, &result, M_->getnloc());
         beta.push_back(std::real(std::sqrt(result)));
-        if (M_->get_workerID()==MPI_MASTER && beta[i]==zero){
+        if (M_->getWorkerID()==MPI_MASTER && beta[i]==zero){
             std::cout<<"LANZOSIteration stops for beta["<<i<<"] = 0."<<std::endl;
             return;
         }
