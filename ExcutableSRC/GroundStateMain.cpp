@@ -147,14 +147,14 @@ int main(int argc, const char * argv[]) {
         // H.construct();
         // timer.tok();
 
-        if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
+        if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.getnloc()<<"/"<<H.getDim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
             <<". Construction time:"<<timer.elapse()<<"ms."<<std::endl;
 
         // timer.tik();
         // SSOp<dataType> SS(&Lattice,&B);
         // SS.construct();
         // timer.tok();
-        // if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local SS dimension:"<<SS.get_nloc()<<"/"<<SS.get_dim()<<", Local Hamiltonian non-zero elements count:"<<SS.nzCount()\
+        // if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local SS dimension:"<<SS.getnloc()<<"/"<<SS.getDim()<<", Local Hamiltonian non-zero elements count:"<<SS.nzCount()\
         //     <<". Construction time:"<<timer.elapse()<<"ms."<<std::endl;
 
 
@@ -177,7 +177,7 @@ int main(int argc, const char * argv[]) {
             PARPACKComplexSolver<double> PDiag(&H, nev);
 
             // project into total spin subspace
-            // std::vector<cdouble> initVec(H.get_nloc());
+            // std::vector<cdouble> initVec(H.getnloc());
             // randInit<cdouble>(initVec);
             // SS.project(spin,initVec.data());
             // PDiag.setStartVec(initVec.data());

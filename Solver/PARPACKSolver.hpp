@@ -119,12 +119,12 @@ PARPACKRealSolver<T>::PARPACKRealSolver(BaseMatrix<T> *H, a_int nev){
     ido_ = 0; // reverse communication flag 
     
     M_ = H; // pointer to the hamitonian object
-    ntot_ = M_->get_ntot();
-    nlocmax_ = M_->get_nlocmax(); // maximum local vector size
-    nloc_ = M_->get_nloc(); // actual local vector size
+    ntot_ = M_->getntot();
+    nlocmax_ = M_->getnlocmax(); // maximum local vector size
+    nloc_ = M_->getnloc(); // actual local vector size
     nev_ = nev; // number of eigenvalues to be computed
     ncv_ = (2 * nev_ + 1) > PARPACK_MINNCV?(2 * nev_ + 1):PARPACK_MINNCV; // number of Lanczos vectors generated at each iteration. number of colunm of V
-    if (ncv_ > M_->get_dim()) ncv_ = M_->get_dim()-1;
+    if (ncv_ > M_->getDim()) ncv_ = M_->getDim()-1;
     ldz_ = nlocmax_ + 1;
     lworkl_ = ncv_ * (ncv_ + 8); // dimension of the work array workl
     ldv_ = nlocmax_; // leading dimension of V
@@ -249,12 +249,12 @@ PARPACKComplexSolver<T>::PARPACKComplexSolver(BaseMatrix<std::complex<T>> *H, a_
     ido_ = 0; // reverse communication flag 
     
     M_ = H; // pointer to the hamitonian object
-    ntot_ = M_->get_ntot();
-    nlocmax_ = M_->get_nlocmax(); // maximum local vector size
-    nloc_ = M_->get_nloc(); // actual local vector size
+    ntot_ = M_->getntot();
+    nlocmax_ = M_->getnlocmax(); // maximum local vector size
+    nloc_ = M_->getnloc(); // actual local vector size
     nev_ = nev; // number of eigenvalues to be computed
     ncv_ = (2 * nev_ + 1) > PARPACK_MINNCV?(2 * nev_ + 1):PARPACK_MINNCV; // number of Lanczos vectors generated at each iteration. number of colunm of V
-    if (ncv_ > M_->get_dim()) ncv_ = M_->get_dim()-1;
+    if (ncv_ > M_->getDim()) ncv_ = M_->getDim()-1;
     ldz_ = nlocmax_ + 1;
     lworkl_ = ncv_ * (3 * ncv_ + 5); // dimension of the work array workl
     ldv_ = nlocmax_; // leading dimension of V
@@ -402,7 +402,7 @@ void PARPACKComplexSolver<T>::setRvec(a_int rvec){
 template <class T>
 void PARPACKComplexSolver<T>::diag(){
     Timer timer;
-    int workerID = M_->get_workerID();
+    int workerID = M_->getWorkerID();
     if (workerID==MPI_MASTER) std::cout<<"Begin PARPACK Iteration and timer started..."<<std::endl;
     timer.tik();
     run();

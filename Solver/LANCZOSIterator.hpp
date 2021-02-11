@@ -54,11 +54,11 @@ void LANCZOSIterator<T>::init(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt){
     M_ = M;
     option = opt;
     krylovDim = krydim;
-    q_pre = new cdouble[M_->get_nlocmax()];
-    q = new cdouble[M_->get_nlocmax()];
-    r = new cdouble[M->get_nlocmax()];
+    q_pre = new cdouble[M_->getnlocmax()];
+    q = new cdouble[M_->getnlocmax()];
+    r = new cdouble[M->getnlocmax()];
     if (option == ALPHA_BETA_Q){
-        Q = new cdouble[krydim * M_->get_nloc()];
+        Q = new cdouble[krydim * M_->getnloc()];
     }
 }
 
@@ -77,25 +77,25 @@ void LANCZOSIterator<T>::run(cdouble* vec){
     cdouble result;
     // q = vec/|vec|
     cdouble zero(0.0,0.0), one(1.0,0.0);
-    veqv(q, vec, M_->get_nloc());
-    vConjDotv(vec, vec, &result, M_->get_nloc());
+    veqv(q, vec, M_->getnloc());
+    vConjDotv(vec, vec, &result, M_->getnloc());
     vecNorm = std::sqrt(result);
     if (std::norm(result) < INFINITESIMAL){
         std::cout<<"norm(vecIn) = "<<std::norm(result)<<". Check if the input vec is 0."<<std::endl;
         return;
     }
-    vdeva(q, vecNorm, M_->get_nloc());
+    vdeva(q, vecNorm, M_->getnloc());
     // Q1 = [q]
-    if (option == ALPHA_BETA_Q) veqv(&Q[0], q, M_->get_nloc());
+    if (option == ALPHA_BETA_Q) veqv(&Q[0], q, M_->getnloc());
     // r = Aq
     M_->MxV(q, r);
     // a1 = q^r
-    vConjDotv(q, r, &result, M_->get_nloc());
+    vConjDotv(q, r, &result, M_->getnloc());
     alpha.push_back(std::real(result));
     // r = r - a1*q
-    saxpy(r, -(cdouble)alpha[0], q, M_->get_nloc());
+    saxpy(r, -(cdouble)alpha[0], q, M_->getnloc());
     // beta[1] = |r|
-    vConjDotv(r, r, &result, M_->get_nloc());
+    vConjDotv(r, r, &result, M_->getnloc());
     beta.push_back(std::real(std::sqrt(result)));
     if (M_->get_workerID()==MPI_MASTER && beta[0]==0.0){
         std::cout<<"LANZOSIteration stops for beta[0] = 0."<<std::endl;
@@ -104,22 +104,22 @@ void LANCZOSIterator<T>::run(cdouble* vec){
     
     for (int i = 1; i < krylovDim; ++i){
         // q_pre = q
-        veqv(q_pre, q, M_->get_nloc());
+        veqv(q_pre, q, M_->getnloc());
         // q = r/beta[i-1]
-        veqatv(q, one/beta[i-1], r, M_->get_nloc());
+        veqatv(q, one/beta[i-1], r, M_->getnloc());
         //Qi = [Qi-1,q]
-        if (option == ALPHA_BETA_Q) veqv(&Q[i*M_->get_nloc()], q, M_->get_nloc());
+        if (option == ALPHA_BETA_Q) veqv(&Q[i*M_->getnloc()], q, M_->getnloc());
         // r = Aq
         M_->MxV(q, r);
         //r = r - beta[i-1]*q_pre
-        saxpy(r, -(cdouble)beta[i-1], q_pre, M_->get_nloc());
+        saxpy(r, -(cdouble)beta[i-1], q_pre, M_->getnloc());
         //alpha[i] = q^r
-        vConjDotv(q, r, &result, M_->get_nloc());
+        vConjDotv(q, r, &result, M_->getnloc());
         alpha.push_back(std::real(result));
         // r = r - alpha[i]*q
-        saxpy(r, -(cdouble)alpha[i], q, M_->get_nloc());
+        saxpy(r, -(cdouble)alpha[i], q, M_->getnloc());
         // beta[i] = |r|
-        vConjDotv(r, r, &result, M_->get_nloc());
+        vConjDotv(r, r, &result, M_->getnloc());
         beta.push_back(std::real(std::sqrt(result)));
         if (M_->get_workerID()==MPI_MASTER && beta[i]==zero){
             std::cout<<"LANZOSIteration stops for beta["<<i<<"] = 0."<<std::endl;

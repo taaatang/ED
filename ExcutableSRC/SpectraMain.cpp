@@ -116,7 +116,7 @@ int main(int argc, const char * argv[]) {
     H->construct();
     // delete B; // Bug! after delete B, H.MxV will use B 
     timer.tok();
-    std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H->get_nloc()<<"/"<<H->get_dim()<<", Local Hamiltonian non-zero elements count:"<<H->nzCount()\
+    std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H->getnloc()<<"/"<<H->getDim()<<", Local Hamiltonian non-zero elements count:"<<H->nzCount()\
             <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
 
 // for(int J2_num = 0; J2_num<101; J2_num++){
@@ -164,7 +164,7 @@ int main(int argc, const char * argv[]) {
         timer.tik();
         SSOp<dataType> SS(&Lattice,B);
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin SS ..."<<std::endl<<"********************"<<std::endl;
-        std::vector<dataType> vecTmp(SS.get_nlocmax());
+        std::vector<dataType> vecTmp(SS.getnlocmax());
         cdouble val;
         std::vector<cdouble> ssvals;
         for (int i = 0; i < Lattice.getSiteNum(); ++i){
@@ -174,7 +174,7 @@ int main(int argc, const char * argv[]) {
             for(auto idx : gs_idx){
                 dataType* state = PDiag.getEigvec(idx);
                 SS.MxV(state, vecTmp.data());
-                vConjDotv<dataType, dataType>(state, vecTmp.data(), &val, SS.get_nloc());
+                vConjDotv<dataType, dataType>(state, vecTmp.data(), &val, SS.getnloc());
                 val /= Lattice.getSiteNum();
                 ssvals.push_back(val);
                 MPI_Barrier(MPI_COMM_WORLD);
@@ -198,7 +198,7 @@ int main(int argc, const char * argv[]) {
 */
     if (COMPUTE_SQW){
         int krylovDim = 400;
-        idx_t Hdim = H->get_dim();
+        idx_t Hdim = H->getDim();
         H->clearBuf();
         delete H;
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Sqw ..."<<std::endl<<"********************"<<std::endl;
@@ -228,7 +228,7 @@ int main(int argc, const char * argv[]) {
 
             // Hp.setVal(1, J2);
             timer.tok();
-            if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.get_nloc()<<"/"<<Hp.get_dim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+            if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.getnloc()<<"/"<<Hp.getDim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
             for(auto idx : gs_idx){
                 cdouble w0 = ws[idx];
@@ -316,7 +316,7 @@ int main(int argc, const char * argv[]) {
         //     for(auto idx : gs_idx){
         //         cdouble w0 = ws[idx];
         //         dataType* state = PDiag.getEigvec(idx);
-        //         SPECTRASolver<dataType> spectra(H, w0, &R, state, H->get_dim(), krylovDim);
+        //         SPECTRASolver<dataType> spectra(H, w0, &R, state, H->getDim(), krylovDim);
         //         spectra.compute();
         //         // save alpha, beta
         //         if (workerID==MPI_MASTER){
@@ -353,7 +353,7 @@ int main(int argc, const char * argv[]) {
                 for(auto idx : gs_idx){
                     cdouble w0 = ws[idx];
                     dataType* state = PDiag.getEigvec(idx);
-                    SPECTRASolver<dataType> spectra(H, w0, &R, state, H->get_dim(), krylovDim);
+                    SPECTRASolver<dataType> spectra(H, w0, &R, state, H->getDim(), krylovDim);
                     spectra.compute();
                     // save alpha, beta
                     if (workerID==MPI_MASTER){
@@ -378,7 +378,7 @@ int main(int argc, const char * argv[]) {
         // timer.tok();
         // if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Chiral Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
         // MPI_Barrier(MPI_COMM_WORLD);
-        // SPECTRASolver<dataType> spectra(&H, w0[0], &Rc, gstate, H.get_dim(), krylovDim);
+        // SPECTRASolver<dataType> spectra(&H, w0[0], &Rc, gstate, H.getDim(), krylovDim);
         // spectra.compute();
         // // save alpha, beta
         // if (workerID==MPI_MASTER){

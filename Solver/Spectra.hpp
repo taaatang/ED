@@ -23,7 +23,7 @@ public:
     SPECTRASolver(SparseMatrix<T> *H_, cdouble w0_, SparseMatrix<T> *A_, T* vec_, idx_t vecSize_, int krylovdim_):H(H_),A(A_),w0(w0_),\
         LANCZOSIterator<T>(H_,krylovdim_){
         A->setBuf(vecSize_);
-        vec.resize(H->get_nlocmax());
+        vec.resize(H->getnlocmax());
         A->MxV(vec_,vec.data());
         H->setBuf();
     }

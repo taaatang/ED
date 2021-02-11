@@ -20,6 +20,20 @@
 template <class T>
 class BaseMatrix{
 public:
+    BaseMatrix(idx_t totDim = 0);
+    ~BaseMatrix(){}
+
+    void setDim(idx_t totDim = 0);
+    idx_t getDim( ) const {return dim;};
+    int getWorkerID( ) const {return workerID;};
+    // ntot = nlocmax * workerNum != totDim
+    idx_t getntot( ) const {return ntot;};
+    idx_t getnlocmax( ) const {return nlocmax;};
+    // totDim = sum(nloc)
+    idx_t getnloc( ) const {return nloc;};
+
+    virtual void MxV(T *vecIn, T *vecOut) = 0;
+
     int workerID;
     int workerNum;
     idx_t dim;
@@ -28,28 +42,8 @@ public:
     idx_t nloc;
     idx_t startRow;
     idx_t endRow;
-
-    BaseMatrix(idx_t totDim = 0):dim(totDim){
-        MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
-        MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
-        nlocmax = (dim + workerNum - 1)/workerNum;
-        ntot = nlocmax * workerNum;
-        startRow = workerID * nlocmax;
-        endRow = (startRow + nlocmax)<dim?(startRow + nlocmax):dim;
-        nloc = endRow - startRow;
-    }
-    ~BaseMatrix(){}
-
-    idx_t get_dim() const {return dim;};
-    int get_workerID() const {return workerID;};
-    // ntot = nlocmax * workerNum != totDim
-    idx_t get_ntot() const {return ntot;};
-    idx_t get_nlocmax() const {return nlocmax;};
-    // totDim = sum(nloc)
-    idx_t get_nloc() const {return nloc;};
-
-    virtual void MxV(T *vecIn, T *vecOut) = 0;
 };
+
 /*
     ****************************
     * Sparse Matrix Base Class *
@@ -71,53 +65,58 @@ class SparseMatrix: public BaseMatrix<T>{
 public:
     SparseMatrix( ) { }
     SparseMatrix(Basis *Bi_, Basis *Bf_, idx_t totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0);
-    ~SparseMatrix();
+    ~SparseMatrix( );
 
     // local matrix nonzero elements count
-    idx_t nzCount() const;    
+    idx_t nzCount( ) const;    
+
     // reserve memory for diagonal part
-    void reserveDiag(){for(int i = 0; i < dmNum; ++i) diagValList.reserve(this->get_nloc());}
+    void reserveDiag( ) { for(int i = 0; i < dmNum; ++i) diagValList.reserve(this->getnloc()); }
+
     // reserve memory for off diagonal part
     void reserve(idx_t sizePerRow, int matID=0);
+
     // clear memory of sparse matrixes
     void clear();
 
     void setSpmNum(int num);
-    void pushDiag(T val, int matID=0){diagValList.at(matID).push_back(val);}
-    void putDiag(double val, idx_t idx, int matID=0){
-        #ifdef DISTRIBUTED_BASIS
-        diagValList.at(matID).at(idx)=val;
-        #else
-        diagValList.at(matID).at(idx-BaseMatrix<T>::startRow)=val;
-        #endif
-    }
-    void putDiag(cdouble val, idx_t idx, int matID=0){
-        #ifdef DISTRIBUTED_BASIS
-        diagValList.at(matID).at(idx)=val;
-        #else
-        diagValList.at(matID).at(idx-BaseMatrix<T>::startRow)=val;
-        #endif
-    }
+
+    void setDmNum(int num);
+
+    void pushDiag(T val, int matID=0) { diagValList.at(matID).push_back(val); }
+
+    void putDiag(T val, idx_t idx, int matID=0);
 
     // set buffer for MxV
-    void setBuf(idx_t size){vecBuf.resize(size); is_vecBuf = true;}
-    void setBuf();
-    void clearBuf(){vecBuf.clear(); is_vecBuf=false;}
-    void setVal(int matID, T val) {parameters.at(matID) = val;}
+    void setBuf(idx_t size) { vecBuf.resize(size); is_vecBuf = true; }
+
+    void setBuf( );
+
+    void clearBuf( ) { vecBuf.clear(); is_vecBuf=false; }
+
+    void setVal(int matID, T val) { parameters.at(matID) = val; }
+
     // create one row. store sparse matrixes data in corresponding rowMaps. (repI, val) for distributed basis. (idx,val) otherwise
     virtual void row(idx_t rowID, std::vector<MAP>& rowMaps) = 0;
 
 #ifdef DISTRIBUTED_BASIS
+
     // initialize sendBuff/recvBuff for distributed basis MPI_Alltoall communication
     void setMpiBuff(idx_t idx_val);
+
     // construct sparse matrix in parallel. each thread create #rowPerThread.
     void construct(int rowCount=50, int rowPerIt=1000);
+
 #else // DISTRIBUTED_BASIS
+
     void pushRow(std::unordered_map<idx_t,T>* rowMap, int matID=0);
+
     void construct(int rowPerThread=1);
+
 #endif // DISTRIBUTED_BASIS
 
     void MxV(T *vecIn, T *vecOut);
+
     cdouble vMv(T *vecL, T *vecR);
 
 protected:
@@ -127,6 +126,7 @@ protected:
     int dmNum{0}; // number of diagonal matrix
     int spmNum{0}; // number of sparse matrix in csr format
     bool isMatrixFree{true};
+
 #ifdef DISTRIBUTED_STATE
     int blockNum;
     std::vector<std::vector<T>> diagValList;
@@ -151,12 +151,15 @@ protected:
     std::vector<std::vector<idx_t>> counter; // counter[i,j] is the current number of non-zero elements of i-th sparse matrix's j-th block
     // [matrix_id,row_block_id]
     std::vector<std::vector<sparse_matrix_t>> A;
+
 #else
+
     std::vector<std::vector<T>> diagValList;
     std::vector<std::vector<T>> valList;
     std::vector<std::vector<idx_t>> colList, rowInitList;
     std::vector<idx_t> counter; // counter[i] is the current number of non-zero elements of i-th sparse matrix
     std::vector<sparse_matrix_t> A;
+
 #endif
 
     std::vector<T> diagParameters; // diagParameters[i]*diagValList[i]. parameter for i-th diagonal matrix
@@ -169,7 +172,23 @@ protected:
     
 };
 
-// static members
+template <class T>
+BaseMatrix<T>::BaseMatrix(idx_t totDim) {
+    MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
+    MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
+    setDim(totDim);
+}
+
+template <class T>
+void BaseMatrix<T>::setDim(idx_t totDim) {
+    dim = totDim;
+    nlocmax = (dim + workerNum - 1)/workerNum;
+    ntot = nlocmax * workerNum;
+    startRow = workerID * nlocmax;
+    endRow = (startRow + nlocmax)<dim?(startRow + nlocmax):dim;
+    nloc = endRow - startRow;
+}
+
 // buffer for matrix vector multiplication
 template <class T>
 std::vector<T> SparseMatrix<T>::vecBuf;
@@ -177,86 +196,127 @@ std::vector<T> SparseMatrix<T>::vecBuf;
 // false means resources for vecBuf is not allocated
 template <class T>
 bool SparseMatrix<T>::is_vecBuf = false; 
+
 /*
     *****************************
     * Sparse Matrix Source Code *
     *****************************
 */
-//Constructor
+
 template <class T>
-SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, idx_t totDim_ , int spmNum_ , int dmNum_):\
-    BaseMatrix<T>(totDim_),Bi(Bi_),Bf(Bf_),spmNum(spmNum_),dmNum(dmNum_),parameters(spmNum,1.0),diagParameters(dmNum,1.0),\
-    counter(spmNum_),valList(spmNum_),colList(spmNum_),rowInitList(spmNum_),A(spmNum_),diagValList(dmNum_){
-    for(int i = 0; i < dmNum; ++i) diagValList[i].resize(BaseMatrix<T>::nloc);
+SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, idx_t totDim_ , int spmNum_ , int dmNum_):BaseMatrix<T>(totDim_), Bi(Bi_), Bf(Bf_) {
+
+    setSpmNum(spmNum_);
+    setDmNum(dmNum_);
+
     // initialize is_vecBuf status 
     #ifdef DISTRIBUTED_BASIS
+
         partition =  MATRIX_PARTITION::COL_PARTITION;
         if (vecBuf.size() != BaseMatrix<T>::nlocmax) is_vecBuf = false;
+
     #else
+
         partition = MATRIX_PARTITION::ROW_PARTITION;   
         if (vecBuf.size() != BaseMatrix<T>::ntot) is_vecBuf = false;
         nlocmax_col = (Bi_->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
         ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
-    #endif
-    #ifdef DISTRIBUTED_STATE
-        blockNum = BaseMatrix<T>::workerNum;
-        idxSendBuff.resize(spmNum_);idxRecvBuff.resize(spmNum_);valSendBuff.resize(spmNum_);valRecvBuff.resize(spmNum_);
-        for(int matID=0; matID<spmNum; matID++){
-            counter.at(matID).resize(blockNum,0);
-            rowInitList.at(matID).resize(blockNum);
-            colList.at(matID).resize(blockNum);
-            valList.at(matID).resize(blockNum);
-            A.at(matID).resize(blockNum);
-        }
+
     #endif
 }
 
 template <class T>
-SparseMatrix<T>::~SparseMatrix(){
-    for(int i = 0; i < spmNum; ++i){
+SparseMatrix<T>::~SparseMatrix( ) {
+    for(int i = 0; i < spmNum; ++i) {
         #ifdef DISTRIBUTED_BASIS
+
             for(int b = 0; b < BaseMatrix<T>::workerNum;b++) MKL::destroy(A.at(i).at(b));
+
         #else
+
             MKL::destroy(A.at(i));
+
         #endif
     }
 }
 
 template <class T>
-idx_t SparseMatrix<T>::nzCount() const {
+idx_t SparseMatrix<T>::nzCount( ) const {
     idx_t count=0;
+
     #ifdef DISTRIBUTED_BASIS 
+
         for(int i=0;i<spmNum;++i)for(int b=0;b<BaseMatrix<T>::workerNum;b++)count+=valList.at(i).at(b).size(); 
+
     #else
+
         for(int i=0;i<spmNum;++i)count+=valList.at(i).size();
+
     #endif
+
     for(int i=0;i<dmNum;++i)count+=diagValList.at(i).size();
     return count;
 }
 
 template <class T>
-void SparseMatrix<T>::reserve(idx_t sizePerRow, int matID){
+void SparseMatrix<T>::reserve(idx_t sizePerRow, int matID) {
     #ifdef DISTRIBUTED_BASIS
+
         for(int b=0; b<blockNum; b++){
             valList.at(matID).at(b).reserve(sizePerRow * BaseMatrix<T>::nloc); 
             colList.at(matID).at(b).reserve(sizePerRow * BaseMatrix<T>::nloc);
             rowInitList.at(matID).at(b).reserve(1+BaseMatrix<T>::nloc);
         }
+
     #else
+
         valList.at(matID).reserve(sizePerRow * BaseMatrix<T>::nloc); 
         colList.at(matID).reserve(sizePerRow * BaseMatrix<T>::nloc);
         rowInitList.at(matID).reserve(1+BaseMatrix<T>::nloc);
+
     #endif
 }
 
 template <class T>
-void SparseMatrix<T>::clear(){
+void SparseMatrix<T>::clear( ) {
     for (int matID = 0; matID < dmNum; matID++) diagValList[matID].clear();
+
     #ifdef DISTRIBUTED_BASIS
-        for (int matID = 0; matID < spmNum; matID++)for(int b=0; b < blockNum;b++){counter.at(matID).at(b)=0;valList.at(matID).at(b).clear();colList.at(matID).at(b).clear();rowInitList.at(matID).at(b).clear();}
+
+        for (int matID = 0; matID < spmNum; matID++) {
+            for(int b=0; b < blockNum;b++) {
+                counter.at(matID).at(b)=0;
+                valList.at(matID).at(b).clear();
+                colList.at(matID).at(b).clear();
+                rowInitList.at(matID).at(b).clear();
+            }
+        }
+
     #else
-        for (int matID = 0; matID < spmNum; matID++){counter[matID]=0;valList[matID].clear();colList[matID].clear();rowInitList[matID].clear();}
+
+        for (int matID = 0; matID < spmNum; matID++) {
+            counter[matID]=0;
+            valList[matID].clear();
+            colList[matID].clear();
+            rowInitList[matID].clear();
+        }
+    
     #endif
+}
+
+template <class T>
+void SparseMatrix<T>::putDiag(T val, idx_t idx, int matID){
+
+    #ifdef DISTRIBUTED_BASIS
+
+        diagValList.at(matID).at(idx)=val;
+
+    #else
+
+        diagValList.at(matID).at(idx-BaseMatrix<T>::startRow)=val;
+
+    #endif
+
 }
 
 template <class T>
@@ -268,9 +328,35 @@ void SparseMatrix<T>::setSpmNum(int num) {
     colList.resize(spmNum);
     rowInitList.resize(spmNum);
     A.resize(spmNum);
+
+    #ifdef DISTRIBUTED_STATE
+
+        blockNum = BaseMatrix<T>::workerNum;
+        idxSendBuff.resize(num);
+        idxRecvBuff.resize(num);
+        valSendBuff.resize(num);
+        valRecvBuff.resize(num);
+        for(int matID=0; matID<spmNum; matID++) {
+            counter.at(matID).resize(blockNum,0);
+            rowInitList.at(matID).resize(blockNum);
+            colList.at(matID).resize(blockNum);
+            valList.at(matID).resize(blockNum);
+            A.at(matID).resize(blockNum);
+        }
+
+    #endif
+}
+
+template <class T>
+void SparseMatrix<T>::setDmNum(int num) {
+    dmNum = num; 
+    diagParameters = std::vector<T>(num,1.0);
+    diagValList.resize(num);
+    for(int i = 0; i < num; ++i) diagValList[i].resize(BaseMatrix<T>::nloc); 
 }
 
 #ifndef DISTRIBUTED_BASIS
+
     template <class T>
     void SparseMatrix<T>::pushRow(std::unordered_map<idx_t,T>* rowMap, int matID){
         counter.at(matID) += rowMap->size();
@@ -280,6 +366,7 @@ void SparseMatrix<T>::setSpmNum(int num) {
             valList[matID].push_back(std::conj(it->second));
         }
     }
+
 #endif
 
 template <class T>
@@ -315,6 +402,7 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
     void SparseMatrix<T>::construct(int rowCount, int rowPerIt){
         Timer timer;
         Timer tInit, tMPI;
+        setDim(Bf->getSubDim());
         // do MPI_Alltoall communication after #rowPerIt row iterations 
         int sendCount = rowCount * rowPerIt;
         int buffSize = blockNum * sendCount;
@@ -414,6 +502,7 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
     template <class T>
     void SparseMatrix<T>::construct(int rowPerThread){
         clear();
+        this->setDim(Bf->getSubDim());
         int threadNum;
         #pragma omp parallel
         {
@@ -490,10 +579,13 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
  Version 2. M = a1*M1 + a2*M2 + ...
  */
 template <class T>
-void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
+void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
+    if(!is_vecBuf) setBuf();
+    
     if(!isMatrixFree){
-        if(!is_vecBuf) setBuf();
+       
         #ifdef DISTRIBUTED_BASIS
+
             for (int id = 0; id < BaseMatrix<T>::workerNum; id++){
                 // initialization
                 #pragma omp parallel for
@@ -509,12 +601,16 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
                 MPI_Barrier(MPI_COMM_WORLD);
                 MPI_Reduce(vecBuf.data(), vecOut, rowEnd - rowStart, id);
             }
+
         #else
+
             #pragma omp parallel for
             for (idx_t i = 0; i < BaseMatrix<T>::nloc; ++i) vecOut[i] = 0.0;
             MPI_Allgather(vecIn,vecBuf.data(),nlocmax_col);
             for (int i = 0; i < spmNum; ++i){MKL::MxV(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
+
         #endif
+
         // diagonal part
         if (dmNum>0){
             // constant diagVal
@@ -528,8 +624,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut){
                 for (idx_t i = 0; i < BaseMatrix<T>::nloc; ++i) vecOut[i] += diagParameters[j]*diagValList[j][i]*vecIn[i];
             }
         }
-    }else{
-        if(!is_vecBuf) setBuf();
+    } else {
         MPI_Allgather(vecIn,vecBuf.data(),nlocmax_col);
         #pragma omp parallel for
         for (idx_t i = 0; i < BaseMatrix<T>::nloc; ++i) vecOut[i] = 0.0;

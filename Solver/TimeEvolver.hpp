@@ -57,10 +57,10 @@ void TimeEvolver<T>::evolve(double expFac){
         }
     }
     #pragma omp parallel for
-    for (int i = 0; i < LANCZOSIterator<T>::M_->get_nloc(); ++i){
+    for (int i = 0; i < LANCZOSIterator<T>::M_->getnloc(); ++i){
         cdouble sum = 0.0;
         for(int j = 0; j < LANCZOSIterator<T>::krylovDim; j++){
-            sum += LANCZOSIterator<T>::Q[i + j *LANCZOSIterator<T>::M_->get_nloc()] * tmp2[j];
+            sum += LANCZOSIterator<T>::Q[i + j *LANCZOSIterator<T>::M_->getnloc()] * tmp2[j];
         }
         vec[i] = sum;
     }
