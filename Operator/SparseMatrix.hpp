@@ -87,12 +87,13 @@ public:
 
     void putDiag(T val, idx_t idx, int matID=0);
 
+    bool isMVBuf( );
     // set buffer for MxV
-    void setBuf(idx_t size) { vecBuf.resize(size); is_vecBuf = true; }
+    void setBuf(idx_t size) { vecBuf.resize(size); }
 
     void setBuf( );
 
-    void clearBuf( ) { vecBuf.clear(); is_vecBuf=false; }
+    void clearBuf( ) { vecBuf.clear(); }
 
     void setVal(int matID, T val) { parameters.at(matID) = val; }
 
@@ -135,7 +136,6 @@ protected:
     idx_t nlocmax_col;
     idx_t ntot_col;
     static std::vector<T> vecBuf; // common buffer for matrix vector multiplication
-    static bool is_vecBuf; // common status of the buffer. true means the buffer has been allocated.
 
 #ifdef DISTRIBUTED_STATE
     int blockNum;
@@ -184,10 +184,6 @@ void BaseMatrix<T>::setDim(idx_t totDim) {
 template <class T>
 std::vector<T> SparseMatrix<T>::vecBuf;
 
-// false means resources for vecBuf is not allocated
-template <class T>
-bool SparseMatrix<T>::is_vecBuf = false; 
-
 /*
     *****************************
     * Sparse Matrix Source Code *
@@ -200,18 +196,13 @@ SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, idx_t totDim_ , int spmNum
     setSpmNum(spmNum_);
     setDmNum(dmNum_);
 
-    // initialize is_vecBuf status 
     #ifdef DISTRIBUTED_BASIS
 
         partition =  MATRIX_PARTITION::COL_PARTITION;
-        if (vecBuf.size() != BaseMatrix<T>::nlocmax) is_vecBuf = false;
 
     #else
 
         partition = MATRIX_PARTITION::ROW_PARTITION;   
-        if (vecBuf.size() != BaseMatrix<T>::ntot) is_vecBuf = false;
-        nlocmax_col = (Bi_->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
-        ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
 
     #endif
 }
@@ -361,13 +352,30 @@ void SparseMatrix<T>::setDmNum(int num) {
 #endif
 
 template <class T>
+bool SparseMatrix<T>::isMVBuf( ) {    
+    nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
+    ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
+
+    #ifdef DISTRIBUTED_BASIS
+
+        return vecBuf.size() == nlocmax_col;
+
+    #else
+ 
+        return vecBuf.size() == ntot_col;
+
+    #endif
+}
+
+template <class T>
 void SparseMatrix<T>::setBuf(){
+    nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
+    ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
     #ifdef DISTRIBUTED_BASIS
         vecBuf.resize(nlocmax_col);
     #else
         vecBuf.resize(ntot_col);
     #endif
-    is_vecBuf = true;
 }
 
 #ifdef DISTRIBUTED_BASIS
@@ -582,7 +590,7 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
  */
 template <class T>
 void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
-    if(!is_vecBuf) setBuf();
+    if(!isMVBuf()) setBuf();
     
     if(!isMatrixFree){
        
