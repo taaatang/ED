@@ -23,7 +23,7 @@ int main(){
     cdouble* gstate = PDiag.getEigvec();
 
     setpulse(pulsePara, pulse);
-    std::string TimePath = PROJECT_DATA_PATH + "/sqOcta/4x1/2u2d/k2/pump/x/" + tostr(pulse.getw());
+    std::string TimePath = PROJECT_DATA_PATH + "/sqOcta/4x1/3u2d/k3/pump/x/" + tostr(pulse.getw());
     mkdir_fs(TimePath);
     H->setPeierls(&pulse);
     H->construct();

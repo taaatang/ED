@@ -15,7 +15,7 @@ std::string lattstr, occstr, tpstr;
 std::string inputDir = "Input";
 std::string rootDir, projectDir;
 std::string basisDir, wavefuncDir, corrDir, SkwDir, AkwDir, sigmaDir, pumpDir;
-Parameters pathPara(inputDir, {"path.txt"});
+// Parameters pathPara(inputDir, {"path.txt"});
 Parameters modelPara(inputDir, {"lattice.txt", "Hubbard.txt"});
 Parameters pulsePara(inputDir, {"pulse.txt"});
 std::unique_ptr<Geometry> latt;
