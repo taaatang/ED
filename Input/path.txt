@@ -1,0 +1,2 @@
+rootDir:s:/oak/stanford/groups/tpd/tatang
+project:s:photodoping

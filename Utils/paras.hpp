@@ -30,7 +30,7 @@ using map = std::map<std::string,T>;
  * 
  */
 class Parameters{
-    friend void setpath(Parameters&);
+    friend class Path;
     friend void setlatt(const Parameters&, std::unique_ptr<Geometry>&);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int, int, int, int);
@@ -65,6 +65,8 @@ void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int nuf, int ndf, int kf, int pf);
 void setham(const Parameters&, std::unique_ptr<OperatorBase<dataType>>& H, Geometry*, Basis*);
+void setBasics(const Parameters&, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<OperatorBase<dataType>>& H);
+
 void setmeasure(const Parameters&);
 void setpulse(const Parameters&, Pulse&);
 
