@@ -126,7 +126,7 @@ int main(int argc, const char * argv[]){
         H.construct();
     #endif
     timer.tok();
-    if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.get_nloc()<<"/"<<H.get_dim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
+    if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.getnloc()<<"/"<<H.getDim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
         <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
 
     // std::ofstream outfile;
