@@ -107,6 +107,7 @@ public:
     }
     virtual ~Geometry(){};
 
+    bool check( ) const;
     // add an Orbital to the unit cell
     Geometry& addOrb(Orbital orb) {unitSite.push_back(orb);return *this;}
     Geometry& addBoundary(Orbital orb) {assert(!is_PBC);boundary.push_back(orb);return *this;}

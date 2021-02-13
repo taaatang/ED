@@ -172,7 +172,11 @@ void setlatt(const Parameters& para, std::unique_ptr<Geometry>& latt){
     }
 
     latt->construct();
-
+    if (!latt->check()) {
+        latt->print();
+        std::cout<<"Lattice does not pass check()!\n";
+        exit(1);
+    }
     std::cout<<"lattice set!\n";
 }
 

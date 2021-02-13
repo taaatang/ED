@@ -15,6 +15,27 @@
    ***************************
 */
 
+/**
+ * @brief check there is no same ORBITAL with same coordinates. 
+ * This will ensure the search (ORBITAL, coord) --> id 
+ * 
+ * @return true passed check
+ * @return false 
+ */
+bool Geometry::check( ) const {
+    for (size_t i = 0; i < enlgOrbs.size(); ++i) {
+        for (size_t j = i + 1; j < enlgOrbs.size(); ++j) {
+            if (enlgOrbs[i].orb == enlgOrbs[j].orb) {
+                bool cond = true;
+                for (int r = 0; r < dim; ++r){
+                    if(std::abs(enlgOrbs[i].coord[r]-enlgOrbs[j].coord[r])>tol) {cond = false; break;}
+                } 
+                if (cond) return false;
+            }
+        }
+    }
+    return true;
+}
 bool Geometry::coordToOrbid(ORBITAL orb, double* coord, int &orbid) const {
     bool cond;
     for (const auto& Orb:enlgOrbs){
