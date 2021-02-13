@@ -383,8 +383,10 @@ inline std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model) {
 
 #ifdef CPP_17
 inline void mkdir_fs(std::string dir){
-     bool succeed = std::filesystem::create_directories(dir);
-     assert_msg(succeed, dir + " failed to creat!");
+    std::filesystem::path p(dir);
+    std::filesystem::create_directories(p);
+    bool succeed = std::filesystem::is_directory(p);
+    assert_msg(succeed, dir + " failed to creat!");
 }
 #else
 inline void mkdir_fs(std::string dir){
