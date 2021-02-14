@@ -296,4 +296,5 @@ void setpulse(const Parameters& para, Pulse& pulse) {
     pulse.setFuncPara();
     pulse.setPol(pol);
     pulse.setFluence(fluence);
+    pulse.setPhase(phase);
 }

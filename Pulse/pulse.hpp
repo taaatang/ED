@@ -39,10 +39,10 @@ public:
     double getAa( ) const { return a*getA(); } // return A*a
     VecD getPol( ) const { return pol; }
 
-    void setE0(double E0) { params.at(0)=E0; }
-    void setWidth(double width) { params.at(1)=width*std::sqrt(2); }
-    void setW(double w) { params.at(2)=w; }
-    void setPhase(double phase) { params.at(3)=phase; }
+    void setE0(double E0) { params.at(0) = E0; }
+    void setWidth(double width) { params.at(1) = width * std::sqrt(2); }
+    void setW(double w) { params.at(2) = w; }
+    void setPhase(double phase) { params.at(3) = phase * 2.0 * PI; }
     void setFluence(double Flu /* mJ/cm^2 */);
     void setPol(VecD pol) { this->pol = pol;}
     void setFuncPara( );
