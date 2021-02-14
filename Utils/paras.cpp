@@ -279,9 +279,19 @@ void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::uni
     setlatt(para, latt);
     setbasis(para, B, latt.get());
     setham(para, H, latt.get(), B.get());
+
+    Timer timer;
+    timer.tik();
     B->gen();
-    H->construct();
     B->print();
+    timer.tok();
+    timer.print("Basis construction");
+
+    timer.tik();
+    H->construct();
+    timer.tok();
+    timer.print("Hamiltonian construction");
+    
 }
 
 void setpulse(const Parameters& para, Pulse& pulse) {
