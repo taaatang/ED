@@ -427,6 +427,18 @@ inline void save(T *d_pt, idx_t size, std::ofstream *f_pt, std::string filename,
     }
 }
 
+template <class T>
+inline void save(T *d_pt, int size, std::string filename, bool is_app=false){
+    std::ofstream os;
+    save<T>(d_pt, size, &os, filename, is_app);
+}
+
+template <class T>
+inline void save(T *d_pt, idx_t size, std::string filename, bool is_app=false){
+    std::ofstream os;
+    save<T>(d_pt, size, filename, is_app);
+}
+
 
 
 template <class T>
