@@ -9,23 +9,28 @@
 #define timer_hpp
 
 #include <chrono>
+#include <iostream>
+#include <string>
 
 class Timer{
     std::chrono::system_clock::time_point tik_, tok_;
     std::chrono::duration<double> duration_;
     bool is_tok;
 public:
-    Timer():is_tok(false){tik();}
-    ~Timer(){}
+    Timer( ):is_tok(false) { tik(); }
+    ~Timer( ) { }
 
-    void tik(){tik_ = std::chrono::system_clock::now(); is_tok = false;}
-    void tok(){tok_ = std::chrono::system_clock::now(); is_tok = true;}
+    void tik( ) { tik_ = std::chrono::system_clock::now(); is_tok = false; }
+    void tok( ) { tok_ = std::chrono::system_clock::now(); is_tok = true; }
     // return duration in unit of ms
-    double elapse(){
+    double elapse( ) {
         if (!is_tok) tok();
         duration_ = tok_ - tik_;
         is_tok = false;
         return duration_.count()*1000.0;
+    }
+    void print(std::string event, std::ostream& os = std::cout) {
+        os<<event<<" time:"<<elapse()<<"ms.\n";
     }
 };
 
