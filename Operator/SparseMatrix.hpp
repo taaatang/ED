@@ -102,7 +102,7 @@ public:
     cdouble vMv(T *vecL, T *vecR);
 
     // create one row. store sparse matrixes data in corresponding rowMaps. (repI, val) for distributed basis. (idx,val) otherwise
-    virtual void row(idx_t rowID, std::vector<MAP>& rowMaps) = 0;
+    virtual void row(idx_t rowID, std::vector<MAP<T>>& rowMaps) = 0;
 
 
 #ifdef DISTRIBUTED_BASIS
@@ -446,7 +446,7 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
             idx_t iterEnd = (rowID+rowPerIt)<BaseMatrix<T>::nloc ? (rowID+rowPerIt):BaseMatrix<T>::nloc;
             #pragma omp parallel for
             for(int iter = 0; iter < (iterEnd-iterStart); iter++){
-                std::vector<MAP> rowMaps(spmNum);
+                std::vector<MAP<T>> rowMaps(spmNum);
                 // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", Start iter:"<<iterStart+iter<<std::endl;
                 row(iterStart+iter,rowMaps);
                 // std::cout<<"workerID:"<<BaseMatrix<T>::workerID<<", after iter:"<<iterStart+iter<<std::endl;
@@ -521,7 +521,7 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
         }
         int rowPerIt = rowPerThread * threadNum;
         // for each iteration, each thread construct spmNum*rowPerThread rowMap
-        std::vector<std::vector<MAP>> rowMapList(rowPerIt);
+        std::vector<std::vector<MAP<T>>> rowMapList(rowPerIt);
         for (int i = 0; i < rowPerIt; ++i) {rowMapList[i].resize(spmNum);}
 
         // the starting index for each thread to copy data from rowMap to colList and valList
@@ -641,7 +641,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
         #pragma omp parallel for
         for(idx_t rowID = BaseMatrix<T>::startRow; rowID < BaseMatrix<T>::endRow; ++rowID){
             idx_t rowID_loc = rowID - BaseMatrix<T>::startRow;
-            std::vector<MAP> rowMaps; rowMaps.resize(spmNum);
+            std::vector<MAP<T>> rowMaps; rowMaps.resize(spmNum);
             row(rowID, rowMaps);
             int matID = 0;
             // off diagonal

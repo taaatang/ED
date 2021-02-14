@@ -46,7 +46,7 @@ public:
 
     bool next( );
 
-    void row(idx_t rowidx, std::vector<MAP>& rowMaps);
+    void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps);
 
 private:
     VecD V, U;
@@ -97,7 +97,7 @@ public:
     void printU() const {std::cout<<"U:"<<std::endl;for(auto it=U.begin();it!=U.end();it++)std::cout<<*it<<", ";std::cout<<std::endl;}
     double diagVal(VecI occ, VecI docc) const {double val=0.0; for(int i=0;i<pt_lattice->getUnitOrbNum();++i)val += occ.at(i)*V.at(i)+docc.at(i)*U.at(i);return val;}
     void setVal(int matID, T val){(SparseMatrix<T>::parameters).at(matID) = val;}
-    void row(idx_t rowID, std::vector<MAP>& rowMaps);
+    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
     void genMat();
 };
 
@@ -124,21 +124,33 @@ public:
         assert(spmCount<=SparseMatrix<cdouble>::spmNum);
         return *this;
     }
-    void row(idx_t rowID, std::vector<MAP>& rowMaps);
+    void row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps);
 };
 
-class Nocc: public SparseMatrix<cdouble>{
-private:
-    Geometry* pt_lattice;
-    Basis* pt_Basis;
+class Nocc: public SparseMatrix<double>{
 public:
     Nocc(Geometry *pt_lat, Basis *pt_Ba);
     ~Nocc(){}
+    
+    template <typename T>
+    friend void save(T *d_pt, int size, std::string filename, bool is_app);
 
-    void row(idx_t rowID, std::vector<MAP>& rowMaps){};
+    template <typename T>
+    friend void save(T *d_pt, idx_t size, std::string filename, bool is_app);
+
+    void row(idx_t rowID, std::vector<MAP<double>>& rowMaps){};
     inline void row(idx_t rowID);
     void genMat();
     double count(ORBITAL orbital, dataType* vec);
+    double count(int orbid, dataType* vec);
+    void count(dataType* vec);
+    void clear( );
+    void save(std::string dir);
+
+private:
+    Geometry* pt_lattice;
+    Basis* pt_Basis;
+    std::vector<std::vector<double>> records;
 };
 
 /*
@@ -181,7 +193,7 @@ public:
         return *this;
     }
     void setVal(int matID, T val){(SparseMatrix<T>::parameters).at(matID) = val;}
-    void row(idx_t rowID, std::vector<MAP>& rowMaps);
+    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
     void genMat();
 };
 
@@ -222,7 +234,7 @@ public:
     }
 
     void setVal(int matID, double val){(SparseMatrix<T>::parameters).at(matID) = val;}
-    void row(idx_t rowID, std::vector<MAP>& rowMaps);
+    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
     void genMat();
 };
 
@@ -265,7 +277,7 @@ public:
 
     void setplz(VecD pIn_, VecD pOut_);
     void setVal(int matID, double val){(SparseMatrix<T>::parameters).at(matID) = val;}
-    void row(idx_t rowID, std::vector<MAP>& rowMaps);
+    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
 };
 
 template <class T>
@@ -296,7 +308,7 @@ public:
             assert(posList.size()==pt_lattice->getSiteNum());
         }
     ~CkOp(){}
-    void row(idx_t rowID, std::vector<MAP>& rowMaps);
+    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
 };
 
 template <class T>
@@ -319,7 +331,7 @@ public:
             }
         };
     ~SzkOp(){};
-    void row(idx_t rowID, std::vector<MAP>& rowMaps);
+    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
     // void genMat(Geometry* pt_lattice, Basis* pt_Basis, BasisXY q);
     void genMat();
 };
@@ -336,7 +348,7 @@ public:
     SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int spindim=2);
     ~SSOp(){}
     void setr(int r_){assert(r_<pt_lattice->getSiteNum());r=r_;}
-    void row(idx_t rowID, std::vector<MAP>& rowMaps);
+    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
     // S(i)*S(i+r)
     void genPairMat(int rIndex);
     void project(double s, T* vec);
@@ -452,7 +464,7 @@ double Hamiltonian<MODEL, T>::diagVal(const VecI& occ, const VecI& docc) const {
 }
 
 template <LATTICE_MODEL MODEL, typename T>
-void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP>& rowMaps) {
+void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     if constexpr (MODEL == LATTICE_MODEL::HUBBARD) {
         // diagonal part. occupancy and double-occ
         VecI occ, docc;
@@ -631,7 +643,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP>& rowMaps) {
     }
 }
 template <class T>
-void CkOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
+void CkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     #ifdef DISTRIBUTED_BASIS
         
     #else
@@ -659,7 +671,7 @@ void CkOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
 }
 
 template <class T>
-void Hubbard<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
+void Hubbard<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     // diagonal part. occupancy and double-occ
     VecI occ, docc;
     idx_t repI = this->pt_Basis->getRepI(rowID);
@@ -728,7 +740,7 @@ template <class T>
 void Hubbard<T>::genMat(){
     int kIndex = this->pt_Basis->getkIndex();
     SparseMatrix<T>::clear();
-    MAP rowMap;
+    MAP<T> rowMap;
     // initialize rowInitList
     for (int i = 0; i < this->spmNum; ++i) SparseMatrix<T>::pushRow(&rowMap,i);
     VecI initVec(pt_lattice->getOrbNum()), initVecp(pt_lattice->getOrbNum());
@@ -793,18 +805,9 @@ void Hubbard<T>::genMat(){
         }
     }
 }
-inline void Nocc::row(idx_t rowID){
-    // diagonal part. occupancy
-    VecI occ;
-    idx_t repI = pt_Basis->getRepI(rowID);
-    pairIndex pairRepI = pt_Basis->getPairRepI(repI);
-    pt_lattice->orbOCC(pairRepI, occ);
-    idx_t loc_rowID = rowID - BaseMatrix<cdouble>::startRow;
-    for (int i = 0; i < pt_lattice->getUnitOrbNum(); ++i) {SparseMatrix<cdouble>::diagValList[i][loc_rowID] = occ[i];}
-}
 
 template <class T>
-void HtJ<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
+void HtJ<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     // off diagonal part
     std::vector<idx_t> finalIndList;
     std::vector<cdouble> factorList;
@@ -868,7 +871,7 @@ void RamanOp<T>::setplz(VecD pIn_, VecD pOut_){
     NoRW = false;
 }
 template <class T>
-void RamanOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
+void RamanOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     if(NoRW) setplz(pIn, pOut);
     std::vector<idx_t> finalIndList;
     std::vector<cdouble> factorList;
@@ -901,7 +904,7 @@ void RamanOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
 }
 
 template <class T>
-void Heisenberg<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
+void Heisenberg<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     if(this->pt_Basis->getSiteDim()==2){
         int kIndex = this->pt_Basis->getkIndex();
         std::vector<idx_t> finalIndList;
@@ -972,7 +975,7 @@ template <class T>
 void Heisenberg<T>::genMat(){
     int kIndex = this->pt_Basis->getkIndex();
     SparseMatrix<T>::clear();
-    MAP rowMap;
+    MAP<T> rowMap;
     // initialize rowInitList
     for (int i = 0; i < SparseMatrix<T>::spmNum; ++i) SparseMatrix<T>::pushRow(&rowMap,i);
     VecI initVec(pt_lattice->getOrbNum());
@@ -1048,7 +1051,7 @@ SSOp<T>::SSOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_, int spindim):r(-1),pt
 }
 
 template <class T>
-void SSOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
+void SSOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     //binary rep
     if(this->pt_Basis->getSiteDim()==2){
         int kIndex = this->pt_Basis->getkIndex();
@@ -1142,7 +1145,7 @@ void SSOp<T>::genPairMat(int rIndex){
     int kIndex = this->pt_Basis->getkIndex();
     this->clear();
     this->reserve(pt_lattice->getOrbNum()/2+1);
-    MAP rowMap;
+    MAP<T> rowMap;
     this->pushRow(&rowMap);
     VecI initVec(pt_lattice->getOrbNum());
     for (idx_t rowID = this->startRow; rowID < this->endRow; rowID++){
@@ -1169,7 +1172,7 @@ void SSOp<T>::genPairMat(int rIndex){
 }
 
 template <class T>
-void SzkOp<T>::row(idx_t rowID, std::vector<MAP>& rowMaps){
+void SzkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     if(pt_Bi->getSiteDim()==2){
         #ifdef DISTRIBUTED_BASIS
             idx_t repI = pt_Bf->getRepI(rowID);
@@ -1227,7 +1230,7 @@ void SzkOp<T>::genMat(){
     #else
     clear();
     reserve(1);
-    MAP rowMap;
+    MAP<T> rowMap;
     pushRow(&rowMap);
     cdouble dval;
     VecI initVec(pt_lattice->getOrbNum());

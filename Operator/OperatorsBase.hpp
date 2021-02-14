@@ -37,7 +37,7 @@ public:
     // O(t) --> O(t+dt)
     virtual bool next( ) {return false;}
 
-    virtual void row(idx_t rowID, std::vector<MAP>& rowMaps) = 0;
+    virtual void row(idx_t rowID, std::vector<MAP<T>>& rowMaps) = 0;
 protected:
     Basis *Bi{nullptr}, *Bf{nullptr};
     Geometry *latt{nullptr};
