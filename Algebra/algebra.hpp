@@ -30,9 +30,13 @@ namespace MKL{
         inspector-executer mkl sparse.
     */
     void create(sparse_matrix_t& A, idx_t rows, idx_t cols, std::vector<MKL_INT>& rowInitList, std::vector<MKL_INT>& colList, std::vector<cdouble>& valList, MKL_INT mvNum=100);
-    void destroy(sparse_matrix_t& A);
+
     void MxV(sparse_matrix_t& A, MKL_Complex16* vin, MKL_Complex16* vout, MKL_Complex16 alpha=1.0, MKL_Complex16 beta=1.0);
-    
+
+    void create(sparse_matrix_t& A, idx_t rows, idx_t cols, std::vector<MKL_INT>& rowInitList, std::vector<MKL_INT>& colList, std::vector<double>& valList, MKL_INT mvNum=100);
+    void MxV(sparse_matrix_t& A, double* vin, double* vout, double alpha=1.0, double beta=1.0);
+
+    void destroy(sparse_matrix_t& A);
 }
 
 
