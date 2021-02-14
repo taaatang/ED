@@ -47,7 +47,7 @@ void TimeEvolver<T>::evolve(double expFac){
     MKL::diagTri(&(LANCZOSIterator<T>::alpha), &(LANCZOSIterator<T>::beta), &U);
     #pragma omp parallel for
     for (int i = 0; i < LANCZOSIterator<T>::krylovDim; ++i){
-        tmp1[i] = std::exp(CPLX_I*expFac*LANCZOSIterator<T>::alpha.at(i))*U[i*LANCZOSIterator<T>::krylovDim];
+        tmp1[i] = std::exp(-CPLX_I*expFac*LANCZOSIterator<T>::alpha.at(i))*U[i*LANCZOSIterator<T>::krylovDim];
         tmp2[i] = 0.0;
     } 
     #pragma omp parallel for
