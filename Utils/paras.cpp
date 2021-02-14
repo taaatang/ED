@@ -137,7 +137,11 @@ bool Parameters::read(const std::string& filename){
     }
 }
 
-void Parameters::print(std::ostream& os){
+void Parameters::print(std::string filename) const {
+    std::ofstream outfile(filename);
+    print(outfile);
+}
+void Parameters::print(std::ostream& os) const {
     os<<maps<<mapi<<mapd<<mapvecs<<mapvecd<<maparrd;
 }
 

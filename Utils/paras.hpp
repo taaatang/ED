@@ -45,7 +45,8 @@ public:
     void config(std::string configFile);
     void clear();
     bool read(const std::string& filename);
-    void print(std::ostream& os);
+    void print(std::string filename) const;
+    void print(std::ostream& os) const;
 
     LATTICE getlatt() const;
     LATTICE_MODEL getmodel() const;
