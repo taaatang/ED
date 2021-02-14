@@ -38,6 +38,7 @@ public:
     double getA( ) const;
     double getAa( ) const { return a*getA(); } // return A*a
     VecD getPol( ) const { return pol; }
+    double getdt( ) const { return dt; }
 
     void setE0(double E0) { params.at(0) = E0; }
     void setWidth(double width) { params.at(1) = width * std::sqrt(2); }
