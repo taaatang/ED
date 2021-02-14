@@ -14,14 +14,18 @@ int main( ) {
     mpi_info(workerID, workerNum);
     Timer timer;
 
-    if (workerID == MPI_MASTER) {
+    auto isMaster = [=] {
+        return workerID == MPI_MASTER;
+    };
+
+    if (isMaster()) {
         path.make();
         modelPara.print(path.parameterFile);
         pulsePara.print(path.pumpFile);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
-    setBasics(modelPara, latt, Bi, H);
+    setBasics(modelPara, latt, Bi, H, workerID);
     // cout<<setprecision(10);
     PARPACKComplexSolver<double> PDiag(H.get(), 1);
     PDiag.diag();
@@ -33,7 +37,10 @@ int main( ) {
     H->setPeierls(&pulse);
     H->construct();
     timer.tok();
-    timer.print("Set H(t)");
+    if (isMaster()) {
+        timer.print("Set H(t)");
+        H->print("H(t) from worker " + tostr(workerID));
+    }
 
     int krylovDim = 15;
     TimeEvolver<cdouble> Tevol(gstate, H.get(), krylovDim);
@@ -47,9 +54,9 @@ int main( ) {
         occ.count(Tevol.getVec());
     }
     timer.tok();
-    timer.print("Timer evolution");
+    if (isMaster()) timer.print("Timer evolution");
 
-    if (workerID == MPI_MASTER) {
+    if (isMaster()) {
         occ.save(path.pumpDir);
     }
 

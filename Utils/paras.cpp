@@ -181,7 +181,7 @@ void setlatt(const Parameters& para, std::unique_ptr<Geometry>& latt){
         std::cout<<"Lattice does not pass check()!\n";
         exit(1);
     }
-    std::cout<<"lattice set!\n";
+    // std::cout<<"lattice set!\n";
 }
 
 void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt){
@@ -190,12 +190,12 @@ void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt
     int nu = para.mapi.at("nu");
     int nd = para.mapi.at("nd");
     ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nu,nd}, kid, pid));
-    std::cout<<"basis set!\n";
+    // std::cout<<"basis set!\n";
 }
 
 void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt, int nuf, int ndf, int kf, int pf) {
     ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nuf,ndf}, kf, pf));
-    std::cout<<"basis set!\n";
+    // std::cout<<"basis set!\n";
 }
 
 void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, Geometry* latt, Basis* B) {
@@ -272,10 +272,10 @@ void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, 
 
     }
 
-    std::cout<<"hamiltonian set!\n";
+    // std::cout<<"hamiltonian set!\n";
 }
 
-void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<OperatorBase<dataType>>& H) {
+void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<OperatorBase<dataType>>& H, int workerID) {
     setlatt(para, latt);
     setbasis(para, B, latt.get());
     setham(para, H, latt.get(), B.get());
@@ -283,14 +283,19 @@ void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::uni
     Timer timer;
     timer.tik();
     B->gen();
-    B->print();
     timer.tok();
-    timer.print("Basis construction");
+    if (workerID == MPI_MASTER) {
+        timer.print("Basis construction");
+        B->print();
+    }
 
     timer.tik();
     H->construct();
     timer.tok();
-    timer.print("Hamiltonian construction");
+    if (workerID == MPI_MASTER) {
+        timer.print("Hamiltonian construction");
+        H->print("Hamiltonian from worker " + tostr(workerID));
+    }
     
 }
 

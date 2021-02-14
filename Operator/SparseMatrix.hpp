@@ -87,7 +87,9 @@ public:
 
     void putDiag(T val, idx_t idx, int matID=0);
 
+    // check if matrix vector multiplication buff is properly set
     bool isMVBuf( );
+
     // set buffer for MxV
     void setBuf(idx_t size) { vecBuf.resize(size); }
 
@@ -100,6 +102,8 @@ public:
     void MxV(T *vecIn, T *vecOut);
 
     cdouble vMv(T *vecL, T *vecR);
+
+    virtual void print(std::string info, std::ostream& os = std::cout) const;
 
     // create one row. store sparse matrixes data in corresponding rowMaps. (repI, val) for distributed basis. (idx,val) otherwise
     virtual void row(idx_t rowID, std::vector<MAP<T>>& rowMaps) = 0;
@@ -666,6 +670,13 @@ cdouble SparseMatrix<T>::vMv(T *vecL, T *vecR){
     MxV(vecR, vecTmp.data());
     vConjDotv<T, T>(vecL, vecTmp.data(), &val, BaseMatrix<T>::nloc);
     return val;
+}
+
+template <class T>
+void SparseMatrix<T>::print(std::string info, std::ostream& os) const {
+    os<<info<<":\n";
+    os<<"matrix local/tot dim: "<<this->getnloc()<<" / "<<this->getDim()<<".\n";
+    os<<"non-zero elements count: "<<this->nzCount()<<".\n";
 }
 
 #endif // SparseMatrix_hpp
