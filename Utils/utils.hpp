@@ -428,13 +428,13 @@ inline void save(T *d_pt, idx_t size, std::ofstream *f_pt, std::string filename,
 }
 
 template <class T>
-inline void save(T *d_pt, int size, std::string filename, bool is_app=false){
+void save(T *d_pt, int size, std::string filename, bool is_app=false){
     std::ofstream os;
     save<T>(d_pt, size, &os, filename, is_app);
 }
 
 template <class T>
-inline void save(T *d_pt, idx_t size, std::string filename, bool is_app=false){
+void save(T *d_pt, idx_t size, std::string filename, bool is_app=false){
     std::ofstream os;
     save<T>(d_pt, size, filename, is_app);
 }
@@ -564,7 +564,8 @@ inline UnsignedType nextLexicographicalNumber(UnsignedType x) {
 }
 
 // push data to an unordered map
-inline void MapPush(MAP* map_pt, idx_t key, dataType val){
+template <typename T>
+inline void MapPush(MAP<T>* map_pt, idx_t key, T val){
     auto it = map_pt->find(key);
     if (it == map_pt->end()){
         (*map_pt)[key] = std::conj(val);
