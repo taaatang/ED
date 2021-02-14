@@ -7,15 +7,15 @@
 
 using namespace std;
 
-int main(){
+int main( ) {
 
     MPI_Init(NULL, NULL);
     int workerID, workerNum;
     mpi_info(workerID, workerNum);
+    Timer timer;
 
     if (workerID == MPI_MASTER) {
         path.make();
-        path.print();
         modelPara.print(path.parameterFile);
         pulsePara.print(path.pumpFile);
     }
@@ -28,20 +28,27 @@ int main(){
     cdouble* gstate = PDiag.getEigvec();
 
     // time evolution
+    timer.tik();
     setpulse(pulsePara, pulse);
     H->setPeierls(&pulse);
     H->construct();
-    
+    timer.tok();
+    timer.print("Set H(t)");
+
     int krylovDim = 15;
     TimeEvolver<cdouble> Tevol(gstate, H.get(), krylovDim);
 
     Nocc occ(latt.get(), Bi.get()); 
     occ.genMat();
 
+    timer.tik();
     while (H->next()) {
-        Tevol.evolve(-0.01);
+        Tevol.evolve(pulse.getdt());
         occ.count(Tevol.getVec());
     }
+    timer.tok();
+    timer.print("Timer evolution");
+
     if (workerID == MPI_MASTER) {
         occ.save(path.pumpDir);
     }
