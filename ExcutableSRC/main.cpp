@@ -15,7 +15,7 @@ int main( ) {
     Timer timer;
 
     auto isMaster = [=] {
-        return workerID == MPI_MASTER;
+        return (workerID == MPI_MASTER);
     };
 
     if (isMaster()) {
