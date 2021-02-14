@@ -118,11 +118,11 @@ void Path::print(std::ostream& os) const {
     os<<"project:"<<project<<"\n";
     os<<"basis dir:"<<basisDir<<"\n";
     os<<"job data dir:"<<parameterDir<<"\n";
-    if (!wavefuncDir.empty()) os<<"particle distribution dir:"<<wavefuncDir<<"\n"; 
+    if (!wavefuncDir.empty()) os<<"wavefunc dir:"<<wavefuncDir<<"\n"; 
     if (!particleDistrDir.empty()) os<<"particle distribution dir:"<<particleDistrDir<<"\n";
-    if (!sigmaDir.empty()) os<<"particle distribution dir:"<<sigmaDir<<"\n"; 
-    if (!AkwDir.empty()) os<<"particle distribution dir:"<<AkwDir<<"\n"; 
-    if (!pumpDir.empty()) os<<"particle distribution dir:"<<pumpDir<<"\n"; 
+    if (!sigmaDir.empty()) os<<"conductivity dir:"<<sigmaDir<<"\n"; 
+    if (!AkwDir.empty()) os<<"Akw dir:"<<AkwDir<<"\n"; 
+    if (!pumpDir.empty()) os<<"pump dir:"<<pumpDir<<"\n"; 
 }
 
 #endif // __PATH_H__
