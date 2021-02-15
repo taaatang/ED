@@ -33,6 +33,7 @@ public:
     virtual void pushU(std::vector<ORBITAL> orbList, double val) { }
 
     virtual void setPeierls(Pulse* pulse = nullptr) { }
+    virtual void printPeierls(std::ostream& os = std::cout) { }
 
     // O(t) --> O(t+dt)
     virtual bool next( ) {return false;}

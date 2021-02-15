@@ -44,6 +44,8 @@ public:
     
     void setPeierls(Pulse* pulse = nullptr);
 
+    void printPeierls(std::ostream& os = std::cout);
+
     bool next( );
 
     void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps);
@@ -388,37 +390,70 @@ void Hamiltonian<MODEL, T>::pushU(std::vector<ORBITAL> orbList, double val) {
 
 template <LATTICE_MODEL MODEL, typename T>
 void Hamiltonian<MODEL, T>::setPeierls(Pulse* pulse) {
-    this->pulse = pulse;
-    if (pulse) {
-        auto epol = pulse->getPol();
-        normalize(epol);
-        VecD overlap;
-        for(const auto& link : this->hoppingT) {
-            assert(link.getLinkVecNum()==1);
-            auto dr = link.getvec(0);
-            dr = this->latt->RtoRxy(dr);
-            auto val = vdotv(epol,dr);
-            overlap.push_back(val);
-            if (val!=0.0){
-                PeierlsOverlap.push_back(val);
+    if constexpr (MODEL == LATTICE_MODEL::HUBBARD or MODEL == LATTICE_MODEL::tJ) {
+        this->pulse = pulse;
+        if (pulse) {
+            auto epol = pulse->getPol();
+            normalize(epol);
+            VecD overlap;
+            for(const auto& link : this->hoppingT) {
+                assert_msg(link.getLinkVecNum()==1, "In setPeierls, each hopping link should only have one dr!");
+                auto dr = link.getvec(0);
+                dr = this->latt->RtoRxy(dr);
+                auto val = vdotv(epol,dr);
+                overlap.push_back(val);
+                if (val!=0.0){
+                    PeierlsOverlap.push_back(val);
+                }
             }
-        }
-        std::sort(PeierlsOverlap.begin(), PeierlsOverlap.end());
-        std::unique(PeierlsOverlap.begin(), PeierlsOverlap.end());
-        for (int idx = 0; idx < overlap.size(); ++idx) {
-            auto low = std::lower_bound(PeierlsOverlap.begin(), PeierlsOverlap.end(), overlap[idx]);
-            if (low != PeierlsOverlap.end() and overlap[idx] == *low) {
-                int matid = 1 + 2 * (low - PeierlsOverlap.begin());
-                auto& link = this->hoppingT.at(idx);
-                link.setmatid(matid);
-                link.setConst(false);
-                link.setOrdered(true);
+            std::sort(PeierlsOverlap.begin(), PeierlsOverlap.end());
+            auto last = std::unique(PeierlsOverlap.begin(), PeierlsOverlap.end());
+            PeierlsOverlap.resize(last - PeierlsOverlap.begin());
+            for (int idx = 0; idx < overlap.size(); ++idx) {
+                auto low = std::lower_bound(PeierlsOverlap.begin(), PeierlsOverlap.end(), overlap[idx]);
+                if (low != PeierlsOverlap.end() and overlap[idx] == *low) {
+                    int matid = 1 + 2 * (low - PeierlsOverlap.begin());
+                    auto& link = this->hoppingT.at(idx);
+                    link.setmatid(matid);
+                    link.setConst(false);
+                    link.setOrdered(true);
+                }
             }
+            this->setSpmNum(1 + 2 * PeierlsOverlap.size());
+            PeierlsOverlap.insert(PeierlsOverlap.begin(), 0.0);
         }
-        this->setSpmNum(1 + 2 * PeierlsOverlap.size());
-        PeierlsOverlap.insert(PeierlsOverlap.begin(), 0.0);
+    } else {
+        std::cout<<"Peierls substitution is not defined for "<<MODEL<<"\n";
+        return;
     }
 }
+
+template<LATTICE_MODEL MODEL, typename T>
+void Hamiltonian<MODEL, T>::printPeierls(std::ostream& os) {
+    if constexpr (MODEL == LATTICE_MODEL::HUBBARD or MODEL == LATTICE_MODEL::tJ) {
+        for (size_t id = 0; id < PeierlsOverlap.size(); ++id) {
+            os<<"A*dr = "<<PeierlsOverlap[id]<<"\n";
+            auto matid = (id == 0) ? id : 2 * id -1;
+            for (const auto& link : this->hoppingT) {
+                if (link.getmatid() == matid) {
+                    link.print();
+                }
+            }
+            os<<"\n";
+            // if (id > 0) {
+            //     os<<"A*dr = "<<-PeierlsOverlap[id]<<"\n";
+            //     ++matid;
+            //     for (const auto& link : this->hoppingT) {
+            //         if (link.getmatid() == matid) {
+            //             link.print();
+            //         }
+            //     } 
+            //     os<<"\n";
+            // }
+        }
+    }
+}
+
 
 template<LATTICE_MODEL MODEL, typename T>
 bool Hamiltonian<MODEL, T>::next( ) {
