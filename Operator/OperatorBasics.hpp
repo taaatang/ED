@@ -95,7 +95,7 @@ public:
     Link<T>& addLinkVec(std::vector<double> vec){assert(vec.size()==3); LinkVecs.push_back(vec); return *this;}
     //generate all the links->linkList
     void genLinkMaps(Geometry* pt_lattice);
-    void print() const;
+    void print(bool brief = true, std::ostream& os = std::cout) const;
 };
 
 template <class T>
@@ -129,18 +129,16 @@ void Link<T>::genLinkMaps(Geometry* pt_lattice){
 }
 
 template <class T>
-void Link<T>::print() const {
-    std::cout<<"Link id:"<<linkid<<", value:"<<val<<std::endl;
-    int counter = 0;
-    for (auto bondit = LinkList.begin(); bondit != LinkList.end(); bondit++){
-        counter++;
-        std::cout<<"Bond "<<counter<<": ";
-        for(auto it = (*bondit).begin(); it != (*bondit).end(); it++){
-            std::cout<<*it<<" ";
-        }
-        std::cout<<std::endl;
+void Link<T>::print(bool brief, std::ostream& os) const {
+    os<<"mat id:"<<matid<<", Link id:"<<linkid<<", value:"<<val<<"\n";
+    for (auto orb:orbList) os<<orb<<" ";
+    os<<"\n";
+    os<<"link vec:\n";
+    for (const auto& vec:LinkVecs) os<<vec<<"\n";
+    os<<"bond num:"<<LinkList.size()<<"\n";
+    if (!brief) {
+        for (const auto& bond : LinkList) os<<bond<<"\n";
     }
-    std::cout<<std::endl;
 }
 
 /*
