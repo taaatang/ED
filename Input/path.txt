@@ -1,2 +1,2 @@
-rootDir:s:/oak/stanford/groups/tpd/tatang
+rootDir:s:/Volumes/Shared/ProjectData
 project:s:photodoping
