@@ -8,6 +8,9 @@
 # build
 build/
 
+# input
+Input/
+
 # Prerequisites
 *.d
 
