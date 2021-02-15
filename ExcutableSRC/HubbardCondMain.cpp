@@ -6,10 +6,10 @@
 //  Copyright © 2019 tatang. All rights reserved.
 //
 
-#include "../Operator/Operators.hpp"
-#include "../Solver/PARPACKSolver.hpp"
-#include "../Solver/Spectra.hpp"
-#include "../Utils/timer.hpp"
+#include "Operator/Operators.hpp"
+#include "Solver/PARPACKSolver.hpp"
+#include "Solver/Spectra.hpp"
+#include "Utils/timer.hpp"
 
 #include <iostream>
 #include <iomanip> // std::setprecision
@@ -35,32 +35,33 @@ int main(int argc, const char * argv[]) {
     Timer timer;
     a_int nev = 3;
     int N, Nx=4, Ny=1, Nu=3, Nd=2;
-    int kIndex = 1; // 0 is Gamma Point
+    int kIndex = 3; // 0 is Gamma Point
     int PGRepIndex = -1;
     int rowPerThread = 1;
     int rowCount = 50;
     int rowPerIt = 1000;
     std::string label;
-    double tdp_val=1.0, tpp_val=0.5, tppz_val=0.3, Vd=0.0, Vp=3.2, Vpz=3.0, Ud=8.5, Up=4, Udp=0.0;
+    double tdp_val=1.0, tpp_val=0.5, tppz_val=0.3, Vd=0.0, Vp=2.8, Vpz=3.0, Ud=8.5, Up=4, Udp=0.6;
     
-    infile<std::string>({&label},"../Input/current_label.txt");
-    infile<int>({&Nx, &Ny, &Nu, &Nd}, "../Input/lattice_input.txt");
-    infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
-    infile<double>({&tdp_val,&tpp_val,&tppz_val,&Vd,&Vp,&Vpz,&Ud,&Up,&Udp},"../Input/Hubbard_params.txt");
+    // infile<std::string>({&label},"../Input/current_label.txt");
+    // infile<int>({&Nx, &Ny, &Nu, &Nd}, "../Input/lattice_input.txt");
+    // infile<int>({&kIndex, &PGRepIndex}, "../Input/symm_input.txt");
+    // infile<double>({&tdp_val,&tpp_val,&tppz_val,&Vd,&Vp,&Vpz,&Ud,&Up,&Udp},"../Input/Hubbard_params.txt");
     // infile<int>({&rowCount, &rowPerIt}, "Input/genmatBuf_input.txt");
     N = Nx * Ny;
 
     // data directory
-    std::string subDir = "sqOcta_Udp_"+std::to_string(Nx) + "x" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
+    // std::string subDir = "sqOcta_Udp_"+std::to_string(Nx) + "x" + std::to_string(Ny)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
     // std::string subDir = std::to_string(N);
     // std::string subDir = "/sq"+std::to_string(N)+"_"+std::to_string(Nu)+"u"+std::to_string(Nd)+"d";
-    std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Conductivity_"+label;
+    // std::string dataDirP = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Conductivity_"+label;
+    std::string dataDir = "/Volumes/Shared/ProjectData/Photodoping/data/sqOcta/4x1/3u2d/k3/sigma";
     std::ofstream outfile;
-    // basis data path
+    // basis data path 
     bool BASIS_IS_SAVED = false;
-    std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
-    std::string basisfile = basisDir + "/basis";
-    std::string normfile = basisDir + "/norm";
+    // std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
+    // std::string basisfile = basisDir + "/basis";
+    // std::string normfile = basisDir + "/norm";
  
 /*
     ************************************
@@ -89,11 +90,11 @@ int main(int argc, const char * argv[]) {
     Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
     if (BASIS_IS_SAVED){
-        #ifdef DISTRIBUTED_BASIS
-        B.gen(basisfile, normfile, workerID, workerNum);
-        #else
-        B.gen(basisfile, normfile);
-        #endif
+        // #ifdef DISTRIBUTED_BASIS
+        // B.gen(basisfile, normfile, workerID, workerNum);
+        // #else
+        // B.gen(basisfile, normfile);
+        // #endif
     } else {
         B.gen();
     }
@@ -106,7 +107,7 @@ int main(int argc, const char * argv[]) {
     // for(int idx_vpz=0; idx_vpz<num; idx_vpz++){
     //     for(int idx_tpz=0; idx_tpz<num; idx_tpz++){
             // std::string dataDir = dataDirP+"/vpz_"+std::to_string(idx_vpz)+"_tpz_"+std::to_string(idx_tpz);
-            std::string dataDir = dataDirP;
+            // std::string dataDir = dataDirP;
             // if (workerID==MPI_MASTER) system(("mkdir -p " + dataDir).c_str());
             /*
                 ****************************
@@ -179,33 +180,39 @@ int main(int argc, const char * argv[]) {
             * Conductivity *
             * **************
         */
-            timer.tik();
-            Current J(&Lattice, &B, label);
-             if(label=="z"){
-                 J.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp}); // Jz
-             }else if(label=="y"){
-                 J.pushLinks({tdpy,tpyd,tpxpy,tpxpyp,tpypz,tpypzp,tpzpy,tpzpyp}); // Jy
-             }else if(label=="x"){
-                 J.pushLinks({tdpx,tpxd,tpzpx,tpzpxp,tpxpz,tpxpzp,tpxpy,tpxpyp}); // Jx
-             }else{
-                 exit(1);
-             }
-            #ifdef DISTRIBUTED_BASIS
-                J.construct(rowCount, rowPerIt);
-            #else
-                J.construct();
-            #endif
-
-            int krylovDim=400;
-            SPECTRASolver<dataType> spectra(&H, w0[0], &J, gstate, H.getDim(), krylovDim);
-            spectra.compute();
-            // save alpha, beta
-            if (workerID==MPI_MASTER){
-                std::string dataPath = dataDir + "/k" + std::to_string(kIndex);
-                spectra.saveData(dataPath);
-            } 
-            timer.tok();
-            if (workerID==MPI_MASTER) std::cout<<"SigmaW time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+            std::vector<std::string> lables{"x", "y", "z"};
+            for (const auto& label:lables) {
+                timer.tik();
+                Current J(&Lattice, &B, label);
+                if(label=="z"){
+                    J.pushLinks({tpxpz,tpxpzp,tpzpx,tpzpxp,tpypz,tpypzp,tpzpy,tpzpyp}); // Jz
+                }else if(label=="y"){
+                    J.pushLinks({tdpy,tpyd,tpxpy,tpxpyp,tpypz,tpypzp,tpzpy,tpzpyp}); // Jy
+                }else if(label=="x"){
+                    J.pushLinks({tdpx,tpxd,tpzpx,tpzpxp,tpxpz,tpxpzp,tpxpy,tpxpyp}); // Jx
+                }else{
+                    exit(1);
+                }
+                std::cout<<"begin construct J...\n";
+                #ifdef DISTRIBUTED_BASIS
+                    J.construct(rowCount, rowPerIt);
+                #else
+                    J.construct();
+                #endif
+                std::cout<<"init spectra\n";
+                int krylovDim=400;
+                SPECTRASolver<dataType> spectra(&H, w0[0], &J, gstate, H.getDim(), krylovDim);
+                std::cout<<"compute spectra..\n";
+                spectra.compute();
+                // save alpha, beta
+                std::cout<<"saving spectra...\n";
+                if (workerID==MPI_MASTER){
+                    std::string dataPath = dataDir + "/" + label;
+                    spectra.saveData(dataPath);
+                } 
+                timer.tok();
+                if (workerID==MPI_MASTER) std::cout<<"SigmaW time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+            }
     //     }
     // }
 

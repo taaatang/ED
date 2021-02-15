@@ -35,6 +35,7 @@ int main( ) {
     timer.tik();
     setpulse(pulsePara, pulse);
     H->setPeierls(&pulse);
+    H->printPeierls();
     H->construct();
     timer.tok();
     if (isMaster()) {

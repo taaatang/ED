@@ -1,2 +1,0 @@
-rootDir:s:/Volumes/Shared/ProjectData
-project:s:photodoping

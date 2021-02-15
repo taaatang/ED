@@ -14,7 +14,7 @@
 #include <omp.h>
 
 // for filesystem. if not c++ 17, use boost library
-// #define CPP_17
+#define CPP_17
 
 /*
     *****************
@@ -41,7 +41,7 @@
     D4m5: include 2 Pz orbitals. the symmetry is {I, RZ}x{I, M}. M is the mirror symmetry about the xy plane.
 */
 enum PointGroup {NONE,D6, C6, D4, D4m, D4m5, C4, D3, C3};
-enum ORBITAL {SINGLE, Dx2y2, Dz2, Px, Py, Pzu, Pzd, TypeA, TypeB};
+enum ORBITAL {SINGLE, Dx2y2, Dz2, Px, Py, Pzu, Pzd};
 enum LATTICE_MODEL {HUBBARD,tJ,HEISENBERG};
 enum LINK_TYPE {SUPER_EXCHANGE_J, CHIRAL_K, HOPPING_T, CHARGE_TRANSFER_V, HUBBARD_U, EXCHANGE_J, PAIR_HOPPING_J};
 
@@ -78,8 +78,8 @@ typedef cdouble dataType;
 //     typedef double dataType;
 // #endif
 
-typedef std::unordered_map<idx_t,dataType> MAP;
-typedef std::unordered_map<idx_t,dataType>::iterator MAPIT;
+template<typename T>
+using MAP = std::unordered_map<idx_t, T>;
 
 /*
     ******************
