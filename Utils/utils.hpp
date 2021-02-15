@@ -32,75 +32,39 @@
     #include <omp.h>
 #endif
 
+void work_load(idx_t size, int workerID, int workerNum, idx_t& idxStart, idx_t& idxEnd);
+
 /*
     ****************
     * Display Info *
     ****************
 */
 
-inline void OMP_Info(int workerID){
-    #ifdef OMP_
-        int ompThreadsNum;
-        #pragma omp parallel
-        {
-            #pragma omp master
-            ompThreadsNum = omp_get_num_threads();
-        }
-        if (workerID==MPI_MASTER) std::cout<<"openMP turned on with "<<ompThreadsNum<<" threads"<<std::endl;
-    #else
-        if (workerID==MPI_MASTER) std::cout<<"openMP turned off"<<std::endl;
-    #endif
-}
+void OMP_Info(int workerID);
 
-inline void mpi_info(int& workerID, int& workerNum){
-    MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
-    MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
-    if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl;
-    OMP_Info(workerID);
-}
+void mpi_info(int& workerID, int& workerNum);
 
-inline void work_load(idx_t size, int workerID, int workerNum, idx_t& idxStart, idx_t& idxEnd){
-    assert((workerNum>0) && (workerID<workerNum));
-    idx_t nlocmax = (size + workerNum - 1)/workerNum;
-    idxStart = workerID * nlocmax;
-    idxEnd = (idxStart + nlocmax)<size?(idxStart + nlocmax):size;
-}
+void exit_msg(std::string msg);
 
-void errExit(std::string msg);
+void assert_msg(bool condition, std::string msg);
 
-inline void assert_msg(bool condition, std::string msg){
-    if(!condition){
-        std::cout<<msg<<std::endl;
-        exit(1);
-    }
-}
+/******
+ * IO *
+ ******/
 
-inline void printModel(LATTICE_MODEL model){
-    switch(model){
-        case LATTICE_MODEL::HUBBARD:
-            std::cout<<"Hubbard Model\n";
-            break;
-        case LATTICE_MODEL::HEISENBERG:
-            std::cout<<"Heisenberg Model\n";
-            break;
-        case LATTICE_MODEL::tJ:
-            std::cout<<"tJ Model\n";
-            break;
-        default:
-            std::cout<<"Moel Not Defined!(utils::printModel()).\n";
-            exit(1);
-    }
-}
+void printModel(LATTICE_MODEL model);
 
-inline std::string tostr(double val, int digit = 2){
-    std::ostringstream strTmp;
-    strTmp<<std::fixed<<std::setprecision(digit)<<val;
-    return strTmp.str();
-}
+std::string tostr(double val, int digit = 2);
 
-inline std::string tostr(int val){
-    return std::to_string(val);
-}
+std::string tostr(int val);
+
+std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model);
+std::ostream& operator<<(std::ostream& os, ORBITAL orb);
+std::ostream& operator<<(std::ostream& os, LINK_TYPE linkt);
+std::ostream& operator<<(std::ostream& os, PointGroup p);
+
+std::ostream& operator<<(std::ostream& os, const VecD& vec);
+std::ostream& operator<<(std::ostream& os, const VecI& vec);
 
 /*
     ***************
@@ -203,41 +167,31 @@ inline void vecXAdd(double mul1, const double* input1, double mul2, const double
 
 template <class T, class U>
 inline void vecInit(T *vec, U size, T val){
-#ifdef OMP_
     #pragma omp parallel for
-#endif
     for (U i = 0; i < size; ++i) vec[i] = val;
 }
 
 template <class T>
 inline void veqv(T* vecOut, T* vecIn, idx_t size){
-    #ifdef OMP_
     #pragma omp parallel for
-    #endif
     for (idx_t i = 0; i < size; ++i) vecOut[i] = vecIn[i];
 }
 
 template <class T>
 inline void veqatv(T* vecOut, T a, T* vecIn, idx_t size){
-    #ifdef OMP_
     #pragma omp parallel for
-    #endif
     for (idx_t i = 0; i < size; ++i) vecOut[i] = a * vecIn[i];
 }
 
 template <class T>
 inline void saxpy(T* x, T a, T* y, idx_t size){
-    #ifdef OMP_
     #pragma omp parallel for
-    #endif
     for (idx_t i = 0; i < size; ++i) x[i] += a * y[i];
 }
 
 template <class T>
 inline void vdeva(T* x, T a, idx_t size){
-    #ifdef OMP_
     #pragma omp parallel for
-    #endif
     for (idx_t i = 0; i < size; ++i) x[i] /= a;
 }
 
@@ -362,24 +316,6 @@ inline void MPI_Alltoallv(cdouble *sendBuff,int *sendCounts,int *sdispls,cdouble
     * I/O *
     *******
 */
-
-inline std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model) {
-    switch (model) {
-        case LATTICE_MODEL::HUBBARD:
-            os<<"HUBBARD Model";
-            break;
-        case LATTICE_MODEL::tJ:
-            os<<"tJ Model";
-            break;
-        case LATTICE_MODEL::HEISENBERG:
-            os<<"HEISENBERG Model";
-            break;
-        default:
-            os<<"UNDEFINED Model";
-            break;
-    }
-    return os;
-}
 
 #ifdef CPP_17
 inline void mkdir_fs(std::string dir){
