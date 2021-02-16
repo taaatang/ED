@@ -96,17 +96,15 @@ public:
     FermionOperator(Basis* pt_Ba);
     ~FermionOperator( ) { };
 
-    bool cp(int siteI, idx_t repI, idx_t repIp, idx_t& repIf, int &sign);
-    bool cm(int siteI, idx_t repI, idx_t repIp, idx_t& repIf, int &sign);
-    bool cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx_t& repIf, int& sign);
-
-    void cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap);
-    void cm(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap);
-    void cpcm(SPIN spin, int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap);
-
+    bool cp(int siteI, idx_t repI, idx_t& repIf, int &sign);
+    bool cm(int siteI, idx_t repI, idx_t& repIf, int &sign);
     bool cp(int siteI, SPIN spin, pairIndex& pairRepI, int &sign);
     bool cm(int siteI, SPIN spin, pairIndex& pairRepI, int &sign);
-
+    void cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap);
+    void cm(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap);
+    bool cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx_t& repIf, int& sign);
+    void cpcm(SPIN spin, int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap);
+   
     void diag(idx_t rowID, T factor, MAP<T>* rowMap);
 
     /**
@@ -601,44 +599,50 @@ FermionOperator<T>::FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->
 }
 
 template <typename T>
-bool FermionOperator<T>::cp(int siteI, idx_t repI, idx_t repIp, idx_t& repIf, int &sign){
-    repIf = repI;
-    switch(fmodel){
-        case HUBBARD:{
-            if(!bitTest(repI,siteI)){
-                bitFlip(repIf,siteI);
-                int counter = 0;
-                for(int i = 0; i < siteI; ++i)if(bitTest(repI,i))counter++;
-                sign = (counter%2==0)?1:-1;
-                return true;
-            }
-            break;
+bool FermionOperator<T>::cp(int siteI, idx_t repI, idx_t& repIf, int &sign){
+    if(!bitTest(repI,siteI)){
+        repIf = repI;
+        bitFlip(repIf,siteI);
+        int counter = 0;
+        for (int i = 0; i < siteI; ++i) {
+            if (bitTest(repI,i)) counter++;
         }
-        default:exit(1);
+        sign = (counter%2==0)?1:-1;
+        return true;
     }
     return false;
 }
 
 
 template <typename T>
-bool FermionOperator<T>::cm(int siteI, idx_t repI, idx_t repIp, idx_t& repIf, int &sign){
-    repIf = repI;
-    switch(fmodel){
-        case HUBBARD:{
-            if(bitTest(repI,siteI)){
-                bitFlip(repIf,siteI);
-                int counter = 0;
-                for(int i = 0; i < siteI; ++i)if(bitTest(repI,i))counter++;
-                sign = (counter%2==0)?1:-1;
-                return true;
-            }
-            break;
+bool FermionOperator<T>::cm(int siteI, idx_t repI, idx_t& repIf, int &sign){
+    if(bitTest(repI,siteI)){
+        repIf = repI;
+        bitFlip(repIf,siteI);
+        int counter = 0;
+        for (int i = 0; i < siteI; ++i) {
+            if (bitTest(repI,i)) counter++;
         }
-        default:exit(1);
+        sign = (counter%2==0)?1:-1;
+        return true;
     }
     return false;    
 }
 
+/**
+ * @brief Hopping terms
+ * check Hubbard case sign issues
+ * 
+ * @tparam T 
+ * @param siteI 
+ * @param siteJ 
+ * @param repI 
+ * @param repIp 
+ * @param repIf 
+ * @param sign 
+ * @return true 
+ * @return false 
+ */
 template <typename T>
 bool FermionOperator<T>::cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx_t& repIf, int& sign){
     repIf = repI;
@@ -649,7 +653,7 @@ bool FermionOperator<T>::cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx
         }
     }else{
         switch(fmodel){
-            case HUBBARD:{
+            case LATTICE_MODEL::HUBBARD:{
                 if(bitTest(repI,siteJ) && (!bitTest(repI,siteI))){
                     bitFlip(repIf,siteI);
                     bitFlip(repIf,siteJ);
@@ -659,15 +663,14 @@ bool FermionOperator<T>::cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx
                     }else{
                         for (int i = siteJ + 1; i < siteI; ++i) if (bitTest(repI,i)) counter++;
                     }
-                    if (counter%2==0) sign = 1;
-                    else sign = -1;
+                    sign = (counter%2==0)?1:-1;
                     return true;
                 }
                 break;
             }
 
             // no double occupancy
-            case tJ:{
+            case LATTICE_MODEL::tJ:{
                 if(bitTest(repI,siteJ) && (!bitTest(repI,siteI)) && (!bitTest(repIp,siteI))){
                     bitFlip(repIf,siteI);
                     bitFlip(repIf,siteJ);
@@ -677,8 +680,7 @@ bool FermionOperator<T>::cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx
                     }else{
                         for (int i = siteJ + 1; i < siteI; ++i) {if (bitTest(repI,i)) counter++; else if (bitTest(repIp,i)) counter++;}
                     }
-                    if (counter%2==0) sign = 1;
-                    else sign = -1;
+                    sign = (counter%2==0)?1:-1;
                     return true;
                 }
                 break;
@@ -690,35 +692,38 @@ bool FermionOperator<T>::cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx
 }
 
 template <typename T>
-void FermionOperator<T>::cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap){
+void FermionOperator<T>::cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap) {
     pairIndex pairRepIf = pairRepI;
     int sign;
     idx_t colidx;
     switch (spin)
     {
-    case SPIN_UP:
-        if(cp(siteI, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
-            if(pt_Basis->search(pairRepIf,colidx)){
-                T val = factor * (double)sign;
-                val /= pt_Basis->getNorm(colidx);
-                MapPush(rowMap,colidx,val);
+        case SPIN_UP:
+            if (cp(siteI, pairRepI.first, pairRepIf.first, sign)) {
+                if (pt_Basis->search(pairRepIf,colidx)) {
+                    T val = factor * (double)sign;
+                    val /= pt_Basis->getNorm(colidx);
+                    MapPush(rowMap,colidx,val);
+                }
             }
-        }
-        break;
-    case SPIN_DOWN:
-        if(cp(siteI, pairRepI.second, pairRepI.first, pairRepIf.second, sign)){
-            if(pt_Basis->search(pairRepIf,colidx)){
-                auto N = pt_Basis->getOrbNum();
-                int count = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))count++;
-                if(count%2==1)sign *= -1;
-                T val = factor * (double)sign;
-                val /= pt_Basis->getNorm(colidx);
-                MapPush(rowMap,colidx,val);
+            break;
+        case SPIN_DOWN:
+            if(cp(siteI, pairRepI.second, pairRepIf.second, sign)){
+                if(pt_Basis->search(pairRepIf,colidx)){
+                    auto N = pt_Basis->getOrbNum();
+                    int count = 0; 
+                    for (int i = 0; i < N; ++i) {
+                        if (bitTest(pairRepI.first,i)) count++;
+                    }
+                    if (count % 2 == 1) sign *= -1;
+                    T val = factor * (double)sign;
+                    val /= pt_Basis->getNorm(colidx);
+                    MapPush(rowMap,colidx,val);
+                }
             }
-        }
-        break;
-    default:
-        break;
+            break;
+        default:
+            break;
     }
 }
 
@@ -729,29 +734,32 @@ void FermionOperator<T>::cm(SPIN spin, int siteI, T factor, pairIndex pairRepI, 
     idx_t colidx;
     switch (spin)
     {
-    case SPIN_UP:
-        if(cm(siteI, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
-            if(pt_Basis->search(pairRepIf,colidx)){
-                T val = factor * (double)sign;
-                val /= pt_Basis->getNorm(colidx);
-                MapPush(rowMap,colidx,val);
+        case SPIN_UP:
+            if(cm(siteI, pairRepI.first, pairRepIf.first, sign)){
+                if (pt_Basis->search(pairRepIf,colidx)) {
+                    T val = factor * (double)sign;
+                    val /= pt_Basis->getNorm(colidx);
+                    MapPush(rowMap,colidx,val);
+                }
             }
-        }
-        break;
-    case SPIN_DOWN:
-        if(cm(siteI, pairRepI.second, pairRepI.first, pairRepIf.second, sign)){
-            if(pt_Basis->search(pairRepIf,colidx)){
-                auto N = pt_Basis->getOrbNum();
-                int count = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))count++;
-                if(count%2==1)sign *= -1;
-                T val = factor * (double)sign;
-                val /= pt_Basis->getNorm(colidx);
-                MapPush(rowMap,colidx,val);
+            break;
+        case SPIN_DOWN:
+            if (cm(siteI, pairRepI.second, pairRepIf.second, sign)) {
+                if (pt_Basis->search(pairRepIf,colidx)) {
+                    auto N = pt_Basis->getOrbNum();
+                    int count = 0; 
+                    for (int i = 0; i < N; ++i) {
+                        if (bitTest(pairRepI.first,i)) count++;
+                    }
+                    if (count % 2 == 1) sign *= -1;
+                    T val = factor * (double)sign;
+                    val /= pt_Basis->getNorm(colidx);
+                    MapPush(rowMap,colidx,val);
+                }
             }
-        }
-        break;
-    default:
-        break;
+            break;
+        default:
+            break;
     }
 }
 
