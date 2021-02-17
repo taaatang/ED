@@ -387,11 +387,11 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         }
         SparseMatrix<T>::putDiag(val,rowID);
         // off diagonal part
-        std::vector<idx_t> finalIndList;
+        std::vector<pairIndex> finalIndList;
         std::vector<cdouble> factorList;
         this->Bf->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); ++i) {
-            pairIndex pairRepI = this->Bf->getPairRepI(finalIndList[i]);
+        int i = 0;
+        for (auto pairRepI : finalIndList) {
             bool isfminRep = this->Bf->isfMin(pairRepI.first);
             for (const auto& link:this->hoppingT) {
                 int matID = link.getmatid();
@@ -404,11 +404,11 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                     cdouble phase = this->latt->twistPhase(siteI,siteJ);
                     cdouble phase_c = std::conj(phase);
                     // cp.siteI * cm.siteJ
-                    this->cpcm(SPIN::SPIN_UP, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
-                    this->cpcm(SPIN::SPIN_UP, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);
+                    this->cpcm(SPIN::UP, siteI, siteJ, phase*factor, pairRepI, &rowMaps[matID]);
+                    this->cpcm(SPIN::UP, siteJ, siteI, phase_c*factor, pairRepI, &rowMaps[matIDp]);
                     if(isfminRep){
-                        this->cpcm(SPIN::SPIN_DOWN, siteI, siteJ, phase*factor, finalIndList[i], &rowMaps[matID]);
-                        this->cpcm(SPIN::SPIN_DOWN, siteJ, siteI, phase_c*factor, finalIndList[i], &rowMaps[matIDp]);   
+                        this->cpcm(SPIN::DOWN, siteI, siteJ, phase*factor, pairRepI, &rowMaps[matID]);
+                        this->cpcm(SPIN::DOWN, siteJ, siteI, phase_c*factor, pairRepI, &rowMaps[matIDp]);   
                     }
                 }
             }
@@ -419,7 +419,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                 for (const auto& bond : link.bond()){
                     int siteI = bond.at(0);
                     int siteJ = bond.at(1);
-                    this->exchange(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                    this->exchange(siteI, siteJ, factor, pairRepI, &rowMaps[matID]);
                 }
             }
 
@@ -429,9 +429,10 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                 for (const auto& bond : link.bond()){
                     int siteI = bond.at(0);
                     int siteJ = bond.at(1);
-                    this->pairHopping(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                    this->pairHopping(siteI, siteJ, factor, pairRepI, &rowMaps[matID]);
                 }
             }
+            ++i;
         }
     } else if constexpr(MODEL == LATTICE_MODEL::tJ) {
         // off diagonal part
@@ -441,42 +442,40 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         for (int i = 0; i < finalIndList.size(); ++i){
             pairIndex pairRepI = this->Bf->getPairRepI(finalIndList[i]);
             bool isfminRep = this->Bf->isfMin(pairRepI.first);
-            for (auto linkit = this->Links.begin(); linkit != this->Links.end(); linkit++){
-                LINK_TYPE type = (*linkit).getLinkType();
-                int matID = (*linkit).getmatid();
+            for (const auto& link:this->hoppingT) {
+                int matID = link.getmatid();
                 int matIDp = matID; 
-                if ((*linkit).isOrdered()) matIDp++;
-                cdouble factor = factorList.at(i) * (*linkit).getVal();
-                for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                    int siteI = (*bondit).at(0);
-                    int siteJ = (*bondit).at(1);
-                    switch(type){
-                        case LINK_TYPE::HOPPING_T:{
-                            // cp.siteI * cm.siteJ
-                            this->cpcm(SPIN::SPIN_UP, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                            this->cpcm(SPIN::SPIN_UP, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);
-                            if(isfminRep){
-                                this->cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                                this->cpcm(SPIN::SPIN_DOWN, siteJ, siteI, factor, finalIndList[i], &rowMaps[matIDp]);   
-                            }
-                            break;
-                        }
-                        case LINK_TYPE::SUPER_EXCHANGE_J:{
-                            // szi * szj - 1/4*ni*nj 
-                            this->szsznn(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                            // 1/2 * sm.siteID * sp.siteIDp
-                            this->spsm(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]);
-                            // 1/2 * sp.siteID * sm.siteIDp
-                            this->smsp(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]);
-                            break;
-                        }
-                        default:{
-                            std::cout<<"Interaction type not defined for tJ (HtJ::row)\n";
-                            exit(1);
-                        }
-                    }   
+                if (link.isOrdered()) ++matIDp;
+                cdouble factor = factorList.at(i) * link.getVal();
+                for (const auto& bond : link.bond()) {
+                    int siteI = bond.at(0);
+                    int siteJ = bond.at(1);
+                    cdouble phase = this->latt->twistPhase(siteI,siteJ);
+                    cdouble phase_c = std::conj(phase);
+                    // cp.siteI * cm.siteJ
+                    this->cpcm(SPIN::UP, siteI, siteJ, phase*factor, pairRepI, &rowMaps[matID]);
+                    this->cpcm(SPIN::UP, siteJ, siteI, phase_c*factor, pairRepI, &rowMaps[matIDp]);
+                    if(isfminRep){
+                        this->cpcm(SPIN::DOWN, siteI, siteJ, phase*factor, pairRepI, &rowMaps[matID]);
+                        this->cpcm(SPIN::DOWN, siteJ, siteI, phase_c*factor, pairRepI, &rowMaps[matIDp]);   
+                    }
                 }
-            }
+            } 
+
+            for (const auto& link:this->superExchangeJ) {
+                int matID = link.getmatid();
+                cdouble factor = factorList.at(i) * link.getVal();
+                for (const auto& bond : link.bond()) {
+                    int siteI = bond.at(0);
+                    int siteJ = bond.at(1);
+                    // szi * szj - 1/4*ni*nj 
+                    this->szsznn(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
+                    // 1/2 * sm.siteID * sp.siteIDp
+                    this->spsm(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]);
+                    // 1/2 * sp.siteID * sm.siteIDp
+                    this->smsp(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]); 
+                }
+            } 
         }
         // diag(rowID,val,&rowMaps[0]);
     } else if constexpr(MODEL == LATTICE_MODEL::HEISENBERG) {
