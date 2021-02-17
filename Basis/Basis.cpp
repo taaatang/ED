@@ -49,7 +49,7 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI occList, int kInd
         }
         case LATTICE_MODEL::HEISENBERG: {
             Sztot = occList.at(0) - occList.at(1);
-            Nocc = occList;;
+            Nocc = occList;
             #ifdef BINARY_REP
                 assert((Nocc.at(0) + Nocc.at(1))==N);
                 // calculate totDim
@@ -162,7 +162,7 @@ void Basis::gen(){
     idx_t repI;
     double norm;
     switch(model){
-        case HUBBARD:case tJ:{
+        case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::tJ:{
             if (!(kIndex==-1 and model==LATTICE_MODEL::HUBBARD)){ 
                 for(idx_t fidx=0;fidx<fDim;fidx++){
                     if(!isfMin(fIndexList[fidx])) continue;
@@ -183,7 +183,7 @@ void Basis::gen(){
             }
             break;
         }
-        case HEISENBERG:{
+        case LATTICE_MODEL::HEISENBERG:{
         #ifdef BINARY_REP
             idx_t repI = fminRep;
             while(repI<=fmaxRep){
@@ -636,7 +636,7 @@ double Basis::Norm(idx_t repI) const {
     if (kIndex==-1) return 1.0;
     cdouble norm = 0.0;
     switch(model){
-        case HUBBARD:{
+        case LATTICE_MODEL::HUBBARD:{
             pairIndex pairRepI = getPairRepI(repI);
             VecI seq, seqp;
             if(PGRepIndex==-1){
@@ -672,7 +672,7 @@ double Basis::Norm(idx_t repI) const {
             break;
         }
 
-        case tJ:{
+        case LATTICE_MODEL::tJ:{
             pairIndex pairRepI = getPairRepI(repI);
             VecI seq;
             if(PGRepIndex==-1){
@@ -705,7 +705,7 @@ double Basis::Norm(idx_t repI) const {
             break;
         }
 
-        case HEISENBERG:{
+        case LATTICE_MODEL::HEISENBERG:{
         #ifdef BINARY_REP
             if(PGRepIndex==-1){
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
@@ -770,7 +770,7 @@ void Basis::genSymm(idx_t ind, std::vector<idx_t>& finalInd) const {
     */
     if (kIndex == -1){finalInd.push_back(ind);return;}
     switch(model){
-        case HUBBARD:case tJ:{
+        case LATTICE_MODEL::HUBBARD:case LATTICE_MODEL::tJ:{
             pairIndex repI;
             repI = getPairRepI(ind);
             for (int r = 0; r < pt_lattice->getSiteNum(); r++){
@@ -784,7 +784,7 @@ void Basis::genSymm(idx_t ind, std::vector<idx_t>& finalInd) const {
             break;
         }
 
-        case HEISENBERG:{
+        case LATTICE_MODEL::HEISENBERG:{
             #ifdef BINARY_REP
                 for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                     idx_t indp{0};
@@ -949,6 +949,91 @@ void Basis::genSymm(idx_t rowid, std::vector<idx_t>& finalInd, std::vector<cdoub
         
         default:{
             std::cout<<"model not defined! must be: HUBBARD,tJ,HEISENBERG."<<std::endl;
+            exit(1);
+            break;
+        }
+    }
+}
+
+void Basis::genSymm(idx_t rowid, std::vector<pairIndex>& finalInd, std::vector<cdouble>& factorList) const {
+    idx_t repI = getRepI(rowid);
+    auto pairRepI = getPairRepI(repI);
+    if (kIndex == -1) {
+        finalInd.push_back(pairRepI); 
+        factorList.push_back(1.0);
+        return;
+    }
+    cdouble initNorm = getNorm(rowid);
+    switch (model) {
+        case LATTICE_MODEL::HUBBARD: {
+            VecI seq, seqp;
+            if (PGRepIndex==-1) {
+                initNorm *= pt_lattice->getSiteNum();
+                cdouble tbc = 1.0;
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    pairIndex pairRepIp{0,0};
+                    seq.clear();
+                    seqp.clear();
+                    for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
+                        if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));tbc *= pt_lattice->getOrbTranPhase(r,i);}
+                        if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seqp.push_back(pt_lattice->getOrbTran(r,i));tbc *= pt_lattice->getOrbTranPhase(r,i);}
+                    }
+                    finalInd.push_back(pairRepIp);
+                    factorList.push_back(tbc*pt_lattice->expKR(kIndex,r)/initNorm*seqSign(seq) * seqSign(seqp));
+                }
+            }else{
+                initNorm *= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    for(int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
+                        pairIndex pairRepIp{0,0};
+                        seq.clear();
+                        seqp.clear();
+                        for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
+                            if(bitTest(pairRepI.first,i)){bitSet(pairRepIp.first,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                            if(bitTest(pairRepI.second,i)){bitSet(pairRepIp.second,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seqp.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                        } 
+                        finalInd.push_back(pairRepIp);
+                        factorList.push_back(pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p)/initNorm*seqSign(seq) * seqSign(seqp));
+                    }
+                }
+            }
+            break;
+        }
+
+        case LATTICE_MODEL::tJ:{
+            VecI seq;
+            if(PGRepIndex==-1){
+                initNorm *= pt_lattice->getSiteNum();
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    pairIndex pairRepIp{0,0};
+                    seq.clear();
+                    for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
+                        if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));}
+                        else if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));}
+                    }
+                    finalInd.push_back(pairRepIp);
+                    factorList.push_back(pt_lattice->expKR(kIndex,r)/initNorm*seqSign(seq));
+                }
+            }else{
+                initNorm *= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    for(int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
+                        pairIndex pairRepIp{0,0};
+                        seq.clear();
+                        for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
+                            if(bitTest(pairRepI.first,i)){bitSet(pairRepIp.first,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                            else if(bitTest(pairRepI.second,i)){bitSet(pairRepIp.second,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                        } 
+                        finalInd.push_back(pairRepIp);
+                        factorList.push_back(pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p)/initNorm*seqSign(seq));
+                    }
+                }
+            }
+            break;
+        }
+        
+        default:{
+            std::cout<<"pairIndex not defiend for "<<model<<"\n";
             exit(1);
             break;
         }

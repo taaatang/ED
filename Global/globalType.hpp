@@ -40,10 +40,10 @@
     D4m: for multi-band hubbard, due to orbital phases, the symmetry is only a sub group {I, RZ}. R is rotation, Z is reflection.
     D4m5: include 2 Pz orbitals. the symmetry is {I, RZ}x{I, M}. M is the mirror symmetry about the xy plane.
 */
-enum PointGroup {NONE,D6, C6, D4, D4m, D4m5, C4, D3, C3};
-enum ORBITAL {SINGLE, Dx2y2, Dz2, Px, Py, Pzu, Pzd};
-enum LATTICE_MODEL {HUBBARD,tJ,HEISENBERG};
-enum LINK_TYPE {SUPER_EXCHANGE_J, CHIRAL_K, HOPPING_T, CHARGE_TRANSFER_V, HUBBARD_U, EXCHANGE_J, PAIR_HOPPING_J};
+enum class LATTICE_MODEL {HUBBARD,tJ,HEISENBERG};
+enum class PointGroup {NONE,D6, C6, D4, D4m, D4m5, C4, D3, C3};
+enum class ORBITAL {SINGLE, Dx2y2, Dz2, Px, Py, Pzu, Pzd};
+enum class LINK_TYPE {SUPER_EXCHANGE_J, CHIRAL_K, HOPPING_T, CHARGE_TRANSFER_V, HUBBARD_U, EXCHANGE_J, PAIR_HOPPING_J};
 
 /*
     *************************
@@ -116,7 +116,7 @@ typedef std::pair<idx_t,idx_t> pairIndex;
     ******************
 */
 
-enum SPIN {SPIN_UP, SPIN_DOWN, SPIN_UD};
+enum class SPIN {UP, DOWN};
 
 
 /*

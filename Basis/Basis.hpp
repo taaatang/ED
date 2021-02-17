@@ -33,7 +33,7 @@ class Basis{
 /*
     For Heisenberg model:
             repI is the binary represnetation of the spin configurations
-    For Hubbard model,:
+    For Hubbard/tJ model,:
         repI=fidx*sDim+sidx. fIndexList[fidx] and sIndexList[sidx] are corresponding binary representations of
         spin-up and spin-down occupations.
         pairRepI = (fIndexList[fidx], sIndexList[sidx])
@@ -116,10 +116,11 @@ public:
         * Symmetry *
         * **********
     */
-    // apply all translation operations to a Basis vec indexed by ind.
+    // apply all translation operations to a Basis vec indexed by rowID.
     // finalInd contains all resulting basis indexes.
-    void genSymm(idx_t ind, std::vector<idx_t>& finalInd) const;
-    void genSymm(idx_t ind, std::vector<idx_t>& finalInd, std::vector<cdouble>& factorList) const;
+    void genSymm(idx_t rowID, std::vector<idx_t>& repIs) const;
+    void genSymm(idx_t rowID, std::vector<idx_t>& repIs, std::vector<cdouble>& factorList) const;
+    void genSymm(idx_t rowID, std::vector<pairIndex>& pairRepIs, std::vector<cdouble>& factorList) const;
     
     // judge if repI is min repI. append symm operations tp symmList if symm(repI)==repI. not guanranteed to be MinRep since its norm might = 0
     bool isMin(idx_t repI, VecI& symmList);
