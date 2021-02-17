@@ -75,7 +75,7 @@ set(PULSE "Pulse/pulse.cpp" "Pulse/pulse.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp")
 set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp")
 set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
-set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/OperatorBasics.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
+set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/Operations.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
 
 set(ARPACK "Solver/PARPACKSolver.hpp")
 set(LANCZOS "Solver/LANCZOSIterator.hpp")
