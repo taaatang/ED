@@ -1,5 +1,5 @@
-#ifndef __OPERATORBASICS_H__
-#define __OPERATORBASICS_H__
+#ifndef __OPERATIONS_H__
+#define __OPERATIONS_H__
 
 #include "Basis/Basis.hpp"
 
@@ -16,95 +16,23 @@
 
 /* Operators_hpp */
 
-template <class T>
-class Link{
-public:
-    Link( ) { }
-    Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, bool is_Const_ = true, bool is_Ordered_ = false);
-    Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, const std::vector<VecD>& vecs, bool is_Const_ = true, bool is_Ordered_ = false);
-    ~Link( ) { };
-    
-    LINK_TYPE getLinkType( ) const { return link_type; }
-    T getVal( ) const { return val; }
-    int getlinkid( ) const { return linkid; }
-    int getmatid( ) const { return matid; }
-    int getLinkNum( ) const { return LinkList.size(); }
-    int getvecid(int bondid) const { return LinkVecIdList.at(bondid); }
-    VecD getvec(int vecid) const { return LinkVecs.at(vecid); }
-    // rep orbital of the link
-    ORBITAL getRepOrb( ) const { return orbList.at(0); }
-    std::vector<ORBITAL> getOrbs( ) const { return orbList; }
-    // number of orbs in one link
-    int getLinkSize( ) const { return orbList.size() - 1; }
-    // size of LinkVecs
-    int getLinkVecNum( ) const { return LinkVecs.size(); }
-
-    // is this a const link or time dependent link
-    bool isConst( ) const { return is_Const; }
-    bool isOrdered( ) const { return is_Ordered; }
-    void setConst(bool cond) { is_Const = cond; }
-    void setOrdered(bool cond) { is_Ordered = cond; }
-
-    // begin/end iterator for LinkList
-    std::vector<VecI>::iterator begin( ) { return LinkList.begin(); }
-    std::vector<VecI>::iterator end( ) { return LinkList.end(); }
-    const std::vector<VecI>& bond( ) const { return LinkList; }
-
-    void setVal(T val_) { val = val_; }
-    void setid(int linkid_, int matid_ = 0);
-    void setmatid(int matid_ = 0) { matid = matid_;}
-    // set time evolve function for val
-    void setTimeFunc(T (*timeFunc_)(int));
-    void setVal( );
-
-    // add one link (contains orbids in the same link)
-    void push_back(std::vector<int> orbidList) { LinkList.push_back(orbidList); }
-    // add a orb's relative coord to the rep orb
-    Link<T>& addLinkVec(std::vector<double> vec);
-    //generate all the links->linkList
-    void genLinkMaps(Geometry* pt_lattice);
-    void print(bool brief = true, std::ostream& os = std::cout) const;
-
-private:
-    LINK_TYPE link_type{LINK_TYPE::HOPPING_T};
-    T val{0.0};
-    // same group ids will be contained in the same sparse matrix
-    int linkid{0}, matid{0};
-    bool is_Const{true}, is_Ordered{false};
-    T (*timeFunc)(int);
-    bool is_timeFunc_set{false};
-    int timeStep{0};
-    std::vector<ORBITAL> orbList;
-    std::vector<VecD> LinkVecs;
-    std::vector<VecI> LinkList;
-    // LinkVecIdList[i] is the id of LinkVec for i-th bond in LinkList
-    VecI LinkVecIdList;
-};
-
-/*
-    *******************
-    * Operators Class *
-    *******************
-*/
 template<typename T>
 class FermionOperator{
 public:
     FermionOperator( ) { }
     FermionOperator(Basis* pt_Ba);
     ~FermionOperator( ) { };
-    // c^dagger/c act on siteI of repI
-    bool cp(int siteI, idx_t repI, idx_t& repIf, int &sign);
-    bool cm(int siteI, idx_t repI, idx_t& repIf, int &sign);
     // c^dagger/c with spin act on siteI of pairRepI 
     bool cp(SPIN spin, int siteI, pairIndex& pairRepI, int &sign);
     bool cm(SPIN spin, int siteI,  pairIndex& pairRepI, int &sign);
+     // hopping deals with sign count difference for hubbard and tJ
+    bool cpcm(SPIN spin, int siteI, int siteJ, pairIndex& pairRepI, int& sign);
+
     // used for single particle spectra 
     void cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap);
     void cm(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap);
-    // hopping deals with sign count difference for hubbard and tJ
-    bool cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx_t& repIf, int& sign);
     // hopping term
-    void cpcm(SPIN spin, int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap);
+    void cpcm(SPIN spin, int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap);
    
     void diag(idx_t rowID, T factor, MAP<T>* rowMap);
 
@@ -117,12 +45,15 @@ public:
      * U = U' + 2J
      * J = J'
      */
-    void interaction(int siteI, int siteJ, T factor, idx_t rep_I, MAP<T>* rowMap);
-    void exchange(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap);
-    void pairHopping(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap);
+    void interaction(int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap);
+    void exchange(int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap);
+    void pairHopping(int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap);
+
+    void push(pairIndex pairRepIf, T val, MAP<T>* rowMap);
+    
 protected:
     Basis* pt_Basis{nullptr};
-    LATTICE_MODEL fmodel{HUBBARD};
+    LATTICE_MODEL fmodel{LATTICE_MODEL::HUBBARD};
     int nuSign;
 };
 
@@ -172,7 +103,6 @@ public:
    
     void spsm(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap);
  
-    
     void smsp(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap);
 
     void szspsm(int siteI, int siteJ, int siteK, T factor, idx_t repI, MAP<T>* rowMap);
@@ -181,108 +111,10 @@ public:
 
 protected:
     Basis* pt_Basis{nullptr};
-    LATTICE_MODEL smodel{HEISENBERG};
+    LATTICE_MODEL smodel{LATTICE_MODEL::HEISENBERG};
     int spinDim{2};
     std::vector<double> szMat, spMat, smMat;
 };
-
-
-/********
- * LINK *
- ********/
-template <class T>
-Link<T>::Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, bool is_Const_ , bool is_Ordered_ ):\
-timeStep(0), is_timeFunc_set(false) {
-    link_type = link_type_;
-    orbList = orbList_;
-    val = val_;
-    is_Const = is_Const_;
-    is_Ordered = is_Ordered_;
-}
-
-template <class T>
-Link<T>::Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, const std::vector<VecD>& vecs, bool is_Const_ , bool is_Ordered_ ):\
-timeStep(0), is_timeFunc_set(false) {
-    link_type = link_type_;
-    orbList = orbList_;
-    val = val_;
-    is_Const = is_Const_;
-    is_Ordered = is_Ordered_;
-    for (auto& vec : vecs) {
-        addLinkVec(vec);
-    }
-}
-
-template <class T>
-void Link<T>::setid(int linkid_, int matid_ ) { 
-    linkid = linkid_; 
-    matid = matid_; 
-}
-
-template <class T>
-void Link<T>::setTimeFunc(T (*timeFunc_)(int)) {
-    timeFunc = timeFunc_; 
-    is_timeFunc_set = true;
-}
-
-template <class T>
-void Link<T>::setVal( ) {
-    if(!is_Const) {
-        if(!is_timeFunc_set){std::cout<<"time evolve function not set for linkid:"<<linkid<<std::endl; exit(1);}
-        val = timeFunc(timeStep); 
-    }
-    timeStep++;
-}
-
-template <class T>
-Link<T>& Link<T>::addLinkVec(std::vector<double> vec){
-    assert(vec.size()==3); 
-    LinkVecs.push_back(vec); 
-    return *this;
-}
-
-template <class T>
-void Link<T>::genLinkMaps(Geometry* pt_lattice) {
-    VecD coordi(pt_lattice->getDim()),coordf(pt_lattice->getDim()); 
-    for (int orbid = 0; orbid < pt_lattice->getOrbNum(); orbid++){
-        if(pt_lattice->is_Orbital(orbid,getRepOrb())){
-            pt_lattice->getOrbR(orbid,coordi.data());
-            for (int j = 0; j < getLinkVecNum(); j+=getLinkSize()){
-                VecI tmp;
-                tmp.push_back(orbid);
-                bool is_bond = true;
-                for (int k = j; k < j+getLinkSize(); k++){
-                    vecXAdd(1.0,coordi.data(),1.0,LinkVecs.at(k).data(),coordf.data(),3);
-                    int orbidf;
-                    if (pt_lattice->coordToOrbid(orbList.at(k-j+1), coordf.data(), orbidf)){
-                        assert(pt_lattice->getOrb(orbidf) == orbList.at(k-j+1));
-                        tmp.push_back(orbidf);
-                    }else{
-                        is_bond = false;
-                        break;
-                    }
-                }
-                if(is_bond){
-                    push_back(tmp);
-                    LinkVecIdList.push_back(j);
-                }
-            }
-        }   
-    }
-}
-
-template <class T>
-void Link<T>::print(bool brief, std::ostream& os) const {
-    os<<"mat id:"<<matid<<", Link id:"<<linkid<<", value:"<<val<<"\n";
-    for (auto orb:orbList) os<<orb<<" ";
-    os<<"\n";
-    os<<"link vec:\n";
-    for (const auto& vec:LinkVecs) os<<vec<<"\n";
-    os<<"bond num:"<<LinkList.size()<<"\n";
-    if (!brief) {
-        for (const auto& bond : LinkList) os<<bond<<"\n";
-    }
-}
 
 /********************
  * FERMION OPERATOR *
@@ -294,78 +126,66 @@ FermionOperator<T>::FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->
 }
 
 template <typename T>
-bool FermionOperator<T>::cp(int siteI, idx_t repI, idx_t& repIf, int &sign){
-    if(!bitTest(repI,siteI)){
-        repIf = repI;
-        bitFlip(repIf,siteI);
-        int counter = 0;
-        for (int i = 0; i < siteI; ++i) {
-            if (bitTest(repI,i)) ++counter;
-        }
-        sign = (counter%2==0)?1:-1;
-        return true;
-    }
-    return false;
-}
-
-template <typename T>
-bool FermionOperator<T>::cm(int siteI, idx_t repI, idx_t& repIf, int &sign){
-    if(bitTest(repI,siteI)){
-        repIf = repI;
-        bitFlip(repIf,siteI);
-        int counter = 0;
-        for (int i = 0; i < siteI; ++i) {
-            if (bitTest(repI,i)) ++counter;
-        }
-        sign = (counter%2==0)?1:-1;
-        return true;
-    }
-    return false;    
-}
-
-template <typename T>
 bool FermionOperator<T>::cp(SPIN spin, int siteI, pairIndex& pairRepI, int &sign){
     switch(fmodel){
-        case LATTICE_MODEL::HUBBARD:{
-            if(spin == SPIN_UP){
-                if(!bitTest(pairRepI.first,siteI)){
+        case LATTICE_MODEL::HUBBARD: {
+            if (spin == SPIN::UP) {
+                if (!bitTest(pairRepI.first,siteI)) {
                     bitFlip(pairRepI.first,siteI);
                     int counter = 0;
-                    for(int i = 0; i < siteI; ++i)if(bitTest(pairRepI.first,i))counter++;
+                    for (int i = 0; i < siteI; ++i) {
+                        if (bitTest(pairRepI.first,i)) ++counter;
+                    }
                     int tmp = (counter%2==0)?1:-1;
                     sign *= tmp;
                     return true;
                 }
-            }else{
-                if(!bitTest(pairRepI.second,siteI)){
+            } else {
+                if (!bitTest(pairRepI.second,siteI)) {
                     auto N = pt_Basis->getOrbNum();
-                    int counter = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))counter++;
+                    int counter = 0; 
+                    for(int i=0; i<N; ++i) {
+                        if (bitTest(pairRepI.first,i)) ++counter;
+                    }
                     bitFlip(pairRepI.second,siteI);
-                    for(int i = 0; i < siteI; ++i)if(bitTest(pairRepI.second,i))counter++;
-                    int tmp = (counter%2==0)?1:-1;
+                    for (int i = 0; i < siteI; ++i) {
+                        if (bitTest(pairRepI.second,i)) ++counter;
+                    }
+                    int tmp = (counter % 2 == 0) ? 1 : -1;
                     sign *= tmp;
                     return true;
                 }
             }
             break;
         }
-        case LATTICE_MODEL::tJ:{
-            if(spin == SPIN_UP){
-                if(!bitTest(pairRepI.first,siteI) and !bitTest(pairRepI.second,siteI)){
-                    bitFlip(pairRepI.first,siteI);
+        case LATTICE_MODEL::tJ: {
+            if (spin == SPIN::UP) {
+                if (!bitTest(pairRepI.first, siteI) and !bitTest(pairRepI.second, siteI)) {
+                    bitFlip(pairRepI.first, siteI);
                     int counter = 0;
-                    for(int i = 0; i < siteI; ++i) if(bitTest(pairRepI.first,i)) ++counter;
-                    int tmp = (counter%2==0)?1:-1;
+                    for (int i = 0; i < siteI; ++i) {
+                        if (bitTest(pairRepI.first, i)) {
+                            ++counter;
+                        } else if (bitTest(pairRepI.second, i)) {
+                            ++counter;
+                        }
+                    }
+                    int tmp = (counter % 2 == 0) ? 1 : -1;
                     sign *= tmp;
                     return true;
                 }
-            }else{
-                if(!bitTest(pairRepI.second,siteI) and !bitTest(pairRepI.first,siteI)){
-                    auto N = pt_Basis->getOrbNum();
-                    int counter = 0; for(int i=0;i<N;++i) if(bitTest(pairRepI.first,i)) ++counter;
-                    bitFlip(pairRepI.second,siteI);
-                    for(int i = 0; i < siteI; ++i)if(bitTest(pairRepI.second,i))counter++;
-                    int tmp = (counter%2==0)?1:-1;
+            } else {
+                if (!bitTest(pairRepI.second, siteI) and !bitTest(pairRepI.first, siteI)) {
+                    bitFlip(pairRepI.second, siteI);
+                    int counter = 0; 
+                    for(int i = 0; i < siteI; ++i) {
+                        if (bitTest(pairRepI.second, i)) {
+                            ++counter;
+                        } else if (bitTest(pairRepI.first, i)) {
+                            ++counter;
+                        }
+                    }
+                    int tmp = (counter % 2 == 0) ? 1 : -1;
                     sign *= tmp;
                     return true;
                 }
@@ -381,139 +201,130 @@ bool FermionOperator<T>::cp(SPIN spin, int siteI, pairIndex& pairRepI, int &sign
 
 template <typename T>
 bool FermionOperator<T>::cm(SPIN spin, int siteI, pairIndex& pairRepI, int &sign){
-    if(spin == SPIN_UP){
-        if(bitTest(pairRepI.first,siteI)){
-            bitFlip(pairRepI.first,siteI);
-            int counter = 0;
-            for(int i = 0; i < siteI; ++i)if(bitTest(pairRepI.first,i))counter++;
-            int tmp = (counter%2==0)?1:-1;
-            sign *= tmp;
-            return true;
+    switch (fmodel) {
+        case LATTICE_MODEL::HUBBARD: {
+            if (spin == SPIN::UP) {
+                if (bitTest(pairRepI.first, siteI)) {
+                    bitFlip(pairRepI.first, siteI);
+                    int counter = 0;
+                    for(int i = 0; i < siteI; ++i) {
+                        if (bitTest(pairRepI.first, i)) ++counter;
+                    }
+                    int tmp = (counter % 2 == 0) ? 1 : -1;
+                    sign *= tmp;
+                    return true;
+                }
+            } else {
+                if (bitTest(pairRepI.second, siteI)) {
+                    auto N = pt_Basis->getOrbNum();
+                    int counter = 0; 
+                    for (int i = 0; i <N ; ++i) {
+                        if (bitTest(pairRepI.first, i)) counter++;
+                    }
+                    bitFlip(pairRepI.second, siteI);
+                    for(int i = 0; i < siteI; ++i) {
+                        if (bitTest(pairRepI.second, i)) ++counter;
+                    }
+                    int tmp = (counter % 2 == 0) ? 1 : -1;
+                    sign *= tmp;
+                    return true;
+                }
+            }
+            break;
         }
-    }else{
-        if(bitTest(pairRepI.second,siteI)){
-            auto N = pt_Basis->getOrbNum();
-            int counter = 0; for(int i=0;i<N;++i)if(bitTest(pairRepI.first,i))counter++;
-            bitFlip(pairRepI.second,siteI);
-            for(int i = 0; i < siteI; ++i)if(bitTest(pairRepI.second,i))counter++;
-            int tmp = (counter%2==0)?1:-1;
-            sign *= tmp;
-            return true;
+        case LATTICE_MODEL::tJ: {
+            if (spin == SPIN::UP) {
+                if (bitTest(pairRepI.first, siteI)) {
+                    bitFlip(pairRepI.first, siteI);
+                    int counter = 0;
+                    for (int i = 0; i < siteI; ++i) {
+                        if (bitTest(pairRepI.first, i)) {
+                            ++counter;
+                        } else if (bitTest(pairRepI.second, i)) {
+                            ++counter;
+                        }
+                    }
+                    int tmp = (counter % 2 == 0) ? 1 : -1;
+                    sign *= tmp;
+                    return true;
+                }
+            } else {
+                if (bitTest(pairRepI.second, siteI)) {
+                    bitFlip(pairRepI.second, siteI);
+                    int counter = 0; 
+                    for(int i = 0; i < siteI; ++i) {
+                        if (bitTest(pairRepI.second, i)) {
+                            ++counter;
+                        } else if (bitTest(pairRepI.first, i)) {
+                            ++counter;
+                        }
+                    }
+                    int tmp = (counter % 2 == 0) ? 1 : -1;
+                    sign *= tmp;
+                    return true;
+                }
+            } 
+            break;
         }
     }
     return false;
 }
 
 template <typename T>
-void FermionOperator<T>::cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap) {
-    pairIndex pairRepIf = pairRepI;
-    int sign;
-    idx_t colidx;
-    switch (spin)
-    {
-        case SPIN_UP:
-            if (cp(siteI, pairRepI.first, pairRepIf.first, sign)) {
-                if (pt_Basis->search(pairRepIf,colidx)) {
-                    T val = factor * (double)sign;
-                    val /= pt_Basis->getNorm(colidx);
-                    MapPush(rowMap,colidx,val);
-                }
-            }
-            break;
-        case SPIN_DOWN:
-            if(cp(siteI, pairRepI.second, pairRepIf.second, sign)){
-                if(pt_Basis->search(pairRepIf,colidx)){
-                    auto N = pt_Basis->getOrbNum();
-                    int count = 0; 
-                    for (int i = 0; i < N; ++i) {
-                        if (bitTest(pairRepI.first,i)) count++;
-                    }
-                    if (count % 2 == 1) sign *= -1;
-                    T val = factor * (double)sign;
-                    val /= pt_Basis->getNorm(colidx);
-                    MapPush(rowMap,colidx,val);
-                }
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-template <typename T>
-void FermionOperator<T>::cm(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap){
-    pairIndex pairRepIf = pairRepI;
-    int sign;
-    idx_t colidx;
-    switch (spin)
-    {
-        case SPIN_UP:
-            if(cm(siteI, pairRepI.first, pairRepIf.first, sign)){
-                if (pt_Basis->search(pairRepIf,colidx)) {
-                    T val = factor * (double)sign;
-                    val /= pt_Basis->getNorm(colidx);
-                    MapPush(rowMap,colidx,val);
-                }
-            }
-            break;
-        case SPIN_DOWN:
-            if (cm(siteI, pairRepI.second, pairRepIf.second, sign)) {
-                if (pt_Basis->search(pairRepIf,colidx)) {
-                    auto N = pt_Basis->getOrbNum();
-                    int count = 0; 
-                    for (int i = 0; i < N; ++i) {
-                        if (bitTest(pairRepI.first,i)) count++;
-                    }
-                    if (count % 2 == 1) sign *= -1;
-                    T val = factor * (double)sign;
-                    val /= pt_Basis->getNorm(colidx);
-                    MapPush(rowMap,colidx,val);
-                }
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-template <typename T>
-bool FermionOperator<T>::cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx_t& repIf, int& sign){
-    repIf = repI;
+bool FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, pairIndex& pairRepI, int& sign){
+    idx_t& repI = (spin == SPIN::UP) ? pairRepI.first : pairRepI.second;
     if (siteI==siteJ){
-        if (bitTest(repI,siteJ)){
+        if (bitTest(repI, siteJ)){
             sign = 1;
             return true;
         }
-    }else{
+    } else {
         switch(fmodel){
-            case LATTICE_MODEL::HUBBARD:{
-                if(bitTest(repI,siteJ) && (!bitTest(repI,siteI))){
-                    bitFlip(repIf,siteI);
-                    bitFlip(repIf,siteJ);
+            case LATTICE_MODEL::HUBBARD: {
+                if (bitTest(repI, siteJ) && (!bitTest(repI, siteI))){
+                    bitFlip(repI, siteI);
+                    bitFlip(repI, siteJ);
                     int counter = 0;
                     if (siteI < siteJ) {
-                        for (int i = siteI + 1; i < siteJ; ++i) if (bitTest(repI,i)) counter++;
-                    }else{
-                        for (int i = siteJ + 1; i < siteI; ++i) if (bitTest(repI,i)) counter++;
+                        for (int i = siteI + 1; i < siteJ; ++i) {
+                            if (bitTest(repI,i)) ++counter;
+                        }
+                    } else {
+                        for (int i = siteJ + 1; i < siteI; ++i) {
+                            if (bitTest(repI,i)) ++counter;
+                        }
                     }
-                    sign = (counter%2==0)?1:-1;
+                    sign = (counter % 2 == 0) ? 1 : -1;
                     return true;
                 }
                 break;
             }
 
             // no double occupancy
-            case LATTICE_MODEL::tJ:{
-                if(bitTest(repI,siteJ) && (!bitTest(repI,siteI)) && (!bitTest(repIp,siteI))){
-                    bitFlip(repIf,siteI);
-                    bitFlip(repIf,siteJ);
+            case LATTICE_MODEL::tJ: {
+                idx_t repIp = (spin == SPIN::DOWN) ? pairRepI.first : pairRepI.second;
+                if (bitTest(repI, siteJ) && (!bitTest(repI, siteI)) && (!bitTest(repIp, siteI))) {
+                    bitFlip(repI,siteI);
+                    bitFlip(repI,siteJ);
                     int counter = 0;
                     if (siteI < siteJ) {
-                        for (int i = siteI + 1; i < siteJ; ++i) {if (bitTest(repI,i)) counter++; else if (bitTest(repIp,i)) counter++;}
+                        for (int i = siteI + 1; i < siteJ; ++i) {
+                            if (bitTest(repI,i)) {
+                                ++counter; 
+                            } else if (bitTest(repIp,i)) {
+                                ++counter;
+                            }
+                        }
                     }else{
-                        for (int i = siteJ + 1; i < siteI; ++i) {if (bitTest(repI,i)) counter++; else if (bitTest(repIp,i)) counter++;}
+                        for (int i = siteJ + 1; i < siteI; ++i) {
+                            if (bitTest(repI,i)) {
+                                ++counter;
+                            } else if (bitTest(repIp,i)) {
+                                ++counter;
+                            }
+                        }
                     }
-                    sign = (counter%2==0)?1:-1;
+                    sign = (counter % 2 == 0) ? 1 : -1;
                     return true;
                 }
                 break;
@@ -525,44 +336,37 @@ bool FermionOperator<T>::cpcm(int siteI, int siteJ, idx_t repI, idx_t repIp, idx
 }
 
 template <typename T>
-void FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap){
-    pairIndex pairRepI=pt_Basis->getPairRepI(repI);
-    pairIndex pairRepIf = pairRepI;
+void FermionOperator<T>::cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap) {
+    int sign = 1;
+    idx_t colidx;
+    if (cp(spin, siteI, pairRepI, sign)) {
+        if (pt_Basis->search(pairRepI, colidx)) {
+            T val = factor * (double)sign;
+            val /= pt_Basis->getNorm(colidx);
+            MapPush(rowMap,colidx,val);
+        }
+    }
+}
+
+template <typename T>
+void FermionOperator<T>::cm(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap){
     int sign;
     idx_t colidx;
-    switch(spin){
-        case SPIN_UP:{
-            if (cpcm(siteI, siteJ, pairRepI.first, pairRepI.second, pairRepIf.first, sign)){
-                #ifdef DISTRIBUTED_BASIS
-                if(pt_Basis->isfMin(pairRepIf.first)) MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
-                #else
-                if (pt_Basis->search(pairRepIf, colidx)){
-                    T val = factor * (double)sign;
-                    double finalNorm = pt_Basis->getNorm(colidx);
-                    val /= finalNorm;
-                    MapPush(rowMap,colidx,val);
-                }
-                #endif
-            }
-            break;
+    if (cm(spin, siteI, pairRepI, sign)) {
+        if (pt_Basis->search(pairRepI, colidx)) {
+            T val = factor * (double)sign;
+            val /= pt_Basis->getNorm(colidx);
+            MapPush(rowMap,colidx,val);
         }
-        case SPIN_DOWN:{
-            if (cpcm(siteI, siteJ, pairRepI.second, pairRepI.first, pairRepIf.second, sign)){
-                #ifdef DISTRIBUTED_BASIS
-                MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
-                #else
-                if (pt_Basis->search(pairRepIf, colidx)){
-                    T val = factor * (double)sign;
-                    double finalNorm = pt_Basis->getNorm(colidx);
-                    val /= finalNorm;
-                    MapPush(rowMap,colidx,val);
-                }
-                #endif
-            }
-            break;
-        }
-        default:
-            break;
+    }
+}
+
+template <typename T>
+void FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap){
+    int sign;
+    idx_t colidx;
+    if (cpcm(spin, siteI, siteJ, pairRepI, sign)) {
+        push(pairRepI, factor * (double)sign, rowMap);
     }
 }
 
@@ -577,29 +381,19 @@ void FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, T factor, idx_t r
  * @param rowMap 
  */
 template <typename T>
-void FermionOperator<T>::exchange(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap){
+void FermionOperator<T>::exchange(int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap){
     if (siteI == siteJ) return;
-    auto pairRepI = pt_Basis->getPairRepI(repI);
     idx_t colidx;
-    std::vector<SPIN> spins{SPIN_UP,SPIN_DOWN};
+    std::vector<SPIN> spins{SPIN::UP,SPIN::DOWN};
     for(auto spinI:spins){
         for(auto spinJ:spins){
             auto pairRepIf = pairRepI;
             int sign = 1;
-            if(cm(spinI,siteI,pairRepIf,sign)){
-                if(cm(spinJ,siteJ,pairRepIf,sign)){
-                    if(cp(spinJ,siteI,pairRepIf,sign)){
-                        if(cp(spinI,siteJ,pairRepIf,sign)){
-                            #ifdef DISTRIBUTED_BASIS
-                            MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
-                            #else
-                            if (pt_Basis->search(pairRepIf, colidx)){
-                                T val = factor * (double)sign;
-                                double finalNorm = pt_Basis->getNorm(colidx);
-                                val /= finalNorm;
-                                MapPush(rowMap,colidx,val);
-                            }
-                            #endif 
+            if(cm(spinI, siteI, pairRepIf, sign)){
+                if(cm(spinJ, siteJ, pairRepIf, sign)){
+                    if(cp(spinJ, siteI, pairRepIf, sign)){
+                        if(cp(spinI, siteJ, pairRepIf, sign)){
+                            push(pairRepIf, factor * (double)sign, rowMap); 
                         }
                     }
                 }
@@ -620,49 +414,45 @@ void FermionOperator<T>::exchange(int siteI, int siteJ, T factor, idx_t repI, MA
  * @param rowMap 
  */
 template <typename T>
-void FermionOperator<T>::pairHopping(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap){
+void FermionOperator<T>::pairHopping(int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap){
     if (siteI == siteJ) return;
-    auto pairRepIf = pt_Basis->getPairRepI(repI);
     idx_t colidx;
+    auto pairRepIf = pairRepI;
     int sign = 1;
-    if(cm(SPIN_UP,siteI,pairRepIf,sign)){
-        if(cm(SPIN_DOWN,siteI,pairRepIf,sign)){
-            if(cp(SPIN_DOWN,siteJ,pairRepIf,sign)){
-                if(cp(SPIN_UP,siteJ,pairRepIf,sign)){
-                    #ifdef DISTRIBUTED_BASIS
-                    MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
-                    #else
-                    if (pt_Basis->search(pairRepIf, colidx)){
-                        T val = factor * (double)sign;
-                        double finalNorm = pt_Basis->getNorm(colidx);
-                        val /= finalNorm;
-                        MapPush(rowMap,colidx,val);
-                    }
-                    #endif 
+    if(cm(SPIN::UP, siteI, pairRepIf, sign)){
+        if(cm(SPIN::DOWN, siteI, pairRepIf, sign)){
+            if(cp(SPIN::DOWN, siteJ, pairRepIf, sign)){
+                if(cp(SPIN::UP, siteJ, pairRepIf, sign)){
+                    push(pairRepIf, factor * (double)sign, rowMap);
                 }
             }
         }
     }
 
+    pairRepIf = pairRepI;
     sign = 1;
-    if(cm(SPIN_UP,siteJ,pairRepIf,sign)){
-        if(cm(SPIN_DOWN,siteJ,pairRepIf,sign)){
-            if(cp(SPIN_DOWN,siteI,pairRepIf,sign)){
-                if(cp(SPIN_UP,siteI,pairRepIf,sign)){
-                    #ifdef DISTRIBUTED_BASIS
-                    MapPush(rowMap,pt_Basis->getRepI(pairRepIf),factor*sign);
-                    #else
-                    if (pt_Basis->search(pairRepIf, colidx)){
-                        T val = factor * (double)sign;
-                        double finalNorm = pt_Basis->getNorm(colidx);
-                        val /= finalNorm;
-                        MapPush(rowMap,colidx,val);
-                    }
-                    #endif 
+    if(cm(SPIN::UP, siteJ, pairRepIf, sign)){
+        if(cm(SPIN::DOWN, siteJ, pairRepIf, sign)){
+            if(cp(SPIN::DOWN, siteI, pairRepIf, sign)){
+                if(cp(SPIN::UP, siteI, pairRepIf, sign)){
+                    push(pairRepIf, factor * (double)sign, rowMap);
                 }
             }
         }
     }
+}
+
+template <typename T>
+void FermionOperator<T>::push(pairIndex pairRepIf, T val, MAP<T>* rowMap) {
+    #ifdef DISTRIBUTED_BASIS
+    if(pt_Basis->isfMin(pairRepIf.first)) MapPush(rowMap,pt_Basis->getRepI(pairRepIf),val);
+    #else
+    idx_t colidx;
+    if (pt_Basis->search(pairRepIf, colidx)){
+        val /= pt_Basis->getNorm(colidx);
+        MapPush(rowMap,colidx,val);
+    }
+    #endif // DISTRIBUTED_BASIS 
 }
 
 #ifdef DISTRIBUTED_BASIS
@@ -1053,4 +843,4 @@ void SpinOperator<T>::chiral(int siteI, int siteJ, int siteK, T factor, idx_t re
     szspsm(siteK, siteI, siteJ, factor, repI, rowMap);
 }
 
-#endif // __OPERATORBASICS_H__
+#endif // __OPERATIONS_H__

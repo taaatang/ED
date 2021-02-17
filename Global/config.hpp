@@ -7,7 +7,6 @@
 #include "Utils/paras.hpp"
 #include "Utils/path.hpp"
 #include "Geometry/Geometry.hpp"
-#include "Operator/OperatorBasics.hpp"
 #include "Pulse/pulse.hpp"
 
 // std::string configFile = "../Input/config.txt";

@@ -9,7 +9,8 @@
 #ifndef OperatorsBase_hpp
 #define OperatorsBase_hpp
 
-#include "Operator/OperatorBasics.hpp"
+#include "Operator/links.hpp"
+#include "Operator/Operations.hpp"
 #include "Operator/SparseMatrix.hpp"
 #include "Global/globalPara.hpp"
 #include "Basis/Basis.hpp"
@@ -42,7 +43,7 @@ public:
 protected:
     Basis *Bi{nullptr}, *Bf{nullptr};
     Geometry *latt{nullptr};
-    LATTICE_MODEL model{HUBBARD};
+    LATTICE_MODEL model{LATTICE_MODEL::HUBBARD};
     int linkCount{0};
     int spmCount{0};
     std::vector<Link<T>> Links, NCLinks;
