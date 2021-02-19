@@ -38,6 +38,7 @@ public:
 
     int workerID;
     int workerNum;
+    // row major. row dimension
     idx_t dim;
     idx_t nlocmax;
     idx_t ntot;
@@ -76,7 +77,7 @@ public:
     void reserveDiag( ) { for(int i = 0; i < dmNum; ++i) diagValList.reserve(this->getnloc()); }
 
     // reserve memory for off diagonal part
-    void reserve(idx_t sizePerRow, int matID=0);
+    void reserve(idx_t sizePerRow, int matID = 0);
 
     // clear memory of sparse matrixes
     void clear();
@@ -87,7 +88,7 @@ public:
 
     void pushDiag(T val, int matID=0) { diagValList.at(matID).push_back(val); }
 
-    void putDiag(T val, idx_t idx, int matID=0);
+    void putDiag(T val, idx_t idx, int matID = 0);
 
     // check if matrix vector multiplication buff is properly set
     bool isMVBuf( );
@@ -121,9 +122,9 @@ public:
 
 #else // DISTRIBUTED_BASIS
 
-    void pushRow(std::unordered_map<idx_t,T>* rowMap, int matID=0);
+    void pushRow(std::unordered_map<idx_t,T>* rowMap, int matID = 0);
 
-    virtual void construct(int rowPerThread=1);
+    virtual void construct(int rowPerThread = 1);
 
 #endif // DISTRIBUTED_BASIS
 
@@ -230,7 +231,7 @@ SparseMatrix<T>::~SparseMatrix( ) {
 
 template <class T>
 idx_t SparseMatrix<T>::nzCount( ) const {
-    idx_t count=0;
+    idx_t count = 0;
 
     #ifdef DISTRIBUTED_BASIS 
 
@@ -238,11 +239,11 @@ idx_t SparseMatrix<T>::nzCount( ) const {
 
     #else
 
-        for(int i=0;i<spmNum;++i)count+=valList.at(i).size();
+        for(int i = 0; i < spmNum; ++i) count += valList.at(i).size();
 
     #endif
 
-    for(int i=0;i<dmNum;++i)count+=diagValList.at(i).size();
+    for(int i = 0; i < dmNum; ++i) count += diagValList.at(i).size();
     return count;
 }
 
@@ -267,13 +268,13 @@ void SparseMatrix<T>::reserve(idx_t sizePerRow, int matID) {
 
 template <class T>
 void SparseMatrix<T>::clear( ) {
-    for (int matID = 0; matID < dmNum; matID++) diagValList[matID].clear();
+    for (int matID = 0; matID < dmNum; ++matID) diagValList[matID].clear();
 
     #ifdef DISTRIBUTED_BASIS
 
-        for (int matID = 0; matID < spmNum; matID++) {
-            for(int b=0; b < blockNum;b++) {
-                counter.at(matID).at(b)=0;
+        for (int matID = 0; matID < spmNum; ++matID) {
+            for(int b = 0; b < blockNum; ++b) {
+                counter.at(matID).at(b) = 0;
                 valList.at(matID).at(b).clear();
                 colList.at(matID).at(b).clear();
                 rowInitList.at(matID).at(b).clear();
@@ -282,8 +283,8 @@ void SparseMatrix<T>::clear( ) {
 
     #else
 
-        for (int matID = 0; matID < spmNum; matID++) {
-            counter[matID]=0;
+        for (int matID = 0; matID < spmNum; ++matID) {
+            counter[matID] = 0;
             valList[matID].clear();
             colList[matID].clear();
             rowInitList[matID].clear();
@@ -297,11 +298,11 @@ void SparseMatrix<T>::putDiag(T val, idx_t idx, int matID){
 
     #ifdef DISTRIBUTED_BASIS
 
-        diagValList.at(matID).at(idx)=val;
+        diagValList.at(matID).at(idx) = val;
 
     #else
 
-        diagValList.at(matID).at(idx-BaseMatrix<T>::startRow)=val;
+        diagValList.at(matID).at(idx-BaseMatrix<T>::startRow) = val;
 
     #endif
 
@@ -381,8 +382,8 @@ bool SparseMatrix<T>::isMVBuf( ) {
 }
 
 template <class T>
-void SparseMatrix<T>::setBuf(){
-    nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
+void SparseMatrix<T>::setBuf( ) {
+    nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1) / BaseMatrix<T>::workerNum;
     ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
     #ifdef DISTRIBUTED_BASIS
         vecBuf.resize(nlocmax_col);
