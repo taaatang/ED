@@ -1,20 +1,11 @@
 #ifndef __OPERATIONS_H__
 #define __OPERATIONS_H__
 
-#include "Basis/Basis.hpp"
-
-#include <stdio.h>
-#include <algorithm>
 #include <vector>
-#include <map>
-#include <unordered_map>
-#include <string>
 #include <cmath>
 #include <iostream>
-#include <fstream>
-#include <complex>
 
-/* Operators_hpp */
+#include "Basis/Basis.hpp"
 
 template<typename T>
 class FermionOperator{
@@ -25,7 +16,7 @@ public:
     // c^dagger/c with spin act on siteI of pairRepI 
     bool cp(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign);
     bool cm(SPIN spin, int siteI,  pairIdx_t& pairRepI, int &sign);
-     // hopping deals with sign count difference for hubbard and tJ
+    // hopping deals with sign count difference for hubbard and tJ
     bool cpcm(SPIN spin, int siteI, int siteJ, pairIdx_t& pairRepI, int& sign);
 
     // used for single particle spectra 
@@ -266,6 +257,9 @@ bool FermionOperator<T>::cm(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign
             } 
             break;
         }
+        default:
+            std::cout<<"cm not defined for "<<fmodel<<"\n";
+            exit(1);
     }
     return false;
 }
@@ -363,8 +357,7 @@ void FermionOperator<T>::cm(SPIN spin, int siteI, T factor, pairIdx_t pairRepI, 
 
 template <typename T>
 void FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, T factor, pairIdx_t pairRepI, MAP<T>* rowMap){
-    int sign;
-    idx_t colidx;
+    int sign = 1;
     if (cpcm(spin, siteI, siteJ, pairRepI, sign)) {
         push(pairRepI, factor * (double)sign, rowMap);
     }
@@ -383,7 +376,6 @@ void FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, T factor, pairIdx
 template <typename T>
 void FermionOperator<T>::exchange(int siteI, int siteJ, T factor, pairIdx_t pairRepI, MAP<T>* rowMap){
     if (siteI == siteJ) return;
-    idx_t colidx;
     std::vector<SPIN> spins{SPIN::UP,SPIN::DOWN};
     for(auto spinI:spins){
         for(auto spinJ:spins){
@@ -416,7 +408,6 @@ void FermionOperator<T>::exchange(int siteI, int siteJ, T factor, pairIdx_t pair
 template <typename T>
 void FermionOperator<T>::pairHopping(int siteI, int siteJ, T factor, pairIdx_t pairRepI, MAP<T>* rowMap){
     if (siteI == siteJ) return;
-    idx_t colidx;
     auto pairRepIf = pairRepI;
     int sign = 1;
     if(cm(SPIN::UP, siteI, pairRepIf, sign)){
@@ -725,7 +716,6 @@ void SpinOperator<T>::smsp(int siteI, T factor, idx_t repI, MAP<T>* rowMap){
 
 template<typename T>
 void SpinOperator<T>::spsm(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap){
-    idx_t colID;
     if (siteI==siteJ){
         spsm(siteI, factor, repI, rowMap);
         return;

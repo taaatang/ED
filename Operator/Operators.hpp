@@ -16,6 +16,7 @@
 #include "Operator/OperatorsBase.hpp"
 #include "Utils/utils.hpp"
 #include "Pulse/pulse.hpp"
+// #include "Solver/PARPACKSolver.hpp"
 
 /* Operators_hpp */
 
@@ -50,6 +51,8 @@ public:
     bool next( );
 
     void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps);
+
+    // PARPACKSolver<T> solver;
 
 private:
     VecD V, U;
@@ -211,7 +214,7 @@ public:
 template<LATTICE_MODEL MODEL, typename T>
 Hamiltonian<MODEL, T>::Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_, int dmNum_):\
 OperatorBase<T>(latt, Bi, Bf, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
-
+    // solver = PARPACKSolver<T>(this, 1);
 }
 
 template <LATTICE_MODEL MODEL, typename T>
@@ -255,7 +258,7 @@ void Hamiltonian<MODEL, T>::setPeierls(Pulse* pulse) {
             std::sort(PeierlsOverlap.begin(), PeierlsOverlap.end());
             auto last = std::unique(PeierlsOverlap.begin(), PeierlsOverlap.end());
             PeierlsOverlap.resize(last - PeierlsOverlap.begin());
-            for (int idx = 0; idx < overlap.size(); ++idx) {
+            for (int idx = 0; idx < (int)overlap.size(); ++idx) {
                 auto low = std::lower_bound(PeierlsOverlap.begin(), PeierlsOverlap.end(), overlap[idx]);
                 if (low != PeierlsOverlap.end() and overlap[idx] == *low) {
                     int matid = 1 + 2 * (low - PeierlsOverlap.begin());
@@ -277,7 +280,7 @@ void Hamiltonian<MODEL, T>::setPeierls(Pulse* pulse) {
 template<LATTICE_MODEL MODEL, typename T>
 void Hamiltonian<MODEL, T>::printPeierls(std::ostream& os) {
     if constexpr (MODEL == LATTICE_MODEL::HUBBARD or MODEL == LATTICE_MODEL::tJ) {
-        for (size_t id = 0; id < PeierlsOverlap.size(); ++id) {
+        for (int id = 0; id < (int)PeierlsOverlap.size(); ++id) {
             os<<"A*dr = "<<PeierlsOverlap[id]<<"\n";
             auto matid = (id == 0) ? id : 2 * id -1;
             for (const auto& link : this->hoppingT) {
@@ -305,7 +308,7 @@ template<LATTICE_MODEL MODEL, typename T>
 bool Hamiltonian<MODEL, T>::next( ) {
     if (pulse) {
         auto A = pulse->getAa();
-        for (int i = 1; i < PeierlsOverlap.size(); ++i) {
+        for (int i = 1; i < (int)PeierlsOverlap.size(); ++i) {
             auto factor = std::exp(CPLX_I * A * PeierlsOverlap[i]);
             auto idx = 2 * i - 1;
             this->setVal(idx, factor);
@@ -416,7 +419,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->Bf->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < finalIndList.size(); ++i){
+        for (int i = 0; i < (int)finalIndList.size(); ++i){
             pairIdx_t pairRepI = this->Bf->getPairRepI(finalIndList[i]);
             bool isfminRep = this->Bf->isfMin(pairRepI.first);
             for (const auto& link:this->hoppingT) {
@@ -457,11 +460,10 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         // diag(rowID,val,&rowMaps[0]);
     } else if constexpr(MODEL == LATTICE_MODEL::HEISENBERG) {
         if(this->Bf->getSiteDim()==2){
-            int kIndex = this->Bf->getkIndex();
             std::vector<idx_t> finalIndList;
             std::vector<cdouble> factorList;
             this->Bf->genSymm(rowID, finalIndList, factorList);
-            for (int i = 0; i < finalIndList.size(); ++i){
+            for (int i = 0; i < (int)finalIndList.size(); ++i){
                 for (auto linkit = this->Links.begin(); linkit != this->Links.end(); linkit++){
                     int matID = (*linkit).getmatid();
                     cdouble factor = factorList.at(i) * (*linkit).getVal();
@@ -494,12 +496,11 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                 }
             }
         } else {
-            int kIndex = this->Bf->getkIndex();
             VecI initVec(this->latt->getOrbNum());
             std::vector<idx_t> finalIndList;
             std::vector<cdouble> factorList;
             this->Bf->genSymm(rowID, finalIndList, factorList);
-            for (int i = 0; i < finalIndList.size(); ++i){
+            for (int i = 0; i < (int)finalIndList.size(); ++i){
                 this->Bf->repToVec(finalIndList[i], initVec);
                 for (auto linkit = this->Links.begin(); linkit != this->Links.end(); linkit++){
                     int matID = (*linkit).getmatid();
@@ -553,7 +554,7 @@ void CkOp<T>::set(LADDER pm, SPIN spin, Orbital orb) {
     for (int i = 0; i < Norb; ++i) {
         if (this->latt->is_Orbital(i, orb.orb, orb.orbid)) posList.push_back(i);
     }
-    assert(posList.size() == this->latt->getSiteNum());
+    assert((int)posList.size() == this->latt->getSiteNum());
 }
 
 template <class T>
@@ -565,15 +566,15 @@ void CkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     std::vector<cdouble> factorList;
     this->Bf->genSymm(rowID, finalIndList, factorList);
     if (pm == LADDER::MINUS) {
-        for (int i = 0; i < finalIndList.size(); ++i){
-            for (int r = 0; r < posList.size(); ++r){
+        for (int i = 0; i < (int)finalIndList.size(); ++i){
+            for (int r = 0; r < (int)posList.size(); ++r){
                 cdouble factor = factorList.at(i) * expFactor.at(r);
                 this->cp(spin, posList[r], factor, finalIndList[i], &rowMaps[0]);
             }
         }
     } else if (pm == LADDER::PLUS) {
-        for (int i = 0; i < finalIndList.size(); ++i){
-            for (int r = 0; r < posList.size(); ++r){
+        for (int i = 0; i < (int)finalIndList.size(); ++i){
+            for (int r = 0; r < (int)posList.size(); ++r){
                 cdouble factor = factorList.at(i) * expFactor.at(r);
                 this->cm(spin, posList[r], factor, finalIndList[i], &rowMaps[0]);
             }

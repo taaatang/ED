@@ -30,10 +30,13 @@ int main( ) {
     // ground state
     setBasics(modelPara, latt, Bi, H, workerID);
     // cout<<setprecision(10);
-    PARPACKComplexSolver<double> PDiag(H.get(), 1);
+    PARPACKSolver<dataType> PDiag(H.get(), 1);
     PDiag.diag();
     cdouble* w0 = PDiag.getEigval();
     cdouble* gstate = PDiag.getEigvec();
+    // H->solver.diag();
+    // cdouble* w0 = H->solver.getEigval();
+    // cdouble* gstate = H->solver.getEigvec();
 
     // conductivity
     Current J(latt.get(), Bi.get());

@@ -47,7 +47,7 @@ void Current::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps) {
     std::vector<pairIdx_t> finalIndList;
     std::vector<cdouble> factorList;
     Bf->genSymm(rowID, finalIndList, factorList);
-    for (int i = 0; i < finalIndList.size(); ++i) {
+    for (int i = 0; i < (int)finalIndList.size(); ++i) {
         auto pairRepI = finalIndList[i];
         bool isfminRep = Bi->isfMin(pairRepI.first);
         for (const auto& link : this->myHoppingT) {

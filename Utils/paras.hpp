@@ -96,7 +96,7 @@ template<typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& myvec){
     if(!std::is_same<T,std::vector<double>>::value)os<<"\n";
     if(std::is_floating_point<T>::value)os<<std::setprecision(2)<<std::fixed;
-    for(int i=0;i<myvec.size()-1;++i){
+    for(int i = 0; i< (int)myvec.size()-1; ++i){
         os<<myvec.at(i);
         if(!std::is_same<T,std::vector<double>>::value)os<<", ";
     }
