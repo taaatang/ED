@@ -9,15 +9,15 @@
 #ifndef LANCZOSIterator_hpp
 #define LANCZOSIterator_hpp
 
-#include "../Global/globalPara.hpp"
-#include "../Operator/SparseMatrix.hpp"
-#include "../Utils/utils.hpp"
 #include <mpi.h>
 #include <vector>
 #include <complex>
 #include <cmath>
 #include "mkl.h"
 
+#include "Global/globalPara.hpp"
+#include "Operator/SparseMatrix.hpp"
+#include "Utils/utils.hpp"
 
 template <class T>
 class LANCZOSIterator{
@@ -51,6 +51,7 @@ LANCZOSIterator<T>::LANCZOSIterator(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION
 
 template <class T>
 void LANCZOSIterator<T>::init(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt){
+    assert_msg(M->getDim()== M->getColDim(), "M must be a square matrix in LANCZOSIterator!");
     M_ = M;
     option = opt;
     krylovDim = krydim;

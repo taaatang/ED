@@ -42,7 +42,7 @@ int main( ) {
     for (auto d : ds) {
         J.setDirection(d);
         J.construct();
-        SPECTRASolver<cdouble> spectra(H.get(), w0[0], &J, gstate, H->getDim(), 400);
+        SPECTRASolver<cdouble> spectra(H.get(), w0[0], &J, gstate, 400);
         spectra.compute();
         if (isMaster()) {
             spectra.saveData(path.sigmaDir + "/" + d);
@@ -67,7 +67,7 @@ int main( ) {
                     CkOp<dataType> ck(latt.get(), Bi.get(), Bf.get());
                     ck.set(pm, spin, orb);
                     ck.construct();
-                    SPECTRASolver<dataType> spectra(Hf.get(), w0[0], &ck, gstate, Bi->getSubDim(), 400);
+                    SPECTRASolver<dataType> spectra(Hf.get(), w0[0], &ck, gstate, 400);
                     spectra.compute();
                     if (isMaster()) {
                         std::ostringstream os;

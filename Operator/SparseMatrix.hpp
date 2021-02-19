@@ -22,29 +22,44 @@
 template <class T>
 class BaseMatrix{
 public:
-    BaseMatrix(idx_t totDim = 0);
-    ~BaseMatrix(){}
+    BaseMatrix(idx_t totRowDim = 0, idx_t totColDim = 0);
+    ~BaseMatrix( ) { }
 
+    int getWorkerID( ) const { return workerID; }
+    
     void setDim(idx_t totDim = 0);
-    idx_t getDim( ) const {return dim;};
-    int getWorkerID( ) const {return workerID;};
-    // ntot = nlocmax * workerNum != totDim
-    idx_t getntot( ) const {return ntot;};
-    idx_t getnlocmax( ) const {return nlocmax;};
-    // totDim = sum(nloc)
-    idx_t getnloc( ) const {return nloc;};
+    idx_t getDim( ) const { return dim; }
+    idx_t getntot( ) const { return ntot; }
+    idx_t getnlocmax( ) const { return nlocmax; }
+    idx_t getnloc( ) const { return nloc; }
+
+    void setColDim(idx_t totDim = 0);
+    idx_t getColDim( ) const { return dim_col; }
+    idx_t getColntot( ) const { return ntot_col; }
+    idx_t getColnlocmax( ) const { return nlocmax_col; }
+    idx_t getColnloc( ) const { return nloc_col; }
 
     virtual void MxV(T *vecIn, T *vecOut) = 0;
 
     int workerID;
     int workerNum;
     // row major. row dimension
+    // tot row dim of all workers
+    // totDim = sum(nloc)
     idx_t dim;
     idx_t nlocmax;
+    // ntot = nlocmax * workerNum != totDim
     idx_t ntot;
     idx_t nloc;
     idx_t startRow;
     idx_t endRow;
+
+    idx_t dim_col;
+    idx_t nlocmax_col;
+    idx_t ntot_col;
+    idx_t nloc_col;
+    idx_t startCol;
+    idx_t endCol;
 };
 
 /*
@@ -67,7 +82,7 @@ class SparseMatrix: public BaseMatrix<T>{
 */
 public:
     SparseMatrix( ) { }
-    SparseMatrix(Basis *Bi_, Basis *Bf_, idx_t totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0);
+    SparseMatrix(Basis *Bi_, Basis *Bf_, int spmNum_ = 0, int dmNum_ = 0);
     ~SparseMatrix( );
 
     // local matrix nonzero elements count
@@ -140,8 +155,6 @@ protected:
     std::vector<T> diagParameters; // diagParameters[i]*diagValList[i]. parameter for i-th diagonal matrix
     std::vector<T> parameters; // parameters[i]*valList[i]. parameter for i-th sparse matrix
 
-    idx_t nlocmax_col;
-    idx_t ntot_col;
     static std::vector<T> vecBuf; // common buffer for matrix vector multiplication
 
 #ifdef DISTRIBUTED_STATE
@@ -171,10 +184,11 @@ protected:
 };
 
 template <class T>
-BaseMatrix<T>::BaseMatrix(idx_t totDim) {
+BaseMatrix<T>::BaseMatrix(idx_t totRowDim, idx_t totColDim) {
     MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
     MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
-    setDim(totDim);
+    setDim(totRowDim);
+    setColDim(totColDim);
 }
 
 template <class T>
@@ -183,8 +197,18 @@ void BaseMatrix<T>::setDim(idx_t totDim) {
     nlocmax = (dim + workerNum - 1)/workerNum;
     ntot = nlocmax * workerNum;
     startRow = workerID * nlocmax;
-    endRow = (startRow + nlocmax)<dim?(startRow + nlocmax):dim;
+    endRow = (startRow + nlocmax) < dim ? (startRow + nlocmax) : dim;
     nloc = endRow - startRow;
+}
+
+template <class T>
+void BaseMatrix<T>::setColDim(idx_t totDim) {
+    dim_col = totDim;
+    nlocmax_col = (dim_col + workerNum - 1)/workerNum;
+    ntot_col = nlocmax_col * workerNum;
+    startCol = workerID * nlocmax_col;
+    endCol = (startCol + nlocmax_col) < dim_col ? (startCol + nlocmax_col) : dim_col;
+    nloc_col = endCol - startCol;
 }
 
 // buffer for matrix vector multiplication
@@ -198,7 +222,8 @@ std::vector<T> SparseMatrix<T>::vecBuf;
 */
 
 template <class T>
-SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, idx_t totDim_ , int spmNum_ , int dmNum_):BaseMatrix<T>(totDim_), Bi(Bi_), Bf(Bf_) {
+SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, int spmNum_ , int dmNum_):BaseMatrix<T>(Bf_->getSubDim(), Bi_->getSubDim()), \
+Bi(Bi_), Bf(Bf_) {
 
     setSpmNum(spmNum_);
     setDmNum(dmNum_);
@@ -291,6 +316,7 @@ void SparseMatrix<T>::clear( ) {
         }
     
     #endif
+    isMatrixFree = true;
 }
 
 template <class T>
@@ -367,28 +393,28 @@ void SparseMatrix<T>::setDmNum(int num) {
 
 template <class T>
 bool SparseMatrix<T>::isMVBuf( ) {    
-    nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
-    ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
+    // nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
+    // ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
 
     #ifdef DISTRIBUTED_BASIS
 
-        return vecBuf.size() == nlocmax_col;
+        return vecBuf.size() == this->getColnlocmax();
 
     #else
  
-        return vecBuf.size() == ntot_col;
+        return vecBuf.size() == this->getColntot();
 
     #endif
 }
 
 template <class T>
 void SparseMatrix<T>::setBuf( ) {
-    nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1) / BaseMatrix<T>::workerNum;
-    ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
+    // nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1) / BaseMatrix<T>::workerNum;
+    // ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
     #ifdef DISTRIBUTED_BASIS
-        vecBuf.resize(nlocmax_col);
+        vecBuf.resize(this->getColnlocmax());
     #else
-        vecBuf.resize(ntot_col);
+        vecBuf.resize(this->getColntot());
     #endif
 }
 
@@ -527,6 +553,7 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
     void SparseMatrix<T>::construct(int rowPerThread){
         clear();
         this->setDim(Bf->getSubDim());
+        this->setColDim(Bi->getSubDim());
         int threadNum;
         #pragma omp parallel
         {
@@ -637,7 +664,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
 
             #pragma omp parallel for
             for (idx_t i = 0; i < BaseMatrix<T>::nloc; ++i) vecOut[i] = 0.0;
-            MPI_Allgather(vecIn,vecBuf.data(),nlocmax_col);
+            MPI_Allgather(vecIn,vecBuf.data(),this->getColnlocmax());
             for (int i = 0; i < spmNum; ++i){MKL::MxV(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
 
         #endif
@@ -656,7 +683,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
             }
         }
     } else {
-        MPI_Allgather(vecIn,vecBuf.data(),nlocmax_col);
+        MPI_Allgather(vecIn,vecBuf.data(), this->getColnlocmax());
         #pragma omp parallel for
         for (idx_t i = 0; i < BaseMatrix<T>::nloc; ++i) vecOut[i] = 0.0;
         #pragma omp parallel for

@@ -14,18 +14,17 @@ template <class T>
 class SPECTRASolver: public LANCZOSIterator<T>{
 private:
     // pointer to Hamiltonian and Operator A
-    SparseMatrix<T> *H, *A;
+    SparseMatrix<T> *A;
     // ground state energy
     cdouble w0;
     // initial state
     std::vector<T> vec;
 public:
-    SPECTRASolver(SparseMatrix<T> *H_, cdouble w0_, SparseMatrix<T> *A_, T* vec_, idx_t vecSize_, int krylovdim_):H(H_),A(A_),w0(w0_),\
-        LANCZOSIterator<T>(H_,krylovdim_){
-        A->setBuf(vecSize_);
-        vec.resize(H->getnlocmax());
+    SPECTRASolver(SparseMatrix<T> *H_, cdouble w0_, SparseMatrix<T> *A_, T* vec_, int krylovdim_):LANCZOSIterator<T>(H_,krylovdim_), \
+    A(A_), w0(w0_) {
+        assert_msg(A_->getDim() == H_->getColDim(), "Matrix dimension mismatch in SPECTRASolver!");
+        vec.resize(A->getnlocmax());
         A->MxV(vec_,vec.data());
-        H->setBuf();
     }
     ~SPECTRASolver(){}
     void compute(){this->run(vec.data());}

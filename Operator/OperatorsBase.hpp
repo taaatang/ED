@@ -52,7 +52,7 @@ protected:
 
 template<typename T>
 OperatorBase<T>::OperatorBase (Geometry *latt, Basis *Bi, Basis *Bf, int spmNum_, int dmNum_) :\
- FermionOperator<T>(Bi), SpinOperator<T>(Bi), SparseMatrix<T>(Bi, Bf, Bf->getSubDim(), spmNum_, dmNum_){
+ FermionOperator<T>(Bi), SpinOperator<T>(Bi), SparseMatrix<T>(Bi, Bf, spmNum_, dmNum_){
     this->latt = latt;
     this->model = this->Bi->getModel();
     assert(this->Bi->getModel() == this->Bf->getModel());

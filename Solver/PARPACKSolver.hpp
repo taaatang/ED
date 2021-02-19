@@ -80,7 +80,7 @@ class PARPACKComplexSolver{
     std::complex<T> sigma_;
     std::array<a_int, 14> ipntr_; // output. ipntr(0) pointer to current operand vector in workd. ipntr(1) pointer to current result vector in workd
     std::array<a_int, 11> iparam_;
-
+`
     std::complex<T> *workd_pt, *workl_pt, *V_pt, *d_pt, *z_pt, *resid_pt;
     std::complex<T> *rwork_pt, *workev_pt;
     a_int *select_pt;
