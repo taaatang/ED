@@ -44,6 +44,8 @@ enum class LATTICE_MODEL {HUBBARD,tJ,HEISENBERG};
 enum class PointGroup {NONE,D6, C6, D4, D4m, D4m5, C4, D3, C3};
 enum class ORBITAL {SINGLE, Dx2y2, Dz2, Px, Py, Pzu, Pzd};
 enum class LINK_TYPE {SUPER_EXCHANGE_J, CHIRAL_K, HOPPING_T, CHARGE_TRANSFER_V, HUBBARD_U, EXCHANGE_J, PAIR_HOPPING_J};
+enum class LADDER {PLUS, MINUS};
+enum class SPIN {UP, DOWN};
 
 /*
     *************************
@@ -107,16 +109,8 @@ typedef std::vector<std::vector<int>> BondMap;
     #define DISTRIBUTED_STATE
 #endif
 
-typedef std::pair<idx_t,idx_t> pairIndex;
+typedef std::pair<idx_t,idx_t> pairIdx_t;
 #define KEEP_BASIS_NORM
-
-/*
-    ******************
-    * Spin Operators *
-    ******************
-*/
-
-enum class SPIN {UP, DOWN};
 
 
 /*

@@ -122,7 +122,7 @@ std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model) {
     return os;
 }
 std::ostream& operator<<(std::ostream& os, ORBITAL orb) {
-    os<<"ORBITAL:";
+    os<<"orbital_";
     switch (orb) {
         case ORBITAL::SINGLE:
             os<<"single";
@@ -221,6 +221,38 @@ std::ostream& operator<<(std::ostream& os, PointGroup p) {
     return os;
 }
 
+std::ostream& operator<<(std::ostream& os, SPIN s) {
+    os<<"spin_";
+    switch (s) {
+        case SPIN::UP:
+            os<<"up";
+            break;
+        case SPIN::DOWN:
+            os<<"dn";
+            break;
+        default:
+            os<<"undefined";
+            break;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, LADDER t) {
+    os<<"ladder_";
+    switch (t) {
+        case LADDER::PLUS:
+            os<<"plus";
+            break;
+        case LADDER::MINUS:
+            os<<"minus";
+            break;
+        default:
+            os<<"undefined";
+            break;
+    }
+    return os;
+}
+
 std::ostream& operator<<(std::ostream& os, const VecD& vec) {
     os<<"[";
     for (auto val:vec) {
@@ -238,4 +270,5 @@ std::ostream& operator<<(std::ostream& os, const VecI& vec) {
     os<<" ]";
     return os;
 }
+
 

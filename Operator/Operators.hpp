@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+
 #include "Operator/OperatorsBase.hpp"
 #include "Utils/utils.hpp"
 #include "Pulse/pulse.hpp"
@@ -57,56 +58,63 @@ private:
 };
 
 
-class Current: public FermionOperator<cdouble>, public SparseMatrix<cdouble>{
-    int linkCount;
-    int spmCount;
-    std::vector<Link<cdouble>> Links;
-    Geometry *pt_lattice;
-    std::string plz;
+class Current: public OperatorBase<cdouble> {
 public:
-    Current(Geometry *pt_lat, Basis *pt_Ba, std::string plzIn, int spmNum_=1):FermionOperator<cdouble>(pt_Ba),SparseMatrix<cdouble>(pt_Ba, pt_Ba, pt_Ba->getSubDim(),spmNum_), pt_lattice(pt_lat),linkCount(0),spmCount(0),plz(plzIn){}
+    Current(Geometry *latt, Basis *Ba);
     ~Current(){};
-    Current& pushLink(Link<cdouble> link, int matID){
-        // int idx = 0; if(plz=="x") idx = 0; else if(plz=="y") idx = 1; else if(plz=="z") idx=2; else exit(1);
-        // auto linkVec = link.getvec(0);
-        // double sign = 1.0; if(linkVec.at(idx)>0.) sign = -1.0; else if(linkVec.at(idx)==0.) sign = 0.0;
-        Links.push_back(link); Links[linkCount].setid(linkCount,matID); Links[linkCount].genLinkMaps(pt_lattice); //Links[linkCount].setVal(link.getVal()*sign);
-        linkCount++;
-        return *this;
-    }
-    Current& pushLinks(std::vector<Link<cdouble>> Links_){
-        for (int i = 0; i < Links_.size(); ++i) pushLink(Links_[i], 0);
-        spmCount++;
-        assert(spmCount<=SparseMatrix<cdouble>::spmNum);
-        return *this;
-    }
+
+    void setDirection(std::string plz);
     void row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps);
+
+private:
+    void setDirection(VecD d);
+
+    VecD direction;
+    std::vector<Link<cdouble>> myHoppingT;
+    std::string plz;
 };
 
-class Nocc: public SparseMatrix<double>{
+class Nocc: public OperatorBase<double> {
 public:
-    Nocc(Geometry *pt_lat, Basis *pt_Ba);
+    Nocc(Geometry *latt, Basis *Ba);
     ~Nocc(){}
     
     template <typename T>
     friend void save(T *d_pt, int size, std::string filename, bool is_app);
-
     template <typename T>
     friend void save(T *d_pt, idx_t size, std::string filename, bool is_app);
 
-    void row(idx_t rowID, std::vector<MAP<double>>& rowMaps){};
+    void row(idx_t rowID, std::vector<MAP<double>>& rowMaps) { };
     inline void row(idx_t rowID);
-    void genMat();
+    void construct( );
+
     double count(ORBITAL orbital, dataType* vec);
     double count(int orbid, dataType* vec);
     void count(dataType* vec);
+
     void clear( );
     void save(std::string dir);
 
 private:
-    Geometry* pt_lattice;
-    Basis* pt_Basis;
     std::vector<std::vector<double>> records;
+};
+
+template <class T>
+class CkOp: public OperatorBase<T> {
+public:
+    CkOp(Geometry *latt, Basis *Bi, Basis *Bf);
+    ~CkOp( ) { }
+
+    void set(LADDER pm, SPIN spin, Orbital orb);
+    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
+
+private:
+    LADDER pm;
+    SPIN spin;
+    Orbital orb;
+    int Ki, Kf;
+    std::vector<cdouble> expFactor;
+    VecI posList;
 };
 
 template<class T>
@@ -148,37 +156,6 @@ public:
 
     void setplz(VecD pIn_, VecD pOut_);
     void setVal(int matID, double val){(SparseMatrix<T>::parameters).at(matID) = val;}
-    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
-};
-
-template <class T>
-class CkOp: public FermionOperator<T>, public SparseMatrix<T>{
-private:
-    std::string pm_option;
-    SPIN spin;
-    ORBITAL orb;
-    Geometry *pt_lattice;
-    Basis *pt_Bi, *pt_Bf;
-    int Ki,Kf;
-    std::vector<cdouble>expFactor;
-    VecI posList;
-public:
-    CkOp(std::string pm_option_, SPIN spin_, ORBITAL orb_, Geometry *pt_lat, Basis *pt_Bi_, Basis *pt_Bf_, int spmNum_=1):pm_option(pm_option_),spin(spin_),orb(orb_),pt_Bi(pt_Bi_),pt_Bf(pt_Bf_), pt_lattice(pt_lat),expFactor(pt_lattice->getSiteNum()),\
-        FermionOperator<T>(pt_Bi_),SparseMatrix<T>(pt_Bi_,pt_Bf_,pt_Bf_->getSubDim(),spmNum_){
-            assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
-            Ki = pt_Bi->getkIndex();
-            Kf = pt_Bf->getkIndex();
-            // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
-            int N = pt_lattice->getSiteNum();
-            for (int i = 0; i < N; ++i) {
-                expFactor[i] = pt_lattice->expKR(Ki,i)/pt_lattice->expKR(Kf,i)/std::sqrt(N);
-                // expFactor[i] = pt_lattice->expKR(kidx,i)/std::sqrt(N); 
-            }
-            auto Norb = pt_lattice->getOrbNum();
-            for(int i = 0; i < Norb; ++i)if(pt_lattice->is_Orbital(i,orb))posList.push_back(i);
-            assert(posList.size()==pt_lattice->getSiteNum());
-        }
-    ~CkOp(){}
     void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
 };
 
@@ -373,7 +350,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         // diagonal part. occupancy and double-occ
         VecI occ, docc;
         idx_t repI = this->Bf->getRepI(rowID);
-        pairIndex pairRepI = this->Bf->getPairRepI(repI);
+        pairIdx_t pairRepI = this->Bf->getPairRepI(repI);
         this->latt->orbOCC(pairRepI, occ, docc);
         T val = diagVal(occ,docc);
         for (const auto& link : this->interBandU){
@@ -387,7 +364,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         }
         SparseMatrix<T>::putDiag(val,rowID);
         // off diagonal part
-        std::vector<pairIndex> finalIndList;
+        std::vector<pairIdx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->Bf->genSymm(rowID, finalIndList, factorList);
         int i = 0;
@@ -440,7 +417,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         std::vector<cdouble> factorList;
         this->Bf->genSymm(rowID, finalIndList, factorList);
         for (int i = 0; i < finalIndList.size(); ++i){
-            pairIndex pairRepI = this->Bf->getPairRepI(finalIndList[i]);
+            pairIdx_t pairRepI = this->Bf->getPairRepI(finalIndList[i]);
             bool isfminRep = this->Bf->isfMin(pairRepI.first);
             for (const auto& link:this->hoppingT) {
                 int matID = link.getmatid();
@@ -545,28 +522,60 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         exit(1);
     }
 }
+
+
+template <class T>
+CkOp<T>::CkOp(Geometry *latt, Basis *Bi, Basis *Bf):\
+OperatorBase<T>(latt, Bi, Bf), expFactor(latt->getSiteNum()) {
+    assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
+    Ki = Bi->getkIndex();
+    Kf = Bf->getkIndex();
+    // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
+    int N = latt->getSiteNum();
+    for (int i = 0; i < N; ++i) {
+        expFactor[i] = latt->expKR(Ki,i)/latt->expKR(Kf,i)/std::sqrt(N);
+    }
+}
+
+template <class T>
+void CkOp<T>::set(LADDER pm, SPIN spin, Orbital orb) {
+    this->pm = pm;
+    this->spin = spin;
+    this->orb = orb;
+    auto nis = this->Bi->getOcc();
+    auto nfs = this->Bf->getOcc();
+    auto ni = (spin == SPIN::UP) ? nis.at(0) : nis.at(1);
+    auto nf = (spin == SPIN::UP) ? nfs.at(0) : nfs.at(1);
+    auto dn = (pm == LADDER::PLUS) ? 1 : -1;
+    assert_msg(ni + dn == nf, "CkOp init and final hilbert space particle numbers mismatch!");
+    auto Norb = this->latt->getOrbNum();
+    posList.clear();
+    for (int i = 0; i < Norb; ++i) {
+        if (this->latt->is_Orbital(i, orb.orb, orb.orbid)) posList.push_back(i);
+    }
+    assert(posList.size() == this->latt->getSiteNum());
+}
+
 template <class T>
 void CkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     #ifdef DISTRIBUTED_BASIS
-        
+ 
     #else
-    std::vector<idx_t> finalIndList;
+    std::vector<pairIdx_t> finalIndList;
     std::vector<cdouble> factorList;
-    pt_Bf->genSymm(rowID, finalIndList, factorList);
-    if(pm_option=="minus"){
+    this->Bf->genSymm(rowID, finalIndList, factorList);
+    if (pm == LADDER::MINUS) {
         for (int i = 0; i < finalIndList.size(); ++i){
             for (int r = 0; r < posList.size(); ++r){
                 cdouble factor = factorList.at(i) * expFactor.at(r);
-                pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
-                this->cp(spin, posList[r], factor, pairRepI, &rowMaps[0]);
+                this->cp(spin, posList[r], factor, finalIndList[i], &rowMaps[0]);
             }
         }
-    } else if(pm_option=="plus"){
+    } else if (pm == LADDER::PLUS) {
         for (int i = 0; i < finalIndList.size(); ++i){
             for (int r = 0; r < posList.size(); ++r){
                 cdouble factor = factorList.at(i) * expFactor.at(r);
-                pairIndex pairRepI = pt_Bf->getPairRepI(finalIndList[i]);
-                this->cm(spin, posList[r], factor, pairRepI, &rowMaps[0]);
+                this->cm(spin, posList[r], factor, finalIndList[i], &rowMaps[0]);
             }
         } 
     }

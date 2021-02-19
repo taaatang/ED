@@ -181,9 +181,9 @@ int main(int argc, const char * argv[]) {
         */
         // int ki = kIndex;
         // std::string pm_option="plus";
-        // SPIN spin; if(spin_label=="up")spin = SPIN_UP;else spin = SPIN_DOWN;
+        // SPIN spin; if(spin_label=="up")spin = UP;else spin = DOWN;
         // ORBITAL orb; if(orb_label=="Dx2y2")orb=Dx2y2; else if(orb_label=="Px")orb=Px; else if(orb_label=="Py")orb=Py;else if(orb_label=="Pzu")orb=Pzu; else if(orb_label=="Pzd")orb=Pzd;else exit(1);
-        // VecI occListf; if(spin==SPIN_UP)occListf = VecI{Nu-1,Nd}; else occListf = VecI{Nu,Nd-1};
+        // VecI occListf; if(spin==UP)occListf = VecI{Nu-1,Nd}; else occListf = VecI{Nu,Nd-1};
         // for(int kf=0; kf<N; ++kf){
         //     timer.tik();
         //     Basis Bf(LATTICE_MODEL::HUBBARD, &Lattice, occListf, kf, PGRepIndex);

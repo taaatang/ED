@@ -118,6 +118,7 @@ public:
     VecI getOrbID(ORBITAL orb) const {VecI ids; for(auto it = unitSite.begin(); it != unitSite.end(); it++) if (orb==(*it).orb) ids.push_back((*it).orbid); return ids;}
     // test if the orbital at position id is orb_test
     bool is_Orbital(int id, ORBITAL orb_test) const {return orbs.at(id).orb==orb_test;}
+    bool is_Orbital(int id, ORBITAL orb_test, int orbid) const { return orbs.at(id).orb == orb_test and orbs.at(id).orbid == orbid;}
     // return the orbital at position id
     ORBITAL getOrb(int id) const {return orbs.at(id).orb;}
     // return the siteid unitcell coord
@@ -170,8 +171,8 @@ public:
     };
     // binary rep
     void orbOCC(idx_t repI, VecI& occ) const {occ = VecI(getUnitOrbNum(),0); for(int i = 0; i < getOrbNum(); ++i) if(bitTest(repI,i)) occ.at(orbs.at(i).id) += 1;};
-    void orbOCC(pairIndex pairRepI, VecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); ++i){if(bitTest(pairRepI.first,i))occ.at(orbs.at(i).orbid) += 1;if(bitTest(pairRepI.second,i))occ.at(orbs.at(i).orbid) += 1;}}
-    void orbOCC(pairIndex pairRepI, VecI& occ, VecI& docc) const {
+    void orbOCC(pairIdx_t pairRepI, VecI& occ) const {occ = VecI(getUnitOrbNum(),0);for(int i = 0; i < getOrbNum(); ++i){if(bitTest(pairRepI.first,i))occ.at(orbs.at(i).orbid) += 1;if(bitTest(pairRepI.second,i))occ.at(orbs.at(i).orbid) += 1;}}
+    void orbOCC(pairIdx_t pairRepI, VecI& occ, VecI& docc) const {
         occ = VecI(getUnitOrbNum(),0); docc = VecI(getUnitOrbNum(),0);
         for(int i = 0; i < getOrbNum(); ++i) {
             if(bitTest(pairRepI.first,i)) {

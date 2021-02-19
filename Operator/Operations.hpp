@@ -23,16 +23,16 @@ public:
     FermionOperator(Basis* pt_Ba);
     ~FermionOperator( ) { };
     // c^dagger/c with spin act on siteI of pairRepI 
-    bool cp(SPIN spin, int siteI, pairIndex& pairRepI, int &sign);
-    bool cm(SPIN spin, int siteI,  pairIndex& pairRepI, int &sign);
+    bool cp(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign);
+    bool cm(SPIN spin, int siteI,  pairIdx_t& pairRepI, int &sign);
      // hopping deals with sign count difference for hubbard and tJ
-    bool cpcm(SPIN spin, int siteI, int siteJ, pairIndex& pairRepI, int& sign);
+    bool cpcm(SPIN spin, int siteI, int siteJ, pairIdx_t& pairRepI, int& sign);
 
     // used for single particle spectra 
-    void cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap);
-    void cm(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap);
+    void cp(SPIN spin, int siteI, T factor, pairIdx_t pairRepI, MAP<T>* rowMap);
+    void cm(SPIN spin, int siteI, T factor, pairIdx_t pairRepI, MAP<T>* rowMap);
     // hopping term
-    void cpcm(SPIN spin, int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap);
+    void cpcm(SPIN spin, int siteI, int siteJ, T factor, pairIdx_t pairRepI, MAP<T>* rowMap);
    
     void diag(idx_t rowID, T factor, MAP<T>* rowMap);
 
@@ -45,11 +45,11 @@ public:
      * U = U' + 2J
      * J = J'
      */
-    void interaction(int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap);
-    void exchange(int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap);
-    void pairHopping(int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap);
+    void interaction(int siteI, int siteJ, T factor, pairIdx_t pairRepI, MAP<T>* rowMap);
+    void exchange(int siteI, int siteJ, T factor, pairIdx_t pairRepI, MAP<T>* rowMap);
+    void pairHopping(int siteI, int siteJ, T factor, pairIdx_t pairRepI, MAP<T>* rowMap);
 
-    void push(pairIndex pairRepIf, T val, MAP<T>* rowMap);
+    void push(pairIdx_t pairRepIf, T val, MAP<T>* rowMap);
     
 protected:
     Basis* pt_Basis{nullptr};
@@ -126,7 +126,7 @@ FermionOperator<T>::FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->
 }
 
 template <typename T>
-bool FermionOperator<T>::cp(SPIN spin, int siteI, pairIndex& pairRepI, int &sign){
+bool FermionOperator<T>::cp(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign){
     switch(fmodel){
         case LATTICE_MODEL::HUBBARD: {
             if (spin == SPIN::UP) {
@@ -200,7 +200,7 @@ bool FermionOperator<T>::cp(SPIN spin, int siteI, pairIndex& pairRepI, int &sign
 }
 
 template <typename T>
-bool FermionOperator<T>::cm(SPIN spin, int siteI, pairIndex& pairRepI, int &sign){
+bool FermionOperator<T>::cm(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign){
     switch (fmodel) {
         case LATTICE_MODEL::HUBBARD: {
             if (spin == SPIN::UP) {
@@ -271,7 +271,7 @@ bool FermionOperator<T>::cm(SPIN spin, int siteI, pairIndex& pairRepI, int &sign
 }
 
 template <typename T>
-bool FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, pairIndex& pairRepI, int& sign){
+bool FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, pairIdx_t& pairRepI, int& sign){
     idx_t& repI = (spin == SPIN::UP) ? pairRepI.first : pairRepI.second;
     if (siteI==siteJ){
         if (bitTest(repI, siteJ)){
@@ -336,7 +336,7 @@ bool FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, pairIndex& pairRe
 }
 
 template <typename T>
-void FermionOperator<T>::cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap) {
+void FermionOperator<T>::cp(SPIN spin, int siteI, T factor, pairIdx_t pairRepI, MAP<T>* rowMap) {
     int sign = 1;
     idx_t colidx;
     if (cp(spin, siteI, pairRepI, sign)) {
@@ -349,8 +349,8 @@ void FermionOperator<T>::cp(SPIN spin, int siteI, T factor, pairIndex pairRepI, 
 }
 
 template <typename T>
-void FermionOperator<T>::cm(SPIN spin, int siteI, T factor, pairIndex pairRepI, MAP<T>* rowMap){
-    int sign;
+void FermionOperator<T>::cm(SPIN spin, int siteI, T factor, pairIdx_t pairRepI, MAP<T>* rowMap){
+    int sign = 1;
     idx_t colidx;
     if (cm(spin, siteI, pairRepI, sign)) {
         if (pt_Basis->search(pairRepI, colidx)) {
@@ -362,7 +362,7 @@ void FermionOperator<T>::cm(SPIN spin, int siteI, T factor, pairIndex pairRepI, 
 }
 
 template <typename T>
-void FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap){
+void FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, T factor, pairIdx_t pairRepI, MAP<T>* rowMap){
     int sign;
     idx_t colidx;
     if (cpcm(spin, siteI, siteJ, pairRepI, sign)) {
@@ -381,7 +381,7 @@ void FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, T factor, pairInd
  * @param rowMap 
  */
 template <typename T>
-void FermionOperator<T>::exchange(int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap){
+void FermionOperator<T>::exchange(int siteI, int siteJ, T factor, pairIdx_t pairRepI, MAP<T>* rowMap){
     if (siteI == siteJ) return;
     idx_t colidx;
     std::vector<SPIN> spins{SPIN::UP,SPIN::DOWN};
@@ -414,7 +414,7 @@ void FermionOperator<T>::exchange(int siteI, int siteJ, T factor, pairIndex pair
  * @param rowMap 
  */
 template <typename T>
-void FermionOperator<T>::pairHopping(int siteI, int siteJ, T factor, pairIndex pairRepI, MAP<T>* rowMap){
+void FermionOperator<T>::pairHopping(int siteI, int siteJ, T factor, pairIdx_t pairRepI, MAP<T>* rowMap){
     if (siteI == siteJ) return;
     idx_t colidx;
     auto pairRepIf = pairRepI;
@@ -443,7 +443,7 @@ void FermionOperator<T>::pairHopping(int siteI, int siteJ, T factor, pairIndex p
 }
 
 template <typename T>
-void FermionOperator<T>::push(pairIndex pairRepIf, T val, MAP<T>* rowMap) {
+void FermionOperator<T>::push(pairIdx_t pairRepIf, T val, MAP<T>* rowMap) {
     #ifdef DISTRIBUTED_BASIS
     if(pt_Basis->isfMin(pairRepIf.first)) MapPush(rowMap,pt_Basis->getRepI(pairRepIf),val);
     #else
@@ -601,7 +601,7 @@ double SpinOperator<T>::getSz(int siteI, idx_t repI) const {
             break;
         }
         case LATTICE_MODEL::tJ:{
-            pairIndex pairRepI=pt_Basis->getPairRepI(repI);
+            pairIdx_t pairRepI=pt_Basis->getPairRepI(repI);
             if(bitTest(pairRepI.first,siteI)){
                 return szMat.at(0);
             }else if(bitTest(pairRepI.second,siteI)){
@@ -638,7 +638,7 @@ template<typename T>
 void SpinOperator<T>::szsznn(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap){
     // for tJ model, szi*szj -1/4*ni*nj
     assert_msg(smodel==LATTICE_MODEL::tJ,"SpinOperator::szsznn only defined for tJ model");
-    pairIndex pairRepI = pt_Basis->getPairRepI(repI);
+    pairIdx_t pairRepI = pt_Basis->getPairRepI(repI);
     if((bitTest(pairRepI.first,siteI) && bitTest(pairRepI.second,siteJ)) || (bitTest(pairRepI.first,siteJ) && bitTest(pairRepI.second,siteI))){
         #ifdef DISTRIBUTED_BASIS
             T dval = -0.5*factor;
@@ -664,7 +664,7 @@ void SpinOperator<T>::spsm(int siteI, T factor, idx_t repI, MAP<T>* rowMap){
             break;
         }
         case LATTICE_MODEL::tJ:{
-            pairIndex pairRepI = pt_Basis->getPairRepI(repI);
+            pairIdx_t pairRepI = pt_Basis->getPairRepI(repI);
             condition = bitTest(pairRepI.first,siteI);
             break;
         }
@@ -698,7 +698,7 @@ void SpinOperator<T>::smsp(int siteI, T factor, idx_t repI, MAP<T>* rowMap){
             break;
         }
         case LATTICE_MODEL::tJ:{
-            pairIndex pairRepI = pt_Basis->getPairRepI(repI);
+            pairIdx_t pairRepI = pt_Basis->getPairRepI(repI);
             condition = bitTest(pairRepI.second,siteI);
             break;
         }
@@ -750,7 +750,7 @@ void SpinOperator<T>::spsm(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* r
             break;
         }
         case LATTICE_MODEL::tJ:{
-            pairIndex pairRepI = pt_Basis->getPairRepI(repI);
+            pairIdx_t pairRepI = pt_Basis->getPairRepI(repI);
             if (bitTest(pairRepI.first,siteJ) && bitTest(pairRepI.second,siteI)){
                 bitFlip(pairRepI.first,siteI);
                 bitFlip(pairRepI.first,siteJ);

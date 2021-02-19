@@ -44,17 +44,18 @@ public:
     Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI occList, int kInd=-1, int PGRepInd = -1, int siteD=2);
     ~Basis(){};
 
-    LATTICE_MODEL getModel() const {return model;}
-    int getkIndex() const {return kIndex;}
-    int getPGIndex() const {return PGRepIndex;}
+    LATTICE_MODEL getModel( ) const { return model; }
+    int getkIndex( ) const { return kIndex; }
+    int getPGIndex( ) const { return PGRepIndex; }
+    VecI getOcc( ) const { return Nocc; }
 
     // Rep integer access
     // rowidx->repI
     idx_t getRepI(idx_t idx) const {if(kIndex==-1 and model==LATTICE_MODEL::HUBBARD)return idx; return indexList.at(idx);}
     // repI->pairRepI
-    pairIndex getPairRepI(idx_t repI) const {assert_msg(model!=LATTICE_MODEL::HEISENBERG,"PairRepI not defined for Heisenberg Model!");return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));}
+    pairIdx_t getPairRepI(idx_t repI) const {assert_msg(model!=LATTICE_MODEL::HEISENBERG,"PairRepI not defined for Heisenberg Model!");return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));}
     // pairRepI->repI
-    idx_t getRepI(pairIndex pairRepI) const {return fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);}
+    idx_t getRepI(pairIdx_t pairRepI) const {return fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);}
     
     idx_t getmul(int orbid) const {return mul.at(orbid);}
 
@@ -90,11 +91,11 @@ public:
     
     // vec to Basis index
     idx_t vecToRep(VecI& v) const;
-    pairIndex vecToRep(VecI& v, VecI& vp) const;
+    pairIdx_t vecToRep(VecI& v, VecI& vp) const;
     
     // Basis index to Basis vec
     void repToVec(idx_t index, VecI& v) const;
-    void repToVec(pairIndex pairInd, VecI& v, VecI& vp) const;
+    void repToVec(pairIdx_t pairInd, VecI& v, VecI& vp) const;
     void repToVec(idx_t index, VecI& v, VecI& vp) const;
 
     // for distributed basis. get the workerID where repI is possiblely stored
@@ -105,11 +106,11 @@ public:
     //search full hilbert space
     idx_t search(idx_t repI, const std::vector<idx_t> &indList) const;
     idx_t search(idx_t repI) const;
-    idx_t search(pairIndex pairRepI) const;
+    idx_t search(pairIdx_t pairRepI) const;
     //search current symm sector subspace
     bool search(idx_t repI, idx_t &idx, const std::vector<idx_t> &indList) const;
     bool search(idx_t repI, idx_t &idx) const;
-    bool search(pairIndex pairRepI, idx_t &idx) const;
+    bool search(pairIdx_t pairRepI, idx_t &idx) const;
 
     /*
         ************
@@ -120,7 +121,7 @@ public:
     // finalInd contains all resulting basis indexes.
     void genSymm(idx_t rowID, std::vector<idx_t>& repIs) const;
     void genSymm(idx_t rowID, std::vector<idx_t>& repIs, std::vector<cdouble>& factorList) const;
-    void genSymm(idx_t rowID, std::vector<pairIndex>& pairRepIs, std::vector<cdouble>& factorList) const;
+    void genSymm(idx_t rowID, std::vector<pairIdx_t>& pairRepIs, std::vector<cdouble>& factorList) const;
     
     // judge if repI is min repI. append symm operations tp symmList if symm(repI)==repI. not guanranteed to be MinRep since its norm might = 0
     bool isMin(idx_t repI, VecI& symmList);
@@ -140,12 +141,9 @@ public:
     void saveBasis(std::string basisfile, std::string normfile, bool is_app=false);
 
 private:
-    /*
-     Instantiate an object managing the Basis set
-    */
-    Geometry *pt_lattice;
-    // option: 0->Hubbard, 1->t-J, 2->Heisenberg
     LATTICE_MODEL model;
+    Geometry *pt_lattice;
+  
 
     int kIndex; // default initial value kIndex=-1 ==> full hilbertspace
     int PGRepIndex; // default -1 -> do not use point group symm

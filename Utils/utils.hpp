@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <random>
 #include <iostream>
+#include <type_traits>
 
 #ifdef CPP_17
 #include <filesystem>
@@ -62,6 +63,8 @@ std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model);
 std::ostream& operator<<(std::ostream& os, ORBITAL orb);
 std::ostream& operator<<(std::ostream& os, LINK_TYPE linkt);
 std::ostream& operator<<(std::ostream& os, PointGroup p);
+std::ostream& operator<<(std::ostream& os, SPIN s);
+std::ostream& operator<<(std::ostream& os, LADDER t);
 
 std::ostream& operator<<(std::ostream& os, const VecD& vec);
 std::ostream& operator<<(std::ostream& os, const VecI& vec);
@@ -199,7 +202,7 @@ inline double vdotv(VecD v1, VecD v2){
     assert_msg(v1.size()==v2.size(),"utils::vdotv, v1.size() != v2.size().");
     double result = 0.0;
     #pragma omp parallel for reduction(+:result)
-    for(int i = 0; i < v1.size(); ++i){
+    for(size_t i = 0; i < v1.size(); ++i){
         result += v1[i]*v2[i];
     }
     return result;
@@ -503,10 +506,21 @@ inline UnsignedType nextLexicographicalNumber(UnsignedType x) {
 template <typename T>
 inline void MapPush(MAP<T>* map_pt, idx_t key, T val){
     auto it = map_pt->find(key);
-    if (it == map_pt->end()){
-        (*map_pt)[key] = std::conj(val);
-    }else{
-        it->second += std::conj(val);
+    if constexpr (std::is_same<cdouble, T>::value) {
+        if (it == map_pt->end()) {
+            (*map_pt)[key] = std::conj(val);
+        } else {
+            it->second += std::conj(val);
+        }
+    } else if constexpr (std::is_same<double, T>::value) {
+        if (it == map_pt->end()) {
+            (*map_pt)[key] = val;
+        } else {
+            it->second += val;
+        }
+    } else {
+        std::cout<<"MapPush only defined for double/cdouble!\n";
+        exit(1);
     }
 }
 

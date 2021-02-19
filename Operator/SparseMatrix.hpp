@@ -8,14 +8,16 @@
 #ifndef SparseMatrix_hpp
 #define SparseMatrix_hpp
 
+#include <type_traits>
+#include <climits>
+#include "mpi.h"
+#include <omp.h>
+
 #include "Global/globalPara.hpp"
 #include "Basis/Basis.hpp"
 #include "Algebra/algebra.hpp"
 #include "Utils/utils.hpp"
 #include "Utils/timer.hpp"
-#include <climits>
-#include "mpi.h"
-#include <omp.h>
 
 template <class T>
 class BaseMatrix{
@@ -115,13 +117,13 @@ public:
     void setMpiBuff(idx_t idx_val);
 
     // construct sparse matrix in parallel. each thread create #rowPerThread.
-    void construct(int rowCount=50, int rowPerIt=1000);
+    virtual void construct(int rowCount=50, int rowPerIt=1000);
 
 #else // DISTRIBUTED_BASIS
 
     void pushRow(std::unordered_map<idx_t,T>* rowMap, int matID=0);
 
-    void construct(int rowPerThread=1);
+    virtual void construct(int rowPerThread=1);
 
 #endif // DISTRIBUTED_BASIS
 
@@ -349,7 +351,14 @@ void SparseMatrix<T>::setDmNum(int num) {
         rowInitList[matID].push_back(counter[matID]);
         for (auto it = rowMap->begin(); it != rowMap->end(); it++){
             colList[matID].push_back(it->first);
-            valList[matID].push_back(std::conj(it->second));
+            if constexpr (std::is_same<cdouble, T>::value) {
+                valList[matID].push_back(std::conj(it->second));
+            } else if constexpr (std::is_same<double, T>::value) {
+                valList[matID].push_back(it->second); 
+            } else {
+                std::cout<<"Sparse matrix only defined for couble/cdouble! \n";
+                exit(1);
+            }
         }
     }
 
@@ -570,7 +579,14 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
                             colList[j].at(startList[threadID][j]+count_tmp[j]) = it->first;
                             switch(PARTITION){
                                 case ROW_PARTITION:{
-                                    valList[j].at(startList[threadID][j]+count_tmp[j]) = std::conj(it->second);
+                                    if constexpr (std::is_same<cdouble, T>::value) {
+                                        valList[j].at(startList[threadID][j]+count_tmp[j]) = std::conj(it->second);
+                                    } else if constexpr (std::is_same<double, T>::value) {
+                                        valList[j].at(startList[threadID][j]+count_tmp[j]) = it->second;
+                                    } else {
+                                        std::cout<<"Sparse matrix only defined for double/cdouble !\n";
+                                        exit(1);
+                                    }
                                     break;
                                 }
                                 case COL_PARTITION:{

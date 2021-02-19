@@ -25,7 +25,7 @@ public:
     virtual ~OperatorBase( ) { }
     
     OperatorBase& pushLink(Link<T> link, int matidx);
-    OperatorBase& pushLinks(std::vector<T> links);
+    OperatorBase& pushLinks(std::vector<Link<T>> links);
     void printLinks() const;
     // Add onsite energy V
     virtual void pushV(std::vector<ORBITAL> orbList, double val) { }
@@ -41,7 +41,6 @@ public:
 
     virtual void row(idx_t rowID, std::vector<MAP<T>>& rowMaps) = 0;
 protected:
-    Basis *Bi{nullptr}, *Bf{nullptr};
     Geometry *latt{nullptr};
     LATTICE_MODEL model{LATTICE_MODEL::HUBBARD};
     int linkCount{0};
@@ -54,11 +53,9 @@ protected:
 template<typename T>
 OperatorBase<T>::OperatorBase (Geometry *latt, Basis *Bi, Basis *Bf, int spmNum_, int dmNum_) :\
  FermionOperator<T>(Bi), SpinOperator<T>(Bi), SparseMatrix<T>(Bi, Bf, Bf->getSubDim(), spmNum_, dmNum_){
-    this->Bi = Bi;
-    this->Bf = Bf;
     this->latt = latt;
-    this->model = Bi->getModel();
-    assert(Bi->getModel() == Bf->getModel());
+    this->model = this->Bi->getModel();
+    assert(this->Bi->getModel() == this->Bf->getModel());
 }
 
 template<typename T>
@@ -101,7 +98,7 @@ OperatorBase<T>& OperatorBase<T>::pushLink(Link<T> link, int matID){
 }
 
 template<typename T>
-OperatorBase<T>& OperatorBase<T>::pushLinks(std::vector<T> links){
+OperatorBase<T>& OperatorBase<T>::pushLinks(std::vector<Link<T>> links){
     assert(spmCount<SparseMatrix<T>::spmNum);
     for (auto& link : links) pushLink(link, spmCount);
     if (links.at(0).isOrdered()) spmCount += 2;
