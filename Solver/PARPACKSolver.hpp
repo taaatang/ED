@@ -10,11 +10,11 @@
 #define PARPACKSolver_hpp
 
 #include "parpack.hpp"
-#include "../Global/globalPara.hpp"
-#include "../Utils/utils.hpp"
-#include "../Utils/timer.hpp"
-#include "../Operator/SparseMatrix.hpp"
-#include "../Operator/Operators.hpp"
+#include "Global/globalPara.hpp"
+#include "Utils/utils.hpp"
+#include "Utils/timer.hpp"
+#include "Operator/SparseMatrix.hpp"
+#include "Operator/Operators.hpp"
 
 #include <assert.h>
 #include <array>
@@ -243,6 +243,10 @@ void PARPACKRealSolver<T>::setRvec(a_int rvec){
 */
 template <class T>
 PARPACKComplexSolver<T>::PARPACKComplexSolver(BaseMatrix<std::complex<T>> *H, a_int nev){
+    if (H->getDim() <= 0) {
+        std::cout<<"Empty Matrix for PARPACK Solver!\n";
+        exit(1);
+    }
     MCW = MPI_Comm_c2f(MPI_COMM_WORLD);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank_);
     info_ = 0; //Input:use random initial vector. Output:0-normal exit,1-maximum iteration taken
@@ -254,6 +258,8 @@ PARPACKComplexSolver<T>::PARPACKComplexSolver(BaseMatrix<std::complex<T>> *H, a_
     nloc_ = M_->getnloc(); // actual local vector size
     nev_ = nev; // number of eigenvalues to be computed
     ncv_ = (2 * nev_ + 1) > PARPACK_MINNCV?(2 * nev_ + 1):PARPACK_MINNCV; // number of Lanczos vectors generated at each iteration. number of colunm of V
+    assert_msg(nev_ > 0, "nev_ <= 0");
+    assert_msg(ncv_ > 0, "ncv_ <= 0");
     if (ncv_ > M_->getDim()) ncv_ = M_->getDim()-1;
     ldz_ = nlocmax_ + 1;
     lworkl_ = ncv_ * (3 * ncv_ + 5); // dimension of the work array workl
