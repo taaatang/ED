@@ -286,6 +286,12 @@ inline void MPI_Allreduce(long long *part, long long *sum, int count){
 inline void MPI_Allreduce(unsigned long long *part, unsigned long long *sum, int count){
     MPI_Allreduce(part, sum, count, MPI_UNSIGNED_LONG_LONG, MPI_SUM, MPI_COMM_WORLD);
 }
+inline void MPI_Allreduce(double *part, double *sum, int count){
+    MPI_Allreduce(part, sum, count, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+} 
+inline void MPI_Allreduce(cdouble *part, cdouble *sum, int count){
+    MPI_Allreduce(part, sum, count, MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
+} 
 
 /* MPI all to all */
 inline void MPI_Alltoall(long long *sendBuff, long long *recBuff,int count){
