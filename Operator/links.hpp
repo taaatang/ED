@@ -84,8 +84,7 @@ std::vector<Link<dataType>> HubbardLink( );
  * LINK *
  ********/
 template <class T>
-Link<T>::Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, bool is_Const_ , bool is_Ordered_ ):\
-timeStep(0), is_timeFunc_set(false) {
+Link<T>::Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, bool is_Const_ , bool is_Ordered_) {
     link_type = link_type_;
     orbList = orbList_;
     val = val_;
@@ -94,8 +93,7 @@ timeStep(0), is_timeFunc_set(false) {
 }
 
 template <class T>
-Link<T>::Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, const std::vector<VecD>& vecs, bool is_Const_ , bool is_Ordered_ ):\
-timeStep(0), is_timeFunc_set(false) {
+Link<T>::Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, const std::vector<VecD>& vecs, bool is_Const_ , bool is_Ordered_ ) {
     link_type = link_type_;
     orbList = orbList_;
     val = val_;

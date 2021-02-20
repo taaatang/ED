@@ -327,7 +327,7 @@ void Geometry::construct(){
     Norb = Nsite * unitSite.size()+boundary.size();
     Norb_enlg = is_PBC?Norb*TranVecs.size():Norb;
     assert(Nsite>0 and Norb>0 and Norb_enlg>=Norb);
-    assert(xlist.size()==getSiteNum() and ylist.size()==getSiteNum() and zlist.size()==getSiteNum());
+    assert((int)xlist.size() == getSiteNum() and (int)ylist.size() == getSiteNum() and (int)zlist.size( )== getSiteNum());
     VecD vsite(3,0.0);
     VecD vorb(3,0.0);
     int id = 0;
@@ -335,7 +335,7 @@ void Geometry::construct(){
     for (int siteid = 0; siteid < getSiteNum(); siteid++){
         vecXAdd(xlist.at(siteid), a1.data(), ylist.at(siteid), a2.data(), zlist.at(siteid), a3.data(), vsite.data(), getDim());
         Lattice.push_back(Site{siteid, vsite});
-        for (int i = 0; i < unitSite.size(); ++i){
+        for (int i = 0; i < (int)unitSite.size(); ++i){
             vecXAdd(1.0, vsite.data(), 1.0, unitSite.at(i).coord.data(), vorb.data(), getDim());
             orbs.push_back(Orbital{unitSite.at(i).orb,unitSite.at(i).orbid,vorb});
             orbs.at(id).siteid = siteid;
@@ -350,8 +350,8 @@ void Geometry::construct(){
     }
     // construc enlarged orbs (periodic boundary condition)
     int count = 0;
-    for (int R = 0; R < TranVecs.size(); R++){
-        for (int r = 0; r < orbs.size(); r++){
+    for (int R = 0; R < (int)TranVecs.size(); R++){
+        for (int r = 0; r < (int)orbs.size(); r++){
             vecXAdd(1.0, TranVecs.at(R).data(), 1.0, orbs.at(r).coord.data(), vorb.data(), getDim());
             enlgOrbs.push_back(Orbital{orbs.at(r).orb, orbs.at(r).orbid, vorb});
             enlgOrbs.at(count).id = orbs.at(r).id;
@@ -359,10 +359,10 @@ void Geometry::construct(){
             count++;
         }
     }
-    assert(enlgOrbs.size()==Norb_enlg);
+    assert((int)enlgOrbs.size() == Norb_enlg);
     // construct corresponding k-space lattice
     if(is_PBC){
-        assert(kxlist.size()==getSiteNum() and kylist.size()==getSiteNum() and kzlist.size()==getSiteNum());
+        assert((int)kxlist.size() == getSiteNum() and (int)kylist.size() == getSiteNum() and (int)kzlist.size() == getSiteNum());
         VecD vsite_phase(3,0.0);
         for (int siteid = 0; siteid < getSiteNum(); siteid++){
             vecXAdd(kxlist.at(siteid), b10.data(), kylist.at(siteid), b20.data(), kzlist.at(siteid), b30.data(), vsite.data(), getDim());
@@ -414,9 +414,9 @@ void Geometry::printTrans() const {
 }
 void Geometry::printPG() const {
     std::cout<<"Point Group Transformation List:"<<std::endl;
-    for (int r = 0; r < PGList.size(); r++){
+    for (int r = 0; r < (int)PGList.size(); r++){
         std::cout<<"PG("<<r<<"):"<<std::endl;
-        for (int i = 0; i < PGList[r].size(); ++i){
+        for (int i = 0; i < (int)PGList[r].size(); ++i){
             std::cout<<getOrbPG(r,i)<<" ";
         }
         std::cout<<std::endl;

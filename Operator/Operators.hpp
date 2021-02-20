@@ -159,7 +159,7 @@ public:
     ~SSOp( ) { }
 
     void setr(int r_);
-    
+
     void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
  
     void project(double s, T* vec);
@@ -567,14 +567,14 @@ void CkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
 }
 
 template<class T>
-RamanOp<T>::RamanOp(Geometry* latt, Basis* Bi, int spmNum, ind dmNum):Operatorbase<T>(latt, Bi, Bi, spmNum, dmNum) {
+RamanOp<T>::RamanOp(Geometry* latt, Basis* Bi, int spmNum, int dmNum):OperatorBase<T>(latt, Bi, Bi, spmNum, dmNum) {
     pIn = VecD{1.0,0.0,0.0};
     pOut = VecD{0.0,1.0,0.0};
     NoRW = true;
 }
 
 template <class T>
-void RamanOp<T>::setplz(VecD pIn_, VecD pOut_){
+void RamanOp<T>::setplz(VecD pIn_, VecD pOut_) {
     pIn = pIn_;
     pOut = pOut_;
     RamanWeight.resize(this->superExchangeJ.size());
@@ -583,7 +583,7 @@ void RamanOp<T>::setplz(VecD pIn_, VecD pOut_){
     for(auto& link : this->superExchangeJ){
         RamanWeight[linkid].resize(link.getLinkVecNum());
         for(int vecid=0; vecid < link.getLinkVecNum(); ++vecid){
-            VecD r = Link.getvec(vecid);
+            VecD r = link.getvec(vecid);
             RamanWeight[linkid][vecid] = (this->latt->RdotR(pIn,r))*(this->latt->RdotR(pOut,r))/(this->latt->RdotR(r,r))/norm;
         }
         ++linkid;
@@ -599,7 +599,7 @@ void RamanOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     for (int i = 0; i < (int)finalIndList.size(); ++i) {
         int linkid = 0;
         for (const auto& link : this->superExchangeJ) {
-            int matID = Link.getmatid();
+            int matID = link.getmatid();
             int matIDp = matID; 
             if (link.isOrdered()) ++matIDp;
             T factor = factorList[i] * link.getVal();
@@ -629,7 +629,7 @@ void RamanOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     ********************
 */
 template <class T>
-SSOp<T>::SSOp(Geometry* latt, Basis* Bi, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bi, spmNum, dmNum), \ 
+SSOp<T>::SSOp(Geometry* latt, Basis* Bi, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bi, spmNum, dmNum),\
     r(-1), siteJList(latt->getSiteNum()) {
     VecD coordi(3), coordr(3), coordf(3);
     for (int rIndex = 0; rIndex < latt->getSiteNum(); ++rIndex) {
@@ -647,6 +647,12 @@ SSOp<T>::SSOp(Geometry* latt, Basis* Bi, int spmNum, int dmNum, int spindim):Ope
             }
         }
     }
+}
+
+template <class T>
+void SSOp<T>::setr(int r_) {
+    assert(r_ < this->latt->getSiteNum());
+    r=r_;
 }
 
 template <class T>
@@ -736,19 +742,13 @@ void SSOp<T>::project(double s, T* vec){
 
 template <class T>
 SzkOp<T>::SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bf, spmNum, dmNum), expFactor(latt->getSiteNum()) {
-    assert(pt_Bi->getPGIndex()==-1 and pt_Bf->getPGIndex()==-1);
+    assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
     Ki = Bi->getkIndex();
     Kf = Bf->getkIndex();
     // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
     for (int i = 0; i < latt->getSiteNum(); ++i) {
         expFactor[i] = latt->expKR(Kf,i)/latt->expKR(Ki,i);
     }
-}
-
-template <class T>
-void SzkOp<T>::setr(int r_) {
-    assert(r_ < this->latt->getSiteNum());
-    r=r_;
 }
 
 template <class T>
@@ -767,7 +767,7 @@ void SzkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             auto repI = this->Bf->getRepI(rowID);
             if (this->Bi->search(repI, colID)) {
                 T dval = 0.0;
-                for (int siteID = 0; siteID < latt->getOrbNum(); ++siteID) {
+                for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
                     dval += this->getSz(siteID,repI) * expFactor[siteID];
                 }
                 dval *= this->Bf->getNorm(rowID)/this->Bi->getNorm(colID);
@@ -787,7 +787,7 @@ void SzkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             rowMaps[0][repI] = dval;
         #else
             idx_t colID;
-            auto repI = this->Bf->getRepI(rowID)
+            auto repI = this->Bf->getRepI(rowID);
             if (this->Bi->search(repI, colID)) {
                 VecI initVec(this->latt->getOrbNum());
                 T dval = 0.0;
