@@ -198,17 +198,17 @@ void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt
     // std::cout<<"basis set!\n";
 }
 
-void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, Geometry* latt, Basis* B) {
+void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& H, Geometry* latt, Basis* B) {
     LATTICE_MODEL model = para.getmodel();
     switch (model) {
         case LATTICE_MODEL::HUBBARD:
-            H = std::unique_ptr<OperatorBase<dataType>>(new Hamiltonian<LATTICE_MODEL::HUBBARD,dataType>(latt, B, B, 1, 1));
+            H = std::unique_ptr<HamiltonianBase<dataType>>(new Hamiltonian<LATTICE_MODEL::HUBBARD,dataType>(latt, B, B, 1, 1));
             break;
         case LATTICE_MODEL::tJ:
-            H = std::unique_ptr<OperatorBase<dataType>>(new Hamiltonian<LATTICE_MODEL::tJ,dataType>(latt, B, B, 1, 1));
+            H = std::unique_ptr<HamiltonianBase<dataType>>(new Hamiltonian<LATTICE_MODEL::tJ,dataType>(latt, B, B, 1, 1));
             break;
         case LATTICE_MODEL::HEISENBERG:
-            H = std::unique_ptr<OperatorBase<dataType>>(new Hamiltonian<LATTICE_MODEL::HEISENBERG,dataType>(latt, B, B, 1, 1));
+            H = std::unique_ptr<HamiltonianBase<dataType>>(new Hamiltonian<LATTICE_MODEL::HEISENBERG,dataType>(latt, B, B, 1, 1));
             break;
         default:
             std::cout<<"Input Lattice Model not defined!\n";
@@ -275,7 +275,7 @@ void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, 
     // std::cout<<"hamiltonian set!\n";
 }
 
-void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<OperatorBase<dataType>>& H, int workerID) {
+void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<HamiltonianBase<dataType>>& H, int workerID) {
     setlatt(para, latt);
     setbasis(para, B, latt.get());
     setham(para, H, latt.get(), B.get());

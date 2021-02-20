@@ -27,19 +27,18 @@ public:
     OperatorBase& pushLink(Link<T> link, int matidx);
     OperatorBase& pushLinks(std::vector<Link<T>> links);
     void printLinks() const;
+
     // Add onsite energy V
     virtual void pushV(std::vector<ORBITAL> orbList, double val) { }
 
     // Add onsite Coulomb interaction U
     virtual void pushU(std::vector<ORBITAL> orbList, double val) { }
 
-    virtual void setPeierls(Pulse* pulse = nullptr) { }
-    virtual void printPeierls(std::ostream& os = std::cout) { }
-
     // O(t) --> O(t+dt)
     virtual bool next( ) {return false;}
 
     virtual void row(idx_t rowID, std::vector<MAP<T>>& rowMaps) = 0;
+    
 protected:
     Geometry *latt{nullptr};
     LATTICE_MODEL model{LATTICE_MODEL::HUBBARD};

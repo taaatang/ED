@@ -34,7 +34,7 @@ class Parameters{
     friend void setlatt(const Parameters&, std::unique_ptr<Geometry>&);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int, int, int, int);
-    friend void setham(const Parameters&, std::unique_ptr<OperatorBase<dataType>>&, Geometry*, Basis*);
+    friend void setham(const Parameters&, std::unique_ptr<HamiltonianBase<dataType>>&, Geometry*, Basis*);
     friend void setmeasure(const Parameters&);
     friend void setpulse(const Parameters&, Pulse&);
 public:
@@ -65,8 +65,8 @@ void setpath(Parameters&);
 void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int nuf, int ndf, int kf, int pf);
-void setham(const Parameters&, std::unique_ptr<OperatorBase<dataType>>& H, Geometry*, Basis*);
-void setBasics(const Parameters&, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<OperatorBase<dataType>>& H, int workerID = -1);
+void setham(const Parameters&, std::unique_ptr<HamiltonianBase<dataType>>& H, Geometry*, Basis*);
+void setBasics(const Parameters&, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<HamiltonianBase<dataType>>& H, int workerID = -1);
 
 void setmeasure(const Parameters&);
 void setpulse(const Parameters&, Pulse&);

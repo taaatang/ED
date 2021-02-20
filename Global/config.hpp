@@ -26,7 +26,7 @@ std::unique_ptr<Geometry> latt;
 
 std::unique_ptr<Basis> Bi, Bf;
 
-std::unique_ptr<OperatorBase<dataType>> H, Hf;
+std::unique_ptr<HamiltonianBase<dataType>> H, Hf;
 
 
 

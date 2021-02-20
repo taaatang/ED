@@ -24,12 +24,12 @@
  * HAMILTONIAN *
  ***************/
 
-template <LATTICE_MODEL MODEL, typename T> 
-class Hamiltonian : public OperatorBase<T> {
+template <typename T> 
+class HamiltonianBase : public OperatorBase<T> {
 public:
-    Hamiltonian( ) { }
-    Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_ = 1, int dmNum_ = 0);
-    ~Hamiltonian( ) { }
+    HamiltonianBase( ) { }
+    HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_ = 1, int dmNum_ = 0);
+    ~HamiltonianBase( ) { }
 
     // Add onsite energy V
     void pushV(std::vector<ORBITAL> orbList, double val);
@@ -44,6 +44,24 @@ public:
     // Calculate the sum of onsite energy and Coulomb interaction
     double diagVal(const VecI& occ, const VecI& docc) const;
     
+    virtual void setPeierls(Pulse* pulse = nullptr) { }
+
+    virtual void printPeierls(std::ostream& os = std::cout) { }
+
+    virtual void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps) = 0;
+
+    // PARPACKSolver<T> solver;
+
+private:
+    VecD V, U;
+};
+
+template <LATTICE_MODEL M, typename T>
+class Hamiltonian: public HamiltonianBase<T> {
+public:
+    Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_ = 1, int dmNum_ = 0);
+    ~Hamiltonian( ) { }
+
     void setPeierls(Pulse* pulse = nullptr);
 
     void printPeierls(std::ostream& os = std::cout);
@@ -52,19 +70,17 @@ public:
 
     void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps);
 
-    // PARPACKSolver<T> solver;
-
 private:
-    VecD V, U;
     Pulse* pulse{nullptr};
     VecD PeierlsOverlap;
 };
 
 
+
 class Current: public OperatorBase<cdouble> {
 public:
     Current(Geometry *latt, Basis *Ba);
-    ~Current(){};
+    ~Current( ) { }
 
     void setDirection(std::string plz);
     void row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps);
@@ -211,14 +227,14 @@ public:
     ****************************
 */
 
-template<LATTICE_MODEL MODEL, typename T>
-Hamiltonian<MODEL, T>::Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_, int dmNum_):\
+template<typename T>
+HamiltonianBase<T>::HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_, int dmNum_):\
 OperatorBase<T>(latt, Bi, Bf, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
     // solver = PARPACKSolver<T>(this, 1);
 }
 
-template <LATTICE_MODEL MODEL, typename T>
-void Hamiltonian<MODEL, T>::pushV(std::vector<ORBITAL> orbList, double val) {
+template <typename T>
+void HamiltonianBase<T>::pushV(std::vector<ORBITAL> orbList, double val) {
     for (const auto& orb : orbList) {
         auto ids = this->latt->getOrbID(orb);
         for (auto& id : ids) {
@@ -227,8 +243,8 @@ void Hamiltonian<MODEL, T>::pushV(std::vector<ORBITAL> orbList, double val) {
     }
 }
 
-template <LATTICE_MODEL MODEL, typename T>
-void Hamiltonian<MODEL, T>::pushU(std::vector<ORBITAL> orbList, double val) {
+template <typename T>
+void HamiltonianBase<T>::pushU(std::vector<ORBITAL> orbList, double val) {
     for (const auto& orb : orbList) {
         auto ids = this->latt->getOrbID(orb);
         for (auto& id : ids) {
@@ -237,9 +253,41 @@ void Hamiltonian<MODEL, T>::pushU(std::vector<ORBITAL> orbList, double val) {
     }
 }
 
-template <LATTICE_MODEL MODEL, typename T>
-void Hamiltonian<MODEL, T>::setPeierls(Pulse* pulse) {
-    if constexpr (MODEL == LATTICE_MODEL::HUBBARD or MODEL == LATTICE_MODEL::tJ) {
+template <typename T>
+void HamiltonianBase<T>::printV(std::ostream& os) const {
+    os<<"V: ";
+    for (auto val : V) {
+        os<<val<<", ";
+    }
+    os<<"\n";
+}
+
+template <typename T>
+void HamiltonianBase<T>::printU(std::ostream& os) const {
+    os<<"U: ";
+    for (auto val : U) {
+        os<<val<<", ";
+    }
+    os<<"\n";
+}
+
+template <typename T>
+double HamiltonianBase<T>::diagVal(const VecI& occ, const VecI& docc) const {
+    double val{0.0};
+    for (int i = 0; i < this->latt->getUnitOrbNum(); ++i) {
+        val += occ.at(i) * V.at(i) + docc.at(i) * U.at(i);
+    }
+    return val;
+}
+
+template <LATTICE_MODEL M, typename T>
+Hamiltonian<M, T>::Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum, int dmNum):HamiltonianBase<T>(latt, Bi, Bf, spmNum, dmNum) {
+
+}
+
+template <LATTICE_MODEL M, typename T>
+void Hamiltonian<M, T>::setPeierls(Pulse* pulse) {
+    if constexpr (M == LATTICE_MODEL::HUBBARD or M == LATTICE_MODEL::tJ) {
         this->pulse = pulse;
         if (pulse) {
             auto epol = pulse->getPol();
@@ -272,14 +320,14 @@ void Hamiltonian<MODEL, T>::setPeierls(Pulse* pulse) {
             PeierlsOverlap.insert(PeierlsOverlap.begin(), 0.0);
         }
     } else {
-        std::cout<<"Peierls substitution is not defined for "<<MODEL<<"\n";
+        std::cout<<"Peierls substitution is not defined for "<<M<<"\n";
         return;
     }
 }
 
-template<LATTICE_MODEL MODEL, typename T>
-void Hamiltonian<MODEL, T>::printPeierls(std::ostream& os) {
-    if constexpr (MODEL == LATTICE_MODEL::HUBBARD or MODEL == LATTICE_MODEL::tJ) {
+template<LATTICE_MODEL M, typename T>
+void Hamiltonian<M, T>::printPeierls(std::ostream& os) {
+    if constexpr (M == LATTICE_MODEL::HUBBARD or M == LATTICE_MODEL::tJ) {
         for (int id = 0; id < (int)PeierlsOverlap.size(); ++id) {
             os<<"A*dr = "<<PeierlsOverlap[id]<<"\n";
             auto matid = (id == 0) ? id : 2 * id -1;
@@ -303,9 +351,8 @@ void Hamiltonian<MODEL, T>::printPeierls(std::ostream& os) {
     }
 }
 
-
-template<LATTICE_MODEL MODEL, typename T>
-bool Hamiltonian<MODEL, T>::next( ) {
+template<LATTICE_MODEL M, typename T>
+bool Hamiltonian<M, T>::next( ) {
     if (pulse) {
         auto A = pulse->getAa();
         for (int i = 1; i < (int)PeierlsOverlap.size(); ++i) {
@@ -320,42 +367,15 @@ bool Hamiltonian<MODEL, T>::next( ) {
     }
 }
 
-template <LATTICE_MODEL MODEL, typename T>
-void Hamiltonian<MODEL, T>::printV(std::ostream& os) const {
-    os<<"V: ";
-    for (auto val : V) {
-        os<<val<<", ";
-    }
-    os<<"\n";
-}
-
-template <LATTICE_MODEL MODEL, typename T>
-void Hamiltonian<MODEL, T>::printU(std::ostream& os) const {
-    os<<"U: ";
-    for (auto val : U) {
-        os<<val<<", ";
-    }
-    os<<"\n";
-}
-
-template <LATTICE_MODEL MODEL, typename T>
-double Hamiltonian<MODEL, T>::diagVal(const VecI& occ, const VecI& docc) const {
-    double val{0.0};
-    for (int i = 0; i < this->latt->getUnitOrbNum(); ++i) {
-        val += occ.at(i) * V.at(i) + docc.at(i) * U.at(i);
-    }
-    return val;
-}
-
-template <LATTICE_MODEL MODEL, typename T>
-void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
-    if constexpr (MODEL == LATTICE_MODEL::HUBBARD) {
+template <LATTICE_MODEL M, typename T>
+void Hamiltonian<M, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
+    if constexpr (M == LATTICE_MODEL::HUBBARD) {
         // diagonal part. occupancy and double-occ
         VecI occ, docc;
         idx_t repI = this->Bf->getRepI(rowID);
         pairIdx_t pairRepI = this->Bf->getPairRepI(repI);
         this->latt->orbOCC(pairRepI, occ, docc);
-        T val = diagVal(occ,docc);
+        T val = this->diagVal(occ,docc);
         for (const auto& link : this->interBandU){
             // auto bonds = link.bond();
             for (const auto& bond : link.bond()){
@@ -414,7 +434,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             }
             ++i;
         }
-    } else if constexpr(MODEL == LATTICE_MODEL::tJ) {
+    } else if constexpr(M == LATTICE_MODEL::tJ) {
         // off diagonal part
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
@@ -458,7 +478,7 @@ void Hamiltonian<MODEL, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             } 
         }
         // diag(rowID,val,&rowMaps[0]);
-    } else if constexpr(MODEL == LATTICE_MODEL::HEISENBERG) {
+    } else if constexpr(M == LATTICE_MODEL::HEISENBERG) {
         if(this->Bf->getSiteDim()==2){
             std::vector<idx_t> finalIndList;
             std::vector<cdouble> factorList;
