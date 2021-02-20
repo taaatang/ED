@@ -9,14 +9,14 @@
 #ifndef TimeEvolver_hpp
 #define TimeEvolver_hpp
 
-#include "LANCZOSIterator.hpp"
-#include "../Algebra/algebra.hpp"
-
 #include <mpi.h>
 #include <vector>
 #include <complex>
 #include <cmath>
 #include "omp.h"
+
+#include "LANCZOSIterator.hpp"
+#include "Algebra/algebra.hpp"
 
 /*
     Krylov Subspace Algorithm for exp(-iH)*v
@@ -72,4 +72,5 @@ void TimeEvolver<T>::evolve(double expFac){
         vec[i] = sum;
     }
 }
+
 #endif //TimeEvolver_hpp
