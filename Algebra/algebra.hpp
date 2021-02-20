@@ -20,6 +20,7 @@
 #include "mkl.h"
 #include "omp.h"
 #include <vector>
+#include "Utils/utils.hpp"
 
 namespace MKL{
     /*
@@ -34,49 +35,61 @@ namespace MKL{
     void MxV(sparse_matrix_t& A, MKL_Complex16* vin, MKL_Complex16* vout, MKL_Complex16 alpha=1.0, MKL_Complex16 beta=1.0);
 
     void create(sparse_matrix_t& A, idx_t rows, idx_t cols, std::vector<MKL_INT>& rowInitList, std::vector<MKL_INT>& colList, std::vector<double>& valList, MKL_INT mvNum=100);
+    
     void MxV(sparse_matrix_t& A, double* vin, double* vout, double alpha=1.0, double beta=1.0);
 
     void destroy(sparse_matrix_t& A);
 
     // BLAS 1
     // y = a * x + y
-    void axpy(MKL_INT n, const double a, const double *x, double *y) {
+    inline void axpy(MKL_INT n, const double a, const double *x, double *y) {
         cblas_daxpy(n, a, x, 1, y, 1);
     }
-    void axpy(const MKL_INT n, const cdouble a, const cdouble *x, cdouble *y) {
-        cblas_zaxpy(n, a, x, 1, y,1);
+    inline void axpy(const MKL_INT n, const cdouble a, const cdouble *x, cdouble *y) {
+        cblas_zaxpy(n, &a, x, 1, y,1);
     }
     // y = x
-    void copy(const MKL_INT n, const double *x, double *y) {
+    inline void copy(const MKL_INT n, const double *x, double *y) {
         cblas_dcopy(n, x, 1, y, 1);
     }
-    void copy(const MKL_INT n, const cdouble *x, cdouble *y) {
+    inline void copy(const MKL_INT n, const cdouble *x, cdouble *y) {
         cblas_zcopy(n, x, 1, y, 1);
     }
     // conj(x).dot(y)
-    double dot(const MKL_INT n, const double *x, const double *y) {
-        cblas_ddot(n, x, 1, y, 1);
+    inline double dot(const MKL_INT n, const double *x, const double *y) {
+        return cblas_ddot(n, x, 1, y, 1);
     }
-    cdouble dot(const MKL_INT n, const cdouble *x, const cdouble *y) {
+    inline cdouble dot(const MKL_INT n, const cdouble *x, const cdouble *y) {
         cdouble res = 0.0;
-        cblas_zdotc_sub(n, x, 1, y, q, &res);
+        cblas_zdotc_sub(n, x, 1, y, 1, &res);
+        return res;
+    }
+    template <typename T>
+    T mpiDot(const MKL_INT n, const T *x, const T *y) {
+        T resLoc = dot(n, x, y);
+        T res;
+        MPI_Allreduce(&resLoc, &res, 1);
         return res;
     }
     // Euclidean norm
-    double norm(const MKL_INT n, const double *x){
-        cblas_dnrm2(n, x, 1);
+    inline double norm(const MKL_INT n, const double *x) {
+        return cblas_dnrm2(n, x, 1);
     }
-    double norm(const MKL_INT n, const cdouble *x){
-        cblas_dznrm2(n, x, 1);
+    inline double norm(const MKL_INT n, const cdouble *x) {
+        return cblas_dznrm2(n, x, 1);
+    }
+    template <typename T>
+    double mpiNorm(const MKL_INT n, const T *x) {
+        return std::real(std::sqrt(mpiDot(n, x, x)));
     }
     // x = a * x
-    void scale(const MKL_INT n, const double a, double *x) {
+    inline void scale(const MKL_INT n, const double a, double *x) {
         cblas_dscal(n, a, x, 1);
     }
-    void scale(const MKL_INT n, const cdouble a, cdouble *x) {
-        cblas_zscal(n, a, x, 1);
+    inline void scale(const MKL_INT n, const cdouble a, cdouble *x) {
+        cblas_zscal(n, &a, x, 1);
     }
-    void scale(const MKL_INT n, const double a, cdouble *x) {
+    inline void scale(const MKL_INT n, const double a, cdouble *x) {
         cblas_zdscal(n, a, x, 1);
     }
 }
