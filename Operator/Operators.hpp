@@ -16,7 +16,7 @@
 #include "Operator/OperatorsBase.hpp"
 #include "Utils/utils.hpp"
 #include "Pulse/pulse.hpp"
-// #include "Solver/PARPACKSolver.hpp"
+#include "Solver/PARPACKSolver.hpp"
 
 /* Operators_hpp */
 
@@ -50,7 +50,7 @@ public:
 
     virtual void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps) = 0;
 
-    // PARPACKSolver<T> solver;
+    PARPACKSolver<T> solver;
 
 private:
     VecD V, U;
@@ -230,7 +230,7 @@ public:
 template<typename T>
 HamiltonianBase<T>::HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_, int dmNum_):\
 OperatorBase<T>(latt, Bi, Bf, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
-    // solver = PARPACKSolver<T>(this, 1);
+    solver = PARPACKSolver<T>(this, 1);
 }
 
 template <typename T>
@@ -282,7 +282,7 @@ double HamiltonianBase<T>::diagVal(const VecI& occ, const VecI& docc) const {
 
 template <LATTICE_MODEL M, typename T>
 Hamiltonian<M, T>::Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum, int dmNum):HamiltonianBase<T>(latt, Bi, Bf, spmNum, dmNum) {
-
+    
 }
 
 template <LATTICE_MODEL M, typename T>

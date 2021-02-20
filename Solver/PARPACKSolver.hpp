@@ -20,13 +20,12 @@
 #include "Utils/utils.hpp"
 #include "Utils/timer.hpp"
 #include "Operator/SparseMatrix.hpp"
-#include "Operator/Operators.hpp"
 
 template <class T>
 class PARPACKSolver {
 public:
     PARPACKSolver( ) { }
-    PARPACKSolver(BaseMatrix<T> *M, a_int nev = 1);
+    PARPACKSolver(BaseMatrix<T>* M, a_int nev = 1);
     ~PARPACKSolver( ) { }
 
     T* getEigval( ) {return d_pt.data();}
@@ -39,7 +38,7 @@ public:
     void setRvec(a_int rvec);
 
     void diag( );
-    void diag(double spin, SSOp<T>* SS);
+    void diag(double spin, BaseMatrix<T>* P);
 
 private:
     void check( );
@@ -48,7 +47,7 @@ private:
     void postRun( );
 
     // project to spin sector
-    void run(double spin, SSOp<T>* SS);
+    void run(double spin, BaseMatrix<T>* P);
     // project out states
     void run(T* states, int statesNum, double penalty=1000.0);
 
@@ -206,14 +205,14 @@ void PARPACKSolver<T>::diag( ) {
 }
 
 template <class T>
-void PARPACKSolver<T>::diag(double spin, SSOp<T>* SS){
+void PARPACKSolver<T>::diag(double spin, BaseMatrix<T>* P){
     check();
     Timer timer;
     int workerID = M_->getWorkerID();
     bool ismaster = (workerID == MPI_MASTER);
     if (ismaster) std::cout<<"Begin PARPACK Iteration and timer started...\n";
     timer.tik();
-    run(spin, SS);
+    run(spin, P);
     timer.tok();
     if (ismaster) {
         std::cout<<"INFO:"<<info_<<". Total iteration:"<<iparam_[2]<<". Total time:"<<timer.elapse()<<" milliseconds\n";
@@ -253,7 +252,7 @@ void PARPACKSolver<T>::run( ) {
 }
 
 template <class T>
-void PARPACKSolver<T>::run(double spin, SSOp<T>* SS){
+void PARPACKSolver<T>::run(double spin, BaseMatrix<T>* P){
     while (ido_ != 99) {
         if constexpr (std::is_same<T, double>::value) {
             arpack::saupd(MCW, ido_, arpack::bmat::identity, nloc_, arpack::which::smallest_algebraic, nev_, tol_, resid_pt.data(), ncv_, \
@@ -262,7 +261,7 @@ void PARPACKSolver<T>::run(double spin, SSOp<T>* SS){
             arpack::naupd(MCW, ido_, arpack::bmat::identity, nloc_, arpack::which::smallest_realpart, nev_, tol_, resid_pt.data(), ncv_, \
                 V_pt.data(), ldv_, iparam_.data(), ipntr_.data(), workd_pt.data(), workl_pt.data(), lworkl_, rwork_pt.data(), info_);
         }
-        SS->project(spin, &(workd_pt[ipntr_[0] - 1]));
+        P->project(spin, &(workd_pt[ipntr_[0] - 1]));
         M_->MxV(&(workd_pt[ipntr_[0] - 1]), &(workd_pt[ipntr_[1] - 1]));
     }
     // check number of ev found by arpack

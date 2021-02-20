@@ -39,7 +39,10 @@ public:
     idx_t getColnlocmax( ) const { return nlocmax_col; }
     idx_t getColnloc( ) const { return nloc_col; }
 
+    // Matrix Vector Multiplication Interface
     virtual void MxV(T *vecIn, T *vecOut) = 0;
+    // project to symmetry subspace labeled by val
+    virtual void project(double val, T* vec) { };
 
     int workerID;
     int workerNum;

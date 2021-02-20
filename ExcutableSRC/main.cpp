@@ -30,13 +30,9 @@ int main( ) {
     // ground state
     setBasics(modelPara, latt, Bi, H, workerID);
     // cout<<setprecision(10);
-    PARPACKSolver<dataType> PDiag(H.get(), 1);
-    PDiag.diag();
-    cdouble* w0 = PDiag.getEigval();
-    cdouble* gstate = PDiag.getEigvec();
-    // H->solver.diag();
-    // cdouble* w0 = H->solver.getEigval();
-    // cdouble* gstate = H->solver.getEigvec();
+    H->solver.diag();
+    cdouble* w0 = H->solver.getEigval();
+    cdouble* gstate = H->solver.getEigvec();
 
     // conductivity
     Current J(latt.get(), Bi.get());
@@ -53,34 +49,34 @@ int main( ) {
     }
 
     // Akw
-    auto occ = Bi->getOcc();
-    auto ki = Bi->getkIndex();
-    for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
-        for (auto spin : std::vector<SPIN> {SPIN::UP, SPIN::DOWN}) {
-            for (auto pm : std::vector<LADDER> {LADDER::PLUS, LADDER::MINUS}) {
-                auto occf = occ;
-                auto& n = (spin == SPIN::UP) ? occf.at(0) : occf.at(1);
-                auto dn = (pm == LADDER::PLUS) ? 1 : -1;
-                n += dn;
-                setbasis(modelPara, Bf, latt.get(), occf.at(0), occf.at(1), kf, -1);
-                setham(modelPara, Hf, latt.get(), Bf.get());
-                Bf->gen();
-                Hf->construct();
-                for (auto& orb : latt->getUnitCell()) {
-                    CkOp<dataType> ck(latt.get(), Bi.get(), Bf.get());
-                    ck.set(pm, spin, orb);
-                    ck.construct();
-                    SPECTRASolver<dataType> spectra(Hf.get(), w0[0], &ck, gstate, 400);
-                    spectra.compute();
-                    if (isMaster()) {
-                        std::ostringstream os;
-                        os<<"/ki"<<tostr(ki)<<"/kf"<<tostr(kf)<<"/"<<orb.orb<<"_"<<spin<<"_"<<pm;
-                        spectra.saveData(path.AkwDir + os.str());
-                    }
-                }
-            }
-        }
-    }
+    // auto occ = Bi->getOcc();
+    // auto ki = Bi->getkIndex();
+    // for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
+    //     for (auto spin : std::vector<SPIN> {SPIN::UP, SPIN::DOWN}) {
+    //         for (auto pm : std::vector<LADDER> {LADDER::PLUS, LADDER::MINUS}) {
+    //             auto occf = occ;
+    //             auto& n = (spin == SPIN::UP) ? occf.at(0) : occf.at(1);
+    //             auto dn = (pm == LADDER::PLUS) ? 1 : -1;
+    //             n += dn;
+    //             setbasis(modelPara, Bf, latt.get(), occf.at(0), occf.at(1), kf, -1);
+    //             setham(modelPara, Hf, latt.get(), Bf.get());
+    //             Bf->gen();
+    //             Hf->construct();
+    //             for (auto& orb : latt->getUnitCell()) {
+    //                 CkOp<dataType> ck(latt.get(), Bi.get(), Bf.get());
+    //                 ck.set(pm, spin, orb);
+    //                 ck.construct();
+    //                 SPECTRASolver<dataType> spectra(Hf.get(), w0[0], &ck, gstate, 400);
+    //                 spectra.compute();
+    //                 if (isMaster()) {
+    //                     std::ostringstream os;
+    //                     os<<"/ki"<<tostr(ki)<<"/kf"<<tostr(kf)<<"/"<<orb.orb<<"_"<<spin<<"_"<<pm;
+    //                     spectra.saveData(path.AkwDir + os.str());
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     // // time evolution
     // timer.tik();
