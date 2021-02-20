@@ -32,7 +32,7 @@ public:
         mkdir_fs(dataPath);
         std::ofstream outfile;
         save<cdouble>(&w0, 1, &outfile, dataPath + "/w0");
-        save<cdouble>(&(LANCZOSIterator<T>::vecNorm), 1, &outfile, dataPath + "/vecNorm");
+        save<double>(&(LANCZOSIterator<T>::vecNorm), 1, &outfile, dataPath + "/vecNorm");
         save<double>((LANCZOSIterator<T>::alpha).data(), (int)((LANCZOSIterator<T>::alpha).size()), &outfile, dataPath + "/alpha");
         save<double>((LANCZOSIterator<T>::beta).data(), (int)((LANCZOSIterator<T>::beta).size()), &outfile, dataPath + "/beta");
     };
