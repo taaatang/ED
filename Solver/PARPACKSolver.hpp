@@ -8,18 +8,21 @@
 
 #ifndef PARPACKSolver_hpp
 #define PARPACKSolver_hpp
-#include <assert.h>
-#include <type_traits>
-#include <array>
-#include <cmath>
+
 #include <iostream>
 #include <vector>
+#include <assert.h>
+#include <type_traits>
 #include "parpack.hpp"
 
-#include "Global/globalPara.hpp"
-#include "Utils/utils.hpp"
-#include "Utils/timer.hpp"
 #include "Operator/SparseMatrix.hpp"
+#include "Utils/timer.hpp"
+
+// MAX parpack iterations
+constexpr int PARPACK_MAXITERATION = 5000;
+//MIN and MAX ncv
+constexpr int PARPACK_MINNCV = 7;
+// const int PARPACK_MAXNCV = 500;
 
 template <class T>
 class PARPACKSolver {

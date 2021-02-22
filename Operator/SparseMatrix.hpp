@@ -10,13 +10,12 @@
 
 #include <type_traits>
 #include <climits>
-#include "mpi.h"
 #include <omp.h>
 
 #include "Global/globalPara.hpp"
 #include "Basis/Basis.hpp"
+#include "Utils/mpiwrap.hpp"
 #include "Algebra/algebra.hpp"
-#include "Utils/utils.hpp"
 #include "Utils/timer.hpp"
 
 template <class T>

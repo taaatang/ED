@@ -9,18 +9,16 @@
 #ifndef Geometry_hpp
 #define Geometry_hpp
 
-#include "Global/globalPara.hpp"
-#include "Utils/utils.hpp"
-#include <stdio.h>
-#include <algorithm>
 #include <vector>
-#include <map>
-#include <unordered_map>
 #include <string>
 #include <cmath>
 #include <iostream>
-#include <fstream>
 #include <complex>
+#include <assert.h>
+
+#include "Global/globalPara.hpp"
+#include "Algebra/algebra.hpp"
+#include "Utils/bitop.hpp"
 
 
 /*

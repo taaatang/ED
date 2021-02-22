@@ -9,12 +9,9 @@
 #ifndef Basis_hpp
 #define Basis_hpp
 
-#include "Global/globalPara.hpp"
-#include "Geometry/Geometry.hpp"
-#include "Utils/utils.hpp"
-
 #include <stdio.h>
 #include <algorithm>
+#include <assert.h>
 #include <vector>
 #include <map>
 #include <unordered_map>
@@ -23,6 +20,13 @@
 #include <iostream>
 #include <fstream>
 #include <complex>
+
+#include "Global/globalPara.hpp"
+#include "Geometry/Geometry.hpp"
+#include "Utils/comb.hpp"
+#include "Utils/bitop.hpp"
+#include "Utils/mpiwrap.hpp"
+#include "Utils/io.hpp"
 
 /*
     ***************
@@ -194,5 +198,7 @@ private:
     // Multipliers. Basis vec index = sum(i):vec(i)*mul(i)
     std::vector<idx_t> mul;
 };
+
+void work_load(idx_t size, int workerID, int workerNum, idx_t& idxStart, idx_t& idxEnd);
 
 #endif // Basis_hpp

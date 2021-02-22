@@ -14,7 +14,6 @@
 #include <algorithm>
 
 #include "Operator/OperatorsBase.hpp"
-#include "Utils/utils.hpp"
 #include "Pulse/pulse.hpp"
 #include "Solver/PARPACKSolver.hpp"
 

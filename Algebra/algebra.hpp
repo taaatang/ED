@@ -6,21 +6,24 @@
 //
 //
 
-/*
-    C++ interface to mkl library
-*/
 #ifndef algebra_hpp
 #define algebra_hpp
+
 // #include <Eigen/Dense>
 // #include <Eigen/Eigenvalues>
+#include <vector>
+#include <cmath>
+#include <random>
+#include <functional>
+#include "omp.h"
+
 #include "Global/globalType.hpp"
-#define _MKL_
 #define MKL_INT idx_t
 #define MKL_Complex16 cdouble
 #include "mkl.h"
-#include "omp.h"
-#include <vector>
-#include "Utils/utils.hpp"
+
+#include "Utils/mpiwrap.hpp"
+#include "Utils/io.hpp"
 
 namespace MKL{
     /*
@@ -92,9 +95,111 @@ namespace MKL{
     inline void scale(const MKL_INT n, const double a, cdouble *x) {
         cblas_zdscal(n, a, x, 1);
     }
+} // MKL
+
+/*
+    ***********
+    * Algebra *
+    ***********
+*/
+
+// v = a1 * v1 + a2 *v2; for size = 3
+inline void vecAdd(int mul1, const int* input1, int mul2, const int* input2, int* output, int size){
+    for (int i = 0; i < size; ++i){
+        output[i] = mul1 * input1[i] + mul2 * input2[i];
+    }
+}
+inline void vecAdd(double mul1, const double* input1, double mul2, const double* input2, double* output, int size){
+    for (int i = 0; i < size; ++i){
+        output[i] = mul1 * input1[i] + mul2 * input2[i];
+    }
+}
+inline void vecAdd(double mul1, const double* input1, double mul2, const double* input2, double mul3, const double* input3, double* output, int size){
+    for (int i = 0; i < size; ++i){
+        output[i] = mul1 * input1[i] + mul2 * input2[i] + mul3 * input3[i];
+    }
 }
 
 
+template <class T, class U>
+inline void init(T *vec, U size, T val){
+    #pragma omp parallel for
+    for (U i = 0; i < size; ++i) vec[i] = val;
+}
+
+template <class T>
+inline void randInit(std::vector<T>& vec){
+    std::mt19937 generatorD;
+    std::uniform_real_distribution<double> distributionD(0.0,1.0);
+    auto diceD = std::bind(distributionD,generatorD);
+    for (auto& val : vec) val = diceD();
+}
+
+template <class T>
+inline void copy(idx_t size, const T* vecIn, T* vecOut ) {
+    #pragma omp parallel for
+    for (idx_t i = 0; i < size; ++i) vecOut[i] = vecIn[i];
+}
+
+template <class T>
+inline void copy(T* vecOut, T a, const T* vecIn, idx_t size) {
+    #pragma omp parallel for
+    for (idx_t i = 0; i < size; ++i) vecOut[i] = a * vecIn[i];
+}
+
+template <class T>
+inline void axpy(T* y, T a, const T* x, idx_t size) {
+    #pragma omp parallel for
+    for (idx_t i = 0; i < size; ++i) y[i] += a * x[i];
+}
+
+template <class T>
+inline void scale(T* x, T a, idx_t size) {
+    #pragma omp parallel for
+    for (idx_t i = 0; i < size; ++i) x[i] *= a;
+}
+
+inline double dot(VecD v1, VecD v2) {
+    assert_msg(v1.size()==v2.size(),"utils::dot, v1.size() != v2.size().");
+    double result = 0.0;
+    #pragma omp parallel for reduction(+:result)
+    for(size_t i = 0; i < v1.size(); ++i){
+        result += v1[i]*v2[i];
+    }
+    return result;
+}
+
+inline void normalize(VecD& v) {
+    scale(v.data(),1.0/std::sqrt(dot(v,v)),v.size());
+}
+
+// vector dot prodoct
+template <class T>
+inline T mpiDot(const T* vconj, const T* v, idx_t size) {
+    T partResult{0.0}, result{0.0};
+    if constexpr (std::is_same<T, cdouble>::value) {
+        double partResultReal = 0.0, partResultImag = 0.0;
+        #pragma omp parallel for reduction(+:partResultReal,partResultImag)
+        for (idx_t i = 0; i < size; ++i) {
+            T tmp = std::conj(vconj[i]) * v[i];
+            partResultReal += std::real(tmp);
+            partResultImag += std::imag(tmp);
+        }
+        partResult = partResultReal + CPLX_I * partResultImag;
+    } else if constexpr (std::is_same<T, double>::value) {
+        #pragma omp parallel for reduction(+:partResult)
+        for (idx_t i = 0; i < size; ++i) {
+            partResult += vconj[i] * v[i];
+        }
+    }
+    MPI_Allreduce(&partResult, &result, 1);
+    return result;
+}
+
+template <typename T>
+inline double mpiNorm(const T* v, idx_t size) {
+    return std::sqrt(std::real(mpiDot(v, v, size)));
+}
 /*
     Eigen solver for a self adjoint matrix
 */

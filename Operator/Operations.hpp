@@ -7,6 +7,28 @@
 
 #include "Basis/Basis.hpp"
 
+// push data to an unordered map
+template <typename T>
+inline void MapPush(MAP<T>* map_pt, idx_t key, T val){
+    auto it = map_pt->find(key);
+    if constexpr (std::is_same<cdouble, T>::value) {
+        if (it == map_pt->end()) {
+            (*map_pt)[key] = std::conj(val);
+        } else {
+            it->second += std::conj(val);
+        }
+    } else if constexpr (std::is_same<double, T>::value) {
+        if (it == map_pt->end()) {
+            (*map_pt)[key] = val;
+        } else {
+            it->second += val;
+        }
+    } else {
+        std::cout<<"MapPush only defined for double/cdouble!\n";
+        exit(1);
+    }
+}
+
 template<typename T>
 class FermionOperator{
 public:

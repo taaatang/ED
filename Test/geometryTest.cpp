@@ -7,7 +7,6 @@
 //
 
 #include "../Global/globalPara.hpp"
-#include "../Utils/utils.hpp"
 #include "../Geometry/Geometry.hpp"
 #include "../Operator/OperatorsBase.hpp"
 

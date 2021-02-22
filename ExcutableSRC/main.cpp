@@ -1,6 +1,5 @@
 #include <iostream>
 #include <sstream>
-#include "Utils/utils.hpp"
 #include "Utils/paras.hpp"
 #include "Global/config.hpp"
 #include "Solver/PARPACKSolver.hpp"
@@ -34,6 +33,7 @@ int main( ) {
     cdouble* w0 = H->solver.getEigval();
     cdouble* gstate = H->solver.getEigvec();
 
+    // MPI_Barrier(MPI_COMM_WORLD);
     // conductivity
     Current J(latt.get(), Bi.get());
     J.pushLinks(HubbardLink());

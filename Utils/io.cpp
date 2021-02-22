@@ -1,54 +1,17 @@
-//
-//  utils.cpp
-//  ED
-//
-//  Created by tatang on 10/27/19.
-//  Copyright © 2019 tatang. All rights reserved.
-//
-
-#include "utils.hpp"
-
-
-unsigned long long pow(unsigned long long base, unsigned long long power){
-    unsigned long long result = 1;
-    for (unsigned long long i = 0; i < power; ++i){
-        result *= base;
-    }
-    return result;
-}
-
-long long pow(long long base, long long power){
-    long long result = 1;
-    for (long long i = 0; i < power; ++i){
-        result *= base;
-    }
-    return result;
-}
-
-// distribute workload among mpi workers
-void work_load(idx_t size, int workerID, int workerNum, idx_t& idxStart, idx_t& idxEnd){
-    assert((workerNum>0) && (workerID<workerNum));
-    idx_t nlocmax = (size + workerNum - 1)/workerNum;
-    idxStart = workerID * nlocmax;
-    idxEnd = (idxStart + nlocmax)<size?(idxStart + nlocmax):size;
-}
+#include "io.hpp"
 
 /********
  * INFO *
  ********/
 
 void OMP_Info(int workerID){
-    #ifdef OMP_
-        int ompThreadsNum;
-        #pragma omp parallel
-        {
-            #pragma omp master
-            ompThreadsNum = omp_get_num_threads();
-        }
-        if (workerID==MPI_MASTER) std::cout<<"openMP turned on with "<<ompThreadsNum<<" threads"<<std::endl;
-    #else
-        if (workerID==MPI_MASTER) std::cout<<"openMP turned off"<<std::endl;
-    #endif
+    int ompThreadsNum;
+    #pragma omp parallel
+    {
+        #pragma omp master
+        ompThreadsNum = omp_get_num_threads();
+    }
+    if (workerID==MPI_MASTER) std::cout<<"openMP turned on with "<<ompThreadsNum<<" threads"<<std::endl;
 }
 
 void mpi_info(int& workerID, int& workerNum){
@@ -279,5 +242,3 @@ std::ostream& operator<<(std::ostream& os, const VecI& vec) {
     os<<" ]";
     return os;
 }
-
-

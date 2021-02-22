@@ -8,6 +8,14 @@
 
 #include "Basis.hpp"
 
+// distribute workload among mpi workers
+void work_load(idx_t size, int workerID, int workerNum, idx_t& idxStart, idx_t& idxEnd){
+    assert((workerNum>0) && (workerID<workerNum));
+    idx_t nlocmax = (size + workerNum - 1)/workerNum;
+    idxStart = workerID * nlocmax;
+    idxEnd = (idxStart + nlocmax)<size?(idxStart + nlocmax):size;
+}
+
 /*
     ***************
     * Basis Class *

@@ -9,14 +9,11 @@
 #ifndef LANCZOSIterator_hpp
 #define LANCZOSIterator_hpp
 
-#include <mpi.h>
 #include <vector>
-#include <complex>
 #include <cmath>
 
-#include "Global/globalPara.hpp"
+#include "Global/globalType.hpp"
 #include "Operator/SparseMatrix.hpp"
-#include "Utils/utils.hpp"
 #include "Algebra/algebra.hpp"
 
 // // #define USE_MKL
@@ -130,7 +127,7 @@ template <class T>
 class LANCZOSIterator{
 public:
     LANCZOSIterator( ) { }
-    LANCZOSIterator(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt = LANCZOS_DEFAULT_OPTION);
+    LANCZOSIterator(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt = LANCZOS_OPTION::ALPHA_BETA);
     ~LANCZOSIterator( );
     
     void init(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt);

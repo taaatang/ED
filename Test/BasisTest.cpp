@@ -9,8 +9,6 @@
 // #undef OMP_
 
 #include "globalPara.hpp"
-#include "globalClass.hpp"
-#include "utils.hpp"
 #include "PARPACKSolver.hpp"
 #include "LANCZOSIterator.hpp"
 
