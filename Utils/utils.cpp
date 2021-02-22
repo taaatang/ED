@@ -262,6 +262,15 @@ std::ostream& operator<<(std::ostream& os, const VecD& vec) {
     return os;
 }
 
+std::ostream& operator<<(std::ostream& os, const std::vector<cdouble>& vec) {
+    os<<"[";
+    for (auto val:vec) {
+        os<<" "<<std::real(val)<<"+"<<std::imag(val)<<"i";
+    }
+    os<<" ]";
+    return os;
+}
+
 std::ostream& operator<<(std::ostream& os, const VecI& vec) {
     os<<"[";
     for (auto val:vec) {

@@ -284,9 +284,8 @@ void PARPACKSolver<T>::run(T* states, int statesNum, double penalty){
         }
         M_->MxV(&(workd_pt[ipntr_[0] - 1]), &(workd_pt[ipntr_[1] - 1]));
         for (int i = 0; i < statesNum; ++i){
-            cdouble overlap;
-            vConjDotv(states+i*nloc_, &(workd_pt[ipntr_[0]-1], overlap, nloc_));
-            saxpy(&(workd_pt[ipntr_[1] - 1]), overlap*penalty, states+i*nloc_, nloc_);
+            auto overlap = mpiDot(states+i*nloc_, &(workd_pt[ipntr_[0]-1], nloc_));
+            axpy(&(workd_pt[ipntr_[1] - 1]), overlap*penalty, states+i*nloc_, nloc_);
         }
     }
 

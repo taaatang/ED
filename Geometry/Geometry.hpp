@@ -127,11 +127,11 @@ public:
     void getOrbR(int id, double* r) const {for (int i = 0; i < dim; ++i) r[i] = orbs.at(id).coord[i];}
     // return the kid site coord
     void getK(int kid, double* k) const {for (int i = 0; i < dim; ++i) k[i] = KLattice.at(kid).coord[i];}
-    void getSiteRxy(int siteid, double* rxy) const {assert(dim==3); vecXAdd(Lattice.at(siteid).coord[0],ax.data(),Lattice.at(siteid).coord[1],ay.data(),Lattice.at(siteid).coord[2],az.data(),rxy,dim);}
-    void getOrbRxy(int orbid, double* rxy) const {assert(dim==3); vecXAdd(orbs.at(orbid).coord[0],ax.data(),orbs.at(orbid).coord[1],ay.data(),orbs.at(orbid).coord[2],az.data(),rxy,dim);}
-    VecD RtoRxy(VecD R) const {VecD Rxy(3); vecXAdd(R.at(0),ax.data(),R.at(1),ay.data(),R.at(2),az.data(),Rxy.data(),dim); return Rxy;}
-    double RdotR(VecD R1, VecD R2)const {return vdotv(RtoRxy(R1), RtoRxy(R2));}
-    void getKxy(int kid, double* kxy) const {assert(dim==3); vecXAdd(KLattice.at(kid).coord[0],bx.data(),KLattice.at(kid).coord[1],by.data(),KLattice.at(kid).coord[2],bz.data(),kxy,dim);}
+    void getSiteRxy(int siteid, double* rxy) const {assert(dim==3); vecAdd(Lattice.at(siteid).coord[0],ax.data(),Lattice.at(siteid).coord[1],ay.data(),Lattice.at(siteid).coord[2],az.data(),rxy,dim);}
+    void getOrbRxy(int orbid, double* rxy) const {assert(dim==3); vecAdd(orbs.at(orbid).coord[0],ax.data(),orbs.at(orbid).coord[1],ay.data(),orbs.at(orbid).coord[2],az.data(),rxy,dim);}
+    VecD RtoRxy(VecD R) const {VecD Rxy(3); vecAdd(R.at(0),ax.data(),R.at(1),ay.data(),R.at(2),az.data(),Rxy.data(),dim); return Rxy;}
+    double RdotR(VecD R1, VecD R2)const {return dot(RtoRxy(R1), RtoRxy(R2));}
+    void getKxy(int kid, double* kxy) const {assert(dim==3); vecAdd(KLattice.at(kid).coord[0],bx.data(),KLattice.at(kid).coord[1],by.data(),KLattice.at(kid).coord[2],bz.data(),kxy,dim);}
     // return the id-th orbital's unit cell id
     int getSiteid(int id) const {return orbs.at(id).siteid;}
     // exp(i*2pi*k*r)

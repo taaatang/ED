@@ -16,6 +16,7 @@
 #include <random>
 #include <iostream>
 #include <type_traits>
+#include <functional>
 
 #ifdef CPP_17
 #include <filesystem>
@@ -68,6 +69,7 @@ std::ostream& operator<<(std::ostream& os, LADDER t);
 
 std::ostream& operator<<(std::ostream& os, const VecD& vec);
 std::ostream& operator<<(std::ostream& os, const VecI& vec);
+std::ostream& operator<<(std::ostream& os, const std::vector<cdouble>& vec);
 
 /*
     ***************
@@ -135,105 +137,6 @@ inline double seqSign(std::vector<int>& seq){
 // Gaussian Pulse
 inline double GaussPulse(double t, double amp, double sigma, double freq){
     return amp*std::exp(-t*t/sigma/sigma)*std::cos(freq*t);
-}
-/*
-    ***********
-    * Algebra *
-    ***********
-*/
-template <class T>
-inline void randInit(std::vector<T>& vec, int range=100){
-    std::random_device dev;
-    std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist(0,range);
-    T ranget = range;
-    for (auto it = vec.begin(); it!=vec.end();it++) *it = T(dist(rng))/ranget;
-}
-inline void vecXAdd(int mul1, const int* input1, int mul2, const int* input2, int* output, int size){
-    for (int i = 0; i < size; ++i){
-        output[i] = mul1 * input1[i] + mul2 * input2[i];
-    }
-}
-
-inline void vecXAdd(double mul1, const double* input1, double mul2, const double* input2, double* output, int size){
-    for (int i = 0; i < size; ++i){
-        output[i] = mul1 * input1[i] + mul2 * input2[i];
-    }
-}
-
-inline void vecXAdd(double mul1, const double* input1, double mul2, const double* input2, double mul3, const double* input3, double* output, int size){
-    for (int i = 0; i < size; ++i){
-        output[i] = mul1 * input1[i] + mul2 * input2[i] + mul3 * input3[i];
-    }
-}
-
-
-template <class T, class U>
-inline void vecInit(T *vec, U size, T val){
-    #pragma omp parallel for
-    for (U i = 0; i < size; ++i) vec[i] = val;
-}
-
-template <class T>
-inline void veqv(T* vecOut, T* vecIn, idx_t size){
-    #pragma omp parallel for
-    for (idx_t i = 0; i < size; ++i) vecOut[i] = vecIn[i];
-}
-
-template <class T>
-inline void veqatv(T* vecOut, T a, T* vecIn, idx_t size){
-    #pragma omp parallel for
-    for (idx_t i = 0; i < size; ++i) vecOut[i] = a * vecIn[i];
-}
-
-template <class T>
-inline void saxpy(T* x, T a, T* y, idx_t size){
-    #pragma omp parallel for
-    for (idx_t i = 0; i < size; ++i) x[i] += a * y[i];
-}
-
-template <class T>
-inline void vdeva(T* x, T a, idx_t size){
-    #pragma omp parallel for
-    for (idx_t i = 0; i < size; ++i) x[i] /= a;
-}
-
-inline double vdotv(VecD v1, VecD v2){
-    assert_msg(v1.size()==v2.size(),"utils::vdotv, v1.size() != v2.size().");
-    double result = 0.0;
-    #pragma omp parallel for reduction(+:result)
-    for(size_t i = 0; i < v1.size(); ++i){
-        result += v1[i]*v2[i];
-    }
-    return result;
-}
-
-inline void normalize(VecD& v) {
-    vdeva(v.data(),std::sqrt(vdotv(v,v)),v.size());
-}
-
-// vector dot prodoct
-template <class T1, class T2>
-inline void vConjDotv(T1* vconj, T2* v, cdouble* result, idx_t size){
-    cdouble partResult = 0.0;
-#ifdef OMP_
-    cdouble tmp = 0.0;
-    double partResultReal = 0.0, partResultImag = 0.0;
-    #pragma omp parallel for private(tmp) reduction(+:partResultReal,partResultImag)
-#endif
-    for (idx_t i = 0; i < size; ++i){
-#ifdef OMP_
-        tmp = std::conj(vconj[i]) * v[i];
-        partResultReal += std::real(tmp);
-        partResultImag += std::imag(tmp);
-#else
-        partResult += std::conj(vconj[i]) * v[i];
-#endif
-    }
-#ifdef OMP_
-    partResult = partResultReal + CPLX_I * partResultImag;
-#endif
-    MPI_Allreduce(&partResult, result, 1, MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
 }
 
 /*******
@@ -320,6 +223,111 @@ inline void MPI_Alltoallv(double *sendBuff,int *sendCounts,int *sdispls,double *
 inline void MPI_Alltoallv(cdouble *sendBuff,int *sendCounts,int *sdispls,cdouble *recBuff, int *recCounts, int *rdispls){
     MPI_Alltoallv(sendBuff,sendCounts,sdispls,MPI_DOUBLE_COMPLEX,recBuff,recCounts, rdispls,MPI_DOUBLE_COMPLEX,MPI_COMM_WORLD);
 }
+
+/*
+    ***********
+    * Algebra *
+    ***********
+*/
+
+// v = a1 * v1 + a2 *v2; for size = 3
+inline void vecAdd(int mul1, const int* input1, int mul2, const int* input2, int* output, int size){
+    for (int i = 0; i < size; ++i){
+        output[i] = mul1 * input1[i] + mul2 * input2[i];
+    }
+}
+inline void vecAdd(double mul1, const double* input1, double mul2, const double* input2, double* output, int size){
+    for (int i = 0; i < size; ++i){
+        output[i] = mul1 * input1[i] + mul2 * input2[i];
+    }
+}
+inline void vecAdd(double mul1, const double* input1, double mul2, const double* input2, double mul3, const double* input3, double* output, int size){
+    for (int i = 0; i < size; ++i){
+        output[i] = mul1 * input1[i] + mul2 * input2[i] + mul3 * input3[i];
+    }
+}
+
+
+template <class T, class U>
+inline void init(T *vec, U size, T val){
+    #pragma omp parallel for
+    for (U i = 0; i < size; ++i) vec[i] = val;
+}
+
+template <class T>
+inline void randInit(std::vector<T>& vec){
+    std::mt19937 generatorD;
+    std::uniform_real_distribution<double> distributionD(0.0,1.0);
+    auto diceD = std::bind(distributionD,generatorD);
+    for (auto& val : vec) val = diceD();
+}
+
+template <class T>
+inline void copy(idx_t size, const T* vecIn, T* vecOut ) {
+    #pragma omp parallel for
+    for (idx_t i = 0; i < size; ++i) vecOut[i] = vecIn[i];
+}
+
+template <class T>
+inline void copy(T* vecOut, T a, const T* vecIn, idx_t size) {
+    #pragma omp parallel for
+    for (idx_t i = 0; i < size; ++i) vecOut[i] = a * vecIn[i];
+}
+
+template <class T>
+inline void axpy(T* y, T a, const T* x, idx_t size) {
+    #pragma omp parallel for
+    for (idx_t i = 0; i < size; ++i) y[i] += a * x[i];
+}
+
+template <class T>
+inline void scale(T* x, T a, idx_t size) {
+    #pragma omp parallel for
+    for (idx_t i = 0; i < size; ++i) x[i] *= a;
+}
+
+inline double dot(VecD v1, VecD v2) {
+    assert_msg(v1.size()==v2.size(),"utils::dot, v1.size() != v2.size().");
+    double result = 0.0;
+    #pragma omp parallel for reduction(+:result)
+    for(size_t i = 0; i < v1.size(); ++i){
+        result += v1[i]*v2[i];
+    }
+    return result;
+}
+
+inline void normalize(VecD& v) {
+    scale(v.data(),1.0/std::sqrt(dot(v,v)),v.size());
+}
+
+// vector dot prodoct
+template <class T>
+inline T mpiDot(const T* vconj, const T* v, idx_t size) {
+    T partResult{0.0}, result{0.0};
+    if constexpr (std::is_same<T, cdouble>::value) {
+        double partResultReal = 0.0, partResultImag = 0.0;
+        #pragma omp parallel for reduction(+:partResultReal,partResultImag)
+        for (idx_t i = 0; i < size; ++i) {
+            T tmp = std::conj(vconj[i]) * v[i];
+            partResultReal += std::real(tmp);
+            partResultImag += std::imag(tmp);
+        }
+        partResult = partResultReal + CPLX_I * partResultImag;
+    } else if constexpr (std::is_same<T, double>::value) {
+        #pragma omp parallel for reduction(+:partResult)
+        for (idx_t i = 0; i < size; ++i) {
+            partResult += vconj[i] * v[i];
+        }
+    }
+    MPI_Allreduce(&partResult, &result, 1);
+    return result;
+}
+
+template <typename T>
+inline double mpiNorm(const T* v, idx_t size) {
+    return std::sqrt(std::real(mpiDot(v, v, size)));
+}
+
 /*
     *******
     * I/O *

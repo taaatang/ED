@@ -260,7 +260,7 @@ void Hamiltonian<M, T>::setPeierls(Pulse* pulse) {
                 assert_msg(link.getLinkVecNum()==1, "In setPeierls, each hopping link should only have one dr!");
                 auto dr = link.getvec(0);
                 dr = this->latt->RtoRxy(dr);
-                auto val = vdotv(epol,dr);
+                auto val = dot(epol,dr);
                 overlap.push_back(val);
                 if (val!=0.0){
                     PeierlsOverlap.push_back(val);
@@ -637,7 +637,7 @@ SSOp<T>::SSOp(Geometry* latt, Basis* Bi, int spmNum, int dmNum, int spindim):Ope
         latt->getSiteR(rIndex, coordr.data());
         for (int i = 0; i < latt->getOrbNum(); ++i){
             latt->getOrbR(i, coordi.data());
-            vecXAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), 3);
+            vecAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), 3);
             int siteJ;
             if (latt->coordToOrbid(latt->getOrb(i), coordf.data(), siteJ)) {
                 siteJList.at(rIndex).at(i) = siteJ;

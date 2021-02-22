@@ -143,7 +143,7 @@ void Link<T>::genLinkMaps(Geometry* pt_lattice) {
                 tmp.push_back(orbid);
                 bool is_bond = true;
                 for (int k = j; k < j+getLinkSize(); k++){
-                    vecXAdd(1.0,coordi.data(),1.0,LinkVecs.at(k).data(),coordf.data(),3);
+                    vecAdd(1.0,coordi.data(),1.0,LinkVecs.at(k).data(),coordf.data(),3);
                     int orbidf;
                     if (pt_lattice->coordToOrbid(orbList.at(k-j+1), coordf.data(), orbidf)){
                         assert(pt_lattice->getOrb(orbidf) == orbList.at(k-j+1));

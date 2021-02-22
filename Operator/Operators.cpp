@@ -35,7 +35,7 @@ void Current::setDirection(VecD d) {
         assert_msg(link.getLinkVecNum()==1, "In setDirection, each hopping link should only have one dr!");
         auto dr = link.getvec(0);
         dr = this->latt->RtoRxy(dr);
-        auto overlap = vdotv(direction, dr);
+        auto overlap = dot(direction, dr);
         if (overlap != 0.0) {
             link.setVal(link.getVal() * overlap);
             myHoppingT.push_back(link);

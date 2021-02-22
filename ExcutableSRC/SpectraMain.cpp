@@ -174,7 +174,7 @@ int main(int argc, const char * argv[]) {
             for(auto idx : gs_idx){
                 dataType* state = PDiag.getEigvec(idx);
                 SS.MxV(state, vecTmp.data());
-                vConjDotv<dataType, dataType>(state, vecTmp.data(), &val, SS.getnloc());
+                val = mpiDot<dataType>(state, vecTmp.data(), SS.getnloc());
                 val /= Lattice.getSiteNum();
                 ssvals.push_back(val);
                 MPI_Barrier(MPI_COMM_WORLD);

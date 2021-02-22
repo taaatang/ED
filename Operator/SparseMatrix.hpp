@@ -122,7 +122,7 @@ public:
 
     void MxV(T *vecIn, T *vecOut);
 
-    cdouble vMv(T *vecL, T *vecR);
+    T vMv(T *vecL, T *vecR);
 
     virtual void print(std::string info, std::ostream& os = std::cout) const;
 
@@ -711,12 +711,11 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
 }
 
 template <class T>
-cdouble SparseMatrix<T>::vMv(T *vecL, T *vecR){
+T SparseMatrix<T>::vMv(T *vecL, T *vecR){
     std::vector<T> vecTmp(BaseMatrix<T>::nlocmax);
     cdouble val=0.0;
     MxV(vecR, vecTmp.data());
-    vConjDotv<T, T>(vecL, vecTmp.data(), &val, BaseMatrix<T>::nloc);
-    return val;
+    return mpiDot<T>(vecL, vecTmp.data(), BaseMatrix<T>::nloc);
 }
 
 template <class T>
