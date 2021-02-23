@@ -273,29 +273,35 @@ bool Geometry::rotate(int orbid, int& orbidf) const {
     return coordToOrbid(orbs.at(orbid).orb, coordf, orbidf);
 }
 
-VecD Geometry::rotate(VecD coordr) const {
-    VecD coordrp(3);
+Vec3d Geometry::rotate(const Vec3d &coordr) const {
+    Vec3d coordrp;
     switch(PG){
         case PointGroup::D3: case PointGroup::C3:
             /*
                 a1->a2,a2->-a1-a2
                 x1*a1 + x2*a2 -> x1*a2 + x2*(-a1-a2) = -x2*a1 + (x1-x2)*a2
             */
-            coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]-coordr[1]; coordrp[2] = coordr[2];
+            coordrp[0] = -coordr[1]; 
+            coordrp[1] = coordr[0]-coordr[1]; 
+            coordrp[2] = coordr[2];
             break;
         case PointGroup::D4: case PointGroup::D4m: case PointGroup::D4m5: case PointGroup::C4:
             /*
                 a1->a2,a2->-a1
                 x1*a1 + x2*a2 -> x1*a2 + x2*(-a1) = -x2*a1 + x1*a2
             */
-            coordrp[0] = -coordr[1]; coordrp[1] = coordr[0]; coordrp[2] = coordr[2];
+            coordrp[0] = -coordr[1]; 
+            coordrp[1] = coordr[0]; 
+            coordrp[2] = coordr[2];
             break;
         case PointGroup::D6: case PointGroup::C6:
             /*
                 a1->a2,a2->a2-a1
                 x1*a1 + x2*a2 -> x1*a2 + x2*(a2-a1) = -x2*a1 + (x1+x2)*a2
             */
-            coordrp[0] = -coordr[1]; coordrp[1] = coordr[0] + coordr[1]; coordrp[2] = coordr[2];  
+            coordrp[0] = -coordr[1]; 
+            coordrp[1] = coordr[0] + coordr[1]; 
+            coordrp[2] = coordr[2];  
             break;
         case PointGroup::NONE:
             return coordr;
