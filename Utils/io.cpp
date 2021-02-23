@@ -85,7 +85,7 @@ std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model) {
     return os;
 }
 std::ostream& operator<<(std::ostream& os, ORBITAL orb) {
-    os<<"orbital_";
+    // os<<"orbital_";
     switch (orb) {
         case ORBITAL::SINGLE:
             os<<"single";
@@ -185,7 +185,7 @@ std::ostream& operator<<(std::ostream& os, PointGroup p) {
 }
 
 std::ostream& operator<<(std::ostream& os, SPIN s) {
-    os<<"spin_";
+    // os<<"spin_";
     switch (s) {
         case SPIN::UP:
             os<<"up";
@@ -201,7 +201,7 @@ std::ostream& operator<<(std::ostream& os, SPIN s) {
 }
 
 std::ostream& operator<<(std::ostream& os, LADDER t) {
-    os<<"ladder_";
+    // os<<"ladder_";
     switch (t) {
         case LADDER::PLUS:
             os<<"plus";
