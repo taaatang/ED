@@ -14,6 +14,7 @@
 #include <iostream>
 
 #include "Global/globalPara.hpp"
+#include "Geometry/Vec3.hpp"
 #include "Utils/io.hpp"
 
 double GaussPulse(double t, void* params);
@@ -37,7 +38,7 @@ public:
     double computeFluence( ) const;
     double getA( ) const;
     double getAa( ) const { return a*getA(); } // return A*a
-    VecD getPol( ) const { return pol; }
+    Vec3d getPol( ) const { return pol; }
     double getdt( ) const { return dt; }
 
     void setE0(double E0) { params.at(0) = E0; }
@@ -45,7 +46,7 @@ public:
     void setW(double w) { params.at(2) = w; }
     void setPhase(double phase) { params.at(3) = phase * 2.0 * PI; }
     void setFluence(double Flu /* mJ/cm^2 */);
-    void setPol(VecD pol) { this->pol = pol;}
+    void setPol(Vec3d pol) { this->pol = pol;}
     void setFuncPara( );
 
     void seta(double a_/*nm*/) { a = a_/Lu; }
@@ -58,7 +59,7 @@ private:
     mutable double E, A;
 
     double Eu, Au; // electric field unit
-    VecD pol; // polarization in x-y-z coordinates
+    Vec3d pol; // polarization in x-y-z coordinates
     VecD params; // params = {E0, sigma, w, phase}, sigma = sqrt(2)*width, where I(width) = I(0)/e
     double Fluence;
 

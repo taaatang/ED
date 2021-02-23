@@ -2,31 +2,31 @@
 
 Orbital stringToOrb(std::string name, int id) {
     ORBITAL orb;
-    VecD coord;
+    Vec3d coord;
     if (name == "single") {
         orb = ORBITAL::SINGLE;
-        coord = VecD{0.0, 0.0, 0.0};
+        coord = {0.0, 0.0, 0.0};
     } else if (name == "dx2y2") {
         orb = ORBITAL::Dx2y2;
-        coord = VecD{0.0, 0.0, 0.0};
+        coord = {0.0, 0.0, 0.0};
     } else if (name == "dz2") {
         orb = ORBITAL::Dz2;
-        coord = VecD{0.0, 0.0, 0.0};
+        coord = {0.0, 0.0, 0.0};
     } else if (name == "px") {
         orb = ORBITAL::Px;
-        coord = VecD{0.5, 0.0, 0.0};
+        coord = {0.5, 0.0, 0.0};
     } else if (name == "py" or name == "py+") {
         orb = ORBITAL::Py;
-        coord = VecD{0.0, 0.5, 0.0};
+        coord = {0.0, 0.5, 0.0};
     } else if (name == "py-") {
         orb = ORBITAL::Py;
-        coord = VecD{0.0, -0.5, 0.0};
+        coord = {0.0, -0.5, 0.0};
     } else if (name == "pz" or name == "pzu") {
         orb = ORBITAL::Pzu;
-        coord = VecD{0.0, 0.0, 0.5};
+        coord = {0.0, 0.0, 0.5};
     } else if (name == "pzd") {
         orb = ORBITAL::Pzd;
-        coord = VecD{0.0, 0.0, -0.5};
+        coord = {0.0, 0.0, -0.5};
     } else {
         std::cout<<"Orbital: "<<name<<", is not defined!\n";
         exit(1);
@@ -306,7 +306,9 @@ void setpulse(const Parameters& para, Pulse& pulse) {
     auto numSteps = para.mapi.at("numSteps");
     auto width = para.mapd.at("width");
     auto fluence = para.mapd.at("fluence");
-    auto pol = para.mapvecd.at("polarization");
+    auto polv = para.mapvecd.at("polarization");
+    assert_msg(polv.size() == 3, "polarization should be a 3-vec!");
+    Vec3d pol{polv[0], polv[1], polv[2]};
     pulse = Pulse(freq, width, dt, numSteps);
     pulse.setFuncPara();
     pulse.setPol(pol);

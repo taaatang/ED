@@ -35,11 +35,13 @@ int main( ) {
 
     // MPI_Barrier(MPI_COMM_WORLD);
     // conductivity
+    timer.tik();
     Current J(latt.get(), Bi.get());
     J.pushLinks(HubbardLink());
     auto ds = std::vector<std::string> {"x", "y", "z"};
     for (auto d : ds) {
         J.setDirection(d);
+        // J.print();
         J.construct();
         SPECTRASolver<cdouble> spectra(H.get(), w0[0], &J, gstate, 400);
         spectra.compute();
@@ -47,66 +49,71 @@ int main( ) {
             spectra.saveData(path.sigmaDir + "/" + d);
         }
     }
+    timer.tok();
+    if (isMaster()) timer.print("Conductivity");
 
     // Akw
-    // auto occ = Bi->getOcc();
-    // auto ki = Bi->getkIndex();
-    // for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
-    //     for (auto spin : std::vector<SPIN> {SPIN::UP, SPIN::DOWN}) {
-    //         for (auto pm : std::vector<LADDER> {LADDER::PLUS, LADDER::MINUS}) {
-    //             auto occf = occ;
-    //             auto& n = (spin == SPIN::UP) ? occf.at(0) : occf.at(1);
-    //             auto dn = (pm == LADDER::PLUS) ? 1 : -1;
-    //             n += dn;
-    //             setbasis(modelPara, Bf, latt.get(), occf.at(0), occf.at(1), kf, -1);
-    //             setham(modelPara, Hf, latt.get(), Bf.get());
-    //             Bf->gen();
-    //             Hf->construct();
-    //             for (auto& orb : latt->getUnitCell()) {
-    //                 CkOp<dataType> ck(latt.get(), Bi.get(), Bf.get());
-    //                 ck.set(pm, spin, orb);
-    //                 ck.construct();
-    //                 SPECTRASolver<dataType> spectra(Hf.get(), w0[0], &ck, gstate, 400);
-    //                 spectra.compute();
-    //                 if (isMaster()) {
-    //                     std::ostringstream os;
-    //                     os<<"/ki"<<tostr(ki)<<"/kf"<<tostr(kf)<<"/"<<orb.orb<<"_"<<spin<<"_"<<pm;
-    //                     spectra.saveData(path.AkwDir + os.str());
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+    timer.tik();
+    auto occi = Bi->getOcc();
+    auto ki = Bi->getkIndex();
+    for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
+        for (auto spin : std::vector<SPIN> {SPIN::UP, SPIN::DOWN}) {
+            for (auto pm : std::vector<LADDER> {LADDER::PLUS, LADDER::MINUS}) {
+                auto occf = occi;
+                auto& n = (spin == SPIN::UP) ? occf.at(0) : occf.at(1);
+                auto dn = (pm == LADDER::PLUS) ? 1 : -1;
+                n += dn;
+                setbasis(modelPara, Bf, latt.get(), occf.at(0), occf.at(1), kf, -1);
+                setham(modelPara, Hf, latt.get(), Bf.get());
+                Bf->gen();
+                Hf->construct();
+                for (auto& orb : latt->getUnitCell()) {
+                    CkOp<dataType> ck(latt.get(), Bi.get(), Bf.get());
+                    ck.set(pm, spin, orb);
+                    ck.construct();
+                    SPECTRASolver<dataType> spectra(Hf.get(), w0[0], &ck, gstate, 400);
+                    spectra.compute();
+                    if (isMaster()) {
+                        std::ostringstream os;
+                        os<<"/ki"<<tostr(ki)<<"/kf"<<tostr(kf)<<"/"<<orb.orb<<"_"<<spin<<"_"<<pm;
+                        spectra.saveData(path.AkwDir + os.str());
+                    }
+                }
+            }
+        }
+    }
+    timer.tok();
+    if (isMaster()) timer.print("Single Particle Spectra");
 
-    // // time evolution
-    // timer.tik();
-    // setpulse(pulsePara, pulse);
-    // H->setPeierls(&pulse);
-    // H->printPeierls();
-    // H->construct();
-    // timer.tok();
-    // if (isMaster()) {
-    //     timer.print("Set H(t)");
-    //     H->print("H(t) from worker " + tostr(workerID));
-    // }
+    // time evolution
+    timer.tik();
+    setpulse(pulsePara, pulse);
+    H->setPeierls(&pulse);
+    H->printPeierls();
+    H->construct();
+    timer.tok();
+    if (isMaster()) {
+        timer.print("Set H(t)");
+        H->print("H(t) from worker " + tostr(workerID));
+    }
 
-    // int krylovDim = 15;
-    // TimeEvolver<cdouble> Tevol(gstate, H.get(), krylovDim);
+    int krylovDim = 15;
+    TimeEvolver<cdouble> Tevol(gstate, H.get(), krylovDim);
 
-    // Nocc occ(latt.get(), Bi.get()); 
-    // occ.construct();
+    Nocc occ(latt.get(), Bi.get()); 
+    occ.construct();
 
-    // timer.tik();
-    // while (H->next()) {
-    //     Tevol.evolve(pulse.getdt());
-    //     occ.count(Tevol.getVec());
-    // }
-    // timer.tok();
-    // if (isMaster()) timer.print("Timer evolution");
+    timer.tik();
+    while (H->next()) {
+        Tevol.evolve(pulse.getdt());
+        occ.count(Tevol.getVec());
+    }
+    timer.tok();
+    if (isMaster()) timer.print("Timer evolution");
 
-    // if (isMaster()) {
-    //     occ.save(path.pumpDir);
-    // }
+    if (isMaster()) {
+        occ.save(path.pumpDir);
+    }
 
     MPI_Finalize();
     return 0;

@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "Global/globalPara.hpp"
+#include "Geometry/Vec3.hpp"
 #include "Geometry/Geometry.hpp"
 
 template <class T>
@@ -12,7 +13,7 @@ class Link{
 public:
     Link( ) { }
     Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, bool is_Const_ = true, bool is_Ordered_ = false);
-    Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, const std::vector<VecD>& vecs, bool is_Const_ = true, bool is_Ordered_ = false);
+    Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, const std::vector<Vec3d>& vecs, bool is_Const_ = true, bool is_Ordered_ = false);
     ~Link( ) { };
     
     LINK_TYPE getLinkType( ) const { return link_type; }
@@ -21,7 +22,7 @@ public:
     int getmatid( ) const { return matid; }
     int getLinkNum( ) const { return LinkList.size(); }
     int getvecid(int bondid) const { return LinkVecIdList.at(bondid); }
-    VecD getvec(int vecid) const { return LinkVecs.at(vecid); }
+    Vec3d getvec(int vecid) const { return LinkVecs.at(vecid); }
     // rep orbital of the link
     ORBITAL getRepOrb( ) const { return orbList.at(0); }
     std::vector<ORBITAL> getOrbs( ) const { return orbList; }
@@ -51,7 +52,7 @@ public:
     // add one link (contains orbids in the same link)
     void push_back(std::vector<int> orbidList) { LinkList.push_back(orbidList); }
     // add a orb's relative coord to the rep orb
-    Link<T>& addLinkVec(std::vector<double> vec);
+    Link<T>& addLinkVec(Vec3d vec);
     //generate all the links->linkList
     void genLinkMaps(Geometry* pt_lattice);
     void print(bool brief = true, std::ostream& os = std::cout) const;
@@ -66,7 +67,7 @@ private:
     bool is_timeFunc_set{false};
     int timeStep{0};
     std::vector<ORBITAL> orbList;
-    std::vector<VecD> LinkVecs;
+    std::vector<Vec3d> LinkVecs;
     std::vector<VecI> LinkList;
     // LinkVecIdList[i] is the id of LinkVec for i-th bond in LinkList
     VecI LinkVecIdList;
@@ -93,7 +94,7 @@ Link<T>::Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, bool 
 }
 
 template <class T>
-Link<T>::Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, const std::vector<VecD>& vecs, bool is_Const_ , bool is_Ordered_ ) {
+Link<T>::Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, const std::vector<Vec3d>& vecs, bool is_Const_ , bool is_Ordered_ ) {
     link_type = link_type_;
     orbList = orbList_;
     val = val_;
@@ -126,7 +127,7 @@ void Link<T>::setVal( ) {
 }
 
 template <class T>
-Link<T>& Link<T>::addLinkVec(std::vector<double> vec){
+Link<T>& Link<T>::addLinkVec(Vec3d vec){
     assert(vec.size()==3); 
     LinkVecs.push_back(vec); 
     return *this;
@@ -134,18 +135,18 @@ Link<T>& Link<T>::addLinkVec(std::vector<double> vec){
 
 template <class T>
 void Link<T>::genLinkMaps(Geometry* pt_lattice) {
-    VecD coordi(pt_lattice->getDim()),coordf(pt_lattice->getDim()); 
-    for (int orbid = 0; orbid < pt_lattice->getOrbNum(); orbid++){
-        if(pt_lattice->is_Orbital(orbid,getRepOrb())){
-            pt_lattice->getOrbR(orbid,coordi.data());
-            for (int j = 0; j < getLinkVecNum(); j+=getLinkSize()){
+    Vec3d coordi, coordf; 
+    for (int orbid = 0; orbid < pt_lattice->getOrbNum(); ++orbid) {
+        if(pt_lattice->is_Orbital(orbid,getRepOrb())) {
+            coordi = pt_lattice->getOrbR(orbid);
+            for (int j = 0; j < getLinkVecNum(); j += getLinkSize()) {
                 VecI tmp;
                 tmp.push_back(orbid);
                 bool is_bond = true;
-                for (int k = j; k < j+getLinkSize(); k++){
-                    vecAdd(1.0,coordi.data(),1.0,LinkVecs.at(k).data(),coordf.data(),3);
+                for (int k = j; k < j + getLinkSize(); ++k) {
+                    coordf = coordi + LinkVecs.at(k);
                     int orbidf;
-                    if (pt_lattice->coordToOrbid(orbList.at(k-j+1), coordf.data(), orbidf)){
+                    if (pt_lattice->coordToOrbid(orbList.at(k-j+1), coordf, orbidf)){
                         assert(pt_lattice->getOrb(orbidf) == orbList.at(k-j+1));
                         tmp.push_back(orbidf);
                     }else{

@@ -27,8 +27,7 @@ void Current::setDirection(std::string plz) {
     setDirection(direction);
 }
 
-void Current::setDirection(VecD d) {
-    assert_msg(d.size()==3, "direction vector must be a 3-vec!");
+void Current::setDirection(Vec3d d) {
     direction = d;
     myHoppingT.clear();
     for (auto link : this->hoppingT) {
@@ -40,6 +39,12 @@ void Current::setDirection(VecD d) {
             link.setVal(link.getVal() * overlap);
             myHoppingT.push_back(link);
         }
+    }
+}
+
+void Current::print(std::ostream &os) const {
+    for (const auto& link : this->myHoppingT) {
+        link.print(false, os);
     }
 }
 

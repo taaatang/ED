@@ -103,24 +103,6 @@ namespace MKL{
     ***********
 */
 
-// v = a1 * v1 + a2 *v2; for size = 3
-inline void vecAdd(int mul1, const int* input1, int mul2, const int* input2, int* output, int size){
-    for (int i = 0; i < size; ++i){
-        output[i] = mul1 * input1[i] + mul2 * input2[i];
-    }
-}
-inline void vecAdd(double mul1, const double* input1, double mul2, const double* input2, double* output, int size){
-    for (int i = 0; i < size; ++i){
-        output[i] = mul1 * input1[i] + mul2 * input2[i];
-    }
-}
-inline void vecAdd(double mul1, const double* input1, double mul2, const double* input2, double mul3, const double* input3, double* output, int size){
-    for (int i = 0; i < size; ++i){
-        output[i] = mul1 * input1[i] + mul2 * input2[i] + mul3 * input3[i];
-    }
-}
-
-
 template <class T, class U>
 inline void init(T *vec, U size, T val){
     #pragma omp parallel for
@@ -159,7 +141,7 @@ inline void scale(T* x, T a, idx_t size) {
     for (idx_t i = 0; i < size; ++i) x[i] *= a;
 }
 
-inline double dot(VecD v1, VecD v2) {
+inline double dot(const VecD &v1, const VecD &v2) {
     assert_msg(v1.size()==v2.size(),"utils::dot, v1.size() != v2.size().");
     double result = 0.0;
     #pragma omp parallel for reduction(+:result)

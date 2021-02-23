@@ -80,12 +80,15 @@ public:
     ~Current( ) { }
 
     void setDirection(std::string plz);
+
+    void print(std::ostream &os = std::cout) const;
+
     void row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps);
 
 private:
-    void setDirection(VecD d);
+    void setDirection(Vec3d d);
 
-    VecD direction;
+    Vec3d direction;
     std::vector<Link<cdouble>> myHoppingT;
     std::string plz;
 };
@@ -93,7 +96,7 @@ private:
 class Nocc: public OperatorBase<double> {
 public:
     Nocc(Geometry *latt, Basis *Ba);
-    ~Nocc(){}
+    ~Nocc( ) { }
     
     template <typename T>
     friend void save(T *d_pt, int size, std::string filename, bool is_app);
@@ -630,15 +633,15 @@ void RamanOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
 template <class T>
 SSOp<T>::SSOp(Geometry* latt, Basis* Bi, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bi, spmNum, dmNum),\
     r(-1), siteJList(latt->getSiteNum()) {
-    VecD coordi(3), coordr(3), coordf(3);
+    Vec3d coordi, coordr, coordf;
     for (int rIndex = 0; rIndex < latt->getSiteNum(); ++rIndex) {
         siteJList.at(rIndex).resize(latt->getSiteNum());
-        latt->getSiteR(rIndex, coordr.data());
+        coordr = latt->getSiteR(rIndex);
         for (int i = 0; i < latt->getOrbNum(); ++i){
-            latt->getOrbR(i, coordi.data());
-            vecAdd(1.0, coordi.data(), 1.0, coordr.data(), coordf.data(), 3);
+            coordi = latt->getOrbR(i);
+            coordf = coordi + coordr;
             int siteJ;
-            if (latt->coordToOrbid(latt->getOrb(i), coordf.data(), siteJ)) {
+            if (latt->coordToOrbid(latt->getOrb(i), coordf, siteJ)) {
                 siteJList.at(rIndex).at(i) = siteJ;
             } else {
                 std::cout<<"translation position not found for orbid = "<<i<<", transVecid = "<<rIndex<<"\n";
