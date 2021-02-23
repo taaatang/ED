@@ -1,0 +1,10 @@
+eigValNum:i:1 # number of low energy states to solve
+occupation:vecs: # hole distribution. specify orbitals
+all
+sigma:vecs: # conductivity. specify sigma_ij
+xx,yy,zz
+akw:vecs: # single particle spectra function. specify orbitals
+all
+pump:i:0 # 0 -> turn off. otherwise turn on. see time.txt for pump pulse specification
+
+

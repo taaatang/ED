@@ -1,0 +1,2 @@
+rootDir:s:/Volumes/Shared/ProjectData #/Users/tatang/Documents/work/projects/data
+project:s:photodoping/test
