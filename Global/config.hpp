@@ -11,14 +11,12 @@
 
 // std::string configFile = "../Input/config.txt";
 // Parameters para(configFile);
-std::string lattstr, occstr, tpstr;  
 std::string inputDir = "Input";
-std::string rootDir, projectDir;
-std::string basisDir, wavefuncDir, corrDir, SkwDir, AkwDir, sigmaDir, pumpDir;
 
 Parameters pathPara(inputDir, {"path.txt"});
 Parameters modelPara(inputDir, {"lattice.txt", "Hubbard.txt"});
 Parameters pulsePara(inputDir, {"pulse.txt"});
+Parameters measurePara(inputDir, {"measure.txt"});
 
 Path path(&pathPara, &modelPara, &pulsePara);
 
@@ -27,8 +25,6 @@ std::unique_ptr<Geometry> latt;
 std::unique_ptr<Basis> Bi, Bf;
 
 std::unique_ptr<HamiltonianBase<dataType>> H, Hf;
-
-
 
 Pulse pulse;
 
