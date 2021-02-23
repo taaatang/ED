@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <assert.h>
 #include <omp.h>
 // for filesystem. if not c++ 17, use boost library
