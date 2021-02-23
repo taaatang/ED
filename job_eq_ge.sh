@@ -20,7 +20,7 @@ cp Input/path.txt ${inputDir}/path.txt
 cp Input/Hubbard.txt ${inputDir}/Hubbard.txt
 cp Input/lattice.txt ${inputDir}/lattice.txt
 cp Input/pulse.txt ${inputDir}/pulse.txt
-cp Input/measure.txt $inputDir}/measure.txt
+cp Input/measure.txt ${inputDir}/measure.txt
 
 cp ${script} ${appDir}/${script}
 
