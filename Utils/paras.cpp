@@ -48,7 +48,10 @@ LATTICE Parameters::getlatt() const {
 
 Parameters::Parameters(std::string inputDir, std::vector<std::string> files) {
     for(auto const& file:files){
-        if(!read(inputDir+"/"+file)){std::cout<<"Parameters read err.\n";exit(1);}
+        if(!read(inputDir+"/"+file)) {
+            std::cout<<"Parameters read err.\n";
+            exit(1);
+        }
     }
 }
 
@@ -96,32 +99,42 @@ bool Parameters::read(const std::string& filename){
             std::istringstream ins(line);
             std::string parsed;
             std::vector<std::string> vals;
-            while(std::getline(ins,parsed,':')){
+            while(std::getline(ins,parsed,':')) {
                 vals.push_back(parsed);
             }
-            if(vals.size()==3){
+            if(vals.size()==3) {
                 std::string key = vals[0];
                 std::string type = vals[1];
                 std::istringstream ss(vals[2]);
-                if(type=="i"){int val;ss>>val;mapi[key]=val;}
-                else if(type=="d"){double val;ss>>val;mapd[key]=val;}
-                else if(type=="s"){std::string val;ss>>val;maps[key]=val;}
-            }else if(vals.size()==2){
+                if (type == "i") {
+                    int val;
+                    ss>>val;
+                    mapi[key]=val;
+                } else if (type == "d") {
+                    double val;
+                    ss>>val;
+                    mapd[key]=val;
+                } else if (type == "s") {
+                    std::string val;
+                    ss>>val;
+                    maps[key]=val;
+                }
+            } else if (vals.size() == 2) {
                 std::string key = vals[0];
                 std::string type = vals[1];
                 std::string nextLine;
-                if(type=="vecs"){
-                    if(std::getline(infile,nextLine)){
+                if (type == "vecs") {
+                    if (std::getline(infile,nextLine)) {
                         auto val = readVec<std::string>(nextLine);
                         mapvecs[key] = val;
                     }
-                }else if(type=="vecd"){
-                    if(std::getline(infile,nextLine)){
+                } else if (type == "vecd") {
+                    if (std::getline(infile,nextLine)) {
                         auto val = readVec<double>(nextLine);
                         mapvecd[key] = val;
                     }
-                }else if(type=="arrd"){
-                    while(std::getline(infile,nextLine)){
+                } else if (type == "arrd") {
+                    while (std::getline(infile,nextLine)) {
                         if(nextLine=="")break;
                         auto val = readVec<double>(nextLine);
                         maparrd[key].push_back(val);
@@ -131,7 +144,7 @@ bool Parameters::read(const std::string& filename){
         }
         infile.close();
         return true;
-    }else{
+    } else {
         std::cout<<filename<<" failed to open!\n";
         return false;
     }
@@ -314,4 +327,8 @@ void setpulse(const Parameters& para, Pulse& pulse) {
     pulse.setPol(pol);
     pulse.setFluence(fluence);
     pulse.setPhase(phase);
+}
+
+bool opt(const Parameters &para, std::string key) {
+    return para.mapi.at(key);
 }

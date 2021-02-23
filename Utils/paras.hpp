@@ -37,6 +37,7 @@ class Parameters{
     friend void setham(const Parameters&, std::unique_ptr<HamiltonianBase<dataType>>&, Geometry*, Basis*);
     friend void setmeasure(const Parameters&);
     friend void setpulse(const Parameters&, Pulse&);
+    friend bool opt(const Parameters&, std::string key);
 public:
     Parameters(){}
     Parameters(std::string configFile){config(configFile);}
@@ -72,6 +73,8 @@ void setmeasure(const Parameters&);
 void setpulse(const Parameters&, Pulse&);
 
 void setPeierls(OperatorBase<dataType>& H, const std::vector<double>& pol);
+
+bool opt(const Parameters &para, std::string key);
 
 inline void removeComment(std::string& s, char delim){
     std::istringstream ins (s);
