@@ -16,9 +16,9 @@ input=pulse.txt
 
 for i in $(seq 0 0.1 5)
     do
-        for j in $(seq 0 0.1 5)
+        for j in $(seq 0 0.2 2)
             do
-                appDir=${JobDir}/w_${i}
+                appDir=${JobDir}/w_${i}/flu_${j}
                 mkdir -p ${appDir}
                 inputDir=${appDir}/Input
                 mkdir -p ${inputDir}

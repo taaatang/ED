@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=2x2eq
+#SBATCH --job-name=2x2_inputw_inputflu
 #SBATCH --partition=iric,normal
 #SBATCH --time=0-01:00:00
 ##SBATCH --nodes=1
