@@ -76,7 +76,7 @@ void setPeierls(OperatorBase<dataType>& H, const std::vector<double>& pol);
 
 bool opt(const Parameters &para, std::string key);
 
-inline void removeComment(std::string& s, char delim){
+inline void removeComment(std::string& s, char delim = '#'){
     std::istringstream ins (s);
     std::string tmp;
     std::getline(ins,tmp,delim);
@@ -85,6 +85,7 @@ inline void removeComment(std::string& s, char delim){
 
 template<typename T>
 std::vector<T> readVec(std::string& s, char sep=','){
+    removeComment(s);
     std::istringstream ins(s);
     std::vector<T> result;
     std::string s_val;
