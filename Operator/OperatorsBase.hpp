@@ -61,33 +61,35 @@ template<typename T>
 OperatorBase<T>& OperatorBase<T>::pushLink(Link<T> link, int matID){
     if(matID==0)assert(link.isConst());
     else assert(!link.isConst());
-    link.setid(linkCount, matID);
     link.genLinkMaps(latt);
-    switch (link.getLinkType()) {
-        case LINK_TYPE::SUPER_EXCHANGE_J:
-            superExchangeJ.push_back(link);
-            break;
-        case LINK_TYPE::CHIRAL_K:
-            chiralTermK.push_back(link);
-            break;
-        case LINK_TYPE::HOPPING_T:
-            hoppingT.push_back(link);
-            break;
-        case LINK_TYPE::HUBBARD_U:
-            interBandU.push_back(link);
-            break;
-        case LINK_TYPE::EXCHANGE_J:
-            exchangeJ.push_back(link);
-            break;
-        case LINK_TYPE::PAIR_HOPPING_J:
-            pairHoppingJ.push_back(link);
-            break;
-        default:
-            std::cout<<"link_type not defined!\n";
-            exit(1);
-            break;
+    if (link.getLinkNum() > 0) {
+        link.setid(linkCount, matID);
+        switch (link.getLinkType()) {
+            case LINK_TYPE::SUPER_EXCHANGE_J:
+                superExchangeJ.push_back(link);
+                break;
+            case LINK_TYPE::CHIRAL_K:
+                chiralTermK.push_back(link);
+                break;
+            case LINK_TYPE::HOPPING_T:
+                hoppingT.push_back(link);
+                break;
+            case LINK_TYPE::HUBBARD_U:
+                interBandU.push_back(link);
+                break;
+            case LINK_TYPE::EXCHANGE_J:
+                exchangeJ.push_back(link);
+                break;
+            case LINK_TYPE::PAIR_HOPPING_J:
+                pairHoppingJ.push_back(link);
+                break;
+            default:
+                std::cout<<"link_type not defined!\n";
+                exit(1);
+                break;
+        }
+        linkCount++;
     }
-    linkCount++;
     return *this;
     // if(matID==0)assert(link.isConst());
     // else assert(!link.isConst());
@@ -108,11 +110,11 @@ OperatorBase<T>& OperatorBase<T>::pushLinks(std::vector<Link<T>> links){
 
 template<typename T>
 void OperatorBase<T>::printLinks( ) const {
-    for (const auto& link:Links) {
+    for (const auto& link:hoppingT) {
         link.print();
     }
-    for (const auto& link:NCLinks) {
-        link.print();
-    }
+    // for (const auto& link:NCLinks) {
+    //     link.print();
+    // }
 }
 #endif // OperatorsBase_hpp
