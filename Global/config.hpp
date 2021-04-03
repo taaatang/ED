@@ -14,7 +14,7 @@
 std::string inputDir = "Input";
 
 Parameters pathPara(inputDir, {"path.txt"});
-Parameters modelPara(inputDir, {"lattice.txt", "Hubbard.txt"});
+Parameters modelPara(inputDir, {"lattice.txt", "hamiltonian.txt"});
 Parameters pulsePara(inputDir, {"pulse.txt"});
 Parameters measurePara(inputDir, {"measure.txt"});
 
