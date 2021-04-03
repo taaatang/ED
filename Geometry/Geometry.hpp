@@ -81,6 +81,7 @@ public:
     // return the orbital at position id
     ORBITAL getOrb(int id) const { return orbs.at(id).orb; }
 
+    PointGroup getPG( ) const { return PG; }
     // return the siteid unitcell coord
     Vec3d getSiteR(int siteid) const { return Lattice.at(siteid).coord; }
     // return the id orbital coord
