@@ -81,6 +81,8 @@ std::vector<Link<dataType>> HubbardMultiBandLink( );
 
 std::vector<Link<dataType>> HubbardLink( );
 
+std::vector<Link<dataType>> RamanChannel(std::string channel, double J1, double J2, const Geometry& latt);
+
 /********
  * LINK *
  ********/
