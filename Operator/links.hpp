@@ -73,13 +73,13 @@ private:
     VecI LinkVecIdList;
 };
 
-Link<dataType> HeisenbergLink(std::string name);
+Link<dataType> HeisenbergLink(std::string name, const Geometry& latt);
 
-std::vector<Link<dataType>> HubbardSingleBandLink( );
+std::vector<Link<dataType>> HubbardSingleBandLink(const Geometry& latt);
 
-std::vector<Link<dataType>> HubbardMultiBandLink( );
+std::vector<Link<dataType>> HubbardMultiBandLink(const Geometry& latt);
 
-std::vector<Link<dataType>> HubbardLink( );
+std::vector<Link<dataType>> HubbardLink(const Geometry& latt);
 
 std::vector<Link<dataType>> RamanChannel(std::string channel, double J1, double J2, const Geometry& latt);
 

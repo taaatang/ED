@@ -232,7 +232,7 @@ void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& 
         auto unitcell = latt->getUnitCell();
         if (unitcell.size() == 1) {/* single band */
             H->pushU({ORBITAL::SINGLE}, para.mapd.at("Uss"));
-            auto links = HubbardSingleBandLink();
+            auto links = HubbardSingleBandLink(*latt);
             auto tnn = para.mapd.at("tnn");
             auto tnnn = para.mapd.at("tnnn");
             if (std::abs(tnn) > INFINITESIMAL) {/* nearest neighbor hopping */
@@ -256,7 +256,7 @@ void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& 
                 H->pushV({orb.orb}, v);
                 H->pushU({orb.orb}, u);
             }
-            auto links = HubbardMultiBandLink();
+            auto links = HubbardMultiBandLink(*latt);
             for (auto& link : links) {
                 auto orbs = link.getOrbs();
                 bool validLink = true;
@@ -302,25 +302,24 @@ void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& 
     } else if (model == LATTICE_MODEL::HEISENBERG) {
         auto J1 = para.mapd.at("J1");
         if (std::abs(J1) > INFINITESIMAL) {
-            auto link = HeisenbergLink("J1");
+            auto link = HeisenbergLink("J1", *latt);
             link.setVal(link.getVal() * J1);
             H->pushLink(link, 0);
         }
         auto J2 = para.mapd.at("J2");
         if (std::abs(J2) > INFINITESIMAL) {
-            auto link = HeisenbergLink("J2");
+            auto link = HeisenbergLink("J2", *latt);
             link.setVal(link.getVal() * J2);
             H->pushLink(link, 0);
         }
         auto Jk = para.mapd.at("Jk");
         if (std::abs(Jk) > INFINITESIMAL) {
-            auto link = HeisenbergLink("Jk");
+            auto link = HeisenbergLink("Jk", *latt);
             link.setVal(link.getVal() * Jk);
             H->pushLink(link, 0);
         }
 
     }
-
     // std::cout<<"hamiltonian set!\n";
 }
 
