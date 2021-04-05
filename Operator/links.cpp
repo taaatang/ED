@@ -72,8 +72,16 @@ Link<dataType> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SI
 Link<dataType> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {{1.0,1.0,0.0}, {-1.0,2.0,0.0}, {2.0,-1.0,0.0}}, true);
 Link<dataType> JkLink(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {{0.0,1.0,0.0}, {1.0,0.0,0.0}, {1.0,0.0,0.0}, {1.0,-1.0,0.0}},  true);
 
-std::vector<Link<dataType>> HeisenbergLink( ) {
-    return std::vector<Link<dataType>>{J1Link, J2Link, JkLink};
+Link<dataType> HeisenbergLink(std::string name) {
+    if (name == "J1") {
+        return J1Link;
+    } else if (name == "J2") {
+        return J2Link;
+    } else if (name == "Jk") {
+        return JkLink;
+    } else {
+        assert_msg(false, name + " is not defined for HeisenbergLink.");
+    }
 }
 
 std::vector<Link<dataType>> HubbardSingleBandLink( ) {
@@ -141,9 +149,3 @@ std::vector<Link<dataType>> RamanChannel(std::string channel, double J1, double 
             break; 
     }
 }
-
-// E2_2
-Link<dataType> E22Link_J1_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0/4.0*std::sqrt(3.0), {{0.0,1.0,0.0}});
-Link<dataType> E22Link_J1_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -1.0/4.0*std::sqrt(3.0), {{-1.0,1.0,0.0}});
-Link<dataType> E22Link_J2_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0/4.0*3.0*std::sqrt(3.0), {{1.0,1.0,0.0}});
-Link<dataType> E22Link_J2_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -1.0/4.0*3.0*std::sqrt(3.0), {{2.0,-1.0,0.0}});

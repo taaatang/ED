@@ -73,7 +73,7 @@ private:
     VecI LinkVecIdList;
 };
 
-std::vector<Link<dataType>> HeisenbergLink( );
+Link<dataType> HeisenbergLink(std::string name);
 
 std::vector<Link<dataType>> HubbardSingleBandLink( );
 

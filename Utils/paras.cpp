@@ -300,7 +300,24 @@ void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& 
             }
         }
     } else if (model == LATTICE_MODEL::HEISENBERG) {
-        auto links = HeisenbergLink();
+        auto J1 = para.mapd.at("J1");
+        if (std::abs(J1) > INFINITESIMAL) {
+            auto link = HeisenbergLink("J1");
+            link.setVal(link.getVal() * J1);
+            H->pushLink(link, 0);
+        }
+        auto J2 = para.mapd.at("J2");
+        if (std::abs(J2) > INFINITESIMAL) {
+            auto link = HeisenbergLink("J2");
+            link.setVal(link.getVal() * J2);
+            H->pushLink(link, 0);
+        }
+        auto Jk = para.mapd.at("Jk");
+        if (std::abs(Jk) > INFINITESIMAL) {
+            auto link = HeisenbergLink("Jk");
+            link.setVal(link.getVal() * Jk);
+            H->pushLink(link, 0);
+        }
 
     }
 
