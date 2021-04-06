@@ -26,7 +26,7 @@ public:
     
     OperatorBase& pushLink(Link<T> link, int matidx);
     OperatorBase& pushLinks(std::vector<Link<T>> links);
-    void printLinks() const;
+    void printLinks(bool brief = true) const;
 
     // Add onsite energy V
     virtual void pushV(std::vector<ORBITAL> orbList, double val) { }
@@ -109,12 +109,15 @@ OperatorBase<T>& OperatorBase<T>::pushLinks(std::vector<Link<T>> links){
 }
 
 template<typename T>
-void OperatorBase<T>::printLinks( ) const {
+void OperatorBase<T>::printLinks(bool brief) const {
     for (const auto& link:hoppingT) {
-        link.print();
+        link.print(brief);
     }
-    // for (const auto& link:NCLinks) {
-    //     link.print();
-    // }
+    for (const auto& link:superExchangeJ) {
+        link.print(brief);
+    }
+    for (const auto& link:chiralTermK) {
+        link.print(brief);
+    }
 }
 #endif // OperatorsBase_hpp
