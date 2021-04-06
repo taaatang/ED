@@ -281,6 +281,16 @@ void Basis::gen(std::string basisfile, std::string normfile, int workerID, int w
     assert(normList.size()==indexList.size());
 }
 
+void Basis::gen(bool saved, std::string basisDir) {
+    if (saved) {
+        gen(basisDir + "/basis", basisDir + "/norm");
+    } else {
+        gen();
+    }
+}
+
+
+
 void Basis::print(std::ostream& os) const {
     os<<"Basis Info:\n"<<model<<"\nkid:"<<kIndex<<". pid:"<<PGRepIndex<<"\n";
     os<<"tot/sub/loc dim:"<<totDim<<" / "<<subDim<<" / "<<locDim<<"\n";

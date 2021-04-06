@@ -77,6 +77,8 @@ public:
     void gen(std::string basisfile, std::string normfile);
     // distributed basis
     void gen(std::string basisfile, std::string normfile, int workerID, int workerNum);
+
+    void gen(bool saved, std::string basisDir);
     
     int getSiteDim() const {return siteDim;}
     int getOrbNum() const {return N;}
