@@ -27,8 +27,8 @@ set(MKLROOT $ENV{MKLROOT})
 set(MKLINC ${MKLROOT}/include)
 
 if(HOST STREQUAL "mac")
-    set(MPIINC /usr/local/Cellar/open-mpi/4.0.5/include)
-    set(MPILIB /usr/local/Cellar/open-mpi/4.0.5/lib)
+    set(MPIINC /usr/local/Cellar/open-mpi/4.1.0/include)
+    set(MPILIB /usr/local/Cellar/open-mpi/4.1.0/lib)
     set(MPI mpi)
     set(MKLLIB ${MKLROOT}/lib)
 else()
@@ -91,23 +91,11 @@ set(TIME_DEP ${GROUND_STATE_DEP} ${TIME} ${PULSE})
 # Excutables
 set(EXE_SRC ExcutableSRC)
 
-add_executable(main.out ${EXE_SRC}/main.cpp ${TIME_DEP})
-target_link_libraries(main.out ${LINKS} gsl gslcblas)
+add_executable(hubbard.out ${EXE_SRC}/hubbard.cpp ${TIME_DEP})
+target_link_libraries(hubbard.out ${LINKS} gsl gslcblas)
 
-add_executable(genBasis.out ${EXE_SRC}/genBasisMain.cpp ${BASIS_DEP})
-target_link_libraries(genBasis.out ${BOOST})
-
-add_executable(GroundState.out ${EXE_SRC}/GroundStateMain.cpp ${GROUND_STATE_DEP})
-target_link_libraries(GroundState.out ${LINKS})
-
-add_executable(Spectra.out ${EXE_SRC}/SpectraMain.cpp ${SPECTRA_DEP})
-target_link_libraries(Spectra.out ${LINKS})
-
-add_executable(HubbardSpec.out ${EXE_SRC}/HubbardSpecMain.cpp ${SPECTRA_DEP})
-target_link_libraries(HubbardSpec.out ${LINKS})
-
-add_executable(HubbardCond.out ${EXE_SRC}/HubbardCondMain.cpp ${SPECTRA_DEP})
-target_link_libraries(HubbardCond.out ${LINKS})
+add_executable(heisenberg.out ${EXE_SRC}/heisenberg.cpp ${TIME_DEP})
+target_link_libraries(heisenberg.out ${LINKS} gsl gslcblas)
 
 # Test
 set(TEST_SRC Test)
