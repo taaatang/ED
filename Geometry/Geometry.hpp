@@ -66,6 +66,7 @@ public:
     Geometry& addOrb(Orbital orb);
     Geometry& addBoundary(Orbital orb);
 
+    LATTICE getType() const { return type; }
     // lattice dimension. default is 3
     int getDim( ) const { return dim; }
 
@@ -152,6 +153,7 @@ protected:
     /*
         Instantiate an object describing the real/k space geometry of a Lattice
     */
+    LATTICE type{LATTICE::SQUARE};
     std::string name;
     int dim{3};
     int Nsite; // Number of sites

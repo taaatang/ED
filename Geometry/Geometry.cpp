@@ -597,6 +597,7 @@ void Geometry::print() const {
 
 //constructor with T x D6 Symm
 TriAngLattice::TriAngLattice(int numSites, bool PBC){
+    type = LATTICE::TRIANGULAR;
     PG = PointGroup::D6;
     is_PBC = PBC;
     Nsite = numSites;
@@ -687,7 +688,8 @@ TriAngLattice::TriAngLattice(int numSites, bool PBC){
 };
 
 //constructor with T without D6 (possible C6?)
-TriAngLattice::TriAngLattice(int N1, int N2, bool PBC){
+TriAngLattice::TriAngLattice(int N1, int N2, bool PBC) {
+    type = LATTICE::TRIANGULAR;
     // default PBC condition
     is_PBC = PBC;
     Nsite = N1 * N2;
@@ -749,6 +751,7 @@ TriAngLattice::TriAngLattice(int N1, int N2, bool PBC){
     ******************
 */
 SquareLattice::SquareLattice(int N1, int N2, bool PBC, bool TBC, double phase_x, double phase_y){
+    type = LATTICE::SQUARE;
     if(N1==N2) {
         PG = PointGroup::D4;
         center = {double(N1-1)/2.0, double(N2-1)/2.0, 0.0};
@@ -805,6 +808,7 @@ SquareLattice::SquareLattice(int N1, int N2, bool PBC, bool TBC, double phase_x,
 }
 
 SquareLattice::SquareLattice(int N, bool PBC){
+    type = LATTICE::SQUARE;
     PG = PointGroup::D4;
     is_PBC = PBC;
     Nsite = N;
