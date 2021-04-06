@@ -49,6 +49,8 @@ public:
 
     PARPACKSolver<T> solver;
 
+    void setNev(int nev);
+
 private:
     VecD V, U;
 };
@@ -196,6 +198,11 @@ template<typename T>
 HamiltonianBase<T>::HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_, int dmNum_):\
 OperatorBase<T>(latt, Bi, Bf, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
     solver = PARPACKSolver<T>(this, 1);
+}
+
+template<typename T>
+void HamiltonianBase<T>::setNev(int nev) {
+    solver = PARPACKSolver<T>(this, nev);
 }
 
 template <typename T>
@@ -448,36 +455,28 @@ void Hamiltonian<M, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             std::vector<idx_t> finalIndList;
             std::vector<cdouble> factorList;
             this->Bf->genSymm(rowID, finalIndList, factorList);
-            for (int i = 0; i < (int)finalIndList.size(); ++i){
-                for (auto linkit = this->Links.begin(); linkit != this->Links.end(); linkit++){
-                    int matID = (*linkit).getmatid();
-                    cdouble factor = factorList.at(i) * (*linkit).getVal();
-                    switch((*linkit).getLinkType()){
-                        case LINK_TYPE::SUPER_EXCHANGE_J:{
-                            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                                int siteID = (*bondit).at(0);
-                                int siteIDp = (*bondit).at(1);
-                                // sz.siteID * sz.siteIDp
-                                this->szsz(siteID, siteIDp, factor, finalIndList[i], &rowMaps[matID]);
-                                // 1/2 * sm.siteID * sp.siteIDp
-                                this->spsm(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
-                                // 1/2 * sp.siteID * sm.siteIDp
-                                this->smsp(siteID, siteIDp, factor/2.0, finalIndList[i], &rowMaps[matID]);
-                            }
-                            break;
-                        }
-                        case LINK_TYPE::CHIRAL_K:{
-                            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                                int siteI = (*bondit).at(0);
-                                int siteJ = (*bondit).at(1);
-                                int siteK = (*bondit).at(2);
-                                this->chiral(siteI, siteJ, siteK, factor, finalIndList[i], &rowMaps[matID]);
-                            }
-                            break;
-                        }
-                        default: break;
+            for (int i = 0; i < (int)finalIndList.size(); ++i) {
+                auto repI = finalIndList[i];
+                for (const auto &link:this->superExchangeJ) {
+                    int matID = link.getmatid();
+                    auto factor = factorList.at(i) * link.getVal();
+                    for (auto bond : link.bond()) {
+                        int siteI = bond.at(0);
+                        int siteJ = bond.at(1);
+                        this->szsz(siteI, siteJ, factor, repI, &rowMaps[matID]);
+                        this->spsm(siteI, siteJ, factor/2.0, repI, &rowMaps[matID]);
+                        this->smsp(siteI, siteJ, factor/2.0, repI, &rowMaps[matID]);
                     }
-                    
+                }
+                for (const auto &link:this->chiralTermK) {
+                    int matID = link.getmatid();
+                    auto factor = factorList.at(i) * link.getVal();
+                    for (const auto& bond : link.bond()) {
+                        int siteI = bond.at(0);
+                        int siteJ = bond.at(1);
+                        int siteK = bond.at(2);
+                        this->chiral(siteI, siteJ, siteK, factor, repI, &rowMaps[matID]);
+                    }
                 }
             }
         } else {
@@ -661,7 +660,6 @@ template <class T>
 void SSOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     //binary rep
     if (this->Bf->getSiteDim()==2) {
-        int kIndex = this->Bf->getkIndex();
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
         this->Bf->genSymm(rowID, finalIndList, factorList);
@@ -690,7 +688,6 @@ void SSOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
             }
         }
     } else {
-        int kIndex = this->Bf->getkIndex();
         VecI initVec(this->latt->getOrbNum());
         std::vector<idx_t> finalIndList;
         std::vector<cdouble> factorList;
@@ -708,7 +705,7 @@ void SSOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
                     // 1/2 * sp.siteI * sm.siteJ
                     this->smsp(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
                 } else {
-                    for (int rIndex = 0; rIndex < this->getSiteNum(); ++rIndex) {
+                    for (int rIndex = 0; rIndex < this->latt->getSiteNum(); ++rIndex) {
                         int siteJ = siteJList[rIndex][siteI];
                         // sz.siteI * sz.siteJ
                         this->szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMaps[0]);
@@ -732,7 +729,7 @@ void SSOp<T>::project(double s, T* vec){
     double smax = double(this->latt->getOrbNum()) / 2.0 + 0.1;
     for(double si = smin; si < smax; si += 1.0) {
         if (std::abs(si-s) > 0.1) {
-            MxV(vec, tmp.data());
+            this->MxV(vec, tmp.data());
             double stoti = si * (si+1.0);
             #pragma omp parallel for
             for(idx_t i =0; i < this->getnloc(); ++i) {
