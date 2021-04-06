@@ -323,28 +323,10 @@ void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& 
     // std::cout<<"hamiltonian set!\n";
 }
 
-void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<HamiltonianBase<dataType>>& H, int workerID) {
+void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<HamiltonianBase<dataType>>& H) {
     setlatt(para, latt);
     setbasis(para, B, latt.get());
     setham(para, H, latt.get(), B.get());
-
-    Timer timer;
-    timer.tik();
-    B->gen();
-    timer.tok();
-    if (workerID == MPI_MASTER) {
-        timer.print("Basis construction");
-        B->print();
-    }
-
-    timer.tik();
-    H->construct();
-    timer.tok();
-    if (workerID == MPI_MASTER) {
-        timer.print("Hamiltonian construction");
-        H->print("Hamiltonian from worker " + tostr(workerID));
-    }
-    
 }
 
 void setpulse(const Parameters& para, Pulse& pulse) {

@@ -49,6 +49,7 @@ public:
     void print(std::string filename) const;
     void print(std::ostream& os) const;
 
+    double getd(std::string key) const { return mapd.at(key); }
     LATTICE getlatt() const;
     LATTICE_MODEL getmodel() const;
 
@@ -67,7 +68,7 @@ void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int nuf, int ndf, int kf, int pf);
 void setham(const Parameters&, std::unique_ptr<HamiltonianBase<dataType>>& H, Geometry*, Basis*);
-void setBasics(const Parameters&, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<HamiltonianBase<dataType>>& H, int workerID = -1);
+void setBasics(const Parameters&, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<HamiltonianBase<dataType>>& H);
 
 void setmeasure(const Parameters&);
 void setpulse(const Parameters&, Pulse&);
