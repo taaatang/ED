@@ -73,8 +73,8 @@ Link<dataType> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SI
 Link<dataType> JkLink(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {{0.0,1.0,0.0}, {1.0,0.0,0.0}, {1.0,0.0,0.0}, {1.0,-1.0,0.0}},  true);
 
 Link<dataType> HeisenbergLink(std::string name, const Geometry& latt) {
-    switch (latt.getPG()) {
-        case PointGroup::D6:
+    switch (latt.getType()) {
+        case LATTICE::TRIANGULAR:
             if (name == "J1") {
                 return J1Link;
             } else if (name == "J2") {
@@ -82,30 +82,30 @@ Link<dataType> HeisenbergLink(std::string name, const Geometry& latt) {
             } else if (name == "Jk") {
                 return JkLink;
             } else {
-                assert_msg(false, name + " is not defined for HeisenbergLink.");
+                exit_msg(name + " is not defined for HeisenbergLink.");
             }
             break;
         default:
-           assert_msg(false, "point group not defined for HeisenbergLink."); 
+           exit_msg("lattice type not defined for HeisenbergLink."); 
            break;
     }
 }
 
 std::vector<Link<dataType>> HubbardSingleBandLink(const Geometry& latt) {
-    switch (latt.getPG()) {
-        case PointGroup::D4:
+    switch (latt.getType()) {
+        case LATTICE::SQUARE:
             return std::vector<Link<dataType>>{tnn_px, tnn_py, tnnn_pxpy, tnnn_pxny};
             break;
         default:
-            assert_msg(false,"point group not defined for HeisenbergLink.");
+            exit_msg("lattice type not defined for HubbardLink.");
             break;
     }
     
 }
 
 std::vector<Link<dataType>> HubbardMultiBandLink(const Geometry& latt) {
-    switch (latt.getPG()) {
-        case PointGroup::D4: {
+    switch (latt.getType()) {
+        case LATTICE::SQUARE: {
             std::vector<Link<dataType>> links_3band{tdpx, tdpy, tpxd, tpyd, tpxpy, tpypx, tpxpyp, tpypxp, ndnpx, ndnpy};
             std::vector<Link<dataType>> links_pz{tpxpz, tpzpx, tpypz, tpzpy, tpxpzp, tpzpxp, tpypzp, tpzpyp, ndnpzu, ndnpzd};
             std::vector<Link<dataType>> links_dz2{tdzpx, tdzpy, tpxdz, tpydz, tdzpzu, tdzpzd, ndndz, ex_ddz, ph_ddz};
@@ -117,7 +117,7 @@ std::vector<Link<dataType>> HubbardMultiBandLink(const Geometry& latt) {
             break;
         }
         default:
-            assert_msg(false,"point group not defined for HeisenbergLink.");
+            exit_msg("lattice type not defined for HubbardLink.");
             break;
 
     }
