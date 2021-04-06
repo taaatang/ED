@@ -712,7 +712,6 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
 template <class T>
 T SparseMatrix<T>::vMv(T *vecL, T *vecR){
     std::vector<T> vecTmp(BaseMatrix<T>::nlocmax);
-    cdouble val=0.0;
     MxV(vecR, vecTmp.data());
     return mpiDot<T>(vecL, vecTmp.data(), BaseMatrix<T>::nloc);
 }
