@@ -16,6 +16,8 @@ public:
 
     void print(std::ostream& os = std::cout) const;
 
+    std::string getBasisDir(int kidx, int pidx = -1) const;
+
     std::string sep{"/"};
 
     std::string rootDir;
@@ -42,6 +44,9 @@ public:
     std::string pumpFile;
 
     // Heisenberg files
+    std::string SiSjFile;
+    std::string SkwDir;
+    std::string RamanDir;
 };
 
 Path::Path(const Parameters* path, const Parameters* model, const Parameters* pulse) {
@@ -50,7 +55,10 @@ Path::Path(const Parameters* path, const Parameters* model, const Parameters* pu
 
     lattice = model->maps.at("lattice type") + sep + model->maps.at("boundary condition");
     std::string lattSize;
-    lattSize = tostr(model->mapi.at("lx")) + "x" + tostr(model->mapi.at("ly"));
+    int lx = model->mapi.at("lx");
+    int ly = model->mapi.at("ly");
+    lattSize = tostr(lx);
+    if (ly > 0) lattSize += "x" + tostr(ly);
     lattice += sep + lattSize;
 
     particleNum = tostr(model->mapi.at("nu")) + "u" + tostr(model->mapi.at("nd")) + "d";
@@ -95,11 +103,25 @@ Path::Path(const Parameters* path, const Parameters* model, const Parameters* pu
         case LATTICE_MODEL::tJ:
             break;
         case LATTICE_MODEL::HEISENBERG:
+            SiSjFile = parameterDir + sep + "sisj";
+            SkwDir = parameterDir + sep + "skw";
+            RamanDir = parameterDir + sep + "raman";
             break;
         default:
             break;
     }
     
+}
+
+std::string Path::getBasisDir(int kidx, int pidx) const {
+    std::string lattSymm_ = "k" + tostr(kidx);
+    if (pidx >= 0) {
+        lattSymm_ += "p" + tostr(pidx);
+    }
+
+    std::string symmLabel_ = particleNum + sep + lattSymm_; 
+    std::string bDir = rootDir + sep + project + sep + lattice + sep + "Basis" + sep + symmLabel_;
+    return bDir;
 }
 
 void Path::make( ) const { 
