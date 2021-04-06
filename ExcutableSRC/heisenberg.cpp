@@ -25,26 +25,44 @@ int main( ) {
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // ground state
-    setBasics(modelPara, latt, Bi, H);
-    timer.tik();
-    Bi->gen(opt(modelPara, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
-    if (isMaster) Bi->print();
-    H->construct();
-    timer.tok();
-    if (isMaster) {
-        timer.print("Hamiltonian construction");
-        H->printLinks();
-        H->print("Hamiltonian from master worker");
+    // compute and save basis with translation symm
+    if (measure("basis") && !modelPara.geti("basis")) {
+        setlatt(modelPara, latt);
+        int kidx = workerID;
+        if (kidx < latt->getSiteNum()) {
+            int nu = modelPara.geti("nu");
+            int nd = modelPara.geti("nd");
+            Basis b(modelPara.getmodel(), latt.get(), {nu, nd}, kidx);
+            b.gen();
+            auto dir = path.getBasisDir(kidx);
+            mkdir_fs(dir);
+            b.saveBasis(dir + "/basis", dir + "/norm");
+        }
     }
-    // cout<<setprecision(10);
-    H->setNev(5);
-    H->solver.diag();
-    cdouble* w0 = H->solver.getEigval();
-    cdouble* gstate = H->solver.getEigvec();
 
+    // ground state
+    cdouble* w0 = nullptr;
+    cdouble* gstate = nullptr;
+    if (measure("ground state")) {
+        timer.tik();
+        setBasics(modelPara, latt, Bi, H);
+        Bi->gen(opt(modelPara, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
+        if (isMaster) Bi->print();
+        H->construct();
+        timer.tok();
+        if (isMaster) {
+            timer.print("Hamiltonian construction");
+            H->printLinks();
+            H->print("Hamiltonian from master worker");
+        }
+        // cout<<setprecision(10);
+        H->setNev(5);
+        H->solver.diag();
+        w0 = H->solver.getEigval();
+        gstate = H->solver.getEigvec();
+    }
     // spin spin correlation
-    if (measure("SiSj")) {
+    if (measure("SiSj") && gstate) {
         timer.tik();
         SSOp<dataType> SS(latt.get(), Bi.get());
         std::vector<dataType> ssvals;
@@ -63,7 +81,7 @@ int main( ) {
     }
 
     // dynamic spin structure factor
-    if (measure("Skw")) {
+    if (measure("Skw") && w0 && gstate) {
         timer.tik();
         auto occi = Bi->getOcc();
         for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
@@ -84,7 +102,7 @@ int main( ) {
     }
 
     // Raman spectra
-    if (measure("Raman")) {
+    if (measure("Raman") && w0 && gstate) {
         timer.tik();
         auto J1 = modelPara.getd("J1");
         auto J2 = modelPara.getd("J2");

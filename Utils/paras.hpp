@@ -50,6 +50,7 @@ public:
     void print(std::ostream& os) const;
 
     double getd(std::string key) const { return mapd.at(key); }
+    int geti(std::string key) const { return mapi.at(key); }
     LATTICE getlatt() const;
     LATTICE_MODEL getmodel() const;
 

@@ -10,7 +10,7 @@
 
 // std::string configFile = "../Input/config.txt";
 // Parameters para(configFile);
-std::string inputDir = "hubbInput";
+std::string inputDir = "heisInput";
 
 Parameters pathPara(inputDir, {"path.txt"});
 Parameters modelPara(inputDir, {"lattice.txt", "hamiltonian.txt"});
