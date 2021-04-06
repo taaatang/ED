@@ -4,6 +4,6 @@ lx:i:12
 ly:i:-1
 nu:i:6
 nd:i:6
-kidx:i:-1 # translation symm rep id
+kidx:i:0 # translation symm rep id
 pidx:i:-1 # point group symm rep id
-basis:i:0 # 1 -> saved; 0 -> not saved
+basis:i:1 # 1 -> saved; 0 -> not saved
