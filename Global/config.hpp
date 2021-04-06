@@ -7,11 +7,10 @@
 #include "Utils/paras.hpp"
 #include "Utils/path.hpp"
 #include "Geometry/Geometry.hpp"
-#include "Pulse/pulse.hpp"
 
 // std::string configFile = "../Input/config.txt";
 // Parameters para(configFile);
-std::string inputDir = "Input";
+std::string inputDir = "hubbInput";
 
 Parameters pathPara(inputDir, {"path.txt"});
 Parameters modelPara(inputDir, {"lattice.txt", "hamiltonian.txt"});
@@ -25,8 +24,6 @@ std::unique_ptr<Geometry> latt;
 std::unique_ptr<Basis> Bi, Bf;
 
 std::unique_ptr<HamiltonianBase<dataType>> H, Hf;
-
-Pulse pulse;
 
 
 #endif // __CONFIG_H__
