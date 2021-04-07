@@ -6,15 +6,14 @@ if(HOST STREQUAL "cori")
     set(OPENMP_FLAG -qopenmp)
 elseif(HOST STREQUAL "sherlock" OR HOST STREQUAL "acer")
     set(CMAKE_CXX_COMPILER mpiicpc)
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_STANDARD_REQUIRED True)
     set(OPENMP_FLAG -qopenmp)
 elseif(HOST STREQUAL "mac")
     set(CMAKE_CXX_COMPILER /usr/local/bin/g++-10)
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_STANDARD_REQUIRED True)
     set(OPENMP_FLAG -fopenmp)
 endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 project(ED VERSION 1.0.0 LANGUAGES CXX)
 
