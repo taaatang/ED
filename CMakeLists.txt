@@ -66,6 +66,10 @@ if(HOST STREQUAL "mac")
     include_directories(/usr/local/Cellar/gsl/2.6/include)
     link_directories(/usr/local/Cellar/gsl/2.6/lib)
 endif()
+if(HOST STREQUAL "cori")
+    include_directories(/global/common/sw/cray/cnl7/haswell/gsl/2.5/intel/19.0.3.199/7twqxxq/include)
+    link_directories(/global/common/sw/cray/cnl7/haswell/gsl/2.5/intel/19.0.3.199/7twqxxq/lib)
+endif()
 
 
 # SRC and Hearder files
