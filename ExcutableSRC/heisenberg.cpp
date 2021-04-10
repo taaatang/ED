@@ -21,15 +21,15 @@ int main( ) {
 
     if (isMaster) {
         path.make();
-        modelPara.print(path.parameterFile);
+        para.print(path.parameterFile);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
     // compute and save basis with translation symm
-    if (measure("basis") && !modelPara.geti("basis")) {
-        setlatt(modelPara, latt);
+    if (measure("basis") && !para.geti("basis")) {
+        setlatt(para, latt);
         for (int kidx = workerID; kidx < latt->getSiteNum(); kidx += workerNum) {
-            Basis b(modelPara.getmodel(), latt.get(), {modelPara.geti("nu"), modelPara.geti("nd")}, kidx);
+            Basis b(para.getmodel(), latt.get(), {para.geti("nu"), para.geti("nd")}, kidx);
             b.construct();
             b.save(path.getBasisDir(kidx));
         }
@@ -40,8 +40,8 @@ int main( ) {
     cdouble* gstate = nullptr;
     if (measure("ground state")) {
         timer.tik();
-        setBasics(modelPara, latt, Bi, H);
-        Bi->construct(opt(modelPara, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
+        setBasics(para, latt, Bi, H);
+        Bi->construct(opt(para, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
         if (isMaster) Bi->print();
         H->construct();
         timer.tok();
@@ -80,9 +80,9 @@ int main( ) {
         timer.tik();
         auto occi = Bi->getOcc();
         for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
-            setbasis(modelPara, Bf, latt.get(), occi.at(0), occi.at(1), kf, -1);
-            setham(modelPara, Hf, latt.get(), Bf.get());
-            Bf->construct(opt(modelPara,"basis"), path.getBasisDir(Bf->getkIndex(), Bf->getPGIndex()));
+            setbasis(para, Bf, latt.get(), occi.at(0), occi.at(1), kf, -1);
+            setham(para, Hf, latt.get(), Bf.get());
+            Bf->construct(opt(para,"basis"), path.getBasisDir(Bf->getkIndex(), Bf->getPGIndex()));
             Hf->construct();
             SzkOp<dataType> sk(latt.get(), Bi.get(), Bf.get());
             sk.construct();
@@ -99,8 +99,8 @@ int main( ) {
     // Raman spectra
     if (measure("Raman") && w0 && gstate) {
         timer.tik();
-        auto J1 = modelPara.getd("J1");
-        auto J2 = modelPara.getd("J2");
+        auto J1 = para.getd("J1");
+        auto J2 = para.getd("J2");
         for (auto channel : std::vector<std::string> {"A1", "A2", "E21", "E22"}) {
             Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(latt.get(), Bi.get(), Bi.get());
             R.pushLinks(RamanChannel(channel, J1, J2, *latt));

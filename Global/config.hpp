@@ -13,11 +13,11 @@
 std::string inputDir = "heisInput";
 
 Parameters pathPara(inputDir, {"path.txt"});
-Parameters modelPara(inputDir, {"lattice.txt", "hamiltonian.txt"});
+Parameters para(inputDir, {"lattice.txt", "hamiltonian.txt"});
 Parameters pulsePara(inputDir, {"pulse.txt"});
 Parameters measurePara(inputDir, {"measure.txt"});
 
-Path path(&pathPara, &modelPara, &pulsePara);
+Path path(&pathPara, &para, &pulsePara);
 
 std::unique_ptr<Geometry> latt;
 

@@ -24,15 +24,15 @@ int main( ) {
 
     if (isMaster) {
         // path.make();
-        // modelPara.print(path.parameterFile);
+        // para.print(path.parameterFile);
         // pulsePara.print(path.pumpFile);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
     // ground state
-    setBasics(modelPara, latt, Bi, H);
+    setBasics(para, latt, Bi, H);
     timer.tik();
-    Bi->construct(opt(modelPara, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
+    Bi->construct(opt(para, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
     if (isMaster) Bi->print();
     H->construct();
     timer.tok();
@@ -80,9 +80,9 @@ int main( ) {
                     auto& n = (spin == SPIN::UP) ? occf.at(0) : occf.at(1);
                     auto dn = (pm == LADDER::PLUS) ? 1 : -1;
                     n += dn;
-                    setbasis(modelPara, Bf, latt.get(), occf.at(0), occf.at(1), kf, -1);
-                    setham(modelPara, Hf, latt.get(), Bf.get());
-                    Bf->construct(opt(modelPara, "basis"), path.getBasisDir(Bf->getkIndex(),  Bf->getPGIndex()));
+                    setbasis(para, Bf, latt.get(), occf.at(0), occf.at(1), kf, -1);
+                    setham(para, Hf, latt.get(), Bf.get());
+                    Bf->construct(opt(para, "basis"), path.getBasisDir(Bf->getkIndex(),  Bf->getPGIndex()));
                     Hf->construct();
                     for (auto& orb : latt->getUnitCell()) {
                         CkOp<dataType> ck(latt.get(), Bi.get(), Bf.get());
