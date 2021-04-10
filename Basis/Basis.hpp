@@ -143,8 +143,8 @@ public:
     
     // I/O
     void print(std::ostream& os = std::cout) const;
-    void saveBasis(std::string basisfile, bool is_app=false);
-    void saveBasis(std::string basisfile, std::string normfile, bool is_app=false);
+    void save(std::string basisfile, bool is_app=false);
+    void save(std::string basisfile, std::string normfile, bool is_app=false);
 
 private:
     LATTICE_MODEL model;

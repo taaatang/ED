@@ -76,7 +76,7 @@ int main(int argc, const char * argv[]) {
         B.construct();
         timer.tok();
         std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
-        B.saveBasis(basisfile, normfile);
+        B.save(basisfile, normfile);
 
         //Paralel Construction
         // timer.tik();
@@ -87,19 +87,19 @@ int main(int argc, const char * argv[]) {
         // int msg = 1;
         // bool is_app = true;
         // if(workerID==0){
-        //     B.saveBasis(basisfile, normfile);
+        //     B.save(basisfile, normfile);
         //     std::cout<<"workerID:"<<workerID<<", data saved!"<<std::endl;
         //     if(workerNum>1){
         //         MPI_Send(&msg,1,workerID+1);
         //     }
         // }else if((workerID>0) and (workerID<(workerNum-1))){
         //     MPI_Recv(&msg,1,workerID-1);
-        //     B.saveBasis(basisfile, normfile, is_app);
+        //     B.save(basisfile, normfile, is_app);
         //     std::cout<<"workerID:"<<workerID<<", data saved!"<<std::endl;
         //     MPI_Send(&msg,1,workerID+1);
         // }else if(workerID==(workerNum-1)){
         //     MPI_Recv(&msg,1,workerID-1);
-        //     B.saveBasis(basisfile, normfile, is_app);
+        //     B.save(basisfile, normfile, is_app);
         //     std::cout<<"workerID:"<<workerID<<", data saved!"<<std::endl;
         // }
 

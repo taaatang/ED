@@ -296,17 +296,17 @@ void Basis::print(std::ostream& os) const {
     os<<"tot/sub/loc dim:"<<totDim<<" / "<<subDim<<" / "<<locDim<<"\n";
 }
 
-void Basis::saveBasis(std::string basisfile, bool is_app) {
+void Basis::save(std::string basisfile, bool is_app) {
     std::ofstream outfile;
     idx_t *d_pt = indexList.data();
     idx_t size = indexList.size();
-    save<idx_t>(d_pt, size, &outfile, basisfile, is_app);
+    ::save<idx_t>(d_pt, size, &outfile, basisfile, is_app);
 }
 
-void Basis::saveBasis(std::string basisfile, std::string normfile, bool is_app) {
+void Basis::save(std::string basisfile, std::string normfile, bool is_app) {
     std::ofstream outfile;
-    save<idx_t>(indexList.data(), (idx_t)indexList.size(), &outfile, basisfile, is_app);
-    save<double>(normList.data(), (idx_t)normList.size(), &outfile, normfile, is_app);
+    ::save<idx_t>(indexList.data(), (idx_t)indexList.size(), &outfile, basisfile, is_app);
+    ::save<double>(normList.data(), (idx_t)normList.size(), &outfile, normfile, is_app);
 }
 
 idx_t Basis::vecToRep(VecI& v) const {

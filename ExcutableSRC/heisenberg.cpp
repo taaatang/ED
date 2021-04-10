@@ -36,7 +36,7 @@ int main( ) {
             b.construct();
             auto dir = path.getBasisDir(kidx);
             mkdir_fs(dir);
-            b.saveBasis(dir + "/basis", dir + "/norm");
+            b.save(dir + "/basis", dir + "/norm");
         }
     }
 
