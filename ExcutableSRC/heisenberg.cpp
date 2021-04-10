@@ -30,13 +30,9 @@ int main( ) {
         setlatt(modelPara, latt);
         int kidx = workerID;
         if (kidx < latt->getSiteNum()) {
-            int nu = modelPara.geti("nu");
-            int nd = modelPara.geti("nd");
-            Basis b(modelPara.getmodel(), latt.get(), {nu, nd}, kidx);
+            Basis b(modelPara.getmodel(), latt.get(), {modelPara.geti("nu"), modelPara.geti("nd")}, kidx);
             b.construct();
-            auto dir = path.getBasisDir(kidx);
-            mkdir_fs(dir);
-            b.save(dir + "/basis", dir + "/norm");
+            b.save(path.getBasisDir(kidx));
         }
     }
 
