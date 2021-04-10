@@ -69,16 +69,16 @@ public:
     void gendcmp();
     
     // construc k-subspace basis. need lattice to know symmetry operations
-    void gen();
-    void gen(int workerID, int workerNum);
+    void construct();
+    void construct(int workerID, int workerNum);
     
     // construct k-subspace basis/norm from reps loaded from file
-    void gen(std::string basisfile);
-    void gen(std::string basisfile, std::string normfile);
+    void construct(std::string basisfile);
+    void construct(std::string basisfile, std::string normfile);
     // distributed basis
-    void gen(std::string basisfile, std::string normfile, int workerID, int workerNum);
+    void construct(std::string basisfile, std::string normfile, int workerID, int workerNum);
 
-    void gen(bool saved, std::string basisDir);
+    void construct(bool saved, std::string basisDir);
     
     int getSiteDim() const {return siteDim;}
     int getOrbNum() const {return N;}

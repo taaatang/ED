@@ -73,7 +73,7 @@ int main(int argc, const char * argv[]) {
     
         timer.tik();
         Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
-        B.gen();
+        B.construct();
         timer.tok();
         std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
         B.saveBasis(basisfile, normfile);
@@ -81,7 +81,7 @@ int main(int argc, const char * argv[]) {
         //Paralel Construction
         // timer.tik();
         // Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex);
-        // B.gen(workerID,workerNum);
+        // B.construct(workerID,workerNum);
         // timer.tok();
         // std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", local size="<<B.getLocDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
         // int msg = 1;
@@ -107,7 +107,7 @@ int main(int argc, const char * argv[]) {
         // std::cout<<"WorkerID"<<workerID<<", begin reading basis..."<<std::endl;
         // tic = std::chrono::system_clock::now();
         // Basis Bp(MODEL,siteDim, dimList, &Lattice);
-        // Bp.gen(kIndex, basisfile, normfile);
+        // Bp.construct(kIndex, basisfile, normfile);
         // toc = std::chrono::system_clock::now();
         // elapsed_seconds = toc - tic;
 

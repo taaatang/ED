@@ -91,12 +91,12 @@ int main(int argc, const char * argv[]) {
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
     if (BASIS_IS_SAVED){
         // #ifdef DISTRIBUTED_BASIS
-        // B.gen(basisfile, normfile, workerID, workerNum);
+        // B.construct(basisfile, normfile, workerID, workerNum);
         // #else
-        // B.gen(basisfile, normfile);
+        // B.construct(basisfile, normfile);
         // #endif
     } else {
-        B.gen();
+        B.construct();
     }
     timer.tok();
     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;

@@ -162,7 +162,7 @@ void Basis::gendcmp(){
     }
 }
 // generate Basis for the subspace labeled by kInd
-void Basis::gen(){
+void Basis::construct(){
     initMinMaxRep();
     subDim = 0;
     indexList.clear();
@@ -224,7 +224,7 @@ void Basis::gen(){
     locDim = subDim;
 }
 
-void Basis::gen(int workerID, int workerNum){
+void Basis::construct(int workerID, int workerNum){
     locDim = 0;
     assert(model==LATTICE_MODEL::HUBBARD or model==LATTICE_MODEL::tJ);
     if(model==LATTICE_MODEL::HUBBARD) assert(kIndex!=-1);
@@ -249,7 +249,7 @@ void Basis::gen(int workerID, int workerNum){
 }
 
 // construct subspace basis from reps loaded from file
-void Basis::gen(std::string basisfile){
+void Basis::construct(std::string basisfile){
     subDim = 0;
     indexList.clear();
     read<idx_t>(&indexList, basisfile);
@@ -257,7 +257,7 @@ void Basis::gen(std::string basisfile){
 }
 
 // construct subspace basis and norm from reps loaded from file
-void Basis::gen(std::string basisfile, std::string normfile){
+void Basis::construct(std::string basisfile, std::string normfile){
     subDim = 0;
     indexList.clear();
     read<idx_t>(&indexList, basisfile);
@@ -267,7 +267,7 @@ void Basis::gen(std::string basisfile, std::string normfile){
     read<double>(&normList, normfile);
     assert(normList.size()==indexList.size());
 }
-void Basis::gen(std::string basisfile, std::string normfile, int workerID, int workerNum){
+void Basis::construct(std::string basisfile, std::string normfile, int workerID, int workerNum){
     indexList.clear();
     read<idx_t>(&indexList, basisfile, workerID, workerNum);
     locDim = indexList.size();
@@ -281,11 +281,11 @@ void Basis::gen(std::string basisfile, std::string normfile, int workerID, int w
     assert(normList.size()==indexList.size());
 }
 
-void Basis::gen(bool saved, std::string basisDir) {
+void Basis::construct(bool saved, std::string basisDir) {
     if (saved) {
-        gen(basisDir + "/basis", basisDir + "/norm");
+        construct(basisDir + "/basis", basisDir + "/norm");
     } else {
-        gen();
+        construct();
     }
 }
 

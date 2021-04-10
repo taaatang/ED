@@ -84,8 +84,8 @@ int main(int argc, const char * argv[]) {
         timer.tik();
         Basis B(model, &Lattice, occList, kIndex, PGRepIndex);
         if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
-        if (BASIS_IS_SAVED) B.gen(basisfile, normfile);
-        else B.gen();
+        if (BASIS_IS_SAVED) B.construct(basisfile, normfile);
+        else B.construct();
         timer.tok();
         fullDim = B.getTotDim(); totDim += B.getSubDim();
         if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kIdx ="<<kIndex<<", PGidx = "<<PGRepIndex<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;

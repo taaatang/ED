@@ -32,7 +32,7 @@ int main( ) {
     // ground state
     setBasics(modelPara, latt, Bi, H);
     timer.tik();
-    Bi->gen(opt(modelPara, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
+    Bi->construct(opt(modelPara, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
     if (isMaster) Bi->print();
     H->construct();
     timer.tok();
@@ -82,7 +82,7 @@ int main( ) {
                     n += dn;
                     setbasis(modelPara, Bf, latt.get(), occf.at(0), occf.at(1), kf, -1);
                     setham(modelPara, Hf, latt.get(), Bf.get());
-                    Bf->gen(opt(modelPara, "basis"), path.getBasisDir(Bf->getkIndex(),  Bf->getPGIndex()));
+                    Bf->construct(opt(modelPara, "basis"), path.getBasisDir(Bf->getkIndex(),  Bf->getPGIndex()));
                     Hf->construct();
                     for (auto& orb : latt->getUnitCell()) {
                         CkOp<dataType> ck(latt.get(), Bi.get(), Bf.get());

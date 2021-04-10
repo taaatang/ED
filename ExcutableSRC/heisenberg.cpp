@@ -33,7 +33,7 @@ int main( ) {
             int nu = modelPara.geti("nu");
             int nd = modelPara.geti("nd");
             Basis b(modelPara.getmodel(), latt.get(), {nu, nd}, kidx);
-            b.gen();
+            b.construct();
             auto dir = path.getBasisDir(kidx);
             mkdir_fs(dir);
             b.saveBasis(dir + "/basis", dir + "/norm");
@@ -46,7 +46,7 @@ int main( ) {
     if (measure("ground state")) {
         timer.tik();
         setBasics(modelPara, latt, Bi, H);
-        Bi->gen(opt(modelPara, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
+        Bi->construct(opt(modelPara, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
         if (isMaster) Bi->print();
         H->construct();
         timer.tok();
@@ -87,7 +87,7 @@ int main( ) {
         for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
             setbasis(modelPara, Bf, latt.get(), occi.at(0), occi.at(1), kf, -1);
             setham(modelPara, Hf, latt.get(), Bf.get());
-            Bf->gen(opt(modelPara,"basis"), path.getBasisDir(Bf->getkIndex(), Bf->getPGIndex()));
+            Bf->construct(opt(modelPara,"basis"), path.getBasisDir(Bf->getkIndex(), Bf->getPGIndex()));
             Hf->construct();
             SzkOp<dataType> sk(latt.get(), Bi.get(), Bf.get());
             sk.construct();

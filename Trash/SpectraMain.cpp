@@ -83,8 +83,8 @@ int main(int argc, const char * argv[]) {
     VecI occList{Nu, Nd};
     Basis *B = new Basis(model, &Lattice, occList, kIndex);
     if (workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
-    if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
-    else B->gen();
+    if (BASIS_IS_SAVED) B->construct(basisfile, normfile);
+    else B->construct();
     timer.tok();
     if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kIdx ="<<kIndex<<", PGidx = "<<PGRepIndex<<", size="<<B->getSubDim()<<"/"<<B->getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
@@ -159,8 +159,8 @@ int main(int argc, const char * argv[]) {
 */
     if (COMPUTE_SS){
         Basis *B = new Basis(model, &Lattice, occList, kIndex);
-        if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
-        else B->gen();
+        if (BASIS_IS_SAVED) B->construct(basisfile, normfile);
+        else B->construct();
         timer.tik();
         SSOp<dataType> SS(&Lattice,B);
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin SS ..."<<std::endl<<"********************"<<std::endl;
@@ -209,11 +209,11 @@ int main(int argc, const char * argv[]) {
             std::string basisfilep = basisDirp + "/basis";
             std::string normfilep = basisDirp + "/norm";
             Basis *B = new Basis(model, &Lattice, occList, kIndex);
-            if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
-            else B->gen();
+            if (BASIS_IS_SAVED) B->construct(basisfile, normfile);
+            else B->construct();
             Basis* Bp = new Basis(model, &Lattice, occList, kIndexf);
-            if (BASIS_IS_SAVED) {Bp->gen(basisfilep, normfilep);
-            }else{Bp->gen();}
+            if (BASIS_IS_SAVED) {Bp->construct(basisfilep, normfilep);
+            }else{Bp->construct();}
             // <Bp|Szq|B>, q = k_B - k_Bp
             SzkOp<dataType> Szq(&Lattice, B, Bp);
             Szq.construct();
@@ -304,8 +304,8 @@ int main(int argc, const char * argv[]) {
         // for(int opidx=0;opidx<4;opidx++){
         //     H->clearBuf();
         //     Basis *B = new Basis(model, &Lattice, occList, kIndex);
-        //     if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
-        //     else B->gen();
+        //     if (BASIS_IS_SAVED) B->construct(basisfile, normfile);
+        //     else B->construct();
         //     Heisenberg<dataType> R(&Lattice, B);
         //     R.pushLinks(LinksList.at(opidx));
         //     R.construct();
@@ -338,8 +338,8 @@ int main(int argc, const char * argv[]) {
             for(int j = 0; j < plz.size(); j++){
                 H->clearBuf();
                 Basis *B = new Basis(model, &Lattice, occList, kIndex);
-                if (BASIS_IS_SAVED) B->gen(basisfile, normfile);
-                else B->gen();
+                if (BASIS_IS_SAVED) B->construct(basisfile, normfile);
+                else B->construct();
 
                 RamanOp<dataType> R(&Lattice, B);
                 R.pushLinks({J1Link,J2Link});
