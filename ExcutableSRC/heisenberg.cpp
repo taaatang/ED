@@ -28,8 +28,7 @@ int main( ) {
     // compute and save basis with translation symm
     if (measure("basis") && !modelPara.geti("basis")) {
         setlatt(modelPara, latt);
-        int kidx = workerID;
-        if (kidx < latt->getSiteNum()) {
+        for (int kidx = workerID; kidx < latt->getSiteNum(); kidx += workerNum) {
             Basis b(modelPara.getmodel(), latt.get(), {modelPara.geti("nu"), modelPara.geti("nd")}, kidx);
             b.construct();
             b.save(path.getBasisDir(kidx));
