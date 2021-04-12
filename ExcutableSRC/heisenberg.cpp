@@ -12,8 +12,8 @@ int main( ) {
     MPI_Init(NULL, NULL);
     int workerID, workerNum;
     mpi_info(workerID, workerNum);
-    Timer timer;
     bool isMaster = (workerID == MPI_MASTER);
+    Timer timer(isMaster);
 
     auto measure = [&] (std::string key) {
         return opt(measurePara, key);
@@ -44,9 +44,8 @@ int main( ) {
         Bi->construct(opt(para, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
         if (isMaster) Bi->print();
         H->construct();
-        timer.tok();
+        timer.print("Hamiltonian construction");
         if (isMaster) {
-            timer.print("Hamiltonian construction");
             H->printLinks();
             H->print("Hamiltonian from master worker");
         }
@@ -71,8 +70,7 @@ int main( ) {
         if (isMaster) {
             save<dataType>(ssvals.data(), int(ssvals.size()), path.SiSjFile);
         }
-        timer.tok();
-        if (isMaster) timer.print("Spin Spin Correlation");
+        timer.print("Spin Spin Correlation");
     }
 
     // dynamic spin structure factor
@@ -92,8 +90,7 @@ int main( ) {
                 spectra.saveData(path.SkwDir + "/kf" + tostr(kf));
             }
         }
-        timer.tok();
-        if (isMaster) timer.print("Skw");
+        timer.print("Skw");
     }
 
     // Raman spectra
@@ -111,10 +108,8 @@ int main( ) {
                 spectra.saveData(path.RamanDir + "/" + channel);
             }
         }
-        timer.tok();
-        if (isMaster) timer.print("Raman Spectra");
+        timer.print("Raman Spectra");
     }
-
     MPI_Finalize();
     return 0;
 }
