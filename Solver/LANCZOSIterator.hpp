@@ -76,7 +76,7 @@
 //     MKL::copy(nloc, vec, q.data());
 //     vecNorm = MKL::mpiNorm(nloc, vec);
 //     if (vecNorm < INFINITESIMAL){
-//         std::cout<<"norm(vecIn) = "<<vecNorm<<". Check if the input vec is 0.\n";
+//         if (isMaster) std::cout<<"norm(vecIn) = "<<vecNorm<<". Check if the input vec is 0.\n";
 //         return;
 //     }
 //     MKL::scale(nloc, 1.0/vecNorm, q.data());
@@ -187,7 +187,7 @@ void LANCZOSIterator<T>::run(T* vec){
     copy(nloc, vec, q);
     vecNorm = mpiNorm(vec, nloc);
     if (vecNorm < INFINITESIMAL){
-        std::cout<<"norm(vecIn) = "<<vecNorm<<". Check if the input vec is 0.\n";
+        if (isMaster) std::cout<<"norm(vecIn) = "<<vecNorm<<". Check if the input vec is 0.\n";
         return;
     }
     scale(q, 1.0/(T)vecNorm,nloc);
