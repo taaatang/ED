@@ -254,6 +254,7 @@ void Basis::construct(std::string basisfile){
     indexList.clear();
     read<idx_t>(&indexList, basisfile);
     subDim = indexList.size();
+    locDim = subDim;
 }
 
 // construct subspace basis and norm from reps loaded from file
@@ -262,6 +263,7 @@ void Basis::construct(std::string basisfile, std::string normfile){
     indexList.clear();
     read<idx_t>(&indexList, basisfile);
     subDim = indexList.size();
+    locDim = subDim;
     
     normList.clear();
     read<double>(&normList, normfile);
