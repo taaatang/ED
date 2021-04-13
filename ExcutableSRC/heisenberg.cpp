@@ -50,10 +50,9 @@ int main( ) {
             H->print("Hamiltonian from master worker");
         }
         // cout<<setprecision(10);
-        H->setNev(5);
-        H->solver.diag();
-        w0 = H->solver.getEigval();
-        gstate = H->solver.getEigvec();
+        H->diag(5);
+        w0 = H->getEval();
+        gstate = H->getEvec();
     }
     // spin spin correlation
     if (measure("SiSj") && gstate) {

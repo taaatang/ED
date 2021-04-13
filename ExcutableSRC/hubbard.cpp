@@ -44,9 +44,9 @@ int main( ) {
     if (isMaster) H->printLinks();
     MPI_Barrier(MPI_COMM_WORLD);
     // cout<<setprecision(10);
-    H->solver.diag();
-    cdouble* w0 = H->solver.getEigval();
-    cdouble* gstate = H->solver.getEigvec();
+    H->diag();
+    cdouble* w0 = H->getEval();
+    cdouble* gstate = H->getEvec();
 
     if (measure("conductivity")) {
         // conductivity

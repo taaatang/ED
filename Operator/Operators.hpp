@@ -47,11 +47,12 @@ public:
 
     virtual void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps) = 0;
 
-    PARPACKSolver<T> solver;
-
-    void setNev(int nev);
+    void diag(int nev = 1);
+    T* getEval( );
+    T* getEvec(int n = 0);
 
 private:
+    PARPACKSolver<T> solver;
     VecD V, U;
 };
 
@@ -201,8 +202,19 @@ OperatorBase<T>(latt, Bi, Bf, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(
 }
 
 template<typename T>
-void HamiltonianBase<T>::setNev(int nev) {
+void HamiltonianBase<T>::diag(int nev) {
     solver = PARPACKSolver<T>(this, nev);
+    solver.diag();
+}
+
+template<typename T>
+T* HamiltonianBase<T>::getEval() {
+    return solver.getEigval();
+}
+
+template<typename T>
+T* HamiltonianBase<T>::getEvec(int n) {
+    return solver.getEigvec(n);
 }
 
 template <typename T>
