@@ -198,7 +198,7 @@ private:
 template<typename T>
 HamiltonianBase<T>::HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_, int dmNum_):\
 OperatorBase<T>(latt, Bi, Bf, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
-    solver = PARPACKSolver<T>(this, 1);
+
 }
 
 template<typename T>
