@@ -35,10 +35,10 @@ int main( ) {
         }
     }
 
-    // ground state
-    cdouble* w0 = nullptr;
-    cdouble* gstate = nullptr;
-    if (measure("ground state")) {
+    // eigenstate
+    std::vector<dataType> w;
+    std::vector<dataType*> state;
+    if (measure("state")) {
         timer.tik();
         setBasics(para, latt, Bi, H);
         Bi->construct(opt(para, "basis"), path.getBasisDir(Bi->getkIndex(),  Bi->getPGIndex()));
@@ -50,30 +50,40 @@ int main( ) {
             H->print("Hamiltonian from master worker");
         }
         // cout<<setprecision(10);
-        H->diag(5);
-        w0 = H->getEval();
-        gstate = H->getEvec();
+        int nev = measurePara.geti("nev");
+        H->diag(nev);
+        for (int n = 0; n < nev; ++n) {
+            w.push_back(H->getEval(n));
+            state.push_back(H->getEvec(n));
+        }
+        if (isMaster) save<dataType>(w.data(), (int)(w.size()), path.evalFile);
     }
+    int nstate = state.size();
+    bool stateExists = (nstate > 0);
+    int krylovDim = measurePara.geti("krylovDim");
     // spin spin correlation
-    if (measure("SiSj") && gstate) {
+    if (stateExists && measure("SiSj")) {
         timer.tik();
         SSOp<dataType> SS(latt.get(), Bi.get());
-        std::vector<dataType> ssvals;
+        std::vector<std::vector<dataType>> ssvals;
+        ssvals.resize(nstate);
         for (int i = 0; i < latt->getSiteNum(); ++i) {
             SS.setr(i);
             SS.construct();
-            auto val = SS.vMv(gstate, gstate) / dataType(latt->getSiteNum());
-            if (isMaster) std::cout<<"ss(r="<<i<<")="<<val<<std::endl;
-            ssvals.push_back(val);
+            for (int n = 0; n < nstate; ++n) {
+                auto val = SS.vMv(state[n], state[n]) / dataType(latt->getSiteNum());
+                // if (isMaster) std::cout<<"ss(r="<<i<<")="<<val<<std::endl;
+                ssvals[n].push_back(val);
+            }
         }
-        if (isMaster) {
-            save<dataType>(ssvals.data(), int(ssvals.size()), path.SiSjFile);
+        for (int n = workerID; n < nstate; n += workerNum) {
+            save<dataType>(ssvals[n].data(), (int)ssvals[n].size(), path.SiSjFile + "_" + tostr(n));
         }
         timer.print("Spin Spin Correlation");
     }
 
     // dynamic spin structure factor
-    if (measure("Skw") && w0 && gstate) {
+    if (stateExists && measure("Skw")) {
         timer.tik();
         auto occi = Bi->getOcc();
         for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
@@ -83,17 +93,17 @@ int main( ) {
             Hf->construct();
             SzkOp<dataType> sk(latt.get(), Bi.get(), Bf.get());
             sk.construct();
-            SPECTRASolver<dataType> spectra(Hf.get(), w0[0], &sk, gstate, 400);
-            spectra.compute();
-            if (isMaster) {
-                spectra.saveData(path.SkwDir + "/kf" + tostr(kf));
+            for (int n = 0; n < nstate; ++n) {
+                SPECTRASolver<dataType> spectra(Hf.get(), w[n], &sk, state[n], krylovDim);
+                spectra.compute();
+                if (isMaster) spectra.save(path.SkwDir + "/kf" + tostr(kf), n);
             }
         }
         timer.print("Skw");
     }
 
     // Raman spectra
-    if (measure("Raman") && w0 && gstate) {
+    if (stateExists && measure("Raman")) {
         timer.tik();
         auto J1 = para.getd("J1");
         auto J2 = para.getd("J2");
@@ -101,10 +111,10 @@ int main( ) {
             Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(latt.get(), Bi.get(), Bi.get());
             R.pushLinks(RamanChannel(channel, J1, J2, *latt));
             R.construct();
-            SPECTRASolver<dataType> spectra(H.get(), w0[0], &R, gstate, 400);
-            spectra.compute();
-            if (isMaster) {
-                spectra.saveData(path.RamanDir + "/" + channel);
+            for (int n = 0; n < nstate; ++n) {
+                SPECTRASolver<dataType> spectra(H.get(), w[n], &R, state[n], krylovDim);
+                spectra.compute();
+                if (isMaster) spectra.save(path.RamanDir + "/" + channel, n);
             }
         }
         timer.print("Raman Spectra");

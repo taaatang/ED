@@ -35,6 +35,7 @@ public:
     std::string basisNormFile;
 
     std::string wavefuncDir;
+    std::string evalFile;
 
     // Hubbard files
     std::string particleDistrDir;
@@ -80,6 +81,7 @@ Path::Path(const Parameters* path, const Parameters* model, const Parameters* pu
     basisNormFile = basisDir + sep + "norm";
 
     wavefuncDir = parameterDir + sep + "wavefunc";
+    evalFile = wavefuncDir + sep + "eval";
 
     switch (model->getmodel()) {
         case LATTICE_MODEL::HUBBARD:

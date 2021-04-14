@@ -48,7 +48,7 @@ public:
     virtual void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps) = 0;
 
     void diag(int nev = 1);
-    T* getEval( );
+    T getEval(int n = 0);
     T* getEvec(int n = 0);
 
 private:
@@ -208,8 +208,8 @@ void HamiltonianBase<T>::diag(int nev) {
 }
 
 template<typename T>
-T* HamiltonianBase<T>::getEval() {
-    return solver.getEigval();
+T HamiltonianBase<T>::getEval(int n) {
+    return solver.getEigval(n);
 }
 
 template<typename T>

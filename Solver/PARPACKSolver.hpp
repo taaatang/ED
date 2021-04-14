@@ -31,8 +31,8 @@ public:
     PARPACKSolver(BaseMatrix<T>* M, a_int nev = 1);
     ~PARPACKSolver( ) { }
 
-    T* getEigval( ) {return d_pt.data();}
-    T* getEigvec(int ithVec=0) {return V_pt.data()+nloc_*ithVec;}
+    T getEigval(int nth = 0) {return d_pt.at(nth);}
+    T* getEigvec(int nth = 0) {return V_pt.data() + nloc_ * nth;}
 
     void setStartVec(T* vec);
     void setNev(a_int nev);

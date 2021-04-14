@@ -28,13 +28,14 @@ public:
     }
     ~SPECTRASolver(){}
     void compute(){this->run(vec.data());}
-    void saveData(std::string dataPath){
+    void save(std::string dataPath, int stateID = 0){
         mkdir_fs(dataPath);
         std::ofstream outfile;
-        save<cdouble>(&w0, 1, &outfile, dataPath + "/w0");
-        save<double>(&(LANCZOSIterator<T>::vecNorm), 1, &outfile, dataPath + "/vecNorm");
-        save<double>((LANCZOSIterator<T>::alpha).data(), (int)((LANCZOSIterator<T>::alpha).size()), &outfile, dataPath + "/alpha");
-        save<double>((LANCZOSIterator<T>::beta).data(), (int)((LANCZOSIterator<T>::beta).size()), &outfile, dataPath + "/beta");
+        auto stateLabel =tostr(stateID);
+        ::save<cdouble>(&w0, 1, &outfile, dataPath + "/w0_" + stateLabel);
+        ::save<double>(&(LANCZOSIterator<T>::vecNorm), 1, &outfile, dataPath + "/vecNorm_" + stateLabel);
+        ::save<double>((LANCZOSIterator<T>::alpha).data(), (int)((LANCZOSIterator<T>::alpha).size()), &outfile, dataPath + "/alpha_" + stateLabel);
+        ::save<double>((LANCZOSIterator<T>::beta).data(), (int)((LANCZOSIterator<T>::beta).size()), &outfile, dataPath + "/beta_" + stateLabel);
     };
 };
 
