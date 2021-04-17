@@ -38,6 +38,7 @@ int main( ) {
     // eigenstate
     std::vector<dataType> w;
     std::vector<dataType*> state;
+    int nstate = 0;
     if (measure("state")) {
         timer.tik();
         setBasics(para, latt, Bi, H);
@@ -56,10 +57,10 @@ int main( ) {
             w.push_back(H->getEval(n));
             state.push_back(H->getEvec(n));
         }
-        sort(w, state);
+        nstate = sort(w, state, measure("ground state"));
         if (isMaster) save(w.data(), (int)(w.size()), path.evalFile);
+        if (isMaster) cout<<"sorted evals:"<<w<<"\n";
     }
-    int nstate = state.size();
     bool stateExists = (nstate > 0);
     int krylovDim = measurePara.geti("krylovDim");
     // spin spin correlation

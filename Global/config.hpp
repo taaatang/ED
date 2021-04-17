@@ -27,28 +27,29 @@ std::unique_ptr<Basis> Bi, Bf;
 std::unique_ptr<HamiltonianBase<dataType>> H, Hf;
 
 template <typename T>
-void sort(std::vector<T>& w, std::vector<T*>& state, bool groundState = true, double degeneracyTol = 1e-8) {
+int sort(std::vector<T>& evals, std::vector<T*>& evecs, bool groundState = true, double degeneracyTol = 1e-8) {
+    assert_msg(evals.size() == evecs.size(), "not have same number of eval and evec");
     using eigpair = std::pair<T,T*>;
-    std::vector<eigpair> ws;
-    for (size_t i = 0; i < w.size(); ++i) {
-        ws.push_back(std::make_pair(w[i], state[i]));
+    std::vector<eigpair> pairs;
+    for (size_t i = 0; i < evals.size(); ++i) {
+        pairs.push_back(std::make_pair(evals[i], evecs[i]));
     }
-    std::sort(ws.begin(), ws.end(), [](const eigpair &a, const eigpair &b) {return std::real(a.first) < std::real(b.first);});
+    std::sort(pairs.begin(), pairs.end(), [](const eigpair &a, const eigpair &b) {return std::real(a.first) < std::real(b.first);});
+    for (size_t i = 0; i < pairs.size(); ++i) {
+        evals[i] = pairs[i].first;
+        evecs[i] = pairs[i].second;
+    }
+    int stateNum = 0;
     if (groundState) {
-        w.clear();
-        state.clear();
-        auto w0 = std::real(ws.at(0).first);
-        for (auto &ep : ws) {
-            if (std::abs(ep.first.real() - w0) > degeneracyTol) break;
-            w.push_back(ep.first);
-            state.push_back(ep.second);
+        auto w0 = std::real(evals.at(0));
+        for (auto &w : evals) {
+            if (std::abs(std::real(w) - w0) > degeneracyTol) break;
+            ++stateNum;
         }
     } else {
-        for (size_t i = 0; i < ws.size(); ++i) {
-            w[i] = ws[i].first;
-            state[i] = ws[i].second;
-        }
+        stateNum = evals.size();
     }
+    return stateNum;
 }
 
 
