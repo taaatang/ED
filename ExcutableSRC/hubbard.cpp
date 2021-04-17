@@ -14,9 +14,8 @@ int main( ) {
     MPI_Init(NULL, NULL);
     int workerID, workerNum;
     mpi_info(workerID, workerNum);
-    Timer timer;
-
     bool isMaster = (workerID == MPI_MASTER);
+    Timer timer(isMaster);
 
     auto measure = [&] (std::string key) {
         return opt(measurePara, key);
@@ -45,7 +44,7 @@ int main( ) {
     MPI_Barrier(MPI_COMM_WORLD);
     // cout<<setprecision(10);
     H->diag();
-    cdouble* w0 = H->getEval();
+    cdouble w0 = H->getEval();
     cdouble* gstate = H->getEvec();
 
     if (measure("conductivity")) {
@@ -58,10 +57,10 @@ int main( ) {
             J.setDirection(d);
             // J.print();
             J.construct();
-            SPECTRASolver<cdouble> spectra(H.get(), w0[0], &J, gstate, 400);
+            SPECTRASolver<cdouble> spectra(H.get(), w0, &J, gstate, 400);
             spectra.compute();
             if (isMaster) {
-                spectra.saveData(path.sigmaDir + "/" + d);
+                spectra.save(path.sigmaDir + "/" + d);
             }
         }
         timer.tok();
@@ -88,12 +87,12 @@ int main( ) {
                         CkOp<dataType> ck(latt.get(), Bi.get(), Bf.get());
                         ck.set(pm, spin, orb);
                         ck.construct();
-                        SPECTRASolver<dataType> spectra(Hf.get(), w0[0], &ck, gstate, 400);
+                        SPECTRASolver<dataType> spectra(Hf.get(), w0, &ck, gstate, 400);
                         spectra.compute();
                         if (isMaster) {
                             std::ostringstream os;
                             os<<"/ki"<<tostr(ki)<<"/kf"<<tostr(kf)<<"/orb"<<orb.orbid<<"/"<<spin<<"_"<<pm;
-                            spectra.saveData(path.AkwDir + os.str());
+                            spectra.save(path.AkwDir + os.str());
                         }
                     }
                 }

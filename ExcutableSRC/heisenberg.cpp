@@ -56,7 +56,8 @@ int main( ) {
             w.push_back(H->getEval(n));
             state.push_back(H->getEvec(n));
         }
-        if (isMaster) save<dataType>(w.data(), (int)(w.size()), path.evalFile);
+        sort(w, state);
+        if (isMaster) save(w.data(), (int)(w.size()), path.evalFile);
     }
     int nstate = state.size();
     bool stateExists = (nstate > 0);
@@ -77,7 +78,7 @@ int main( ) {
             }
         }
         for (int n = workerID; n < nstate; n += workerNum) {
-            save<dataType>(ssvals[n].data(), (int)ssvals[n].size(), path.SiSjFile + "_" + tostr(n));
+            save(ssvals[n].data(), (int)ssvals[n].size(), path.SiSjFile + "_" + tostr(n));
         }
         timer.print("Spin Spin Correlation");
     }
