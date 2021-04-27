@@ -61,10 +61,9 @@ int main( ) {
         if (isMaster) save(w.data(), (int)(w.size()), path.evalFile);
         if (isMaster) cout<<"sorted evals:"<<w<<"\n";
     }
-    bool stateExists = (nstate > 0);
     int krylovDim = measurePara.geti("krylovDim");
     // spin spin correlation
-    if (stateExists && measure("SiSj")) {
+    if (measure("SiSj")) {
         timer.tik();
         SSOp<dataType> SS(latt.get(), Bi.get());
         std::vector<std::vector<dataType>> ssvals;
@@ -85,7 +84,7 @@ int main( ) {
     }
 
     // dynamic spin structure factor
-    if (stateExists && measure("Skw")) {
+    if (measure("Skw")) {
         timer.tik();
         auto occi = Bi->getOcc();
         for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
@@ -105,7 +104,7 @@ int main( ) {
     }
 
     // Raman spectra
-    if (stateExists && measure("Raman")) {
+    if (measure("Raman")) {
         timer.tik();
         auto J1 = para.getd("J1");
         auto J2 = para.getd("J2");
