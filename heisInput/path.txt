@@ -1,2 +1,2 @@
-rootDir:s:/Volumes/Shared/ProjectData#/oak/stanford/groups/tpd/tatang#/Users/tatang/Documents/work/projects/data 
-project:s:TriangHeis/test
+rootDir:s:/Volumes/Sandisk/ProjectData#/oak/stanford/groups/tpd/tatang#/Users/tatang/Documents/work/projects/data 
+project:s:QSL
