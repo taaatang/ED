@@ -11,8 +11,6 @@
 // #undef OMP_
 
 #include "globalPara.hpp"
-#include "globalClass.hpp"
-#include "utils.hpp"
 #include "PARPACKSolver.hpp"
 #include "LANCZOSIterator.hpp"
 
@@ -190,7 +188,7 @@ int main(int argc, const char * argv[]) {
 //         for (int i = 0; i < Lattice.N; ++i){
 //             SS.genPairMat(&Lattice, &B, i);
 //             SS.MxV(PDiag.V_pt, vecTmp1, vecBuf1,PARTITION);
-//             vConjDotv<dataType, dataType>(PDiag.V_pt, vecTmp1, &val, PDiag.nloc_);
+//             mpiDot<dataType, dataType>(PDiag.V_pt, vecTmp1, &val, PDiag.nloc_);
 //             //if (workerID==MPI_MASTER) std::cout<<"SS"<<i<<" = "<<std::setprecision(8)<<val<<std::endl;
 //             ssvals.push_back(val);
 //             SS.clear();
@@ -235,7 +233,7 @@ int main(int argc, const char * argv[]) {
 //         //     cdouble *vecBuf = new cdouble[Szq.nlocmax];
 //             Szq.MxV(gstate, vecTmp, vecBuf, PARTITION);
 //             cdouble val;
-//             vConjDotv(gstate, vecTmp, &val, Szq.nloc);
+//             mpiDot(gstate, vecTmp, &val, Szq.nloc);
 //     //         if (workerID==MPI_MASTER) std::cout<<"Ground state <Szq> = "<<val<<std::endl;
 
 //             int krylovDim = 250;

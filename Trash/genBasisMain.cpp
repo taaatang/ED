@@ -73,33 +73,33 @@ int main(int argc, const char * argv[]) {
     
         timer.tik();
         Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
-        B.gen();
+        B.construct();
         timer.tok();
         std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
-        B.saveBasis(basisfile, normfile);
+        B.save(basisfile, normfile);
 
         //Paralel Construction
         // timer.tik();
         // Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex);
-        // B.gen(workerID,workerNum);
+        // B.construct(workerID,workerNum);
         // timer.tok();
         // std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", local size="<<B.getLocDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
         // int msg = 1;
         // bool is_app = true;
         // if(workerID==0){
-        //     B.saveBasis(basisfile, normfile);
+        //     B.save(basisfile, normfile);
         //     std::cout<<"workerID:"<<workerID<<", data saved!"<<std::endl;
         //     if(workerNum>1){
         //         MPI_Send(&msg,1,workerID+1);
         //     }
         // }else if((workerID>0) and (workerID<(workerNum-1))){
         //     MPI_Recv(&msg,1,workerID-1);
-        //     B.saveBasis(basisfile, normfile, is_app);
+        //     B.save(basisfile, normfile, is_app);
         //     std::cout<<"workerID:"<<workerID<<", data saved!"<<std::endl;
         //     MPI_Send(&msg,1,workerID+1);
         // }else if(workerID==(workerNum-1)){
         //     MPI_Recv(&msg,1,workerID-1);
-        //     B.saveBasis(basisfile, normfile, is_app);
+        //     B.save(basisfile, normfile, is_app);
         //     std::cout<<"workerID:"<<workerID<<", data saved!"<<std::endl;
         // }
 
@@ -107,7 +107,7 @@ int main(int argc, const char * argv[]) {
         // std::cout<<"WorkerID"<<workerID<<", begin reading basis..."<<std::endl;
         // tic = std::chrono::system_clock::now();
         // Basis Bp(MODEL,siteDim, dimList, &Lattice);
-        // Bp.gen(kIndex, basisfile, normfile);
+        // Bp.construct(kIndex, basisfile, normfile);
         // toc = std::chrono::system_clock::now();
         // elapsed_seconds = toc - tic;
 

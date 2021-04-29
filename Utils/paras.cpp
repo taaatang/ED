@@ -2,31 +2,31 @@
 
 Orbital stringToOrb(std::string name, int id) {
     ORBITAL orb;
-    VecD coord;
+    Vec3d coord;
     if (name == "single") {
         orb = ORBITAL::SINGLE;
-        coord = VecD{0.0, 0.0, 0.0};
+        coord = {0.0, 0.0, 0.0};
     } else if (name == "dx2y2") {
         orb = ORBITAL::Dx2y2;
-        coord = VecD{0.0, 0.0, 0.0};
+        coord = {0.0, 0.0, 0.0};
     } else if (name == "dz2") {
         orb = ORBITAL::Dz2;
-        coord = VecD{0.0, 0.0, 0.0};
+        coord = {0.0, 0.0, 0.0};
     } else if (name == "px") {
         orb = ORBITAL::Px;
-        coord = VecD{0.5, 0.0, 0.0};
+        coord = {0.5, 0.0, 0.0};
     } else if (name == "py" or name == "py+") {
         orb = ORBITAL::Py;
-        coord = VecD{0.0, 0.5, 0.0};
+        coord = {0.0, 0.5, 0.0};
     } else if (name == "py-") {
         orb = ORBITAL::Py;
-        coord = VecD{0.0, -0.5, 0.0};
+        coord = {0.0, -0.5, 0.0};
     } else if (name == "pz" or name == "pzu") {
         orb = ORBITAL::Pzu;
-        coord = VecD{0.0, 0.0, 0.5};
+        coord = {0.0, 0.0, 0.5};
     } else if (name == "pzd") {
         orb = ORBITAL::Pzd;
-        coord = VecD{0.0, 0.0, -0.5};
+        coord = {0.0, 0.0, -0.5};
     } else {
         std::cout<<"Orbital: "<<name<<", is not defined!\n";
         exit(1);
@@ -48,7 +48,10 @@ LATTICE Parameters::getlatt() const {
 
 Parameters::Parameters(std::string inputDir, std::vector<std::string> files) {
     for(auto const& file:files){
-        if(!read(inputDir+"/"+file)){std::cout<<"Parameters read err.\n";exit(1);}
+        if(!read(inputDir+"/"+file)) {
+            std::cout<<"Parameters read err.\n";
+            exit(1);
+        }
     }
 }
 
@@ -96,32 +99,42 @@ bool Parameters::read(const std::string& filename){
             std::istringstream ins(line);
             std::string parsed;
             std::vector<std::string> vals;
-            while(std::getline(ins,parsed,':')){
+            while(std::getline(ins,parsed,':')) {
                 vals.push_back(parsed);
             }
-            if(vals.size()==3){
+            if(vals.size()==3) {
                 std::string key = vals[0];
                 std::string type = vals[1];
                 std::istringstream ss(vals[2]);
-                if(type=="i"){int val;ss>>val;mapi[key]=val;}
-                else if(type=="d"){double val;ss>>val;mapd[key]=val;}
-                else if(type=="s"){std::string val;ss>>val;maps[key]=val;}
-            }else if(vals.size()==2){
+                if (type == "i") {
+                    int val;
+                    ss>>val;
+                    mapi[key]=val;
+                } else if (type == "d") {
+                    double val;
+                    ss>>val;
+                    mapd[key]=val;
+                } else if (type == "s") {
+                    std::string val;
+                    ss>>val;
+                    maps[key]=val;
+                }
+            } else if (vals.size() == 2) {
                 std::string key = vals[0];
                 std::string type = vals[1];
                 std::string nextLine;
-                if(type=="vecs"){
-                    if(std::getline(infile,nextLine)){
+                if (type == "vecs") {
+                    if (std::getline(infile,nextLine)) {
                         auto val = readVec<std::string>(nextLine);
                         mapvecs[key] = val;
                     }
-                }else if(type=="vecd"){
-                    if(std::getline(infile,nextLine)){
+                } else if (type == "vecd") {
+                    if (std::getline(infile,nextLine)) {
                         auto val = readVec<double>(nextLine);
                         mapvecd[key] = val;
                     }
-                }else if(type=="arrd"){
-                    while(std::getline(infile,nextLine)){
+                } else if (type == "arrd") {
+                    while (std::getline(infile,nextLine)) {
                         if(nextLine=="")break;
                         auto val = readVec<double>(nextLine);
                         maparrd[key].push_back(val);
@@ -131,7 +144,7 @@ bool Parameters::read(const std::string& filename){
         }
         infile.close();
         return true;
-    }else{
+    } else {
         std::cout<<filename<<" failed to open!\n";
         return false;
     }
@@ -198,17 +211,17 @@ void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt
     // std::cout<<"basis set!\n";
 }
 
-void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, Geometry* latt, Basis* B) {
+void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& H, Geometry* latt, Basis* B) {
     LATTICE_MODEL model = para.getmodel();
     switch (model) {
         case LATTICE_MODEL::HUBBARD:
-            H = std::unique_ptr<OperatorBase<dataType>>(new Hamiltonian<HUBBARD,dataType>(latt, B, B, 1, 1));
+            H = std::unique_ptr<HamiltonianBase<dataType>>(new Hamiltonian<LATTICE_MODEL::HUBBARD,dataType>(latt, B, B, 1, 1));
             break;
         case LATTICE_MODEL::tJ:
-            H = std::unique_ptr<OperatorBase<dataType>>(new Hamiltonian<tJ,dataType>(latt, B, B, 1, 1));
+            H = std::unique_ptr<HamiltonianBase<dataType>>(new Hamiltonian<LATTICE_MODEL::tJ,dataType>(latt, B, B, 1, 1));
             break;
         case LATTICE_MODEL::HEISENBERG:
-            H = std::unique_ptr<OperatorBase<dataType>>(new Hamiltonian<HEISENBERG,dataType>(latt, B, B, 1, 1));
+            H = std::unique_ptr<HamiltonianBase<dataType>>(new Hamiltonian<LATTICE_MODEL::HEISENBERG,dataType>(latt, B, B, 1, 1));
             break;
         default:
             std::cout<<"Input Lattice Model not defined!\n";
@@ -217,86 +230,103 @@ void setham(const Parameters& para, std::unique_ptr<OperatorBase<dataType>>& H, 
     }
     if (model == LATTICE_MODEL::HUBBARD) {
         auto unitcell = latt->getUnitCell();
-        for (auto orb : unitcell) {
-            auto ids = latt->getOrbID(orb.orb);
-            auto id = ids.at(0);
-            auto v = para.maparrd.at("t").at(id).at(id);
-            auto u = para.maparrd.at("U").at(id).at(id);
-            H->pushV({orb.orb}, v);
-            H->pushU({orb.orb}, u);
-        }
-        auto links = HubbardLink();
-        for (auto& link : links) {
-            auto orbs = link.getOrbs();
-            bool validLink = true;
-            VecI orbids;
-            for (auto orb : orbs) {
-                auto ids = latt->getOrbID(orb);
-                if (ids.empty()) {
-                    validLink = false;
-                    break;
+        if (unitcell.size() == 1) {/* single band */
+            H->pushU({ORBITAL::SINGLE}, para.mapd.at("Uss"));
+            auto links = HubbardSingleBandLink(*latt);
+            auto tnn = para.mapd.at("tnn");
+            auto tnnn = para.mapd.at("tnnn");
+            if (std::abs(tnn) > INFINITESIMAL) {/* nearest neighbor hopping */
+                for (int id = 0; id < 2; ++id) {
+                    links.at(id).setVal(links.at(id).getVal() * tnn);
+                    H->pushLink(links.at(id), 0);
                 }
-                orbids.push_back(ids.at(0));
             }
-            if (!validLink) {
-                continue;
+            if (std::abs(tnnn) > INFINITESIMAL) {/* next nearest neighbor hopping */
+                for (int id = 2; id < 4; ++id) {
+                    links.at(id).setVal(links.at(id).getVal() * tnnn);
+                    H->pushLink(links.at(id), 0);
+                }
             }
-            assert(orbids.size()==2 and orbids[0]!=orbids[1]);
-            const std::vector<std::vector<double>>* arrdPtr = nullptr;
-            switch (link.getLinkType()) {
-                case LINK_TYPE::HOPPING_T:
-                    arrdPtr = &para.maparrd.at("t");
-                    break;
-                case LINK_TYPE::HUBBARD_U:
-                    arrdPtr = &para.maparrd.at("U");
-                    break;
-                case LINK_TYPE::EXCHANGE_J:
-                    arrdPtr = &para.maparrd.at("J");
-                    break;
-                case LINK_TYPE::PAIR_HOPPING_J:
-                    arrdPtr = &para.maparrd.at("J");
-                    break;
-                default:
-                    break;
+        } else {/* multi band */
+            for (auto orb : unitcell) {
+                auto ids = latt->getOrbID(orb.orb);
+                auto id = ids.at(0);
+                auto v = para.maparrd.at("t").at(id).at(id);
+                auto u = para.maparrd.at("U").at(id).at(id);
+                H->pushV({orb.orb}, v);
+                H->pushU({orb.orb}, u);
             }
-            if (arrdPtr) {
-                auto val = arrdPtr->at(orbids[0]).at(orbids[1]);
-                if (std::abs(val) > INFINITESIMAL) {
-                    link.setVal(link.getVal() * val);
-                    H->pushLink(link, 0);
+            auto links = HubbardMultiBandLink(*latt);
+            for (auto& link : links) {
+                auto orbs = link.getOrbs();
+                bool validLink = true;
+                VecI orbids;
+                for (auto orb : orbs) {
+                    auto ids = latt->getOrbID(orb);
+                    if (ids.empty()) {
+                        validLink = false;
+                        break;
+                    }
+                    orbids.push_back(ids.at(0));
+                }
+                if (!validLink) {
+                    continue;
+                }
+                assert(orbids.size()==2 and orbids[0]!=orbids[1]);
+                const std::vector<std::vector<double>>* arrdPtr = nullptr;
+                switch (link.getLinkType()) {
+                    case LINK_TYPE::HOPPING_T:
+                        arrdPtr = &para.maparrd.at("t");
+                        break;
+                    case LINK_TYPE::HUBBARD_U:
+                        arrdPtr = &para.maparrd.at("U");
+                        break;
+                    case LINK_TYPE::EXCHANGE_J:
+                        arrdPtr = &para.maparrd.at("J");
+                        break;
+                    case LINK_TYPE::PAIR_HOPPING_J:
+                        arrdPtr = &para.maparrd.at("J");
+                        break;
+                    default:
+                        break;
+                }
+                if (arrdPtr) {
+                    auto val = arrdPtr->at(orbids[0]).at(orbids[1]);
+                    if (std::abs(val) > INFINITESIMAL) {
+                        link.setVal(link.getVal() * val);
+                        H->pushLink(link, 0);
+                    }
                 }
             }
         }
     } else if (model == LATTICE_MODEL::HEISENBERG) {
-        auto links = HeisenbergLink();
+        auto J1 = para.mapd.at("J1");
+        if (std::abs(J1) > INFINITESIMAL) {
+            auto link = HeisenbergLink("J1", *latt);
+            link.setVal(link.getVal() * J1);
+            H->pushLink(link, 0);
+        }
+        auto J2 = para.mapd.at("J2");
+        if (std::abs(J2) > INFINITESIMAL) {
+            auto link = HeisenbergLink("J2", *latt);
+            link.setVal(link.getVal() * J2);
+            H->pushLink(link, 0);
+        }
+        auto Jk = para.mapd.at("Jk");
+        if (std::abs(Jk) > INFINITESIMAL) {
+            auto link = HeisenbergLink("Jk", *latt);
+            link.setVal(link.getVal() * Jk);
+            H->pushLink(link, 0);
+        }
 
     }
-
     // std::cout<<"hamiltonian set!\n";
 }
 
-void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<OperatorBase<dataType>>& H, int workerID) {
+void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<HamiltonianBase<dataType>>& H) {
     setlatt(para, latt);
     setbasis(para, B, latt.get());
     setham(para, H, latt.get(), B.get());
-
-    Timer timer;
-    timer.tik();
-    B->gen();
-    timer.tok();
-    if (workerID == MPI_MASTER) {
-        timer.print("Basis construction");
-        B->print();
-    }
-
-    timer.tik();
-    H->construct();
-    timer.tok();
-    if (workerID == MPI_MASTER) {
-        timer.print("Hamiltonian construction");
-        H->print("Hamiltonian from worker " + tostr(workerID));
-    }
-    
 }
 
 void setpulse(const Parameters& para, Pulse& pulse) {
@@ -306,10 +336,16 @@ void setpulse(const Parameters& para, Pulse& pulse) {
     auto numSteps = para.mapi.at("numSteps");
     auto width = para.mapd.at("width");
     auto fluence = para.mapd.at("fluence");
-    auto pol = para.mapvecd.at("polarization");
+    auto polv = para.mapvecd.at("polarization");
+    assert_msg(polv.size() == 3, "polarization should be a 3-vec!");
+    Vec3d pol{polv[0], polv[1], polv[2]};
     pulse = Pulse(freq, width, dt, numSteps);
     pulse.setFuncPara();
     pulse.setPol(pol);
     pulse.setFluence(fluence);
     pulse.setPhase(phase);
+}
+
+bool opt(const Parameters &para, std::string key) {
+    return para.mapi.at(key);
 }

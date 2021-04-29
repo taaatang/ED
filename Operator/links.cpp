@@ -1,3 +1,4 @@
+#include "Global/globalType.hpp"
 #include "Operator/links.hpp"
 
 /**********************
@@ -71,30 +72,104 @@ Link<dataType> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SI
 Link<dataType> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {{1.0,1.0,0.0}, {-1.0,2.0,0.0}, {2.0,-1.0,0.0}}, true);
 Link<dataType> JkLink(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {{0.0,1.0,0.0}, {1.0,0.0,0.0}, {1.0,0.0,0.0}, {1.0,-1.0,0.0}},  true);
 
-std::vector<Link<dataType>> HeisenbergLink( ) {
-    return std::vector<Link<dataType>>{J1Link, J2Link, JkLink};
+Link<dataType> HeisenbergLink(std::string name, const Geometry& latt) {
+    switch (latt.getType()) {
+        case LATTICE::TRIANGULAR:
+            if (name == "J1") {
+                return J1Link;
+            } else if (name == "J2") {
+                return J2Link;
+            } else if (name == "Jk") {
+                return JkLink;
+            } else {
+                exit_msg(name + " is not defined for HeisenbergLink.");
+            }
+            break;
+        default:
+           exit_msg("lattice type not defined for HeisenbergLink."); 
+           break;
+    }
 }
 
-std::vector<Link<dataType>> HubbardSingleBandLink( ) {
-    return std::vector<Link<dataType>>{tnn_px, tnn_py, tnnn_pxpy, tnnn_pxny};
+std::vector<Link<dataType>> HubbardSingleBandLink(const Geometry& latt) {
+    switch (latt.getType()) {
+        case LATTICE::SQUARE:
+            return std::vector<Link<dataType>>{tnn_px, tnn_py, tnnn_pxpy, tnnn_pxny};
+            break;
+        default:
+            exit_msg("lattice type not defined for HubbardLink.");
+            break;
+    }
+    
 }
 
-std::vector<Link<dataType>> HubbardMultiBandLink( ) {
-    std::vector<Link<dataType>> links_3band{tdpx, tdpy, tpxd, tpyd, tpxpy, tpypx, tpxpyp, tpypxp, ndnpx, ndnpy};
-    std::vector<Link<dataType>> links_pz{tpxpz, tpzpx, tpypz, tpzpy, tpxpzp, tpzpxp, tpypzp, tpzpyp, ndnpzu, ndnpzd};
-    std::vector<Link<dataType>> links_dz2{tdzpx, tdzpy, tpxdz, tpydz, tdzpzu, tdzpzd, ndndz, ex_ddz, ph_ddz};
-    std::vector<Link<dataType>> links;
-    links.insert(links.end(), links_3band.begin(), links_3band.end());
-    links.insert(links.end(), links_pz.begin(), links_pz.end());
-    links.insert(links.end(), links_dz2.begin(), links_dz2.end());
-    return links;
+std::vector<Link<dataType>> HubbardMultiBandLink(const Geometry& latt) {
+    switch (latt.getType()) {
+        case LATTICE::SQUARE: {
+            std::vector<Link<dataType>> links_3band{tdpx, tdpy, tpxd, tpyd, tpxpy, tpypx, tpxpyp, tpypxp, ndnpx, ndnpy};
+            std::vector<Link<dataType>> links_pz{tpxpz, tpzpx, tpypz, tpzpy, tpxpzp, tpzpxp, tpypzp, tpzpyp, ndnpzu, ndnpzd};
+            std::vector<Link<dataType>> links_dz2{tdzpx, tdzpy, tpxdz, tpydz, tdzpzu, tdzpzd, ndndz, ex_ddz, ph_ddz};
+            std::vector<Link<dataType>> links;
+            links.insert(links.end(), links_3band.begin(), links_3band.end());
+            links.insert(links.end(), links_pz.begin(), links_pz.end());
+            links.insert(links.end(), links_dz2.begin(), links_dz2.end());
+            return links;
+            break;
+        }
+        default:
+            exit_msg("lattice type not defined for HubbardLink.");
+            break;
+
+    }
 }
 
-std::vector<Link<dataType>> HubbardLink( ) {
-    auto single = HubbardSingleBandLink();
-    auto multi = HubbardMultiBandLink();
+std::vector<Link<dataType>> HubbardLink(const Geometry& latt) {
+    auto single = HubbardSingleBandLink(latt);
+    auto multi = HubbardMultiBandLink(latt);
     std::vector<Link<dataType>> links;
     links.insert(links.end(), single.begin(), single.end());
     links.insert(links.end(), multi.begin(), multi.end());
     return links;
+}
+
+std::vector<Link<dataType>> RamanChannel(std::string channel, double J1, double J2, const Geometry& latt) {
+    switch (latt.getPG()) {
+        case PointGroup::D6:
+            if (channel == "A1") {
+                Link<dataType> A1Link_J1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1/2.0, {{1.0,0.0,0.0}, {0.0,1.0,0.0}, {1.0,-1.0,0.0}});
+                Link<dataType> A1Link_J2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2/2.0*3.0, {{1.0,1.0,0.0}, {-1.0,2.0,0.0}, {2.0,-1.0,0.0}});
+                return std::vector<Link<dataType>> {A1Link_J1, A1Link_J2};
+            } else if (channel == "E21") {
+                Link<dataType> E21Link_J1_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1/2.0, {{1.0,0.0,0.0}});
+                Link<dataType> E21Link_J1_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J1/4.0, {{0.0,1.0,0.0}, {-1.0,1.0,0.0}});
+                Link<dataType> E21Link_J2_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2/4.0*3.0, {{2.0,-1,0.0}, {1.0,1.0,0.0}});
+                Link<dataType> E21Link_J2_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J2/2.0*3, {{-1.0,2.0,0.0}});
+                return std::vector<Link<dataType>> {E21Link_J1_1, E21Link_J1_2, E21Link_J2_1, E21Link_J2_2};
+            } else if (channel == "E22") {
+                Link<dataType> E22Link_J1_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1/4.0*std::sqrt(3.0), {{0.0,1.0,0.0}});
+                Link<dataType> E22Link_J1_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J1/4.0*std::sqrt(3.0), {{-1.0,1.0,0.0}});
+                Link<dataType> E22Link_J2_1(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J2/4.0*3.0*std::sqrt(3.0), {{1.0,1.0,0.0}});
+                Link<dataType> E22Link_J2_2(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, -J2/4.0*3.0*std::sqrt(3.0), {{2.0,-1.0,0.0}});
+                return std::vector<Link<dataType>> {E22Link_J1_1, E22Link_J1_2, E22Link_J2_1, E22Link_J2_2};
+            } else if (channel == "A2") {
+                std::vector<Vec3d> A2vecs{{1.0,1.0,0.0}, {1.0,0.0,0.0}, {1.0,0.0,0.0}, {2.0,-1.0,0.0}, {0.0,1.0,0.0}, {1.0,0.0,0.0}, {1.0,0.0,0.0}, {1.0,-1.0,0.0}, {1.0,1.0,0.0}, {2.0,0.0,0.0}, {2.0,0.0,0.0}, {2.0,-1.0,0.0}};
+                int vecNum = A2vecs.size();
+                for (int rot = 0; rot < 5; rot++){
+                    for (int vecidx = 0; vecidx < vecNum; ++vecidx){
+                        int cur_idx = rot * vecNum + vecidx;
+                        auto vec = latt.rotate(A2vecs.at(cur_idx));
+                        A2vecs.push_back(vec);
+                    }
+                }
+                Link<dataType> A2Link(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, CPLX_I*4.0*J1*std::sqrt(3*J1*J2), true);
+                for(auto vec : A2vecs) A2Link.addLinkVec(vec);
+                return std::vector<Link<dataType>> {A2Link};
+            } else {
+                return std::vector<Link<dataType>> {}; 
+            }
+            break;
+        default:
+            return std::vector<Link<dataType>> {};
+            break; 
+    }
 }

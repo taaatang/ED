@@ -9,12 +9,9 @@
 #ifndef Basis_hpp
 #define Basis_hpp
 
-#include "Global/globalPara.hpp"
-#include "Geometry/Geometry.hpp"
-#include "Utils/utils.hpp"
-
 #include <stdio.h>
 #include <algorithm>
+#include <assert.h>
 #include <vector>
 #include <map>
 #include <unordered_map>
@@ -23,6 +20,13 @@
 #include <iostream>
 #include <fstream>
 #include <complex>
+
+#include "Global/globalPara.hpp"
+#include "Geometry/Geometry.hpp"
+#include "Utils/comb.hpp"
+#include "Utils/bitop.hpp"
+#include "Utils/mpiwrap.hpp"
+#include "Utils/io.hpp"
 
 /*
     ***************
@@ -33,7 +37,7 @@ class Basis{
 /*
     For Heisenberg model:
             repI is the binary represnetation of the spin configurations
-    For Hubbard model,:
+    For Hubbard/tJ model,:
         repI=fidx*sDim+sidx. fIndexList[fidx] and sIndexList[sidx] are corresponding binary representations of
         spin-up and spin-down occupations.
         pairRepI = (fIndexList[fidx], sIndexList[sidx])
@@ -44,17 +48,18 @@ public:
     Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI occList, int kInd=-1, int PGRepInd = -1, int siteD=2);
     ~Basis(){};
 
-    LATTICE_MODEL getModel() const {return model;}
-    int getkIndex() const {return kIndex;}
-    int getPGIndex() const {return PGRepIndex;}
+    LATTICE_MODEL getModel( ) const { return model; }
+    int getkIndex( ) const { return kIndex; }
+    int getPGIndex( ) const { return PGRepIndex; }
+    VecI getOcc( ) const { return Nocc; }
 
     // Rep integer access
     // rowidx->repI
     idx_t getRepI(idx_t idx) const {if(kIndex==-1 and model==LATTICE_MODEL::HUBBARD)return idx; return indexList.at(idx);}
     // repI->pairRepI
-    pairIndex getPairRepI(idx_t repI) const {assert_msg(model!=LATTICE_MODEL::HEISENBERG,"PairRepI not defined for Heisenberg Model!");return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));}
+    pairIdx_t getPairRepI(idx_t repI) const {assert_msg(model!=LATTICE_MODEL::HEISENBERG,"PairRepI not defined for Heisenberg Model!");return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));}
     // pairRepI->repI
-    idx_t getRepI(pairIndex pairRepI) const {return fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);}
+    idx_t getRepI(pairIdx_t pairRepI) const {return fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);}
     
     idx_t getmul(int orbid) const {return mul.at(orbid);}
 
@@ -64,14 +69,16 @@ public:
     void gendcmp();
     
     // construc k-subspace basis. need lattice to know symmetry operations
-    void gen();
-    void gen(int workerID, int workerNum);
+    void construct();
+    void construct(int workerID, int workerNum);
     
     // construct k-subspace basis/norm from reps loaded from file
-    void gen(std::string basisfile);
-    void gen(std::string basisfile, std::string normfile);
+    void construct(std::string basisfile);
+    void construct(std::string basisfile, std::string normfile);
     // distributed basis
-    void gen(std::string basisfile, std::string normfile, int workerID, int workerNum);
+    void construct(std::string basisfile, std::string normfile, int workerID, int workerNum);
+
+    void construct(bool saved, std::string basisDir);
     
     int getSiteDim() const {return siteDim;}
     int getOrbNum() const {return N;}
@@ -90,11 +97,11 @@ public:
     
     // vec to Basis index
     idx_t vecToRep(VecI& v) const;
-    pairIndex vecToRep(VecI& v, VecI& vp) const;
+    pairIdx_t vecToRep(VecI& v, VecI& vp) const;
     
     // Basis index to Basis vec
     void repToVec(idx_t index, VecI& v) const;
-    void repToVec(pairIndex pairInd, VecI& v, VecI& vp) const;
+    void repToVec(pairIdx_t pairInd, VecI& v, VecI& vp) const;
     void repToVec(idx_t index, VecI& v, VecI& vp) const;
 
     // for distributed basis. get the workerID where repI is possiblely stored
@@ -105,21 +112,22 @@ public:
     //search full hilbert space
     idx_t search(idx_t repI, const std::vector<idx_t> &indList) const;
     idx_t search(idx_t repI) const;
-    idx_t search(pairIndex pairRepI) const;
+    idx_t search(pairIdx_t pairRepI) const;
     //search current symm sector subspace
     bool search(idx_t repI, idx_t &idx, const std::vector<idx_t> &indList) const;
     bool search(idx_t repI, idx_t &idx) const;
-    bool search(pairIndex pairRepI, idx_t &idx) const;
+    bool search(pairIdx_t pairRepI, idx_t &idx) const;
 
     /*
         ************
         * Symmetry *
         * **********
     */
-    // apply all translation operations to a Basis vec indexed by ind.
+    // apply all translation operations to a Basis vec indexed by rowID.
     // finalInd contains all resulting basis indexes.
-    void genSymm(idx_t ind, std::vector<idx_t>& finalInd) const;
-    void genSymm(idx_t ind, std::vector<idx_t>& finalInd, std::vector<cdouble>& factorList) const;
+    void genSymm(idx_t rowID, std::vector<idx_t>& repIs) const;
+    void genSymm(idx_t rowID, std::vector<idx_t>& repIs, std::vector<cdouble>& factorList) const;
+    void genSymm(idx_t rowID, std::vector<pairIdx_t>& pairRepIs, std::vector<cdouble>& factorList) const;
     
     // judge if repI is min repI. append symm operations tp symmList if symm(repI)==repI. not guanranteed to be MinRep since its norm might = 0
     bool isMin(idx_t repI, VecI& symmList);
@@ -135,16 +143,12 @@ public:
     
     // I/O
     void print(std::ostream& os = std::cout) const;
-    void saveBasis(std::string basisfile, bool is_app=false);
-    void saveBasis(std::string basisfile, std::string normfile, bool is_app=false);
+    void save(std::string basisDir, bool saveNorm = true, bool is_app = false);
 
 private:
-    /*
-     Instantiate an object managing the Basis set
-    */
-    Geometry *pt_lattice;
-    // option: 0->Hubbard, 1->t-J, 2->Heisenberg
     LATTICE_MODEL model;
+    Geometry *pt_lattice;
+  
 
     int kIndex; // default initial value kIndex=-1 ==> full hilbertspace
     int PGRepIndex; // default -1 -> do not use point group symm
@@ -195,5 +199,7 @@ private:
     // Multipliers. Basis vec index = sum(i):vec(i)*mul(i)
     std::vector<idx_t> mul;
 };
+
+void work_load(idx_t size, int workerID, int workerNum, idx_t& idxStart, idx_t& idxEnd);
 
 #endif // Basis_hpp

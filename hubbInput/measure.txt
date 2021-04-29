@@ -1,0 +1,5 @@
+ground state:i:1 # 0-->off, 1-->on
+#Hubbard
+conductivity:i:0
+Akw:i:0
+pump:i:0

@@ -1,0 +1,9 @@
+frequency:d:inputw # eV
+phase:d:0.25 # in unit of 2*PI
+dt:d:0.01 # in unit of hbar/eV
+numSteps:i:15000
+width:d:10.0 # pulse width in unit of femtoseconds
+fluence:d:inputflu # mJ/cm^2
+polarization:vecd:
+1.0, 0.0, 0.0
+polarization label:s:x

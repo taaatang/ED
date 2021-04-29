@@ -8,40 +8,60 @@
 #ifndef SparseMatrix_hpp
 #define SparseMatrix_hpp
 
+#include <type_traits>
+#include <climits>
+#include <omp.h>
+
 #include "Global/globalPara.hpp"
 #include "Basis/Basis.hpp"
+#include "Utils/mpiwrap.hpp"
 #include "Algebra/algebra.hpp"
-#include "Utils/utils.hpp"
 #include "Utils/timer.hpp"
-#include <climits>
-#include "mpi.h"
-#include <omp.h>
 
 template <class T>
 class BaseMatrix{
 public:
-    BaseMatrix(idx_t totDim = 0);
-    ~BaseMatrix(){}
+    BaseMatrix(idx_t totRowDim = 0, idx_t totColDim = 0);
+    ~BaseMatrix( ) { }
 
+    int getWorkerID( ) const { return workerID; }
+    
     void setDim(idx_t totDim = 0);
-    idx_t getDim( ) const {return dim;};
-    int getWorkerID( ) const {return workerID;};
-    // ntot = nlocmax * workerNum != totDim
-    idx_t getntot( ) const {return ntot;};
-    idx_t getnlocmax( ) const {return nlocmax;};
-    // totDim = sum(nloc)
-    idx_t getnloc( ) const {return nloc;};
+    idx_t getDim( ) const { return dim; }
+    idx_t getntot( ) const { return ntot; }
+    idx_t getnlocmax( ) const { return nlocmax; }
+    idx_t getnloc( ) const { return nloc; }
 
+    void setColDim(idx_t totDim = 0);
+    idx_t getColDim( ) const { return dim_col; }
+    idx_t getColntot( ) const { return ntot_col; }
+    idx_t getColnlocmax( ) const { return nlocmax_col; }
+    idx_t getColnloc( ) const { return nloc_col; }
+
+    // Matrix Vector Multiplication Interface
     virtual void MxV(T *vecIn, T *vecOut) = 0;
+    // project to symmetry subspace labeled by val
+    virtual void project(double val, T* vec) { };
 
     int workerID;
     int workerNum;
+    // row major. row dimension
+    // tot row dim of all workers
+    // totDim = sum(nloc)
     idx_t dim;
     idx_t nlocmax;
+    // ntot = nlocmax * workerNum != totDim
     idx_t ntot;
     idx_t nloc;
     idx_t startRow;
     idx_t endRow;
+
+    idx_t dim_col;
+    idx_t nlocmax_col;
+    idx_t ntot_col;
+    idx_t nloc_col;
+    idx_t startCol;
+    idx_t endCol;
 };
 
 /*
@@ -64,7 +84,7 @@ class SparseMatrix: public BaseMatrix<T>{
 */
 public:
     SparseMatrix( ) { }
-    SparseMatrix(Basis *Bi_, Basis *Bf_, idx_t totDim_ = 0, int spmNum_ = 0, int dmNum_ = 0);
+    SparseMatrix(Basis *Bi_, Basis *Bf_, int spmNum_ = 0, int dmNum_ = 0);
     ~SparseMatrix( );
 
     // local matrix nonzero elements count
@@ -74,7 +94,7 @@ public:
     void reserveDiag( ) { for(int i = 0; i < dmNum; ++i) diagValList.reserve(this->getnloc()); }
 
     // reserve memory for off diagonal part
-    void reserve(idx_t sizePerRow, int matID=0);
+    void reserve(idx_t sizePerRow, int matID = 0);
 
     // clear memory of sparse matrixes
     void clear();
@@ -85,7 +105,7 @@ public:
 
     void pushDiag(T val, int matID=0) { diagValList.at(matID).push_back(val); }
 
-    void putDiag(T val, idx_t idx, int matID=0);
+    void putDiag(T val, idx_t idx, int matID = 0);
 
     // check if matrix vector multiplication buff is properly set
     bool isMVBuf( );
@@ -101,7 +121,7 @@ public:
 
     void MxV(T *vecIn, T *vecOut);
 
-    cdouble vMv(T *vecL, T *vecR);
+    T vMv(T *vecL, T *vecR);
 
     virtual void print(std::string info, std::ostream& os = std::cout) const;
 
@@ -115,13 +135,13 @@ public:
     void setMpiBuff(idx_t idx_val);
 
     // construct sparse matrix in parallel. each thread create #rowPerThread.
-    void construct(int rowCount=50, int rowPerIt=1000);
+    virtual void construct(int rowCount=50, int rowPerIt=1000);
 
 #else // DISTRIBUTED_BASIS
 
-    void pushRow(std::unordered_map<idx_t,T>* rowMap, int matID=0);
+    void pushRow(std::unordered_map<idx_t,T>* rowMap, int matID = 0);
 
-    void construct(int rowPerThread=1);
+    virtual void construct(int rowPerThread = 1);
 
 #endif // DISTRIBUTED_BASIS
 
@@ -137,8 +157,6 @@ protected:
     std::vector<T> diagParameters; // diagParameters[i]*diagValList[i]. parameter for i-th diagonal matrix
     std::vector<T> parameters; // parameters[i]*valList[i]. parameter for i-th sparse matrix
 
-    idx_t nlocmax_col;
-    idx_t ntot_col;
     static std::vector<T> vecBuf; // common buffer for matrix vector multiplication
 
 #ifdef DISTRIBUTED_STATE
@@ -168,10 +186,11 @@ protected:
 };
 
 template <class T>
-BaseMatrix<T>::BaseMatrix(idx_t totDim) {
+BaseMatrix<T>::BaseMatrix(idx_t totRowDim, idx_t totColDim) {
     MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
     MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
-    setDim(totDim);
+    setDim(totRowDim);
+    setColDim(totColDim);
 }
 
 template <class T>
@@ -180,8 +199,18 @@ void BaseMatrix<T>::setDim(idx_t totDim) {
     nlocmax = (dim + workerNum - 1)/workerNum;
     ntot = nlocmax * workerNum;
     startRow = workerID * nlocmax;
-    endRow = (startRow + nlocmax)<dim?(startRow + nlocmax):dim;
+    endRow = (startRow + nlocmax) < dim ? (startRow + nlocmax) : dim;
     nloc = endRow - startRow;
+}
+
+template <class T>
+void BaseMatrix<T>::setColDim(idx_t totDim) {
+    dim_col = totDim;
+    nlocmax_col = (dim_col + workerNum - 1)/workerNum;
+    ntot_col = nlocmax_col * workerNum;
+    startCol = workerID * nlocmax_col;
+    endCol = (startCol + nlocmax_col) < dim_col ? (startCol + nlocmax_col) : dim_col;
+    nloc_col = endCol - startCol;
 }
 
 // buffer for matrix vector multiplication
@@ -195,7 +224,8 @@ std::vector<T> SparseMatrix<T>::vecBuf;
 */
 
 template <class T>
-SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, idx_t totDim_ , int spmNum_ , int dmNum_):BaseMatrix<T>(totDim_), Bi(Bi_), Bf(Bf_) {
+SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, int spmNum_ , int dmNum_):BaseMatrix<T>(Bf_->getSubDim(), Bi_->getSubDim()), \
+Bi(Bi_), Bf(Bf_) {
 
     setSpmNum(spmNum_);
     setDmNum(dmNum_);
@@ -228,7 +258,7 @@ SparseMatrix<T>::~SparseMatrix( ) {
 
 template <class T>
 idx_t SparseMatrix<T>::nzCount( ) const {
-    idx_t count=0;
+    idx_t count = 0;
 
     #ifdef DISTRIBUTED_BASIS 
 
@@ -236,11 +266,11 @@ idx_t SparseMatrix<T>::nzCount( ) const {
 
     #else
 
-        for(int i=0;i<spmNum;++i)count+=valList.at(i).size();
+        for(int i = 0; i < spmNum; ++i) count += valList.at(i).size();
 
     #endif
 
-    for(int i=0;i<dmNum;++i)count+=diagValList.at(i).size();
+    for(int i = 0; i < dmNum; ++i) count += diagValList.at(i).size();
     return count;
 }
 
@@ -265,13 +295,13 @@ void SparseMatrix<T>::reserve(idx_t sizePerRow, int matID) {
 
 template <class T>
 void SparseMatrix<T>::clear( ) {
-    for (int matID = 0; matID < dmNum; matID++) diagValList[matID].clear();
+    for (int matID = 0; matID < dmNum; ++matID) diagValList[matID].clear();
 
     #ifdef DISTRIBUTED_BASIS
 
-        for (int matID = 0; matID < spmNum; matID++) {
-            for(int b=0; b < blockNum;b++) {
-                counter.at(matID).at(b)=0;
+        for (int matID = 0; matID < spmNum; ++matID) {
+            for(int b = 0; b < blockNum; ++b) {
+                counter.at(matID).at(b) = 0;
                 valList.at(matID).at(b).clear();
                 colList.at(matID).at(b).clear();
                 rowInitList.at(matID).at(b).clear();
@@ -280,14 +310,15 @@ void SparseMatrix<T>::clear( ) {
 
     #else
 
-        for (int matID = 0; matID < spmNum; matID++) {
-            counter[matID]=0;
+        for (int matID = 0; matID < spmNum; ++matID) {
+            counter[matID] = 0;
             valList[matID].clear();
             colList[matID].clear();
             rowInitList[matID].clear();
         }
     
     #endif
+    isMatrixFree = true;
 }
 
 template <class T>
@@ -295,11 +326,11 @@ void SparseMatrix<T>::putDiag(T val, idx_t idx, int matID){
 
     #ifdef DISTRIBUTED_BASIS
 
-        diagValList.at(matID).at(idx)=val;
+        diagValList.at(matID).at(idx) = val;
 
     #else
 
-        diagValList.at(matID).at(idx-BaseMatrix<T>::startRow)=val;
+        diagValList.at(matID).at(idx-BaseMatrix<T>::startRow) = val;
 
     #endif
 
@@ -349,7 +380,14 @@ void SparseMatrix<T>::setDmNum(int num) {
         rowInitList[matID].push_back(counter[matID]);
         for (auto it = rowMap->begin(); it != rowMap->end(); it++){
             colList[matID].push_back(it->first);
-            valList[matID].push_back(std::conj(it->second));
+            if constexpr (std::is_same<cdouble, T>::value) {
+                valList[matID].push_back(std::conj(it->second));
+            } else if constexpr (std::is_same<double, T>::value) {
+                valList[matID].push_back(it->second); 
+            } else {
+                std::cout<<"Sparse matrix only defined for couble/cdouble! \n";
+                exit(1);
+            }
         }
     }
 
@@ -357,28 +395,28 @@ void SparseMatrix<T>::setDmNum(int num) {
 
 template <class T>
 bool SparseMatrix<T>::isMVBuf( ) {    
-    nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
-    ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
+    // nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
+    // ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
 
     #ifdef DISTRIBUTED_BASIS
 
-        return vecBuf.size() == nlocmax_col;
+        return vecBuf.size() == this->getColnlocmax();
 
     #else
  
-        return vecBuf.size() == ntot_col;
+        return vecBuf.size() == this->getColntot();
 
     #endif
 }
 
 template <class T>
-void SparseMatrix<T>::setBuf(){
-    nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1)/BaseMatrix<T>::workerNum;
-    ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
+void SparseMatrix<T>::setBuf( ) {
+    // nlocmax_col = (Bi->getSubDim() + BaseMatrix<T>::workerNum - 1) / BaseMatrix<T>::workerNum;
+    // ntot_col = nlocmax_col * BaseMatrix<T>::workerNum;
     #ifdef DISTRIBUTED_BASIS
-        vecBuf.resize(nlocmax_col);
+        vecBuf.resize(this->getColnlocmax());
     #else
-        vecBuf.resize(ntot_col);
+        vecBuf.resize(this->getColntot());
     #endif
 }
 
@@ -517,6 +555,7 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
     void SparseMatrix<T>::construct(int rowPerThread){
         clear();
         this->setDim(Bf->getSubDim());
+        this->setColDim(Bi->getSubDim());
         int threadNum;
         #pragma omp parallel
         {
@@ -570,7 +609,14 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
                             colList[j].at(startList[threadID][j]+count_tmp[j]) = it->first;
                             switch(PARTITION){
                                 case ROW_PARTITION:{
-                                    valList[j].at(startList[threadID][j]+count_tmp[j]) = std::conj(it->second);
+                                    if constexpr (std::is_same<cdouble, T>::value) {
+                                        valList[j].at(startList[threadID][j]+count_tmp[j]) = std::conj(it->second);
+                                    } else if constexpr (std::is_same<double, T>::value) {
+                                        valList[j].at(startList[threadID][j]+count_tmp[j]) = it->second;
+                                    } else {
+                                        std::cout<<"Sparse matrix only defined for double/cdouble !\n";
+                                        exit(1);
+                                    }
                                     break;
                                 }
                                 case COL_PARTITION:{
@@ -620,7 +666,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
 
             #pragma omp parallel for
             for (idx_t i = 0; i < BaseMatrix<T>::nloc; ++i) vecOut[i] = 0.0;
-            MPI_Allgather(vecIn,vecBuf.data(),nlocmax_col);
+            MPI_Allgather(vecIn,vecBuf.data(),this->getColnlocmax());
             for (int i = 0; i < spmNum; ++i){MKL::MxV(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
 
         #endif
@@ -639,7 +685,7 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
             }
         }
     } else {
-        MPI_Allgather(vecIn,vecBuf.data(),nlocmax_col);
+        MPI_Allgather(vecIn,vecBuf.data(), this->getColnlocmax());
         #pragma omp parallel for
         for (idx_t i = 0; i < BaseMatrix<T>::nloc; ++i) vecOut[i] = 0.0;
         #pragma omp parallel for
@@ -664,12 +710,10 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
 }
 
 template <class T>
-cdouble SparseMatrix<T>::vMv(T *vecL, T *vecR){
+T SparseMatrix<T>::vMv(T *vecL, T *vecR){
     std::vector<T> vecTmp(BaseMatrix<T>::nlocmax);
-    cdouble val=0.0;
     MxV(vecR, vecTmp.data());
-    vConjDotv<T, T>(vecL, vecTmp.data(), &val, BaseMatrix<T>::nloc);
-    return val;
+    return mpiDot<T>(vecL, vecTmp.data(), BaseMatrix<T>::nloc);
 }
 
 template <class T>

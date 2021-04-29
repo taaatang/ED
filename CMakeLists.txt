@@ -6,15 +6,14 @@ if(HOST STREQUAL "cori")
     set(OPENMP_FLAG -qopenmp)
 elseif(HOST STREQUAL "sherlock" OR HOST STREQUAL "acer")
     set(CMAKE_CXX_COMPILER mpiicpc)
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_STANDARD_REQUIRED True)
     set(OPENMP_FLAG -qopenmp)
 elseif(HOST STREQUAL "mac")
     set(CMAKE_CXX_COMPILER /usr/local/bin/g++-10)
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_STANDARD_REQUIRED True)
     set(OPENMP_FLAG -fopenmp)
 endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 project(ED VERSION 1.0.0 LANGUAGES CXX)
 
@@ -27,8 +26,8 @@ set(MKLROOT $ENV{MKLROOT})
 set(MKLINC ${MKLROOT}/include)
 
 if(HOST STREQUAL "mac")
-    set(MPIINC /usr/local/Cellar/open-mpi/4.0.5/include)
-    set(MPILIB /usr/local/Cellar/open-mpi/4.0.5/lib)
+    set(MPIINC /usr/local/Cellar/open-mpi/4.1.0/include)
+    set(MPILIB /usr/local/Cellar/open-mpi/4.1.0/lib)
     set(MPI mpi)
     set(MKLLIB ${MKLROOT}/lib)
 else()
@@ -66,16 +65,20 @@ if(HOST STREQUAL "mac")
     include_directories(/usr/local/Cellar/gsl/2.6/include)
     link_directories(/usr/local/Cellar/gsl/2.6/lib)
 endif()
+if(HOST STREQUAL "cori")
+    include_directories(/global/common/sw/cray/cnl7/haswell/gsl/2.5/intel/19.0.3.199/7twqxxq/include)
+    link_directories(/global/common/sw/cray/cnl7/haswell/gsl/2.5/intel/19.0.3.199/7twqxxq/lib)
+endif()
 
 
 # SRC and Hearder files
 set(GLOBAL_PARA "Global/globalType.hpp" "Global/globalPara.hpp" "Global/config.hpp")
-set(UTILS "Utils/utils.cpp" "Utils/paras.cpp" "Utils/utils.hpp" "Utils/timer.hpp" "Utils/paras.hpp")
+set(UTILS "Utils/comb.cpp" "Utils/io.cpp"  "Utils/paras.cpp" "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" "Utils/paras.hpp" "Utils/path.hpp" "Utils/timer.hpp")
 set(PULSE "Pulse/pulse.cpp" "Pulse/pulse.hpp")
-set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp")
+set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp" "Geometry/Vec3.hpp")
 set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp")
 set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
-set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/OperatorBasics.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
+set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/Operations.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
 
 set(ARPACK "Solver/PARPACKSolver.hpp")
 set(LANCZOS "Solver/LANCZOSIterator.hpp")
@@ -91,23 +94,11 @@ set(TIME_DEP ${GROUND_STATE_DEP} ${TIME} ${PULSE})
 # Excutables
 set(EXE_SRC ExcutableSRC)
 
-add_executable(main.out ${EXE_SRC}/main.cpp ${TIME_DEP})
-target_link_libraries(main.out ${LINKS} gsl gslcblas)
+add_executable(hubbard.out ${EXE_SRC}/hubbard.cpp ${TIME_DEP})
+target_link_libraries(hubbard.out ${LINKS} gsl gslcblas)
 
-add_executable(genBasis.out ${EXE_SRC}/genBasisMain.cpp ${BASIS_DEP})
-target_link_libraries(genBasis.out ${BOOST})
-
-add_executable(GroundState.out ${EXE_SRC}/GroundStateMain.cpp ${GROUND_STATE_DEP})
-target_link_libraries(GroundState.out ${LINKS})
-
-add_executable(Spectra.out ${EXE_SRC}/SpectraMain.cpp ${SPECTRA_DEP})
-target_link_libraries(Spectra.out ${LINKS})
-
-add_executable(HubbardSpec.out ${EXE_SRC}/HubbardSpecMain.cpp ${SPECTRA_DEP})
-target_link_libraries(HubbardSpec.out ${LINKS})
-
-add_executable(HubbardCond.out ${EXE_SRC}/HubbardCondMain.cpp ${SPECTRA_DEP})
-target_link_libraries(HubbardCond.out ${LINKS})
+add_executable(heisenberg.out ${EXE_SRC}/heisenberg.cpp ${TIME_DEP})
+target_link_libraries(heisenberg.out ${LINKS} gsl gslcblas)
 
 # Test
 set(TEST_SRC Test)

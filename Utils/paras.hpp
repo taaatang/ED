@@ -34,9 +34,10 @@ class Parameters{
     friend void setlatt(const Parameters&, std::unique_ptr<Geometry>&);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int, int, int, int);
-    friend void setham(const Parameters&, std::unique_ptr<OperatorBase<dataType>>&, Geometry*, Basis*);
+    friend void setham(const Parameters&, std::unique_ptr<HamiltonianBase<dataType>>&, Geometry*, Basis*);
     friend void setmeasure(const Parameters&);
     friend void setpulse(const Parameters&, Pulse&);
+    friend bool opt(const Parameters&, std::string key);
 public:
     Parameters(){}
     Parameters(std::string configFile){config(configFile);}
@@ -48,6 +49,8 @@ public:
     void print(std::string filename) const;
     void print(std::ostream& os) const;
 
+    double getd(std::string key) const { return mapd.at(key); }
+    int geti(std::string key) const { return mapi.at(key); }
     LATTICE getlatt() const;
     LATTICE_MODEL getmodel() const;
 
@@ -65,15 +68,17 @@ void setpath(Parameters&);
 void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int nuf, int ndf, int kf, int pf);
-void setham(const Parameters&, std::unique_ptr<OperatorBase<dataType>>& H, Geometry*, Basis*);
-void setBasics(const Parameters&, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<OperatorBase<dataType>>& H, int workerID = -1);
+void setham(const Parameters&, std::unique_ptr<HamiltonianBase<dataType>>& H, Geometry*, Basis*);
+void setBasics(const Parameters&, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<HamiltonianBase<dataType>>& H);
 
 void setmeasure(const Parameters&);
 void setpulse(const Parameters&, Pulse&);
 
 void setPeierls(OperatorBase<dataType>& H, const std::vector<double>& pol);
 
-inline void removeComment(std::string& s, char delim){
+bool opt(const Parameters &para, std::string key);
+
+inline void removeComment(std::string& s, char delim = '#'){
     std::istringstream ins (s);
     std::string tmp;
     std::getline(ins,tmp,delim);
@@ -82,6 +87,7 @@ inline void removeComment(std::string& s, char delim){
 
 template<typename T>
 std::vector<T> readVec(std::string& s, char sep=','){
+    removeComment(s);
     std::istringstream ins(s);
     std::vector<T> result;
     std::string s_val;
@@ -96,7 +102,7 @@ template<typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& myvec){
     if(!std::is_same<T,std::vector<double>>::value)os<<"\n";
     if(std::is_floating_point<T>::value)os<<std::setprecision(2)<<std::fixed;
-    for(int i=0;i<myvec.size()-1;++i){
+    for(int i = 0; i< (int)myvec.size()-1; ++i){
         os<<myvec.at(i);
         if(!std::is_same<T,std::vector<double>>::value)os<<", ";
     }

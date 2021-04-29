@@ -13,61 +13,92 @@
     * Hamiltonian Class *
     *********************
 */
-void Current::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps){
-    // off diagonal part
-    int idx = 0; if(plz=="x") idx = 0; else if(plz=="y") idx = 1; else if(plz=="z") idx=2; else exit(1);
-    std::vector<idx_t> finalIndList;
+
+Current::Current(Geometry *latt, Basis *Ba):OperatorBase<cdouble>(latt, Ba, Ba) {
+    
+}
+
+void Current::setDirection(std::string plz) {
+    this->plz = plz;
+    if (plz=="x") direction = {1.0, 0.0, 0.0};
+    else if (plz=="y") direction = {0.0, 1.0, 0.0};
+    else if (plz=="z") direction = {0.0, 0.0, 1.0};
+    else direction = {0.0, 0.0, 0.0};
+    setDirection(direction);
+}
+
+void Current::setDirection(Vec3d d) {
+    direction = d;
+    myHoppingT.clear();
+    for (auto link : this->hoppingT) {
+        assert_msg(link.getLinkVecNum()==1, "In setDirection, each hopping link should only have one dr!");
+        auto dr = link.getvec(0);
+        dr = this->latt->RtoRxy(dr);
+        auto overlap = dot(direction, dr);
+        if (overlap != 0.0) {
+            link.setVal(link.getVal() * overlap);
+            myHoppingT.push_back(link);
+        }
+    }
+}
+
+void Current::print(std::ostream &os) const {
+    for (const auto& link : this->myHoppingT) {
+        link.print(false, os);
+    }
+}
+
+void Current::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps) {
+    std::vector<pairIdx_t> finalIndList;
     std::vector<cdouble> factorList;
-    pt_Basis->genSymm(rowID, finalIndList, factorList);
-    for (int i = 0; i < finalIndList.size(); ++i){
-        pairIndex pairRepI = pt_Basis->getPairRepI(finalIndList[i]);
-        bool isfminRep = pt_Basis->isfMin(pairRepI.first);
-        for (auto linkit = Links.begin(); linkit != Links.end(); linkit++){
-            int matID = (*linkit).getmatid();
-            cdouble factor = CPLX_I * factorList.at(i) * (*linkit).getVal();
-            for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                auto bondid = bondit - (*linkit).begin();
-                auto linkVec = linkit->getvec(linkit->getvecid(bondid));
-                double sign = -1.0; if(linkVec.at(idx)<0.) sign = 1.0; else if(linkVec.at(idx)==0.) sign = 0.0;
-                cdouble factor_s = factor*sign;
-                int siteI = (*bondit).at(0);
-                int siteJ = (*bondit).at(1);
+    Bf->genSymm(rowID, finalIndList, factorList);
+    for (int i = 0; i < (int)finalIndList.size(); ++i) {
+        auto pairRepI = finalIndList[i];
+        bool isfminRep = Bi->isfMin(pairRepI.first);
+        for (const auto& link : this->myHoppingT) {
+            int matID = link.getmatid();
+            cdouble factor = CPLX_I * factorList.at(i) * link.getVal();
+            for (const auto& bond : link.bond()){
+                int siteI = bond.at(0);
+                int siteJ = bond.at(1);
                 // cp.siteI * cm.siteJ
-                cpcm(SPIN::SPIN_UP, siteI, siteJ, factor_s, finalIndList[i], &rowMaps[matID]);
-                cpcm(SPIN::SPIN_UP, siteJ, siteI, -factor_s, finalIndList[i], &rowMaps[matID]);
+                cpcm(SPIN::UP, siteI, siteJ, factor, pairRepI, &rowMaps[matID]);
+                cpcm(SPIN::UP, siteJ, siteI, -factor, pairRepI, &rowMaps[matID]);
                 if(isfminRep){
-                    cpcm(SPIN::SPIN_DOWN, siteI, siteJ, factor_s, finalIndList[i], &rowMaps[matID]);
-                    cpcm(SPIN::SPIN_DOWN, siteJ, siteI, -factor_s, finalIndList[i], &rowMaps[matID]);   
+                    cpcm(SPIN::DOWN, siteI, siteJ, factor, pairRepI, &rowMaps[matID]);
+                    cpcm(SPIN::DOWN, siteJ, siteI, -factor, pairRepI, &rowMaps[matID]);   
                 } 
             }
         }
     }
 }
 
-Nocc::Nocc(Geometry *pt_lat, Basis *pt_Ba):\
-pt_lattice(pt_lat),pt_Basis(pt_Ba),\
-SparseMatrix<double>(pt_Ba, pt_Ba, pt_Ba->getSubDim(), 0, pt_lat->getUnitOrbNum()) {
-    for(int i = 0; i < pt_lat->getUnitOrbNum(); ++i) diagValList.resize(BaseMatrix<double>::nloc);
-    records.resize(pt_lat->getUnitOrbNum());
+Nocc::Nocc(Geometry *latt, Basis *Ba):OperatorBase<double>(latt, Ba, Ba, 0, latt->getUnitOrbNum()) {
+    for(int i = 0; i < latt->getUnitOrbNum(); ++i) diagValList.resize(BaseMatrix<double>::nloc);
+    records.resize(latt->getUnitOrbNum());
 }
 
 void Nocc::row(idx_t rowID) {
     // diagonal part. occupancy
     VecI occ;
-    idx_t repI = pt_Basis->getRepI(rowID);
-    pairIndex pairRepI = pt_Basis->getPairRepI(repI);
-    pt_lattice->orbOCC(pairRepI, occ);
+    idx_t repI = Bf->getRepI(rowID);
+    pairIdx_t pairRepI = Bf->getPairRepI(repI);
+    latt->orbOCC(pairRepI, occ);
     idx_t loc_rowID = rowID - BaseMatrix<double>::startRow;
-    for (int i = 0; i < pt_lattice->getUnitOrbNum(); ++i) {SparseMatrix<double>::diagValList[i][loc_rowID] = occ[i];}
+    for (int i = 0; i < latt->getUnitOrbNum(); ++i) {
+        SparseMatrix<double>::diagValList[i][loc_rowID] = occ[i];
+    }
 }
 
-void Nocc::genMat() {
+void Nocc::construct( ) {
     #pragma omp parallel for
-    for(idx_t rowID = BaseMatrix<double>::startRow; rowID < BaseMatrix<double>::endRow; rowID++) row(rowID);
+    for(idx_t rowID = BaseMatrix<double>::startRow; rowID < BaseMatrix<double>::endRow; rowID++) {
+        row(rowID);
+    }
 }
 
 double Nocc::count(ORBITAL orbital, dataType* vec) {
-    VecI ids = pt_lattice->getOrbID(orbital);
+    VecI ids = latt->getOrbID(orbital);
     double sum_final = 0.0;
     for (auto id : ids) {
         double sum = 0.0, part_sum = 0.0;
@@ -92,7 +123,7 @@ double Nocc::count(int id, dataType* vec) {
 }
 
 void Nocc::count(dataType* vec) {
-    for (int id = 0; id < pt_lattice->getUnitOrbNum(); ++id) {
+    for (int id = 0; id < latt->getUnitOrbNum(); ++id) {
         records.at(id).push_back(count(id, vec));
     }
 }
@@ -102,7 +133,7 @@ void Nocc::clear( ) {
 }
 
 void Nocc::save(std::string dir) {
-    for (int id = 0; id < pt_lattice->getUnitOrbNum(); ++id) {
+    for (int id = 0; id < latt->getUnitOrbNum(); ++id) {
         ::save(records.at(id).data(), (int)records.at(id).size(), dir + "/orb" + tostr(id));
     }
 }

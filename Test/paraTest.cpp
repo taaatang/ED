@@ -17,7 +17,7 @@ int main(){
     }
     setlatt(para, latt);
     setbasis(para, Bi, latt.get());
-    Bi->gen();
+    Bi->construct();
     setham(para, H, latt.get(), Bi.get());
     H->printLinks();
     H->construct();
