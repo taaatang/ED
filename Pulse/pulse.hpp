@@ -21,6 +21,10 @@ double GaussPulse(double t, void* params);
 
 double GaussPulse2(double t, void* params);
 
+double GaussPulseDerivative(double t, void* params);
+
+double GaussPulseDerivative2(double t, void* params);
+
 class Pulse{
 /*
     Gaussian shape elextric field with frequency w.
@@ -29,38 +33,48 @@ class Pulse{
           tu = hbar/eV, Lu = c*tu, Eu = eV/e/Lu
 */
 public:
-    Pulse(double w_ = 0.0/*eV*/, double width = 10.0/*fs*/, double dt_ = 0.01/*tu*/, int numSteps_ = 15000);
+    Pulse(double w_ = 0.0/*eV*/, double sigma = 50.0/*fs*/, double dt_ = 0.01/*tu*/, double duration_ = 10.0/* in unit of sqrt(2)*sigma */, bool useA_ = true);
     ~Pulse(){};
 
     double getE(int stepIdx) const;
-    double getw( ) const { return params.at(2); }
+    double getw( ) const { return params[2]; }
     double getFluence( ) const { return Fluence; }
     double computeFluence( ) const;
     double getA( ) const;
-    double getAa( ) const { return a*getA(); } // return A*a
+    double getA(double t_) const;
+    double getAa( ) const { return a * getA(); } // return A*a
     Vec3d getPol( ) const { return pol; }
     double getdt( ) const { return dt; }
+    int getCount( ) const { return count; }
+    int getStepNum( ) const { return numSteps; }
 
-    void setE0(double E0) { params.at(0) = E0; }
-    void setWidth(double width) { params.at(1) = width * std::sqrt(2); }
-    void setW(double w) { params.at(2) = w; }
-    void setPhase(double phase) { params.at(3) = phase * 2.0 * PI; }
+    void setAmp(double A0) { params[0] = A0; }
+    void setWidth(double sigma_, double duration_);
+    void setFreq(double w) { params[2] = w; }
+    void setPhase(double phase) { params[3] = phase * 2.0 * PI; }
     void setFluence(double Flu /* mJ/cm^2 */);
     void setPol(Vec3d pol) { this->pol = pol;}
     void setFuncPara( );
 
     void seta(double a_/*nm*/) { a = a_/Lu; }
 
-    bool next( ) { ++count; t += dt; return count<numSteps;}
+    bool next( ) { ++count; t += dt; return count <= numSteps;}
+
+    void progressBar(int total_) const;
+
+    void progress( ) const;
+
+    void profile(int n = 21) const;
 
     void print(std::ostream& os = std::cout) const;
 
 private:
+    bool useA;
     mutable double E, A;
 
     double Eu, Au; // electric field unit
     Vec3d pol; // polarization in x-y-z coordinates
-    VecD params; // params = {E0, sigma, w, phase}, sigma = sqrt(2)*width, where I(width) = I(0)/e
+    double params[4]; // params = {E0, sigma, w, phase}, sigma = sqrt(2)*width, where I(width) = I(0)/e
     double Fluence;
 
     double Lu, a;
@@ -68,13 +82,14 @@ private:
     double dt;
     int count{0};
     int numSteps{0};
+    mutable int total{1};
     double tu; // time unit: hbar/eV, fs
-    double ti,tc,tf; 
+    double ti, tc, tf; 
     mutable double t;
 
     gsl_function FuncE;
     gsl_function FuncE2;
-    double epsabs, epsrel;
+    double epsabs{1e-8}, epsrel{1e-8};
 };
 
 #endif // pulse_hpp
