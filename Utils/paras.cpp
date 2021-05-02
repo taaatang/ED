@@ -330,20 +330,21 @@ void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::uni
 }
 
 void setpulse(const Parameters& para, Pulse& pulse) {
+    bool useA = para.mapi.at("useA") == 1;
     auto freq = para.mapd.at("frequency");
     auto phase = para.mapd.at("phase");
     auto dt = para.mapd.at("dt");
-    auto numSteps = para.mapi.at("numSteps");
-    auto width = para.mapd.at("width");
+    auto duration = para.mapd.at("duration");
+    auto sigma = para.mapd.at("sigma");
     auto fluence = para.mapd.at("fluence");
     auto polv = para.mapvecd.at("polarization");
     assert_msg(polv.size() == 3, "polarization should be a 3-vec!");
     Vec3d pol{polv[0], polv[1], polv[2]};
-    pulse = Pulse(freq, width, dt, numSteps);
+    pulse = Pulse(freq, sigma, dt, duration, useA);
     pulse.setFuncPara();
     pulse.setPol(pol);
-    pulse.setFluence(fluence);
     pulse.setPhase(phase);
+    pulse.setFluence(fluence);
 }
 
 bool opt(const Parameters &para, std::string key) {
