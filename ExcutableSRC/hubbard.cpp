@@ -22,9 +22,9 @@ int main( ) {
     };
 
     if (isMaster) {
-        // path.make();
-        // para.print(path.parameterFile);
-        // pulsePara.print(path.pumpFile);
+        path.make();
+        para.print(path.parameterFile);
+        pulsePara.print(path.pumpFile);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -37,10 +37,9 @@ int main( ) {
     timer.tok();
     if (isMaster) {
         timer.print("Hamiltonian construction");
-        H->printLinks();
+        // H->printLinks();
         H->print("Hamiltonian from master worker");
     }
-    if (isMaster) H->printLinks();
     MPI_Barrier(MPI_COMM_WORLD);
     // cout<<setprecision(10);
     H->diag();
@@ -107,6 +106,7 @@ int main( ) {
         timer.tik();
         Pulse pulse;
         setpulse(pulsePara, pulse);
+        if (isMaster) pulse.print();
         H->setPeierls(&pulse);
         // H->printPeierls();
         H->construct();
@@ -123,10 +123,17 @@ int main( ) {
         occ.construct();
 
         timer.tik();
+        if (isMaster) pulse.progressBar(100);
+        // if (isMaster) std::cout<<"Progress  :";
         while (H->next()) {
             Tevol.evolve(pulse.getdt());
             occ.count(Tevol.getVec());
+            if (isMaster) {
+                pulse.progress();
+                // if (pulse.getCount() % (pulse.getStepNum() / 100) == 0) std::cout<<">"<<std::flush;
+            }
         }
+        if (isMaster) std::cout<<"\nFinished\n";
         timer.tok();
         if (isMaster) timer.print("Timer evolution");
 
