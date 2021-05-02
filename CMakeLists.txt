@@ -90,14 +90,15 @@ set(BASIS_DEP ${BASIS} ${GEOMETRY_DEP})
 set(GROUND_STATE_DEP ${BASIS_DEP} ${OPERATOR} ${ARPACK} ${ALGEBRA})
 set(SPECTRA_DEP ${GROUND_STATE_DEP} ${SPECTRA})
 set(TIME_DEP ${GROUND_STATE_DEP} ${TIME} ${PULSE})
+set(ALL_DEP ${SPECTRA_DEP} ${TIME} ${PULSE})
 
 # Excutables
 set(EXE_SRC ExcutableSRC)
 
-add_executable(hubbard.out ${EXE_SRC}/hubbard.cpp ${TIME_DEP})
+add_executable(hubbard.out ${EXE_SRC}/hubbard.cpp ${ALL_DEP})
 target_link_libraries(hubbard.out ${LINKS} gsl gslcblas)
 
-add_executable(heisenberg.out ${EXE_SRC}/heisenberg.cpp ${TIME_DEP})
+add_executable(heisenberg.out ${EXE_SRC}/heisenberg.cpp ${ALL_DEP})
 target_link_libraries(heisenberg.out ${LINKS} gsl gslcblas)
 
 # Test
@@ -108,4 +109,6 @@ add_executable(geometryTest.out ${TEST_SRC}/geometryTest.cpp ${GEOMETRY_DEP})
 add_executable(timeTest.out ${TEST_SRC}/timeTest.cpp ${TIME_DEP})
 target_link_libraries(timeTest.out ${LINKS} parpack gsl gslcblas)
 
+add_executable(pulseTest.out ${TEST_SRC}/pulseTest.cpp ${ALL_DEP})
+target_link_libraries(pulseTest.out ${LINKS} gsl gslcblas)
 # add_executable(Time.out timeTest.cpp algebra.cpp utils.cpp Basis.cpp Geometry.cpp Operators.cpp) 
