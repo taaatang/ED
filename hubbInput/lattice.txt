@@ -1,10 +1,10 @@
 lattice type:s:square # square | triangular
-boundary condition:s:open # periodic | open | twist
-lx:i:12
-ly:i:1
-nu:i:6
-nd:i:6
-kidx:i:-1# translation symm rep id
+boundary condition:s:periodic # periodic | open | twist
+lx:i:2
+ly:i:2
+nu:i:3
+nd:i:2
+kidx:i:1# translation symm rep id
 pidx:i:-1 # point group symm rep id
 #twist phase:d:0.0 # twisted boundary phase
 basis:i:0
