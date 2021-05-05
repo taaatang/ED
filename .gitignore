@@ -42,3 +42,6 @@ build/
 *.exe
 *.out
 *.app
+
+# figures
+plot/
