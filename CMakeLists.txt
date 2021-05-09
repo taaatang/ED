@@ -101,6 +101,9 @@ target_link_libraries(hubbard.out ${LINKS} gsl gslcblas)
 add_executable(heisenberg.out ${EXE_SRC}/heisenberg.cpp ${ALL_DEP})
 target_link_libraries(heisenberg.out ${LINKS} gsl gslcblas)
 
+add_executable(main.out ${EXE_SRC}/main.cpp ${ALL_DEP})
+target_link_libraries(main.out ${LINKS} gsl gslcblas)
+
 # Test
 set(TEST_SRC Test)
 
