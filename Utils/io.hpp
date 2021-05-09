@@ -21,6 +21,14 @@
 
 #define LOCATION(cond) if (cond) {std::cout << "line number: "<< __LINE__ << "\nfrom func: " << __func__ << "\nfrom file: "<< __FILE__ << '\n';}
 
+/**
+ * @brief print option
+ * SILENT: don't print
+ * BRIEF: print short info
+ * VERBOSE: print detailed info
+ * 
+ */
+enum class PRINT {SILENT, BRIEF, VERBOSE};
 /*
     ****************
     * Display Info *
