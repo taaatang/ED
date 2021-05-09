@@ -17,7 +17,7 @@
 
 #include "Operator/SparseMatrix.hpp"
 #include "Utils/timer.hpp"
-
+#include "Utils/io.hpp"
 // MAX parpack iterations
 constexpr int PARPACK_MAXITERATION = 5000;
 //MIN and MAX ncv
@@ -185,7 +185,10 @@ void PARPACKSolver<T>::diag( ) {
     Timer timer;
     int workerID = M_->getWorkerID();
     bool ismaster = (workerID == MPI_MASTER);
-    if (ismaster) std::cout<<"Begin PARPACK Iteration and timer started...\n";
+    if (ismaster) {
+        printLine();
+        std::cout<<"Begin PARPACK Iteration and timer started...\n";
+    }
     timer.tik();
     run();
     timer.tok();
@@ -201,6 +204,7 @@ void PARPACKSolver<T>::diag( ) {
         std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" milliseconds.\n";
     }
     if (ismaster) {
+        printLine(25);
         std::cout<<"Eigenvalues: ";
         for (int i = 0; i < nev_; ++i) std::cout<<d_pt[i]<<", ";
         std::cout<<"\n";

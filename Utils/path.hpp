@@ -6,9 +6,11 @@
 #include <sstream>
 
 #include "Utils/paras.hpp"
+#include "Utils/io.hpp"
 
 class Path {
 public:
+    Path( ) { }
     Path(const Parameters* path, const Parameters* model, const Parameters* pulse = nullptr);
     ~Path( ) { }
     
@@ -45,6 +47,7 @@ public:
     std::string pumpFile;
 
     // Heisenberg files
+    std::string SiSjDir;
     std::string SiSjFile;
     std::string SkwDir;
     std::string RamanDir;
@@ -105,7 +108,8 @@ Path::Path(const Parameters* path, const Parameters* model, const Parameters* pu
         case LATTICE_MODEL::tJ:
             break;
         case LATTICE_MODEL::HEISENBERG:
-            SiSjFile = parameterDir + sep + "sisj";
+            SiSjDir = parameterDir + sep + "sisj";
+            SiSjFile = SiSjDir + sep + "sisj";
             SkwDir = parameterDir + sep + "skw";
             RamanDir = parameterDir + sep + "raman";
             break;
@@ -130,22 +134,50 @@ void Path::make( ) const {
     if (!parameterDir.empty()) mkdir_fs(parameterDir);
     if (!basisDir.empty()) mkdir_fs(basisDir);
     if (!wavefuncDir.empty()) mkdir_fs(wavefuncDir);
+    // hubbard dirs
     if (!particleDistrDir.empty()) mkdir_fs(particleDistrDir);
     if (!sigmaDir.empty()) mkdir_fs(sigmaDir);
     if (!AkwDir.empty()) mkdir_fs(AkwDir);
     if (!pumpDir.empty()) mkdir_fs(pumpDir);
+    // heisenberg dirs
+    if (!SiSjDir.empty()) mkdir_fs(SiSjDir);
+    if (!SkwDir.empty()) mkdir_fs(SkwDir);
+    if (!RamanDir.empty()) mkdir_fs(RamanDir);
 }
 
 void Path::print(std::ostream& os) const {
-    os<<"root dir:"<<rootDir<<"\n";
-    os<<"project:"<<project<<"\n";
-    os<<"basis dir:"<<basisDir<<"\n";
-    os<<"job data dir:"<<parameterDir<<"\n";
-    if (!wavefuncDir.empty()) os<<"wavefunc dir:"<<wavefuncDir<<"\n"; 
-    if (!particleDistrDir.empty()) os<<"particle distribution dir:"<<particleDistrDir<<"\n";
-    if (!sigmaDir.empty()) os<<"conductivity dir:"<<sigmaDir<<"\n"; 
-    if (!AkwDir.empty()) os<<"Akw dir:"<<AkwDir<<"\n"; 
-    if (!pumpDir.empty()) os<<"pump dir:"<<pumpDir<<"\n"; 
+    printLine();
+    os << "root dir: " << rootDir << '\n';
+    os << "project: " << project << '\n';
+    os << "basis dir: " << basisDir << '\n';
+    os << "job data dir :" << parameterDir << '\n';
+    printLine(25);
+    if (!wavefuncDir.empty()) {
+        os << "wavefunc dir: " << wavefuncDir << '\n'; 
+    }
+    // hubbard files
+    if (!particleDistrDir.empty()) {
+        os << "particle distribution dir: " << particleDistrDir << '\n';
+    }
+    if (!sigmaDir.empty()) {
+        os << "conductivity dir: " << sigmaDir << '\n'; 
+    }
+    if (!AkwDir.empty()) {
+        os << "akw dir: " << AkwDir << '\n';
+    }
+    if (!pumpDir.empty()) {
+        os << "pump dir: " << pumpDir << '\n'; 
+    }
+    // heisenberg files
+    if (!SiSjDir.empty()) {
+        os << "sisj dir: " << SiSjDir << '\n'; 
+    }
+    if (!SkwDir.empty()) {
+        os << "skw dir: " << SkwDir << '\n';
+    }
+    if (!RamanDir.empty()) {
+        os << "raman dir: " << RamanDir << '\n';
+    }
 }
 
 #endif // __PATH_H__
