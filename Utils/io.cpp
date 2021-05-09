@@ -48,6 +48,18 @@ std::string tostr(int val){
     return std::to_string(val);
 }
 
+void tolower(std::string &str) {
+    for (auto &c : str) {
+        c = tolower(c);
+    }
+}
+
+void toupper(std::string &str) {
+    for (auto &c : str) {
+        c = toupper(c);
+    }
+}
+
 void printModel(LATTICE_MODEL model) {
     switch(model){
         case LATTICE_MODEL::HUBBARD:
@@ -63,6 +75,10 @@ void printModel(LATTICE_MODEL model) {
             std::cout<<"Moel Not Defined!(utils::printModel()).\n";
             exit(1);
     }
+}
+
+void printLine(int n, char c) {
+    std::cout << std::string(n, c) << '\n';
 }
 
 std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model) {

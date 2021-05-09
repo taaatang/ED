@@ -19,6 +19,8 @@
 #include "Global/globalPara.hpp"
 #include "Utils/mpiwrap.hpp"
 
+#define LOCATION(cond) if (cond) {std::cout << "line number: "<< __LINE__ << "\nfrom func: " << __func__ << "\nfrom file: "<< __FILE__ << '\n';}
+
 /*
     ****************
     * Display Info *
@@ -38,6 +40,12 @@ void printModel(LATTICE_MODEL model);
 std::string tostr(double val, int digit = 2);
 
 std::string tostr(int val);
+
+void tolower(std::string &str);
+
+void toupper(std::string &str);
+
+void printLine(int n = 50, char c = '*');
 
 std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model);
 std::ostream& operator<<(std::ostream& os, ORBITAL orb);
