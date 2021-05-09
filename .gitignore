@@ -4,6 +4,7 @@
 # vscode
 .vscode/
 *.code-workspace
+.cache/
 
 __pycache__/
 
