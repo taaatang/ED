@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <iomanip>
 #include <fstream>
 #include <sstream>
@@ -25,12 +26,19 @@
 template<typename T>
 using map = std::map<std::string,T>;
 
+template<typename T>
+bool check(const map<T> &dic, std::string key) {
+    return (dic.find(key) != dic.end());
+}
+
 /**
  * @brief Parameter class. Handling the input
  * 
  */
 class Parameters{
     friend class Path;
+    template <typename>
+    friend struct System;
     friend void setlatt(const Parameters&, std::unique_ptr<Geometry>&);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int, int, int, int);
@@ -49,13 +57,18 @@ public:
     void print(std::string filename) const;
     void print(std::ostream& os) const;
 
-    double getd(std::string key) const { return mapd.at(key); }
-    int geti(std::string key) const { return mapi.at(key); }
+    template <typename T>
+    std::optional<T> get(std::string key, bool required = false) const;
+    bool getb(std::string key) const { assert_msg(check(mapb, key), key + " not found!"); return mapb.at(key); }
+    int geti(std::string key) const { assert_msg(check(mapi, key), key + " not found!"); return mapi.at(key); }
+    double getd(std::string key) const { assert_msg(check(mapd, key), key + " not found!"); return mapd.at(key); }
+    std::vector<std::string> getvecs(std::string key) const { assert_msg(check(mapvecs, key), key + " not found!"); return mapvecs.at(key); }
     LATTICE getlatt() const;
     LATTICE_MODEL getmodel() const;
 
 private:
     std::string rootDataPath,project;
+    map<bool> mapb;
     map<int> mapi;
     map<double> mapd;
     map<std::string> maps;
@@ -63,6 +76,27 @@ private:
     map<std::vector<double>> mapvecd;
     map<std::vector<std::vector<double>>> maparrd;
 };
+
+template <typename T>
+std::optional<T> Parameters::get(std::string key, bool required) const {
+    std::string type;
+    if constexpr (       std::is_same<T, bool>::value) {
+        if (check(mapb, key)) return mapb.at(key);
+    } else if constexpr (std::is_same<T, int>::value) {
+        if (check(mapi, key)) return mapi.at(key);
+    } else if constexpr (std::is_same<T, double>::value) {
+        if (check(mapd, key)) return mapd.at(key);
+    } else if constexpr (std::is_same<T, std::string>::value) {
+        if (check(maps, key)) return maps.at(key);
+    } else if constexpr (std::is_same<T, std::vector<std::string>>::value) {
+        if (check(mapvecs, key)) return mapvecs.at(key);
+    } 
+    if (required) {
+        LOCATION(true);
+        assert_msg(false, key + " not found!");
+    }
+    return std::nullopt;
+}
 
 void setpath(Parameters&);
 void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
