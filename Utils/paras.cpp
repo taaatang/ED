@@ -106,18 +106,22 @@ bool Parameters::read(const std::string& filename){
                 std::string key = vals[0];
                 std::string type = vals[1];
                 std::istringstream ss(vals[2]);
-                if (type == "i") {
+                if (type == "b") {
+                    bool val;
+                    ss >> val;
+                    mapb[key] = val;
+                } else if (type == "i") {
                     int val;
-                    ss>>val;
-                    mapi[key]=val;
+                    ss >> val;
+                    mapi[key] = val;
                 } else if (type == "d") {
                     double val;
-                    ss>>val;
-                    mapd[key]=val;
+                    ss >> val;
+                    mapd[key] = val;
                 } else if (type == "s") {
                     std::string val;
-                    ss>>val;
-                    maps[key]=val;
+                    ss >> val;
+                    maps[key] = val;
                 }
             } else if (vals.size() == 2) {
                 std::string key = vals[0];
@@ -348,5 +352,10 @@ void setpulse(const Parameters& para, Pulse& pulse) {
 }
 
 bool opt(const Parameters &para, std::string key) {
-    return para.mapi.at(key);
+    if (para.mapb.find(key) == para.mapb.end()) {
+        std::cout<<key<<" not found in opt(para,key) function!\n";
+        return false;
+    } else {
+        return para.mapb.at(key);
+    }
 }
