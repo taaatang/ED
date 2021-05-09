@@ -7,4 +7,4 @@ nd:i:2
 kidx:i:1# translation symm rep id
 pidx:i:-1 # point group symm rep id
 #twist phase:d:0.0 # twisted boundary phase
-basis:i:0
+basis:b:0
