@@ -7,13 +7,13 @@
 #include <assert.h>
 #include <omp.h>
 // for filesystem. if not c++ 17, use boost library
-#define CPP_17
+#define CPP_17_FS
 
-#ifdef CPP_17
+#ifdef CPP_17_FS
     #include <filesystem>
 #else
     #include <boost/filesystem.hpp>
-#endif //CPP_17
+#endif //CPP_17_FS
 
 #include "Global/globalType.hpp"
 #include "Global/globalPara.hpp"
@@ -66,7 +66,7 @@ std::ostream& operator<<(std::ostream& os, const VecD& vec);
 std::ostream& operator<<(std::ostream& os, const VecI& vec);
 std::ostream& operator<<(std::ostream& os, const std::vector<cdouble>& vec);
 
-#ifdef CPP_17
+#ifdef CPP_17_FS
 inline void mkdir_fs(std::string dir){
     std::filesystem::path p(dir);
     std::filesystem::create_directories(p);
@@ -80,7 +80,7 @@ inline void mkdir_fs(std::string dir){
 	bool succeed = boost::filesystem::is_directory(p);
     assert_msg(succeed, dir + " failed to creat!");
 }
-#endif //CPP_17
+#endif //CPP_17_FS
 
 template <class T>
 inline void save(T *d_pt, int size, std::ofstream *f_pt, std::string filename, bool is_app=false){
