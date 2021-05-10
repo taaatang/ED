@@ -5,6 +5,7 @@
 #include <complex>
 #include <utility> // pair
 #include <unordered_map>
+#include <string>
 
 enum class LATTICE_MODEL {HUBBARD,tJ,HEISENBERG};
 /*
@@ -23,20 +24,25 @@ enum class SPIN {UP, DOWN};
     ***************
 */
 // Matrix index and repI type
-typedef unsigned long long int idx_t; 
-typedef std::pair<idx_t,idx_t> pairIdx_t;
-typedef unsigned int uint;
-typedef std::complex<double> cdouble;
-typedef cdouble dataType;
+using idx_t =  unsigned long long int; 
+using pairIdx_t = std::pair<idx_t,idx_t>;
+using uint = unsigned int;
+using cdouble = std::complex<double>;
+using dataType = cdouble;
 
 
 template<typename T>
 using MAP = std::unordered_map<idx_t, T>;
 
-typedef std::vector<int> VecI;
-typedef std::vector<idx_t> VecIdx;
-typedef std::vector<double> VecD;
-typedef std::vector<cdouble> VecZ;
+using VecI = std::vector<int>;
+using VecIdx = std::vector<idx_t>;
+using VecD = std::vector<double>;
+using VecZ = std::vector<cdouble>;
+using ArrD = std::vector<VecD>;
+
+using Str = std::string;
+using VecStr = std::vector<std::string>;
+
 
 // link bond idx
 typedef std::vector<std::vector<int>> BondMap;
