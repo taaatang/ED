@@ -3,6 +3,7 @@
 Orbital stringToOrb(std::string name, int id) {
     ORBITAL orb;
     Vec3d coord;
+    // tolower(name);
     if (name == "single") {
         orb = ORBITAL::SINGLE;
         coord = {0.0, 0.0, 0.0};
@@ -35,13 +36,13 @@ Orbital stringToOrb(std::string name, int id) {
 }
 
 LATTICE Parameters::getlatt() const {
-    std::string name = maps.at("lattice type");
-    if(name == "square") {
+    auto name = get<std::string>("lattice type");
+    if(name.value() == "square") {
         return LATTICE::SQUARE;
-    } else if(name == "triangular") {
+    } else if(name.value() == "triangular") {
         return LATTICE::TRIANGULAR;
     } else {
-        std::cout<<"lattice type: "<<name<<" is not defined!";
+        std::cout<<"lattice type: "<<name.value()<<" is not defined!";
         exit(1);
     }
 }
@@ -56,22 +57,25 @@ Parameters::Parameters(std::string inputDir, std::vector<std::string> files) {
 }
 
 LATTICE_MODEL Parameters::getmodel() const {
-    std::string name = maps.at("model name");
-    if (name == "Hubbard") {
+    auto name = get<std::string>("model name");
+    if (name.value() == "Hubbard") {
         return LATTICE_MODEL::HUBBARD;
-    } else if (name == "Heisenberg") {
+    } else if (name.value() == "Heisenberg") {
         return LATTICE_MODEL::HEISENBERG;
-    } else if (name == "tJ") {
+    } else if (name.value() == "tJ") {
         return LATTICE_MODEL::tJ;
     } else {
-        std::cout<<"Model name: "<<name<<", not defined!";
+        std::cout << "Model name: " << name.value() << ", not defined!\n";
         exit(1);
     }
 }
-
+//TODO:Clear up
 void Parameters::config(std::string configFile){
     clear();
-    if(!read(configFile)){std::cout<<"Parameters read err.\n";exit(1);}
+    if(!read(configFile)) {
+        std::cout << "Parameters read err.\n";
+        exit(1);
+    }
     assert(maps.find("rootDataPath")!=maps.end()); rootDataPath = maps["rootDataPath"];maps.erase("rootDataPath");
     assert(maps.find("project")!=maps.end()); project = maps["project"];maps.erase("project");
     assert(mapvecs.find("inputfiles")!=mapvecs.end());
@@ -84,13 +88,20 @@ void Parameters::config(std::string configFile){
 }
 
 
-void Parameters::clear(){
-    rootDataPath.clear(); project.clear();
-    mapi.clear(); mapd.clear(); maps.clear();
-    mapvecd.clear(); mapvecs.clear(); maparrd.clear();
+void Parameters::clear() {
+    rootDataPath.clear(); 
+    project.clear();
+    
+    mapi.clear(); 
+    mapd.clear(); 
+    maps.clear();
+
+    mapvecd.clear(); 
+    mapvecs.clear(); 
+    maparrd.clear();
 }
 
-bool Parameters::read(const std::string& filename){
+bool Parameters::read(const std::string& filename) {
     std::ifstream infile(filename);
     if(infile.is_open()){
         std::string line;
@@ -149,7 +160,7 @@ bool Parameters::read(const std::string& filename){
         infile.close();
         return true;
     } else {
-        std::cout<<filename<<" failed to open!\n";
+        std::cout << filename << " failed to open!\n";
         return false;
     }
 }
@@ -159,14 +170,14 @@ void Parameters::print(std::string filename) const {
     print(outfile);
 }
 void Parameters::print(std::ostream& os) const {
-    os<<maps<<mapi<<mapd<<mapvecs<<mapvecd<<maparrd;
+    os << maps << mapi << mapd << mapvecs << mapvecd << maparrd;
 }
 
-void setlatt(const Parameters& para, std::unique_ptr<Geometry>& latt){
-    auto lx = para.mapi.at("lx");
-    auto ly = para.mapi.at("ly");
+void setlatt(const Parameters& para, std::unique_ptr<Geometry>& latt) {
+    auto lx = para.get<int>("lx").value();
+    auto ly = para.get<int>("ly").value();
     auto lattType = para.getlatt();
-    bool BC = (para.maps.at("boundary condition") == "periodic");
+    bool BC = (*para.get<std::string>("boundary condition") == "periodic");
     switch (lattType) {
         case LATTICE::TRIANGULAR:
             if(ly > 0) {
@@ -187,7 +198,13 @@ void setlatt(const Parameters& para, std::unique_ptr<Geometry>& latt){
     }
 
     int id = 0;
-    for (auto orbname : para.mapvecs.at("orbitals")) {
+    //!what is the problem for this? tempory variable para.get<VecStr>(key) was destroyed before for-loop finished?
+    // for (auto orbname : *para.get<VecStr>("orbitals")) {
+    //     latt->addOrb(stringToOrb(orbname, id));
+    //     id++;
+    // }
+    auto orbs = *para.get<VecStr>("orbitals");
+    for (auto orbname : orbs) {
         latt->addOrb(stringToOrb(orbname, id));
         id++;
     }
@@ -195,24 +212,24 @@ void setlatt(const Parameters& para, std::unique_ptr<Geometry>& latt){
     latt->construct();
     if (!latt->check()) {
         latt->print();
-        std::cout<<"Lattice does not pass check()!\n";
+        std::cout << "Lattice does not pass check()!\n";
         exit(1);
     }
     // std::cout<<"lattice set!\n";
 }
 
 void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt){
-    int kid = para.mapi.at("kidx");
-    int pid = para.mapi.at("pidx");
-    int nu = para.mapi.at("nu");
-    int nd = para.mapi.at("nd");
-    ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nu,nd}, kid, pid));
-    // std::cout<<"basis set!\n";
+    auto kid = para.get<int>("kidx").value();
+    auto pid = para.get<int>("pidx").value();
+    auto nu = para.get<int>("nu").value();
+    auto nd = para.get<int>("nd").value();
+    ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nu, nd}, kid, pid));
+    // std::cout << "basis set!\n";
 }
 
 void setbasis(const Parameters& para, std::unique_ptr<Basis>& ba, Geometry* latt, int nuf, int ndf, int kf, int pf) {
     ba = std::unique_ptr<Basis>(new Basis(para.getmodel(), latt, {nuf,ndf}, kf, pf));
-    // std::cout<<"basis set!\n";
+    // std::cout << "basis set!\n";
 }
 
 void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& H, Geometry* latt, Basis* B) {
@@ -228,17 +245,17 @@ void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& 
             H = std::unique_ptr<HamiltonianBase<dataType>>(new Hamiltonian<LATTICE_MODEL::HEISENBERG,dataType>(latt, B, B, 1, 1));
             break;
         default:
-            std::cout<<"Input Lattice Model not defined!\n";
+            std::cout << "Input Lattice Model not defined!\n";
             exit(1);
             break;
     }
     if (model == LATTICE_MODEL::HUBBARD) {
         auto unitcell = latt->getUnitCell();
         if (unitcell.size() == 1) {/* single band */
-            H->pushU({ORBITAL::SINGLE}, para.mapd.at("Uss"));
+            H->pushU({ORBITAL::SINGLE}, para.get<double>("Uss").value());
             auto links = HubbardSingleBandLink(*latt);
-            auto tnn = para.mapd.at("tnn");
-            auto tnnn = para.mapd.at("tnnn");
+            auto tnn = para.get<double>("tnn").value();
+            auto tnnn = para.get<double>("tnnn").value();
             if (std::abs(tnn) > INFINITESIMAL) {/* nearest neighbor hopping */
                 for (int id = 0; id < 2; ++id) {
                     links.at(id).setVal(links.at(id).getVal() * tnn);
@@ -255,8 +272,8 @@ void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& 
             for (auto orb : unitcell) {
                 auto ids = latt->getOrbID(orb.orb);
                 auto id = ids.at(0);
-                auto v = para.maparrd.at("t").at(id).at(id);
-                auto u = para.maparrd.at("U").at(id).at(id);
+                auto v = (*para.get<ArrD>("t")).at(id).at(id);
+                auto u = (*para.get<ArrD>("U")).at(id).at(id);
                 H->pushV({orb.orb}, v);
                 H->pushU({orb.orb}, u);
             }
@@ -277,25 +294,25 @@ void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& 
                     continue;
                 }
                 assert(orbids.size()==2 and orbids[0]!=orbids[1]);
-                const std::vector<std::vector<double>>* arrdPtr = nullptr;
+                std::optional<ArrD> arrdOpt = std::nullopt;
                 switch (link.getLinkType()) {
                     case LINK_TYPE::HOPPING_T:
-                        arrdPtr = &para.maparrd.at("t");
+                        arrdOpt = para.get<ArrD>("t");
                         break;
                     case LINK_TYPE::HUBBARD_U:
-                        arrdPtr = &para.maparrd.at("U");
+                        arrdOpt = para.get<ArrD>("U");
                         break;
                     case LINK_TYPE::EXCHANGE_J:
-                        arrdPtr = &para.maparrd.at("J");
+                        arrdOpt = para.get<ArrD>("J");
                         break;
                     case LINK_TYPE::PAIR_HOPPING_J:
-                        arrdPtr = &para.maparrd.at("J");
+                        arrdOpt = para.get<ArrD>("J");
                         break;
                     default:
                         break;
                 }
-                if (arrdPtr) {
-                    auto val = arrdPtr->at(orbids[0]).at(orbids[1]);
+                if (arrdOpt) {
+                    auto val = arrdOpt->at(orbids[0]).at(orbids[1]);
                     if (std::abs(val) > INFINITESIMAL) {
                         link.setVal(link.getVal() * val);
                         H->pushLink(link, 0);
@@ -304,22 +321,22 @@ void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& 
             }
         }
     } else if (model == LATTICE_MODEL::HEISENBERG) {
-        auto J1 = para.mapd.at("J1");
-        if (std::abs(J1) > INFINITESIMAL) {
+        auto J1 = para.get<double>("J1");
+        if (std::abs(J1.value_or(0.0)) > INFINITESIMAL) {
             auto link = HeisenbergLink("J1", *latt);
-            link.setVal(link.getVal() * J1);
+            link.setVal(link.getVal() * J1.value_or(0.0));
             H->pushLink(link, 0);
         }
-        auto J2 = para.mapd.at("J2");
-        if (std::abs(J2) > INFINITESIMAL) {
+        auto J2 = para.get<double>("J2");
+        if (std::abs(J2.value_or(0.0)) > INFINITESIMAL) {
             auto link = HeisenbergLink("J2", *latt);
-            link.setVal(link.getVal() * J2);
+            link.setVal(link.getVal() * J2.value_or(0.0));
             H->pushLink(link, 0);
         }
-        auto Jk = para.mapd.at("Jk");
-        if (std::abs(Jk) > INFINITESIMAL) {
+        auto Jk = para.get<double>("Jk");
+        if (std::abs(Jk.value_or(0.0)) > INFINITESIMAL) {
             auto link = HeisenbergLink("Jk", *latt);
-            link.setVal(link.getVal() * Jk);
+            link.setVal(link.getVal() * Jk.value_or(0.0));
             H->pushLink(link, 0);
         }
 
@@ -334,28 +351,29 @@ void setBasics(const Parameters& para, std::unique_ptr<Geometry>& latt, std::uni
 }
 
 void setpulse(const Parameters& para, Pulse& pulse) {
-    bool useA = para.mapi.at("useA") == 1;
-    auto freq = para.mapd.at("frequency");
-    auto phase = para.mapd.at("phase");
-    auto dt = para.mapd.at("dt");
-    auto duration = para.mapd.at("duration");
-    auto sigma = para.mapd.at("sigma");
-    auto fluence = para.mapd.at("fluence");
-    auto polv = para.mapvecd.at("polarization");
-    assert_msg(polv.size() == 3, "polarization should be a 3-vec!");
-    Vec3d pol{polv[0], polv[1], polv[2]};
-    pulse = Pulse(freq, sigma, dt, duration, useA);
+    auto useA = para.get<bool>("useA");
+    auto freq = para.get<double>("frequency");
+    auto phase = para.get<double>("phase");
+    auto dt = para.get<double>("dt");
+    auto duration = para.get<double>("duration");
+    auto sigma = para.get<double>("sigma");
+    auto fluence = para.get<double>("fluence");
+    auto polv = para.get<VecD>("polarization");
+    assert_msg(polv->size() == 3, "polarization should be a 3-vec!");
+    Vec3d pol{polv->at(0), polv->at(1), polv->at(2)};
+    pulse = Pulse(freq.value_or(0.0), sigma.value_or(50.0), dt.value_or(0.01), duration.value_or(10.0), useA.value_or(true));
     pulse.setFuncPara();
     pulse.setPol(pol);
-    pulse.setPhase(phase);
-    pulse.setFluence(fluence);
+    pulse.setPhase(phase.value_or(0.0));
+    pulse.setFluence(fluence.value_or(1.0));
 }
 
 bool opt(const Parameters &para, std::string key) {
-    if (para.mapb.find(key) == para.mapb.end()) {
-        std::cout<<key<<" not found in opt(para,key) function!\n";
-        return false;
+    auto cond = para.get<bool>(key, REQUIRED::NO);
+    if (cond) {
+        return cond.value();
     } else {
-        return para.mapb.at(key);
+        std::cout << key << " not found in opt(para,key) function!\n";
+        return false;
     }
 }

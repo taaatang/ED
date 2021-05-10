@@ -18,9 +18,12 @@ int main(int argc, char* argv[]) {
     sys.diag();
     // input file jobs
     if (jobs.empty()) { 
-        for (auto job : sys.measurePara.getvecs("all")) {
-            if (sys.measure(job)) {
-                jobs.push_back(job);
+        auto jobsAll = sys.measurePara.get<VecStr>("all");
+        if (jobsAll) {
+            for (auto job : *jobsAll) {
+                if (sys.measure(job)) {
+                    jobs.push_back(job);
+                }
             }
         }
     }

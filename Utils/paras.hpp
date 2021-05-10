@@ -26,6 +26,8 @@
 template<typename T>
 using map = std::map<std::string,T>;
 
+enum class REQUIRED {YES, NO};
+
 template<typename T>
 bool check(const map<T> &dic, std::string key) {
     return (dic.find(key) != dic.end());
@@ -58,11 +60,8 @@ public:
     void print(std::ostream& os) const;
 
     template <typename T>
-    std::optional<T> get(std::string key, bool required = false) const;
-    bool getb(std::string key) const { assert_msg(check(mapb, key), key + " not found!"); return mapb.at(key); }
-    int geti(std::string key) const { assert_msg(check(mapi, key), key + " not found!"); return mapi.at(key); }
-    double getd(std::string key) const { assert_msg(check(mapd, key), key + " not found!"); return mapd.at(key); }
-    std::vector<std::string> getvecs(std::string key) const { assert_msg(check(mapvecs, key), key + " not found!"); return mapvecs.at(key); }
+    std::optional<T> get(std::string key, REQUIRED opt = REQUIRED::YES) const;
+
     LATTICE getlatt() const;
     LATTICE_MODEL getmodel() const;
 
@@ -71,27 +70,30 @@ private:
     map<bool> mapb;
     map<int> mapi;
     map<double> mapd;
-    map<std::string> maps;
-    map<std::vector<std::string>> mapvecs;
-    map<std::vector<double>> mapvecd;
-    map<std::vector<std::vector<double>>> maparrd;
+    map<Str> maps;
+    map<VecStr> mapvecs;
+    map<VecD> mapvecd;
+    map<ArrD> maparrd;
 };
 
 template <typename T>
-std::optional<T> Parameters::get(std::string key, bool required) const {
-    std::string type;
+std::optional<T> Parameters::get(std::string key, REQUIRED opt) const {
     if constexpr (       std::is_same<T, bool>::value) {
         if (check(mapb, key)) return mapb.at(key);
     } else if constexpr (std::is_same<T, int>::value) {
         if (check(mapi, key)) return mapi.at(key);
     } else if constexpr (std::is_same<T, double>::value) {
         if (check(mapd, key)) return mapd.at(key);
-    } else if constexpr (std::is_same<T, std::string>::value) {
+    } else if constexpr (std::is_same<T, Str>::value) {
         if (check(maps, key)) return maps.at(key);
-    } else if constexpr (std::is_same<T, std::vector<std::string>>::value) {
+    } else if constexpr (std::is_same<T, VecStr>::value) {
         if (check(mapvecs, key)) return mapvecs.at(key);
-    } 
-    if (required) {
+    } else if constexpr (std::is_same<T, VecD>::value) {
+        if (check(mapvecd, key)) return mapvecd.at(key);
+    } else if constexpr (std::is_same<T, ArrD>::value) {
+        if (check(maparrd, key)) return maparrd.at(key);
+    }
+    if (opt == REQUIRED::YES) {
         LOCATION(true);
         assert_msg(false, key + " not found!");
     }

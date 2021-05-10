@@ -114,7 +114,8 @@ System<T>::System(std::string inputDir, bool isMaster_) {
         path.print();
     }
     isZeroTmp = measure("zeroTmp");
-    krylovDim = measurePara.geti("krylovDim");
+    auto krylovOpt = measurePara.get<int>("krylovDim");
+    krylovDim = krylovOpt.value_or(400);
     construct();
 }
 
@@ -162,7 +163,8 @@ void System<T>::diag( ) {
     if (measure("state")) {
         evals.clear();
         evecs.clear();
-        int nev = measurePara.geti("nev");
+        auto nevopt = measurePara.get<int>("nev");
+        int nev = nevopt.value_or(1);
         if (H) {
             H->diag(nev);
             for (int i = 0; i < nev; ++i) {
@@ -314,11 +316,11 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     }
                 }
             } else if (key == "raman") {
-                auto J1 = sys.para.getd("J1");
-                auto J2 = sys.para.getd("J2");
+                auto J1 = sys.para.template get<double>("J1");
+                auto J2 = sys.para.template get<double>("J2");
                 for (auto channel : std::vector<std::string> {"A1", "A2", "E21", "E22"}) {
                     Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), sys.B.get());
-                    R.pushLinks(RamanChannel(channel, J1, J2, *(sys.latt)));
+                    R.pushLinks(RamanChannel(channel, J1.value_or(0.0), J2.value_or(0.0), *(sys.latt)));
                     R.construct();
                     for (int n = 0; n < sys.stateNum; ++n) {
                         SPECTRASolver<dataType> spectra(sys.H.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
