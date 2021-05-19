@@ -82,7 +82,7 @@ public:
     Current(Geometry *latt, Basis *Ba);
     ~Current( ) { }
 
-    void setDirection(std::string plz);
+    void setDirection(const std::string &plz);
 
     void print(std::ostream &os = std::cout) const;
 
@@ -115,7 +115,7 @@ public:
     void count(dataType* vec);
 
     void clear( );
-    void save(std::string dir);
+    void save(const std::string &dir);
 
 private:
     std::vector<std::vector<double>> records;

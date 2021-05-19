@@ -14,7 +14,7 @@
 #include <cmath>
 #include <iostream>
 #include <complex>
-#include <assert.h>
+#include <cassert>
 
 #include "Global/globalPara.hpp"
 #include "Geometry/Vec3.hpp"
@@ -55,7 +55,7 @@ struct Site{
 
 enum LATTICE {CHAIN, SQUARE, TRIANGULAR};
 
-class Geometry{
+class Geometry {
 public:
     Geometry( );
     virtual ~Geometry( ) { }

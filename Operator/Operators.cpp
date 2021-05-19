@@ -18,12 +18,17 @@ Current::Current(Geometry *latt, Basis *Ba):OperatorBase<cdouble>(latt, Ba, Ba) 
     
 }
 
-void Current::setDirection(std::string plz) {
+void Current::setDirection(const std::string& plz)
+{
     this->plz = plz;
-    if (plz=="x") direction = {1.0, 0.0, 0.0};
-    else if (plz=="y") direction = {0.0, 1.0, 0.0};
-    else if (plz=="z") direction = {0.0, 0.0, 1.0};
-    else direction = {0.0, 0.0, 0.0};
+    if (plz == "x")
+        direction = {1.0, 0.0, 0.0};
+    else if (plz == "y")
+        direction = {0.0, 1.0, 0.0};
+    else if (plz == "z")
+        direction = {0.0, 0.0, 1.0};
+    else
+        direction = {0.0, 0.0, 0.0};
     setDirection(direction);
 }
 
@@ -113,7 +118,8 @@ double Nocc::count(ORBITAL orbital, dataType* vec) {
 }
 
 double Nocc::count(int id, dataType* vec) {
-    double sum = 0.0, part_sum = 0.0;
+    double sum = 0.0;
+    double part_sum = 0.0;
     #pragma omp parallel for reduction(+:part_sum)
     for(idx_t i = 0; i < BaseMatrix<double>::nloc; ++i){
         part_sum += diagValList[id][i] * (std::real(vec[i]) * std::real(vec[i]) + std::imag(vec[i]) * std::imag(vec[i]));
@@ -132,7 +138,7 @@ void Nocc::clear( ) {
     records.clear();
 }
 
-void Nocc::save(std::string dir) {
+void Nocc::save(const std::string &dir) {
     for (int id = 0; id < latt->getUnitOrbNum(); ++id) {
         ::save(records.at(id).data(), (int)records.at(id).size(), dir + "/orb" + tostr(id));
     }

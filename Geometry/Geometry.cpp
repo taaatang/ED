@@ -73,13 +73,18 @@ Vec3d Geometry::getKxy(int kid) const {
  }
 
 cdouble Geometry::expKR(int kid, int siteid) const {
-    if (kid == -1) return 1.0; 
+    if (kid == -1) {
+        return 1.0; 
+    }
     return std::exp(2 * PI * CPLX_I * dot(KLattice.at(kid).coord, Lattice.at(siteid).coord));
 }
 
 cdouble Geometry::twistPhase(int orbI, int orbJ) const {
-    if (!is_TBC) return 1.0;
-    int siteI = getSiteid(orbI), siteJ=getSiteid(orbJ);
+    if (!is_TBC) {
+        return 1.0;
+    }
+    int siteI = getSiteid(orbI);
+    int siteJ = getSiteid(orbJ);
     const Vec3d &ri = Lattice.at(siteI).coord;
     const Vec3d &rj = Lattice.at(siteJ).coord;
     return std::exp(CPLX_I * dot(dPhase, rj - ri));

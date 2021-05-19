@@ -1,6 +1,7 @@
 #include "Measure/measure.hpp"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
     int workerID{0}, workerNum{1};
     bool isMaster;
     init(workerID, workerNum, isMaster);
@@ -10,26 +11,33 @@ int main(int argc, char* argv[]) {
     std::string inputDir(argv[1]);
     std::vector<std::string> jobs;
     // cmd line jobs
-    for (int i = 2; i < argc; ++i) {
+    for (int i = 2; i < argc; ++i)
+    {
         jobs.push_back(std::string(argv[i]));
     }
 
     System<cdouble> sys(inputDir, isMaster);
     sys.diag();
     // input file jobs
-    if (jobs.empty()) { 
+    if (jobs.empty())
+    {
         auto jobsAll = sys.measurePara.get<VecStr>("all");
-        if (jobsAll) {
-            for (auto job : *jobsAll) {
-                if (sys.measure(job)) {
+        if (jobsAll)
+        {
+            for (auto job : *jobsAll)
+            {
+                if (sys.measure(job))
+                {
                     jobs.push_back(job);
                 }
             }
         }
     }
 
-    for (auto job : jobs) {
-        if (isMaster) {
+    for (auto job : jobs)
+    {
+        if (isMaster)
+        {
             printLine();
             std::cout << "Begin " << job << '\n';
         }
