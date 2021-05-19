@@ -7,8 +7,6 @@
 #include "Pulse/pulse.hpp"
 #include "Solver/TimeEvolver.hpp"
 
-using namespace std;
-
 int main( ) {
 
     MPI_Init(NULL, NULL);
@@ -66,7 +64,7 @@ int main( ) {
         if (isMaster) timer.print("Conductivity");
     }
 
-    if (measure("Akw")) {
+    if (measure("akw")) {
         // Akw
         timer.tik();
         auto occi = Bi->getOcc();
