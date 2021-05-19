@@ -1,3 +1,4 @@
+#include <iomanip>
 #include "Measure/measure.hpp"
 
 int main(int argc, char *argv[])
@@ -6,6 +7,7 @@ int main(int argc, char *argv[])
     bool isMaster;
     init(workerID, workerNum, isMaster);
     Timer timer(isMaster);
+    std::cout<<std::setprecision(20);
 
     assert_msg(argc > 1, "No inputDir!");
     std::string inputDir(argv[1]);
