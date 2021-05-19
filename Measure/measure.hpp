@@ -172,6 +172,9 @@ void System<T>::diag( ) {
                 evecs.push_back(H->getEvec(i));
             }
             stateNum = sort<T>(evals, evecs, isZeroTmp); 
+            if (isMaster) {
+                std::cout << "sorted evals: " << evals << '\n';
+            }
         } else {
             std::cout<<"Warning: H is null in System.diag()!\n";
         }
