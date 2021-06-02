@@ -597,7 +597,7 @@ void RamanOp<T>::setplz(Vec3d pIn_, Vec3d pOut_) {
         RamanWeight[linkid].resize(link.getLinkVecNum());
         for(int vecid=0; vecid < link.getLinkVecNum(); ++vecid){
             auto r = link.getvec(vecid);
-            RamanWeight[linkid][vecid] = (this->latt->RdotR(pIn,r))*(this->latt->RdotR(pOut,r))/(this->latt->RdotR(r,r))/norm;
+            RamanWeight[linkid][vecid] = (this->latt->RdotR(pIn,r))*(this->latt->RdotR(pOut,r))/norm;
         }
         ++linkid;
     }
