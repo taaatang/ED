@@ -331,6 +331,34 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                         if (sys.isMaster) spectra.save(sys.path.RamanDir + "/" + channel, n);
                     }
                 }
+            } else if (key == "ramanfl") {
+                auto J1 = sys.para.template get<double>("J1");
+                auto J2 = sys.para.template get<double>("J2");
+                Vec3d plzX{1.0, 0.0, 0.0}, plzY{-1.0, 2.0, 0.0};
+                std::vector<Vec3d> plz{plzX, plzY};
+                std::vector<std::string> plzLabel{"x", "y"};
+                for(int i = 0; i < 1; ++i) {
+                    for(int j = 0; j < 2; ++j) {
+                        RamanOp<dataType> R(sys.latt.get(), sys.B.get());
+                        if (std::abs(J1.value_or(0.0)) > INFINITESIMAL) {
+                            auto link = HeisenbergLink("J1", *sys.latt.get());
+                            link.setVal(link.getVal() * J1.value_or(0.0));
+                            R.pushLink(link, 0);
+                        }
+                        if (std::abs(J2.value_or(0.0)) > INFINITESIMAL) {
+                            auto link = HeisenbergLink("J2", *sys.latt.get());
+                            link.setVal(link.getVal() * J2.value_or(0.0));
+                            R.pushLink(link, 0);
+                        }
+                        R.setplz(plz[i],plz[j]);
+                        R.construct();
+                        for (int n = 0; n < sys.stateNum; ++n) {
+                            SPECTRASolver<dataType> spectra(sys.H.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
+                            spectra.compute();
+                            if (sys.isMaster) spectra.save(sys.path.RamanDir + "/" + plzLabel[i] + plzLabel[j], n);
+                        }
+                    }
+                }
             }
             break;
         }

@@ -145,12 +145,12 @@ public:
     RamanOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int dmNum = 0);
     ~RamanOp( ) { }
 
-    void setplz(VecD pIn_, VecD pOut_);
+    void setplz(Vec3d pIn_, Vec3d pOut_);
     void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
 
 private:
     // polarization of in/out photons
-    VecD pIn, pOut;
+    Vec3d pIn, pOut;
     std::vector<VecD> RamanWeight;
     bool NoRW;
 };
@@ -581,13 +581,13 @@ void CkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
 
 template<class T>
 RamanOp<T>::RamanOp(Geometry* latt, Basis* Bi, int spmNum, int dmNum):OperatorBase<T>(latt, Bi, Bi, spmNum, dmNum) {
-    pIn = VecD{1.0,0.0,0.0};
-    pOut = VecD{0.0,1.0,0.0};
+    pIn = Vec3d{1.0,0.0,0.0};
+    pOut = Vec3d{0.0,1.0,0.0};
     NoRW = true;
 }
 
 template <class T>
-void RamanOp<T>::setplz(VecD pIn_, VecD pOut_) {
+void RamanOp<T>::setplz(Vec3d pIn_, Vec3d pOut_) {
     pIn = pIn_;
     pOut = pOut_;
     RamanWeight.resize(this->superExchangeJ.size());
@@ -596,7 +596,7 @@ void RamanOp<T>::setplz(VecD pIn_, VecD pOut_) {
     for(auto& link : this->superExchangeJ){
         RamanWeight[linkid].resize(link.getLinkVecNum());
         for(int vecid=0; vecid < link.getLinkVecNum(); ++vecid){
-            VecD r = link.getvec(vecid);
+            auto r = link.getvec(vecid);
             RamanWeight[linkid][vecid] = (this->latt->RdotR(pIn,r))*(this->latt->RdotR(pOut,r))/(this->latt->RdotR(r,r))/norm;
         }
         ++linkid;
@@ -608,7 +608,7 @@ void RamanOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     if (NoRW) setplz(pIn, pOut);
     std::vector<idx_t> finalIndList;
     std::vector<cdouble> factorList;
-    this->pt_Basis->genSymm(rowID, finalIndList, factorList);
+    this->Bf->genSymm(rowID, finalIndList, factorList);
     for (int i = 0; i < (int)finalIndList.size(); ++i) {
         int linkid = 0;
         for (const auto& link : this->superExchangeJ) {
