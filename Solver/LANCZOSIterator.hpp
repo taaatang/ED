@@ -144,9 +144,9 @@ protected:
     std::vector<double> alpha, beta;
     double vecNorm;
     // q_j-1, q_j, r
-    cdouble *q_pre{nullptr}, *q{nullptr}, *r{nullptr};
+    T *q_pre{nullptr}, *q{nullptr}, *r{nullptr};
     // AQ = QH + residual
-    cdouble *Q{nullptr};
+    T *Q{nullptr};
 };
 
 template <class T>
