@@ -142,6 +142,8 @@ protected:
     int krylovDim;
     // stores alpha, beta
     std::vector<double> alpha, beta;
+    // orthogonal check abs(<q1|qj>)
+    std::vector<double> othErr;
     double vecNorm;
     // q_j-1, q_j, r
     T *q_pre{nullptr}, *q{nullptr}, *r{nullptr};
@@ -211,6 +213,8 @@ void LANCZOSIterator<T>::run(T* vec){
         copy(nloc, q, q_pre);
         // q = r/beta[i-1]
         copy(q, one/beta[i-1], r,nloc);
+        // check orthogonality against the initial vector
+        othErr.push_back(std::abs(mpiDot(vec, q, nloc)) / vecNorm);
         //Qi = [Qi-1,q]
         if (option == ALPHA_BETA_Q) copy(nloc, q, &Q[i * nloc]);
         // r = Aq

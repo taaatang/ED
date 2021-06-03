@@ -36,6 +36,7 @@ public:
         ::save<double>(&(LANCZOSIterator<T>::vecNorm), 1, &outfile, dataPath + "/vecNorm_" + stateLabel);
         ::save<double>((LANCZOSIterator<T>::alpha).data(), (int)((LANCZOSIterator<T>::alpha).size()), &outfile, dataPath + "/alpha_" + stateLabel);
         ::save<double>((LANCZOSIterator<T>::beta).data(), (int)((LANCZOSIterator<T>::beta).size()), &outfile, dataPath + "/beta_" + stateLabel);
+        ::save<double>((LANCZOSIterator<T>::othErr).data(), (int)((LANCZOSIterator<T>::othErr).size()), &outfile, dataPath + "/othErr_" + stateLabel);
     };
 };
 
