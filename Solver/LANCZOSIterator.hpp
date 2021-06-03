@@ -160,11 +160,11 @@ void LANCZOSIterator<T>::init(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt){
     M_ = M;
     option = opt;
     krylovDim = krydim;
-    q_pre = new cdouble[M_->getnlocmax()];
-    q = new cdouble[M_->getnlocmax()];
-    r = new cdouble[M->getnlocmax()];
+    q_pre = new T[M_->getnlocmax()];
+    q = new T[M_->getnlocmax()];
+    r = new T[M->getnlocmax()];
     if (option == ALPHA_BETA_Q){
-        Q = new cdouble[krydim * M_->getnloc()];
+        Q = new T[krydim * M_->getnloc()];
     }
 }
 
