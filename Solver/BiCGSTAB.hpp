@@ -11,8 +11,8 @@
 // solve (A + z) x = b left precomditioned by  Minv * (A + z) ~ I. Minv is the simple Jacobi preconditioner.
 // based on Numerical Linear Algebra with Julia, Eric Darve, chp9.4; and wikipedia BiCGSTAB page.
 template <class T>
-void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T> *Minv, int &iterCount, VecD &resVec, int iterMax = 200, double tol = 1e-8, double zero = 1e-12) {
-	double res = 0.0;
+void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T> *Minv, int &iterCount, double &res, int iterMax = 200, double tol = 1e-8, double zero = 1e-12) {
+	res = 0.0;
 	auto nb = mpiNorm(b, size);
 	// r0 = b - Ax
 	auto r0 = std::vector<T>(size, 0.0);
@@ -51,7 +51,7 @@ void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T>
 		axpy(x, alpha, y.data(), size);
 		combine(s.data(), T(1.0), r0.data(), -alpha, v0.data(), size);
 		res = mpiNorm(s.data(), size) / nb;
-		resVec.push_back(res);
+		// resVec.push_back(res);
 		if (res < tol) {
 			return;
 		}
@@ -66,7 +66,7 @@ void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T>
 		axpy(x, w0, sh.data(), size);
 		combine(r0.data(), T(1.0), s.data(), -w0, t.data(), size);
 		res = mpiNorm(r0.data(), size) / nb;
-		resVec.push_back(res);
+		// resVec.push_back(res);
 		if (res < tol) {
 			return;
 		}
