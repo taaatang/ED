@@ -326,7 +326,8 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     R.pushLinks(RamanChannel(channel, J1.value_or(0.0), J2.value_or(0.0), *(sys.latt)));
                     R.construct();
                     for (int n = 0; n < sys.stateNum; ++n) {
-                        SPECTRASolver<dataType> spectra(sys.H.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
+                        // SPECTRASolver<dataType> spectra(sys.H.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
+                        SPECTRASolverBiCGSTAB spectra(sys.H.get(), &R, sys.evecs[n], std::real(sys.evals[n]));
                         spectra.compute();
                         if (sys.isMaster) spectra.save(sys.path.RamanDir + "/" + channel, n);
                     }
