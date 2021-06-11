@@ -45,7 +45,7 @@ public:
 
     virtual void printPeierls(std::ostream& os = std::cout) { }
 
-    virtual void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps) = 0;
+    virtual void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps){};
 
     void diag(int nev = 1);
     T getEval(int n = 0);
