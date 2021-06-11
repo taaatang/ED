@@ -136,6 +136,12 @@ inline void axpy(T* y, T a, const T* x, idx_t size) {
 }
 
 template <class T>
+inline void combine(T* y, T a1, const T* x1, T a2, const T* x2, idx_t size) {
+    #pragma omp parallel for
+    for (idx_t i = 0; i < size; ++i) y[i] = a1 * x1[i] + a2 * x2[i];
+}
+
+template <class T>
 inline void scale(T* x, T a, idx_t size) {
     #pragma omp parallel for
     for (idx_t i = 0; i < size; ++i) x[i] *= a;
