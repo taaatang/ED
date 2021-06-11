@@ -113,6 +113,8 @@ public:
     // reserve memory for off diagonal part
     void reserve(idx_t sizePerRow, int matID = 0);
 
+    void created( ) { isMatrixFree = false; }
+
     // clear memory of sparse matrixes
     void clear();
 
