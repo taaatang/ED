@@ -64,6 +64,23 @@ public:
     idx_t endCol;
 };
 
+template <class T>
+class Identity: public BaseMatrix<T> {
+public:
+    Identity(idx_t totDim): BaseMatrix<T>(totDim, totDim) { };
+    void MxV(T* vecIn, T* vecOut) {
+        copy(BaseMatrix<T>::nloc, vecIn, vecOut);
+    }
+};
+
+template <class T>
+class Diag: public BaseMatrix<T> {
+public:
+    Diag(idx_t totDim): BaseMatrix<T>(totDim, totDim) { };
+private:
+
+};
+
 /*
     ****************************
     * Sparse Matrix Base Class *
@@ -126,7 +143,7 @@ public:
     virtual void print(std::string info, std::ostream& os = std::cout) const;
 
     // create one row. store sparse matrixes data in corresponding rowMaps. (repI, val) for distributed basis. (idx,val) otherwise
-    virtual void row(idx_t rowID, std::vector<MAP<T>>& rowMaps) = 0;
+    virtual void row(idx_t rowID, std::vector<MAP<T>>& rowMaps){};
 
 
 #ifdef DISTRIBUTED_BASIS
@@ -140,6 +157,13 @@ public:
 #else // DISTRIBUTED_BASIS
 
     void pushRow(std::unordered_map<idx_t,T>* rowMap, int matID = 0);
+
+    void build( ) {
+        for (int i = 0; i < spmNum; ++i) {
+            MKL::create(A.at(i), BaseMatrix<T>::nloc, Bi->getSubDim(), rowInitList.at(i), colList.at(i), valList.at(i));
+        }
+        isMatrixFree = false;
+    }
 
     virtual void construct(int rowPerThread = 1);
 
@@ -345,6 +369,14 @@ void SparseMatrix<T>::setSpmNum(int num) {
     colList.resize(spmNum);
     rowInitList.resize(spmNum);
     A.resize(spmNum);
+
+    for (auto &c : counter) {
+        c = 0;
+    }
+
+    for (auto &row : rowInitList) {
+        row.push_back(0);
+    }
 
     #ifdef DISTRIBUTED_STATE
 
@@ -667,8 +699,9 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
             #pragma omp parallel for
             for (idx_t i = 0; i < BaseMatrix<T>::nloc; ++i) vecOut[i] = 0.0;
             MPI_Allgather(vecIn,vecBuf.data(),this->getColnlocmax());
-            for (int i = 0; i < spmNum; ++i){MKL::MxV(A.at(i),vecBuf.data(),vecOut,parameters.at(i));}
-
+            for (int i = 0; i < spmNum; ++i) {
+                MKL::MxV(A.at(i),vecBuf.data(),vecOut,parameters.at(i));
+            }
         #endif
 
         // diagonal part
