@@ -82,7 +82,8 @@ set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/Operations.
 
 set(ARPACK "Solver/PARPACKSolver.hpp")
 set(LANCZOS "Solver/LANCZOSIterator.hpp")
-set(SPECTRA "Solver/Spectra.hpp" ${LANCZOS})
+set(BiCGSTAB "Solver/BiCGSTAB.hpp")
+set(SPECTRA "Solver/Spectra.hpp" ${LANCZOS} ${BiCGSTAB})
 set(TIME "Solver/TimeEvolver.hpp" ${LANCZOS})
 
 set(GEOMETRY_DEP ${GEOMETRY} ${GLOBAL_PARA} ${UTILS})
@@ -106,6 +107,9 @@ target_link_libraries(main.out ${LINKS} gsl gslcblas)
 
 # Test
 set(TEST_SRC Test)
+
+add_executable(bicgTest.out ${TEST_SRC}/BiCGSTAB_Test.cpp ${ALL_DEP})
+target_link_libraries(bicgTest.out ${LINKS} gsl gslcblas)
 
 add_executable(geometryTest.out ${TEST_SRC}/geometryTest.cpp ${GEOMETRY_DEP})
 
