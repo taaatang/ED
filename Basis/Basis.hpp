@@ -45,6 +45,7 @@ class Basis{
 public:  
     Basis():model(LATTICE_MODEL::HUBBARD), kIndex(-1), PGRepIndex(-1){};
     // occList contains occupation number on each site dimension
+    Basis(idx_t dim):totDim(dim), subDim(dim), locDim(dim) { };
     Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI occList, int kInd=-1, int PGRepInd = -1, int siteD=2);
     ~Basis(){};
 
