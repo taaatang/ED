@@ -34,7 +34,7 @@ void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T>
 		// BiCG
 		auto rho_1 = mpiDot(rh0.data(), r0.data(), size);
 		if (std::abs(rho_0) < zero || std::abs(w0) < zero) {
-			std::cout << "BiCG stoped at step " << iterCount << '\n' << "rho: " << rho_0 << ", w: " << w0 << ", res: " << res << '\n';
+			// std::cout << "BiCG stoped at step " << iterCount << '\n' << "rho: " << rho_0 << ", w: " << w0 << ", res: " << res << '\n';
 			// exit(1);
 			return;
 		}
