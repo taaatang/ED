@@ -57,6 +57,8 @@ private:
     double epsilon;
     std::vector<double> spectra;
     std::vector<double> spectraInv;
+    std::vector<int> iterCountVec;
+    std::vector<double> resVec;
 };
 
 SPECTRASolverBiCGSTAB::SPECTRASolverBiCGSTAB(BaseMatrix<cdouble> *Ham, BaseMatrix<cdouble> *Op, cdouble *vec_, double w0_, double wmin_, double wmax_, double dw_, double epsilon_) {
@@ -74,6 +76,8 @@ SPECTRASolverBiCGSTAB::SPECTRASolverBiCGSTAB(BaseMatrix<cdouble> *Ham, BaseMatri
 void SPECTRASolverBiCGSTAB::compute() {
     spectra.clear();
     spectraInv.clear();
+    iterCountVec.clear();
+    resVec.clear();
     Identity<cdouble> eye(H->getDim());
     for (auto w = wmin; w < wmax; w += dw) {
         cdouble z{-(w + w0), -epsilon};
@@ -81,7 +85,9 @@ void SPECTRASolverBiCGSTAB::compute() {
         int iterCount;
         double res;
         BiCGSTAB(H, z, b.data(), x.data(), H->getnloc(), &eye, iterCount, res);
-        std::cout << "iter: " << iterCount << ", err: " << res << '\n';
+        iterCountVec.push_back(iterCount);
+        resVec.push_back(res);
+        // std::cout << "iter: " << iterCount << ", err: " << res << '\n';
         spectra.push_back(std::imag(mpiDot(b.data(), x.data(), H->getnloc())) / PI);
     }
 
@@ -91,7 +97,9 @@ void SPECTRASolverBiCGSTAB::compute() {
         int iterCount;
         double res;
         BiCGSTAB(H, z, b.data(), x.data(), H->getnloc(), &eye, iterCount, res);
-        std::cout << "iter: " << iterCount << ", err: " << res << '\n';
+        iterCountVec.push_back(iterCount);
+        resVec.push_back(res);
+        // std::cout << "iter: " << iterCount << ", err: " << res << '\n';
         spectraInv.push_back(std::imag(mpiDot(b.data(), x.data(), H->getnloc())) / PI);
     }
 }
@@ -106,6 +114,8 @@ void SPECTRASolverBiCGSTAB::save(std::string dataPath, int stateID) {
     ::save<double>(&dw, 1, &outfile, dataPath + "/dw_" + stateLabel);
     ::save<double>(spectra.data(), int(spectra.size()), &outfile, dataPath + "/spectra_" + stateLabel);
     ::save<double>(spectraInv.data(), int(spectraInv.size()), &outfile, dataPath + "/spectraInv_" + stateLabel);
+    ::save<int>(iterCountVec.data(), int(iterCountVec.size()), &outfile, dataPath + "/iterCounts_" + stateLabel);
+    ::save<double>(resVec.data(), int(resVec.size()), &outfile, dataPath + "/resVec_" + stateLabel);
 }
 
 #endif //Spectra_hpp
