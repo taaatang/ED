@@ -8,10 +8,11 @@
 #include "Operator/SparseMatrix.hpp"
 #include "Algebra/algebra.hpp"
 
-// solve (A + z) x = b left precomditioned by  Minv * A ~ I
+// solve (A + z) x = b left precomditioned by  Minv * (A + z) ~ I. Minv is the simple Jacobi preconditioner.
+// based on Numerical Linear Algebra with Julia, Eric Darve, chp9.4; and wikipedia BiCGSTAB page.
 template <class T>
-void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T> *Minv, int &iterCount, double &res, int iterMax = 100, double tol = 1e-8) {
-	res = 0.0;
+void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T> *Minv, int &iterCount, VecD &resVec, int iterMax = 200, double tol = 1e-8, double zero = 1e-12) {
+	double res = 0.0;
 	auto nb = mpiNorm(b, size);
 	// r0 = b - Ax
 	auto r0 = std::vector<T>(size, 0.0);
@@ -32,7 +33,7 @@ void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T>
 	for (iterCount = 0; iterCount < iterMax; ++iterCount) {
 		// BiCG
 		auto rho_1 = mpiDot(rh0.data(), r0.data(), size);
-		if (std::abs(rho_0) < tol || std::abs(w0) < tol) {
+		if (std::abs(rho_0) < zero || std::abs(w0) < zero) {
 			std::cout << "BiCG stoped at step " << iterCount << '\n' << "rho: " << rho_0 << ", w: " << w0 << ", res: " << res << '\n';
 			// exit(1);
 			return;
@@ -50,6 +51,7 @@ void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T>
 		axpy(x, alpha, y.data(), size);
 		combine(s.data(), T(1.0), r0.data(), -alpha, v0.data(), size);
 		res = mpiNorm(s.data(), size) / nb;
+		resVec.push_back(res);
 		if (res < tol) {
 			return;
 		}
@@ -64,6 +66,7 @@ void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T>
 		axpy(x, w0, sh.data(), size);
 		combine(r0.data(), T(1.0), s.data(), -w0, t.data(), size);
 		res = mpiNorm(r0.data(), size) / nb;
+		resVec.push_back(res);
 		if (res < tol) {
 			return;
 		}
