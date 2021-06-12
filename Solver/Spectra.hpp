@@ -78,15 +78,19 @@ void SPECTRASolverBiCGSTAB::compute() {
     spectraInv.clear();
     iterCountVec.clear();
     resVec.clear();
-    Identity<cdouble> eye(H->getDim());
+    // Identity<cdouble> eye(H->getDim());
+    SparseMatrix<cdouble> Minv(H->getDim(), H->getColDim(), 0, 1);
+    std::vector<cdouble> diag;
+    H->getDiag(diag);
     bool isMaster = (H->getWorkerID() == 0);
     int step = 0;
     for (auto w = wmin; w < wmax; w += dw) {
         cdouble z{-(w + w0), -epsilon};
+        Minv.assignDiagShiftInv(diag, z);
         std::vector<cdouble> x(H->getnlocmax(), 0.0);
         int iterCount;
         double res;
-        BiCGSTAB(H, z, b.data(), x.data(), H->getnloc(), &eye, iterCount, res);
+        BiCGSTAB(H, z, b.data(), x.data(), H->getnloc(), &Minv, iterCount, res);
         iterCountVec.push_back(iterCount);
         resVec.push_back(res);
         // std::cout << "iter: " << iterCount << ", err: " << res << '\n';
@@ -97,10 +101,11 @@ void SPECTRASolverBiCGSTAB::compute() {
 
     for (auto w = wmin; w < wmax; w += dw) {
         cdouble z{w - w0, -epsilon};
+        Minv.assignDiagShiftInv(diag, z);
         std::vector<cdouble> x(H->getnlocmax(), 0.0);
         int iterCount;
         double res;
-        BiCGSTAB(H, z, b.data(), x.data(), H->getnloc(), &eye, iterCount, res);
+        BiCGSTAB(H, z, b.data(), x.data(), H->getnloc(), &Minv, iterCount, res);
         iterCountVec.push_back(iterCount);
         resVec.push_back(res);
         // std::cout << "iter: " << iterCount << ", err: " << res << '\n';
