@@ -11,7 +11,7 @@
 // solve (A + z) x = b left precomditioned by  Minv * (A + z) ~ I. Minv is the simple Jacobi preconditioner.
 // based on Numerical Linear Algebra with Julia, Eric Darve, chp9.4; and wikipedia BiCGSTAB page.
 template <class T>
-void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T> *Minv, int &iterCount, double &res, int iterMax = 200, double tol = 1e-8, double zero = 1e-12) {
+void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T> *Minv, int &iterCount, double &res, int iterMax = 500, double tol = 1e-8, double zero = 1e-15) {
 	res = 0.0;
 	auto nb = mpiNorm(b, size);
 	// r0 = b - Ax
