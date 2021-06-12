@@ -4,7 +4,7 @@ conductivity,akw,pump
 
 basis:b:0 # 0 --> off; 1 --> on
 state:b:1
-nev:i:1
+nev:i:3
 zeroTmp:b:1 # 0-->off, 1-->on
 conductivity:b:0
 akw:b:0

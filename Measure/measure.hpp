@@ -321,15 +321,22 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
             } else if (key == "raman") {
                 auto J1 = sys.para.template get<double>("J1");
                 auto J2 = sys.para.template get<double>("J2");
-                for (auto channel : std::vector<std::string> {"A1", "A2", "E21", "E22"}) {
+                for (auto channel : std::vector<std::string> {"A1"}) { //{"A1", "A2", "E21", "E22"}) {
                     Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), sys.B.get());
                     R.pushLinks(RamanChannel(channel, J1.value_or(0.0), J2.value_or(0.0), *(sys.latt)));
                     R.construct();
-                    for (int n = 0; n < sys.stateNum; ++n) {
-                        // SPECTRASolver<dataType> spectra(sys.H.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
-                        SPECTRASolverBiCGSTAB spectra(sys.H.get(), &R, sys.evecs[n], std::real(sys.evals[n]));
-                        spectra.compute();
-                        if (sys.isMaster) spectra.save(sys.path.RamanDir + "/" + channel, n);
+                    if (sys.measure("lanczos")) {
+                        for (int n = 0; n < sys.stateNum; ++n) {
+                            SPECTRASolver<dataType> spectra(sys.H.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
+                            spectra.compute();
+                            if (sys.isMaster) spectra.save(sys.path.RamanDir + "/" + channel, n);
+                        }
+                    } else {
+                        for (int n = 0; n < sys.stateNum; ++n) {
+                            SPECTRASolverBiCGSTAB spectra(sys.H.get(), &R, sys.evecs[n], std::real(sys.evals[n]));
+                            spectra.compute();
+                            if (sys.isMaster) spectra.save(sys.path.RamanDir + "/" + channel, n);
+                        }
                     }
                 }
             } else if (key == "ramanfl") {
