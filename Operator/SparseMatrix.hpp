@@ -94,6 +94,7 @@ class SparseMatrix: public BaseMatrix<T>{
 */
 public:
     SparseMatrix( ) { }
+    SparseMatrix(idx_t rowDim, idx_t colDim, int spmNum_ = 0, int dmNum_ = 0);
     SparseMatrix(Basis *Bi_, Basis *Bf_, int spmNum_ = 0, int dmNum_ = 0);
     ~SparseMatrix( );
 
@@ -134,6 +135,8 @@ public:
     void MxV(T *vecIn, T *vecOut);
 
     void getDiag(std::vector<T> &diag);
+
+    void assignDiagShiftInv(std::vector<T> &diag, T shift);
 
     T vMv(T *vecL, T *vecR);
 
@@ -232,6 +235,22 @@ void BaseMatrix<T>::setColDim(idx_t totDim) {
     startCol = workerID * nlocmax_col;
     endCol = (startCol + nlocmax_col) < dim_col ? (startCol + nlocmax_col) : dim_col;
     nloc_col = endCol - startCol;
+}
+
+template<class T>
+SparseMatrix<T>::SparseMatrix(idx_t rowDim, idx_t colDim, int spmNum_, int dmNum_):BaseMatrix<T>(rowDim, colDim) {
+    setSpmNum(spmNum_);
+    setDmNum(dmNum_);
+
+    #ifdef DISTRIBUTED_BASIS
+
+        partition =  MATRIX_PARTITION::COL_PARTITION;
+
+    #else
+
+        partition = MATRIX_PARTITION::ROW_PARTITION;   
+
+    #endif 
 }
 
 // buffer for matrix vector multiplication
@@ -759,6 +778,16 @@ void SparseMatrix<T>::getDiag(std::vector<T> &diag) {
             }
             ++rowid;
         }
+    }
+}
+
+template<class T>
+void SparseMatrix<T>::assignDiagShiftInv(std::vector<T> &diag, T shift) {
+    assert_msg(dmNum == 1 && spmNum == 0, "only defined for diagonal matrix!");
+    assert_msg(diag.size() == diagValList[0].size(), "dimension mismatch!");
+    #pragma omp parallel for
+    for (idx_t i = 0; i < this->getnloc(); ++i) {
+        diagValList[0][i] = 1.0 / (diag[i] + shift);
     }
 }
 
