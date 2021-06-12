@@ -79,6 +79,8 @@ void SPECTRASolverBiCGSTAB::compute() {
     iterCountVec.clear();
     resVec.clear();
     Identity<cdouble> eye(H->getDim());
+    bool isMaster = (H->getWorkerID() == 0);
+    int step = 0;
     for (auto w = wmin; w < wmax; w += dw) {
         cdouble z{-(w + w0), -epsilon};
         std::vector<cdouble> x(H->getnlocmax(), 0.0);
@@ -89,6 +91,8 @@ void SPECTRASolverBiCGSTAB::compute() {
         resVec.push_back(res);
         // std::cout << "iter: " << iterCount << ", err: " << res << '\n';
         spectra.push_back(std::imag(mpiDot(b.data(), x.data(), H->getnloc())) / PI);
+        step++;
+        if (isMaster) std::cout << "step: " << step << '\n' << std::flush;
     }
 
     for (auto w = wmin; w < wmax; w += dw) {
@@ -101,6 +105,8 @@ void SPECTRASolverBiCGSTAB::compute() {
         resVec.push_back(res);
         // std::cout << "iter: " << iterCount << ", err: " << res << '\n';
         spectraInv.push_back(std::imag(mpiDot(b.data(), x.data(), H->getnloc())) / PI);
+        step++;
+        if (isMaster) std::cout << "step: " << step << '\n' << std::flush;
     }
 }
 
