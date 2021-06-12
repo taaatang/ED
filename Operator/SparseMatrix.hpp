@@ -40,6 +40,7 @@ public:
 
     // Matrix Vector Multiplication Interface
     virtual void MxV(T *vecIn, T *vecOut) = 0;
+    virtual void getDiag(std::vector<T> &diag) {}
     // project to symmetry subspace labeled by val
     virtual void project(double val, T* vec) { };
 
@@ -71,14 +72,6 @@ public:
     void MxV(T* vecIn, T* vecOut) {
         copy(BaseMatrix<T>::nloc, vecIn, vecOut);
     }
-};
-
-template <class T>
-class Diag: public BaseMatrix<T> {
-public:
-    Diag(idx_t totDim): BaseMatrix<T>(totDim, totDim) { };
-private:
-
 };
 
 /*
@@ -139,6 +132,8 @@ public:
     void setVal(int matID, T val) { parameters.at(matID) = val; }
 
     void MxV(T *vecIn, T *vecOut);
+
+    void getDiag(std::vector<T> &diag);
 
     T vMv(T *vecL, T *vecR);
 
@@ -742,6 +737,29 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
             }
         }
     }        
+}
+
+template<class T>
+void SparseMatrix<T>::getDiag(std::vector<T> &diag) {
+    diag = std::vector<T>(this->getnloc(), 0.0);
+    for (int i = 0; i < dmNum; ++i) {
+        #pragma omp parallel for
+        for (idx_t j = 0; j < this->getnloc(); ++j) {
+            diag[j] += diagValList[i][j];
+        }
+    }    
+    for (int i = 0; i < spmNum; ++i) {
+        idx_t rowid = BaseMatrix<T>::startRow;
+        #pragma omp parallel for
+        for (idx_t j = 0; j < this->getnloc(); ++j) {
+            for (idx_t loc = rowInitList[i][j]; loc < rowInitList[i][j+1]; ++loc) {
+                if (colList[i][loc] == rowid) {
+                    diag[j] += valList[i][loc];
+                }
+            }
+            ++rowid;
+        }
+    }
 }
 
 template <class T>

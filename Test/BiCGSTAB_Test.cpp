@@ -6,13 +6,13 @@ int main( ) {
 	int workerID, workerNum;
 	bool isMaster;
 	init(workerID, workerNum, isMaster);
-	int dim = 10000;
+	int dim = 100;
 	Identity<cdouble> eye(dim);
 	cdouble z{-1.0, -0.02};
 	std::vector<cdouble> x(dim, 0.0);
 	std::vector<cdouble> b(dim, 3.0);
 	int iterCount{0};
-	VecD res;
+	double res{0.0};
 	// BiCGSTAB(&eye, z, b.data(), x.data(), eye.nloc, &eye, iterCount, res);
 	// std::cout << "iter: " << iterCount << ", err: " << res << '\n' << "solution:\n" << x << '\n'; 
 
@@ -29,6 +29,10 @@ int main( ) {
 	MAP<cdouble> lrow({{idx_t(dim - 2), c}, {idx_t(dim - 1), a}});
 	A.pushRow(&lrow);
 	A.build();
+
+	std::vector<cdouble> diag;
+	A.getDiag(diag);
+	std::cout << "diag of A:\n" << diag << '\n' << std::flush; 
 
 	SparseMatrix<cdouble> Minv(&B, &B, 0, 1);
 	for (int i = 0; i < dim; ++i) {
