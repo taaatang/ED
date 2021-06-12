@@ -160,7 +160,7 @@ public:
 
     void build( ) {
         for (int i = 0; i < spmNum; ++i) {
-            MKL::create(A.at(i), BaseMatrix<T>::nloc, Bi->getSubDim(), rowInitList.at(i), colList.at(i), valList.at(i));
+            MKL::create(A.at(i), BaseMatrix<T>::nloc, BaseMatrix<T>::dim_col, rowInitList.at(i), colList.at(i), valList.at(i));
         }
         isMatrixFree = false;
     }
@@ -789,6 +789,7 @@ void SparseMatrix<T>::assignDiagShiftInv(std::vector<T> &diag, T shift) {
     for (idx_t i = 0; i < this->getnloc(); ++i) {
         diagValList[0][i] = 1.0 / (diag[i] + shift);
     }
+    isMatrixFree = false;
 }
 
 template <class T>
