@@ -1,3 +1,7 @@
+# Measurement selection. 1 --> on; 0 --> off
+all:vecs:
+basis, state, SiSj, Skw, Raman
+
 # basis construction option
 basis:b:0 # 1 --> on; 0 --> off
 # min/max momentum index
@@ -10,7 +14,7 @@ pmax:i:5
 # evals option
 state:b:1
 zeroTmp:b:1
-nev:i:2
+nev:i:3
 
 # Spectra config
 lanczos:b:0 # 1 --> lanczos, 0 --> BiCGSTAB
@@ -25,11 +29,18 @@ epsilon:d:0.05
 # BiCG max iteration
 iterMax:i:500
 
-# Measurement selection. 1 --> on; 0 --> off
-all:vecs:
-evals, SiSj, Skw, Raman
-evals:b:1
 SiSj:b:0
+
 Skw:b:0
+
+# Raman channels point group irrep
 Raman:b:1
+RamanChannels:vecs:
+A1 # A1, A2, E21, E22
+
+# FL raman scattering operators
 RamanFL:b:0
+ein:vecd:
+1.0, 0.0, 0.0
+eout:vecd:
+1.0, 0.0, 0.0
