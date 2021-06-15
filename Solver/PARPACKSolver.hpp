@@ -21,7 +21,7 @@
 // MAX parpack iterations
 constexpr int PARPACK_MAXITERATION = 5000;
 //MIN and MAX ncv
-constexpr int PARPACK_MINNCV = 7;
+constexpr int PARPACK_MINNCV = 3;
 // const int PARPACK_MAXNCV = 500;
 
 template <class T>
