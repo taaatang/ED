@@ -88,6 +88,10 @@ public:
     void clear( );
     void diag( );
     bool measure(std::string key) const { return opt(measurePara, key); }
+    template <typename U>
+    U getMpara(std::string key) const { return measurePara.get<U>(key).value(); }
+    template <typename U>
+    U getPara(std::string key) const { return para.get<U>(key).value(); }
 
 public:
     bool isMaster;
@@ -374,9 +378,8 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                         }
                     } else {
                         for (int n = 0; n < sys.stateNum; ++n) {
-                            SPECTRASolverBiCGSTAB spectra(sys.H.get(), &R, sys.evecs[n], std::real(sys.evals[n]));
-                            spectra.compute();
-                            if (sys.isMaster) spectra.save(sys.path.RamanDir + "/" + channel, n);
+                            SPECTRASolverBiCGSTAB spectra(sys.H.get(), &R, sys.evecs[n], std::real(sys.evals[n]), n, sys.template getMpara<int>("iterMax"), sys.template getMpara<double>("wmin"), sys.template getMpara<double>("wmax"), sys.template getMpara<double>("dw"), sys.template getMpara<double>("epsilon"));
+                            spectra.compute(sys.path.RamanDir + "/" + channel);
                         }
                     }
                 }
