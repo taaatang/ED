@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
         }
         timer.tik();
         compute(sys, job, workerID, workerNum);
+        MPI_Barrier(MPI_COMM_WORLD);
         timer.print(job);
     }
 
