@@ -294,8 +294,8 @@ void Basis::construct(bool saved, std::string basisDir) {
 
 
 void Basis::print(std::ostream& os) const {
-    os<<"Basis Info:\n"<<model<<"\nkid:"<<kIndex<<". pid:"<<PGRepIndex<<"\n";
-    os<<"tot/sub/loc dim:"<<totDim<<" / "<<subDim<<" / "<<locDim<<"\n";
+    os << "Basis Info:\n" << model << "\nkid: " << kIndex << ". pid: " << PGRepIndex << '\n';
+    os << "tot/sub/loc dim: " << totDim << " / " << subDim << " / " << locDim << '\n' << std::flush;
 }
 
 void Basis::save(std::string basisDir, bool saveNorm, bool is_app) {
