@@ -244,7 +244,7 @@ std::ostream& operator<<(std::ostream& os, const VecD& vec) {
 std::ostream& operator<<(std::ostream& os, const std::vector<cdouble>& vec) {
     os<<"[";
     for (auto val:vec) {
-        os<<" "<<std::real(val)<<"+"<<std::imag(val)<<"i";
+        os << " " << std::real(val) << "+" << (std::imag(val) > 1e-12 ? std::imag(val) : 0) << "i";
     }
     os<<" ]";
     return os;
