@@ -19,7 +19,6 @@ int main(int argc, char *argv[])
     }
 
     System<cdouble> sys(inputDir, isMaster);
-    sys.diag();
     // input file jobs
     if (jobs.empty())
     {
