@@ -123,7 +123,9 @@ System<T>::System(std::string inputDir, bool isMaster_) {
     isZeroTmp = measure("zeroTmp");
     auto krylovOpt = measurePara.get<int>("krylovDim");
     krylovDim = krylovOpt.value_or(400);
-    setBasics(para, latt, B, H);
+    setlatt(para, latt);
+    //!FIX: Sparse Matrix setDm init diagValist with B->locDim. Error: 1.B not constructed, locDim is totDim; 2. B constructed, locDim is subDim, not H.locDim.
+    // setBasics(para, latt, B, H);
 }
 
 /**
@@ -149,7 +151,9 @@ void System<T>::construct() {
     if (isConstructed) {
         return;
     }
+    setbasis(para, B, latt.get());
     B->construct(opt(para, "basis"), path.getBasisDir(B->getkIndex(), B->getPGIndex()));
+    setham(para, H, latt.get(), B.get());
     H->construct();
     if (isMaster) {
         printLine(50, '-');
@@ -186,6 +190,7 @@ void System<T>::diag( ) {
         int nev = nevopt.value_or(1);
         if (H) {
             H->diag(nev);
+            isDiag = true;
             for (int i = 0; i < nev; ++i) {
                 evals.push_back(H->getEval(i));
                 evecs.push_back(H->getEvec(i));
@@ -193,12 +198,12 @@ void System<T>::diag( ) {
             stateNum = sort<T>(evals, evecs, isZeroTmp); 
             if (isMaster) {
                 std::cout << "sorted evals: " << evals << '\n';
+                save(evals.data(), int(evals.size()), path.evalFile);
             }
         } else {
             std::cout<<"Warning: H is null in System.diag()!\n";
         }
     }
-    isDiag = true;
 }
 
 //TODO
@@ -366,7 +371,8 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
             } else if (key == "raman") {
                 auto J1 = sys.para.template get<double>("J1");
                 auto J2 = sys.para.template get<double>("J2");
-                for (auto channel : std::vector<std::string> {"A1"}) { //{"A1", "A2", "E21", "E22"}) {
+                auto channels = sys.template getMpara<VecStr>("RamanChannels");
+                for (auto channel : channels) { 
                     Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), sys.B.get());
                     R.pushLinks(RamanChannel(channel, J1.value_or(0.0), J2.value_or(0.0), *(sys.latt)));
                     R.construct();
