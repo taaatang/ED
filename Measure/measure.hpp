@@ -103,6 +103,9 @@ public:
     
     Parameters para, pulsePara, measurePara, pathPara;
     Path path;
+private:
+    bool isDiag{false};
+    bool isConstructed{false};
 };
 template<typename T>
 System<T>::System(std::string inputDir, bool isMaster_) {
@@ -116,7 +119,7 @@ System<T>::System(std::string inputDir, bool isMaster_) {
     isZeroTmp = measure("zeroTmp");
     auto krylovOpt = measurePara.get<int>("krylovDim");
     krylovDim = krylovOpt.value_or(400);
-    construct();
+    setBasics(para, latt, B, H);
 }
 
 /**
@@ -139,9 +142,12 @@ void System<T>::read(std::string inputDir) {
  */
 template<typename T>
 void System<T>::construct() {
-    setBasics(para, latt, B, H);
+    if (isConstructed) {
+        return;
+    }
     B->construct(opt(para, "basis"), path.getBasisDir(B->getkIndex(), B->getPGIndex()));
     H->construct();
+    isConstructed = true;
 }
 //TODO:System:clear
 /**
@@ -160,6 +166,9 @@ void System<T>::clear() {
  */
 template<typename T>
 void System<T>::diag( ) {
+    if (isDiag) {
+        return;
+    }
     if (measure("state")) {
         evals.clear();
         evecs.clear();
@@ -179,17 +188,43 @@ void System<T>::diag( ) {
             std::cout<<"Warning: H is null in System.diag()!\n";
         }
     }
+    isDiag = true;
 }
 
 //TODO
 template <typename T>
 void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool isSave = true) {
-    assert_msg(!sys.evecs.empty(), "No states to be measured!");
     Timer timer(sys.isMaster);
-    auto model = sys.B->getModel();
     for (auto &c : key) {
         c = tolower(c);
     }
+    if (key == "basis") {
+        auto kmin_opt = sys.measurePara.template get<int>("kmin");
+        auto kmax_opt = sys.measurePara.template get<int>("kmax");
+        auto pmin_opt = sys.measurePara.template get<int>("pmin");
+        auto pmax_opt = sys.measurePara.template get<int>("pmax");
+        auto kmin = kmin_opt.value_or(0);
+        auto kmax = kmax_opt.value_or(0);
+        auto pmin = pmin_opt.value_or(0);
+        auto pmax = pmax_opt.value_or(0);
+        int count{0};
+        for (auto k = kmin; k <= kmax; ++k) {
+            for (auto p = pmin; p <= pmax; ++p) {
+                if (count % workerNum == workerID) {
+                    Basis b(sys.para.getmodel(), sys.latt.get(), {sys.para.template get<int>("nu").value(), sys.para.template get<int>("nd").value()}, k, p);
+                    b.construct();
+                    b.save(sys.path.getBasisDir(k, p));
+                }
+                count++;
+            }
+        }
+        return;
+    } 
+
+    sys.construct();
+    sys.diag();
+    assert_msg(!sys.evecs.empty(), "No states to be measured!");
+    auto model = sys.B->getModel();
     switch (model) {
         case LATTICE_MODEL::HUBBARD: {
             if (key == "conductivity") {
