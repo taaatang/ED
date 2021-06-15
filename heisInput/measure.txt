@@ -1,21 +1,35 @@
-basis:b:0 # 0 --> off; 1 --> on
+# basis construction option
+basis:b:0 # 1 --> on; 0 --> off
+# min/max momentum index
 kmin:i:0
 kmax:i:0
+# min/max point group rep index
 pmin:i:0
 pmax:i:5
 
+# evals option
 state:b:1
 zeroTmp:b:1
 nev:i:2
 
+# Spectra config
+lanczos:b:0 # 1 --> lanczos, 0 --> BiCGSTAB
+# lanczos iteration number
 krylovDim:i:400
+# BiCG frequency sampling points
+wmin:d:0.0
+wmax:d:5.0
+dw:d:0.02
+# spectra broadenning
+epsilon:d:0.05
+# BiCG max iteration
+iterMax:i:500
+
+# Measurement selection. 1 --> on; 0 --> off
 all:vecs:
 evals, SiSj, Skw, Raman
-
-lanczos:b:0
-
 evals:b:1
 SiSj:b:0
 Skw:b:0
-Raman:b:0
+Raman:b:1
 RamanFL:b:0
