@@ -147,6 +147,12 @@ void System<T>::construct() {
     }
     B->construct(opt(para, "basis"), path.getBasisDir(B->getkIndex(), B->getPGIndex()));
     H->construct();
+    if (isMaster) {
+        printLine(50, '-');
+        B->print();
+        printLine(50, '-');
+        H->print("Hamiltonian from master worker");
+    }
     isConstructed = true;
 }
 //TODO:System:clear
