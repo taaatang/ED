@@ -40,7 +40,7 @@ public:
     void setMaxIter(int iterNum);
     void setRvec(a_int rvec);
 
-    void diag( );
+    void diag();
     void diag(double spin, BaseMatrix<T>* P);
 
 private:
@@ -186,7 +186,7 @@ void PARPACKSolver<T>::diag( ) {
     int workerID = M_->getWorkerID();
     bool ismaster = (workerID == MPI_MASTER);
     if (ismaster) {
-        printLine();
+        printLine(50, '-');
         std::cout<<"Begin PARPACK Iteration and timer started...\n";
     }
     timer.tik();
@@ -203,12 +203,12 @@ void PARPACKSolver<T>::diag( ) {
     if (ismaster) {
         std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" milliseconds.\n";
     }
-    if (ismaster) {
-        printLine(25);
-        std::cout<<"Eigenvalues: ";
-        for (int i = 0; i < nev_; ++i) std::cout<<d_pt[i]<<", ";
-        std::cout<<"\n";
-    }
+    // if (ismaster) {
+    //     printLine(25);
+    //     std::cout<<"Eigenvalues: ";
+    //     for (int i = 0; i < nev_; ++i) std::cout<<d_pt[i]<<", ";
+    //     std::cout<<"\n";
+    // }
 }
 
 template <class T>
@@ -231,11 +231,11 @@ void PARPACKSolver<T>::diag(double spin, BaseMatrix<T>* P){
     if (ismaster) {
         std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" milliseconds\n";
     }
-    if (ismaster) {
-        std::cout<<"Eigenvalues: ";
-        for (int i = 0; i < nev_; ++i) std::cout<<d_pt[i]<<", ";
-        std::cout<<"\n";
-    }
+    // if (ismaster) {
+    //     std::cout << "Eigenvalues: ";
+    //     for (int i = 0; i < nev_; ++i) std::cout << d_pt[i] << ", ";
+    //     std::cout << '\n' << std::flush;
+    // }
 }
 
 template <class T>
