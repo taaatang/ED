@@ -16,7 +16,7 @@ public:
     
     void make( ) const;
 
-    void print(std::ostream& os = std::cout) const;
+    void print(std::ostream& os = std::cout, bool brief = true) const;
 
     std::string getBasisDir(int kidx, int pidx = -1) const;
 
@@ -145,38 +145,40 @@ void Path::make( ) const {
     if (!RamanDir.empty()) mkdir_fs(RamanDir);
 }
 
-void Path::print(std::ostream& os) const {
-    printLine();
+void Path::print(std::ostream& os, bool brief) const {
+    printLine(50, '-');
     os << "root dir: " << rootDir << '\n';
     os << "project: " << project << '\n';
     os << "basis dir: " << basisDir << '\n';
     os << "job data dir :" << parameterDir << '\n';
-    printLine(25);
-    if (!wavefuncDir.empty()) {
-        os << "wavefunc dir: " << wavefuncDir << '\n'; 
-    }
-    // hubbard files
-    if (!particleDistrDir.empty()) {
-        os << "particle distribution dir: " << particleDistrDir << '\n';
-    }
-    if (!sigmaDir.empty()) {
-        os << "conductivity dir: " << sigmaDir << '\n'; 
-    }
-    if (!AkwDir.empty()) {
-        os << "akw dir: " << AkwDir << '\n';
-    }
-    if (!pumpDir.empty()) {
-        os << "pump dir: " << pumpDir << '\n'; 
-    }
-    // heisenberg files
-    if (!SiSjDir.empty()) {
-        os << "sisj dir: " << SiSjDir << '\n'; 
-    }
-    if (!SkwDir.empty()) {
-        os << "skw dir: " << SkwDir << '\n';
-    }
-    if (!RamanDir.empty()) {
-        os << "raman dir: " << RamanDir << '\n';
+    if (!brief) {
+        printLine(50, '-');
+        if (!wavefuncDir.empty()) {
+            os << "wavefunc dir: " << wavefuncDir << '\n'; 
+        }
+        // hubbard files
+        if (!particleDistrDir.empty()) {
+            os << "particle distribution dir: " << particleDistrDir << '\n';
+        }
+        if (!sigmaDir.empty()) {
+            os << "conductivity dir: " << sigmaDir << '\n'; 
+        }
+        if (!AkwDir.empty()) {
+            os << "akw dir: " << AkwDir << '\n';
+        }
+        if (!pumpDir.empty()) {
+            os << "pump dir: " << pumpDir << '\n'; 
+        }
+        // heisenberg files
+        if (!SiSjDir.empty()) {
+            os << "sisj dir: " << SiSjDir << '\n'; 
+        }
+        if (!SkwDir.empty()) {
+            os << "skw dir: " << SkwDir << '\n';
+        }
+        if (!RamanDir.empty()) {
+            os << "raman dir: " << RamanDir << '\n';
+        }
     }
 }
 
