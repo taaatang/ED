@@ -83,45 +83,55 @@ inline void mkdir_fs(std::string dir){
 #endif //CPP_17_FS
 
 template <class T>
-inline void save(T *d_pt, int size, std::ofstream *f_pt, std::string filename, bool is_app=false){
+inline void save(T *d_pt, int size, std::ofstream *f_pt, std::string filename, bool is_app = false, bool print = true){
     if(is_app)f_pt->open(filename, std::ios::binary|std::ios::app);
     else f_pt->open(filename, std::ios::binary);
     if (f_pt->is_open()){
         f_pt->write(reinterpret_cast<char*>(d_pt), size * sizeof(T));
         f_pt->close();
-        if(is_app)std::cout<<"Data appended to "<<filename<<std::endl;
-        else std::cout<<"Data wrote to "<<filename<<std::endl;
-    }else{
-        std::cout<<filename<<" failed to open!"<<std::endl;
+        if (print) {
+            if (is_app) {
+                std::cout << "Data appended to " << filename << std::endl;
+            } else {
+                std::cout << "Data wrote to " << filename << std::endl;
+            }
+        }    
+    } else {
+        std::cout << filename << " failed to open!" << std::endl;
         exit(1);
     }
 }
 
 template <class T>
-inline void save(T *d_pt, idx_t size, std::ofstream *f_pt, std::string filename, bool is_app=false){
+inline void save(T *d_pt, idx_t size, std::ofstream *f_pt, std::string filename, bool is_app = false, bool print = true){
     if(is_app)f_pt->open(filename, std::ios::binary|std::ios::app);
     else f_pt->open(filename, std::ios::binary);
     if (f_pt->is_open()){
         f_pt->write(reinterpret_cast<char*>(d_pt), size * sizeof(T));
         f_pt->close();
-        if(is_app)std::cout<<"Data appended to "<<filename<<std::endl;
-        else std::cout<<"Data wrote to "<<filename<<std::endl;
+        if (print) {
+            if (is_app) {
+                std::cout << "Data appended to " << filename << std::endl;
+            } else {
+                std::cout << "Data wrote to " << filename << std::endl;
+            }
+        }    
     }else{
-        std::cout<<filename<<" failed to open!"<<std::endl;
+        std::cout << filename << " failed to open!" << std::endl;
         exit(1);
     }
 }
 
 template <class T>
-void save(T *d_pt, int size, std::string filename, bool is_app=false){
+void save(T *d_pt, int size, std::string filename, bool is_app = false, bool print = true) {
     std::ofstream os;
-    save<T>(d_pt, size, &os, filename, is_app);
+    save<T>(d_pt, size, &os, filename, is_app, print);
 }
 
 template <class T>
-void save(T *d_pt, idx_t size, std::string filename, bool is_app=false){
+void save(T *d_pt, idx_t size, std::string filename, bool is_app = false, bool print = true) {
     std::ofstream os;
-    save<T>(d_pt, size, filename, is_app);
+    save<T>(d_pt, size, filename, is_app, print);
 }
 
 template <class T>
