@@ -1,13 +1,21 @@
-zeroTmp:b:1
-nev:i:5
-krylovDim:i:400
-
-all:vecs:
-SiSj, Skw, Raman
-
 basis:b:0 # 0 --> off; 1 --> on
-state:b:1
+kmin:i:0
+kmax:i:0
+pmin:i:0
+pmax:i:5
 
-SiSj:b:1
-Skw:b:1
-Raman:b:1
+state:b:1
+zeroTmp:b:1
+nev:i:2
+
+krylovDim:i:400
+all:vecs:
+evals, SiSj, Skw, Raman
+
+lanczos:b:0
+
+evals:b:1
+SiSj:b:0
+Skw:b:0
+Raman:b:0
+RamanFL:b:0
