@@ -43,39 +43,43 @@ public:
 
 class SPECTRASolverBiCGSTAB {
 public:
-    SPECTRASolverBiCGSTAB(BaseMatrix<cdouble> *Ham, BaseMatrix<cdouble> *Op, cdouble *vec_, double w0, double wmin = 0.0, double wmax = 5.0, double dw = 0.01, double epsilon = 0.02);
-    void compute();
-    void save(std::string dataPath, int stateID = 0);
+    SPECTRASolverBiCGSTAB(BaseMatrix<cdouble> *Ham, BaseMatrix<cdouble> *Op, cdouble *vec_, double w0, int stateID_ = 0, int iterMax_ = 500, double wmin = 0.0, double wmax = 5.0, double dw = 0.01, double epsilon = 0.02);
+    void compute(std::string dataPath);
+    void savefreq(std::string dataPath);
+    void save(std::string dataPath, bool isApp);
+    void save(std::string dataPath);
 private:
     BaseMatrix<cdouble> *H;
     BaseMatrix<cdouble> *O;
     std::vector<cdouble> b;
     double w0;
+    int stateID;
+    int iterMax;
     double wmin;
     double wmax;
     double dw;
     double epsilon;
     std::vector<double> spectra;
-    std::vector<double> spectraInv;
     std::vector<int> iterCountVec;
     std::vector<double> resVec;
 };
 
-SPECTRASolverBiCGSTAB::SPECTRASolverBiCGSTAB(BaseMatrix<cdouble> *Ham, BaseMatrix<cdouble> *Op, cdouble *vec_, double w0_, double wmin_, double wmax_, double dw_, double epsilon_) {
+SPECTRASolverBiCGSTAB::SPECTRASolverBiCGSTAB(BaseMatrix<cdouble> *Ham, BaseMatrix<cdouble> *Op, cdouble *vec_, double w0_, int stateID_, int iterMax_, double wmin_, double wmax_, double dw_, double epsilon_) {
     H = Ham;
     O = Op;
     b.resize(O->getnlocmax());
     O->MxV(vec_, b.data());
     w0 = w0_;
+    stateID = stateID_;
+    iterMax = iterMax_;
     wmin = wmin_;
     wmax = wmax_;
     dw = dw_;
     epsilon = epsilon_;
 }
 
-void SPECTRASolverBiCGSTAB::compute() {
+void SPECTRASolverBiCGSTAB::compute(std::string dataPath) {
     spectra.clear();
-    spectraInv.clear();
     iterCountVec.clear();
     resVec.clear();
     // Identity<cdouble> eye(H->getDim());
@@ -83,6 +87,9 @@ void SPECTRASolverBiCGSTAB::compute() {
     std::vector<cdouble> diag;
     H->getDiag(diag);
     bool isMaster = (H->getWorkerID() == 0);
+    if (isMaster) {
+        savefreq(dataPath);
+    }
     int step = 0;
     for (auto w = wmin; w < wmax; w += dw) {
         cdouble z{-(w + w0), -epsilon};
@@ -90,13 +97,16 @@ void SPECTRASolverBiCGSTAB::compute() {
         std::vector<cdouble> x(H->getnlocmax(), 0.0);
         int iterCount;
         double res;
-        BiCGSTAB(H, z, b.data(), x.data(), H->getnloc(), &Minv, iterCount, res);
+        BiCGSTAB(H, z, b.data(), x.data(), H->getnloc(), &Minv, iterCount, res, iterMax);
         iterCountVec.push_back(iterCount);
         resVec.push_back(res);
         // std::cout << "iter: " << iterCount << ", err: " << res << '\n';
         spectra.push_back(std::imag(mpiDot(b.data(), x.data(), H->getnloc())) / PI);
         step++;
-        if (isMaster) std::cout << "step: " << step << '\n' << std::flush;
+        if (isMaster) {
+            std::cout << "step: " << step << ", iter: " << iterCount << ", res: " << res << '\n' << std::flush;
+            save(dataPath, spectra.size() > 1);
+        }
     }
 
     for (auto w = wmin; w < wmax; w += dw) {
@@ -105,28 +115,49 @@ void SPECTRASolverBiCGSTAB::compute() {
         std::vector<cdouble> x(H->getnlocmax(), 0.0);
         int iterCount;
         double res;
-        BiCGSTAB(H, z, b.data(), x.data(), H->getnloc(), &Minv, iterCount, res);
+        BiCGSTAB(H, z, b.data(), x.data(), H->getnloc(), &Minv, iterCount, res, iterMax);
         iterCountVec.push_back(iterCount);
         resVec.push_back(res);
         // std::cout << "iter: " << iterCount << ", err: " << res << '\n';
-        spectraInv.push_back(std::imag(mpiDot(b.data(), x.data(), H->getnloc())) / PI);
+        spectra.push_back(std::imag(mpiDot(b.data(), x.data(), H->getnloc())) / PI);
         step++;
-        if (isMaster) std::cout << "step: " << step << '\n' << std::flush;
+        if (isMaster) {
+            std::cout << "step: " << step << ", iter: " << iterCount << ", res: " << res << '\n' << std::flush;
+            save(dataPath, spectra.size() > 1);
+        }
     }
 }
 
-void SPECTRASolverBiCGSTAB::save(std::string dataPath, int stateID) {
+void SPECTRASolverBiCGSTAB::savefreq(std::string dataPath) {
     mkdir_fs(dataPath);
-    std::ofstream outfile;
     auto stateLabel =tostr(stateID);
-    ::save<double>(&w0, 1, &outfile, dataPath + "/w0_" + stateLabel);
-    ::save<double>(&wmin, 1, &outfile, dataPath + "/wmin_" + stateLabel);
-    ::save<double>(&wmax, 1, &outfile, dataPath + "/wmax_" + stateLabel);
-    ::save<double>(&dw, 1, &outfile, dataPath + "/dw_" + stateLabel);
-    ::save<double>(spectra.data(), int(spectra.size()), &outfile, dataPath + "/spectra_" + stateLabel);
-    ::save<double>(spectraInv.data(), int(spectraInv.size()), &outfile, dataPath + "/spectraInv_" + stateLabel);
-    ::save<int>(iterCountVec.data(), int(iterCountVec.size()), &outfile, dataPath + "/iterCounts_" + stateLabel);
-    ::save<double>(resVec.data(), int(resVec.size()), &outfile, dataPath + "/resVec_" + stateLabel);
+    ::save<double>(&w0, 1, dataPath + "/w0_" + stateLabel);
+    ::save<double>(&wmin, 1, dataPath + "/wmin_" + stateLabel);
+    ::save<double>(&wmax, 1, dataPath + "/wmax_" + stateLabel);
+    ::save<double>(&dw, 1, dataPath + "/dw_" + stateLabel);
+}
+
+void SPECTRASolverBiCGSTAB::save(std::string dataPath, bool isApp) {
+    bool isPrint = false;
+    mkdir_fs(dataPath);
+    auto stateLabel =tostr(stateID);
+    if(!spectra.empty() and !iterCountVec.empty() and !resVec.empty()) {
+        ::save<double>(&spectra.back(), 1, dataPath + "/spectra_" + stateLabel, isApp, isPrint);
+        ::save<int>(&iterCountVec.back(), 1, dataPath + "/iterCounts_" + stateLabel, isApp, isPrint);
+        ::save<double>(&resVec.back(), 1, dataPath + "/resVec_" + stateLabel, isApp, isPrint); 
+    }
+}
+
+void SPECTRASolverBiCGSTAB::save(std::string dataPath) {
+    mkdir_fs(dataPath);
+    auto stateLabel =tostr(stateID);
+    ::save<double>(&w0, 1, dataPath + "/w0_" + stateLabel);
+    ::save<double>(&wmin, 1, dataPath + "/wmin_" + stateLabel);
+    ::save<double>(&wmax, 1, dataPath + "/wmax_" + stateLabel);
+    ::save<double>(&dw, 1, dataPath + "/dw_" + stateLabel);
+    ::save<double>(spectra.data(), int(spectra.size()), dataPath + "/spectra_" + stateLabel);
+    ::save<int>(iterCountVec.data(), int(iterCountVec.size()), dataPath + "/iterCounts_" + stateLabel);
+    ::save<double>(resVec.data(), int(resVec.size()), dataPath + "/resVec_" + stateLabel);
 }
 
 #endif //Spectra_hpp
