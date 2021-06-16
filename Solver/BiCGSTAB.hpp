@@ -30,12 +30,17 @@ void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T>
 	auto v0 = std::vector<T>(size, 0.0);
 	auto p0 = std::vector<T>(size, 0.0);
 
+	int restart = 0;
 	for (iterCount = 0; iterCount < iterMax; ++iterCount) {
 		// BiCG
 		auto rho_1 = mpiDot(rh0.data(), r0.data(), size);
 		if (std::abs(rho_0) < zero || std::abs(w0) < zero) {
 			// std::cout << "BiCG stoped at step " << iterCount << '\n' << "rho: " << rho_0 << ", w: " << w0 << ", res: " << res << '\n';
 			// exit(1);
+			copy(size, r0.data(), rh0.data(), size);
+			rho_1 = mpiDot(rh0.data(), r0.data(), size);
+			restart++;
+			if (restart == 1) iterCount = 0;	
 			return;
 		}
 		auto beta = (rho_1 / rho_0) * (alpha / w0);
