@@ -41,7 +41,6 @@ void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T>
 			rho_1 = mpiDot(rh0.data(), r0.data(), size);
 			restart++;
 			if (restart == 1) iterCount = 0;	
-			return;
 		}
 		auto beta = (rho_1 / rho_0) * (alpha / w0);
 		// pi = ri-1 + beta * (pi-1 - wi-1 * vi-1)
