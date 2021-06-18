@@ -33,7 +33,7 @@ template<typename T>
 class FermionOperator{
 public:
     FermionOperator( ) { }
-    FermionOperator(Basis* pt_Ba);
+    FermionOperator(Basis* pt_Ba, bool commuteWithSymm = false);
     ~FermionOperator( ) { };
     // c^dagger/c with spin act on siteI of pairRepI 
     bool cp(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign);
@@ -68,6 +68,7 @@ protected:
     Basis* pt_Basis{nullptr};
     LATTICE_MODEL fmodel{LATTICE_MODEL::HUBBARD};
     int nuSign;
+    bool commuteWithLattSymm{false};
 };
 
 template<typename T>
@@ -82,7 +83,7 @@ class SpinOperator{
 */
 public:
     SpinOperator( ) { }
-    SpinOperator(Basis* pt_Ba);
+    SpinOperator(Basis* pt_Ba, bool commuteWithSymm = false);
     ~SpinOperator( ) { }
 
     void push(idx_t repIf, T val, MAP<T>* rowMap);
@@ -127,6 +128,7 @@ protected:
     LATTICE_MODEL smodel{LATTICE_MODEL::HEISENBERG};
     int spinDim{2};
     std::vector<double> szMat, spMat, smMat;
+    bool commuteWithLattSymm{false};
 };
 
 /********************
@@ -134,8 +136,8 @@ protected:
  ********************/
 
 template <typename T>
-FermionOperator<T>::FermionOperator(Basis* pt_Ba):pt_Basis(pt_Ba),fmodel(pt_Ba->getModel()) {
-
+FermionOperator<T>::FermionOperator(Basis* pt_Ba, bool commute):pt_Basis(pt_Ba),fmodel(pt_Ba->getModel()) {
+    commuteWithLattSymm = commute;
 }
 
 template <typename T>
@@ -490,7 +492,7 @@ void FermionOperator<T>::diag(idx_t rowID, T factor, MAP<T>* rowMap){
  * SPIN OPERATOR *
  *****************/
 template<typename T>
-SpinOperator<T>::SpinOperator(Basis* pt_Ba):\
+SpinOperator<T>::SpinOperator(Basis* pt_Ba, bool commute):\
 pt_Basis(pt_Ba),smodel(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()) {
     double s = (double)(spinDim - 1)/2.0;
     double m = s;
@@ -500,6 +502,7 @@ pt_Basis(pt_Ba),smodel(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()) {
         smMat.push_back(std::sqrt(s*(s+1.0)-m*(m-1.0)));
         m -= 1.0;
     }
+    commuteWithLattSymm = commute;
 }
 
 template<typename T>
@@ -508,9 +511,11 @@ void SpinOperator<T>::push(idx_t repIf, T val, MAP<T>* rowMap){
         MapPush(rowMap,repIf,val);
     #else
         idx_t colID;
-        if (pt_Basis->search(repIf,colID)){
+        cdouble fac;
+        if (pt_Basis->search(repIf, colID, fac, !commuteWithLattSymm)){
             double finalNorm = pt_Basis->getNorm(colID);
             val /= finalNorm;
+            val *= fac;
             MapPush(rowMap,colID,val);
         }
     #endif
@@ -637,13 +642,8 @@ void SpinOperator<T>::szsz(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* r
         T dval = factor * getSz(siteI,repI) * getSz(siteJ,repI);
         MapPush(rowMap,repI,dval);
     #else
-        idx_t colID;
-        if (pt_Basis->search(repI,colID)){
-            T dval = factor * getSz(siteI,repI) * getSz(siteJ,repI);
-            double finalNorm = pt_Basis->getNorm(colID);
-            dval /= finalNorm;
-            MapPush(rowMap,colID,dval);
-        }
+        T dval = factor * getSz(siteI,repI) * getSz(siteJ,repI);
+        push(repI, dval, rowMap);
     #endif
 }
 
@@ -657,13 +657,8 @@ void SpinOperator<T>::szsznn(int siteI, int siteJ, T factor, idx_t repI, MAP<T>*
             T dval = -0.5*factor;
             MapPush(rowMap,repI,dval);
         #else
-            idx_t colID;
-            if (pt_Basis->search(repI,colID)){
-                T dval = -0.5*factor;
-                double finalNorm = pt_Basis->getNorm(colID);
-                dval /= finalNorm;
-                MapPush(rowMap,colID,dval);
-            }
+            T dval = -0.5*factor;
+            push(repI, dval, rowMap);
         #endif
     }
 }
@@ -691,13 +686,8 @@ void SpinOperator<T>::spsm(int siteI, T factor, idx_t repI, MAP<T>* rowMap){
             T val = factor * spMat[1] * smMat[0];
             MapPush(rowMap,repI,val);
         #else
-            idx_t colID;
-            if (pt_Basis->search(repI, colID)){
-                T val = factor * spMat[1] * smMat[0];
-                double finalNorm = pt_Basis->getNorm(colID);
-                val /= finalNorm;
-                MapPush(rowMap,colID,val);
-            }
+            T val = factor * spMat[1] * smMat[0];
+            push(repI, val, rowMap);
         #endif
     }
 }
@@ -725,13 +715,8 @@ void SpinOperator<T>::smsp(int siteI, T factor, idx_t repI, MAP<T>* rowMap){
             T val = factor * spMat[1] * smMat[0];
             MapPush(rowMap,repI,val);
         #else
-            idx_t colID;
-            if (pt_Basis->search(repI, colID)){
-                T val = factor * spMat[1] * smMat[0];
-                double finalNorm = pt_Basis->getNorm(colID);
-                val /= finalNorm;
-                MapPush(rowMap,colID,val);
-            }
+            T val = factor * spMat[1] * smMat[0];
+            push(repI, val, rowMap);
         #endif
     }
 }
@@ -751,12 +736,7 @@ void SpinOperator<T>::spsm(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* r
                 #ifdef DISTRIBUTED_BASIS
                     MapPush(rowMap,repI,val);
                 #else
-                    idx_t colID;
-                    if (pt_Basis->search(repI, colID)){
-                        double finalNorm = pt_Basis->getNorm(colID);
-                        val /= finalNorm;
-                        MapPush(rowMap,colID,val);
-                    }
+                    push(repI, val, rowMap);
                 #endif
             }
             break;
@@ -773,12 +753,7 @@ void SpinOperator<T>::spsm(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* r
                 #ifdef DISTRIBUTED_BASIS
                     MapPush(rowMap,repI,val);
                 #else
-                idx_t colID;
-                if (pt_Basis->search(repI, colID)){
-                    double finalNorm = pt_Basis->getNorm(colID);
-                    val /= finalNorm;
-                    MapPush(rowMap,colID,val);
-                }
+                push(repI, val, rowMap);
                 #endif
             }
             break;
@@ -825,13 +800,8 @@ void SpinOperator<T>::szspsm(int siteI, int siteJ, int siteK, T factor, idx_t re
                     T val = factor * (double)sign * getSz(siteI, repI) * spMat[1] * smMat[0];
                     MapPush(rowMap,repI,val);
                 #else
-                    idx_t colID;
-                    if (pt_Basis->search(repI, colID)){
-                        T val = sign * factor * getSz(siteI, repI) * spMat[1] * smMat[0];
-                        double finalNorm = pt_Basis->getNorm(colID);
-                        val /= finalNorm;
-                        MapPush(rowMap,colID,val);
-                    }
+                    T val = sign * factor * getSz(siteI, repI) * spMat[1] * smMat[0];
+                    push(repI, val, rowMap);
                 #endif
             }
             break;
