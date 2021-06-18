@@ -263,6 +263,7 @@ std::vector<T> SparseMatrix<T>::vecBuf;
     *****************************
 */
 
+//TODO: fix BaseMatrix constructor when Bf_ and Bi_ is not constructed
 template <class T>
 SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, int spmNum_ , int dmNum_):BaseMatrix<T>(Bf_->getSubDim(), Bi_->getSubDim()), \
 Bi(Bi_), Bf(Bf_) {
@@ -600,7 +601,8 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
     }
 #else
     template <class T>
-    void SparseMatrix<T>::construct(int rowPerThread){
+    void SparseMatrix<T>::construct(int rowPerThread) {
+        assert_msg(!(Bi->empty()) && !(Bf->empty()), "Basis is empty when construct SparseMatrix!");
         clear();
         this->setDim(Bf->getSubDim());
         this->setColDim(Bi->getSubDim());
