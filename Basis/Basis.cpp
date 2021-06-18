@@ -23,7 +23,7 @@ void work_load(idx_t size, int workerID, int workerNum, idx_t& idxStart, idx_t& 
 */
 // initialize
 Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI occList, int kInd, int PGRepInd, int siteD):\
-    model(input_model), pt_lattice(pt_lat),kIndex(kInd),PGRepIndex(PGRepInd),siteDim(siteD){
+    model(input_model), pt_lattice(pt_lat), kIndex(kInd), PGRepIndex(PGRepInd), siteDim(siteD) {
     /*
      siteDim is the Hilbert space dimension of a single site. usually equals to spin dimension: 2*s+1
      occList is of length sitedim, containing the number of sites in the state of corresponding site Hilbert Space dimension.
@@ -79,13 +79,25 @@ Basis::Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI occList, int kInd
             break;
     }
     initMinMaxRep();
+    //!BUG: when using un-constructed basis to initilize a SparseMatrix, the subDim is not correct
     // default full hilbert space
-    subDim = totDim;
-    locDim = subDim;
+    if (kIndex == -1 && PGRepIndex == -1) {
+        subDim = totDim;
+        locDim = subDim;
+    }
     // initialize mul
     for (int i = 0; i < N; ++i) mul.push_back(pow((idx_t) siteDim, (idx_t) (N - i - 1)));  
     // generate fIndexList and sIndexList for Hubbard and tJ
     gendcmp(); 
+}
+
+bool Basis::empty() const {
+    if (model == LATTICE_MODEL::HUBBARD) {
+        if (kIndex == -1 && PGRepIndex == -1) {
+            return fIndexList.empty() || sIndexList.empty();
+        }
+    }
+    return indexList.empty();
 }
 void Basis::initMinMaxRep() const {
 #ifdef BINARY_REP
@@ -403,6 +415,17 @@ idx_t Basis::search(pairIdx_t pairRepI) const {
         std::cerr<<"pairRepI only defined for Hubbard and tJ!"<<std::endl;
         exit(EXIT_FAILURE);
     } 
+}
+
+bool Basis::search(idx_t repI, idx_t &idx, cdouble &fac, bool useSymm) const {
+    if (useSymm) {
+        idx_t repImin;
+        genRepMin(repI, repImin, fac);
+        return search(repImin, idx);
+    } else {
+        fac = 1.0;
+        return search(repI, idx);
+    }
 }
 
 /*
@@ -1053,5 +1076,191 @@ void Basis::genSymm(idx_t rowid, std::vector<pairIdx_t>& finalInd, std::vector<c
             exit(1);
             break;
         }
+    }
+}
+
+void Basis::genRepMin(idx_t repI, idx_t &repImin, cdouble &fac) const {
+    if (kIndex == -1) {
+        repImin = repI; 
+        fac = 1.0;
+        return;
+    }
+    std::vector<idx_t> finalInd{};
+    std::vector<cdouble> factorList{};
+    repImin = repI;
+    switch(model){
+        case LATTICE_MODEL::HUBBARD:{
+            pairIdx_t pairRepI;
+            pairRepI = getPairRepI(repI);
+            VecI seq, seqp;
+            if (PGRepIndex==-1) {
+                cdouble tbc = 1.0;
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    pairIdx_t pairRepIp{0,0};
+                    seq.clear();
+                    seqp.clear();
+                    for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
+                        if(bitTest(pairRepI.first,i)) {
+                            bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));
+                            seq.push_back(pt_lattice->getOrbTran(r,i));
+                            tbc *= pt_lattice->getOrbTranPhase(r,i);
+                        }
+                        if(bitTest(pairRepI.second,i)) {
+                            bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));
+                            seqp.push_back(pt_lattice->getOrbTran(r,i));
+                            tbc *= pt_lattice->getOrbTranPhase(r,i);
+                        }
+                    }
+                    repI = search(pairRepIp);
+                    if (repI < repImin) {
+                        repImin = repI;
+                    } 
+                    finalInd.push_back(repI);
+                    factorList.push_back(tbc*pt_lattice->expKR(kIndex,r)/seqSign(seq) * seqSign(seqp));
+                }
+            } else {
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++) {
+                    for(int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++) {
+                        pairIdx_t pairRepIp{0,0};
+                        seq.clear();
+                        seqp.clear();
+                        for(int i = 0; i < pt_lattice->getOrbNum(); ++i) {
+                            if(bitTest(pairRepI.first,i)){bitSet(pairRepIp.first,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                            if(bitTest(pairRepI.second,i)){bitSet(pairRepIp.second,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seqp.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                        } 
+                        repI = search(pairRepIp);
+                        if (repI < repImin) {
+                            repImin = repI;
+                        } 
+                        finalInd.push_back(repI);
+                        factorList.push_back(pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p)/seqSign(seq) * seqSign(seqp));
+                    }
+                }
+            }
+            break;
+        }
+
+        case LATTICE_MODEL::tJ:{
+            pairIdx_t pairRepI;
+            pairRepI = getPairRepI(repI);
+            VecI seq;
+            if(PGRepIndex==-1){
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    pairIdx_t pairRepIp{0,0};
+                    seq.clear();
+                    for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
+                        if(bitTest(pairRepI.first,i)) {bitSet(pairRepIp.first,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));}
+                        else if(bitTest(pairRepI.second,i)) {bitSet(pairRepIp.second,pt_lattice->getOrbTran(r,i));seq.push_back(pt_lattice->getOrbTran(r,i));}
+                    }
+                    repI = search(pairRepIp);
+                    if (repI < repImin) {
+                        repImin = repI;
+                    } 
+                    finalInd.push_back(repI);
+                    factorList.push_back(pt_lattice->expKR(kIndex,r)/seqSign(seq));
+                }
+            }else{
+                for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                    for(int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
+                        pairIdx_t pairRepIp{0,0};
+                        seq.clear();
+                        for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
+                            if(bitTest(pairRepI.first,i)){bitSet(pairRepIp.first,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                            else if(bitTest(pairRepI.second,i)){bitSet(pairRepIp.second,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));seq.push_back(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));}
+                        } 
+                        repI = search(pairRepIp);
+                        if (repI < repImin) {
+                            repImin = repI;
+                        } 
+                        finalInd.push_back(repI);
+                        factorList.push_back(pt_lattice->expKR(kIndex,r) * pt_lattice->getChi(PGRepIndex,p)/seqSign(seq));
+                    }
+                }
+            }
+            break;
+        }
+
+        case LATTICE_MODEL::HEISENBERG:{
+            #ifdef BINARY_REP
+                if(PGRepIndex==-1){
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        idx_t repIp{0};
+                        for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
+                            if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbTran(r,i));
+                        }
+                        if (repIp < repImin) {
+                            repImin = repIp;
+                        }
+                        finalInd.push_back(repIp);
+                        factorList.push_back(pt_lattice->expKR(kIndex,r));
+                    }
+                }else{
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
+                            idx_t repIp{0};
+                            for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
+                                if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i)));
+                            }
+                            if (repIp < repImin) {
+                                repImin = repIp;
+                            }
+                            finalInd.push_back(repIp);
+                            factorList.push_back(pt_lattice->expKR(kIndex,r)* pt_lattice->getChi(PGRepIndex,p));
+                        }
+                    }
+                }
+            
+            #else
+                VecI initVec(N), finalVec(N);
+                repToVec(repI, initVec);
+                if(PGRepIndex==-1){
+                    initNorm *= pt_lattice->getSiteNum();
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for(int i = 0; i < N; ++i){
+                            finalVec.at(pt_lattice->getOrbTran(r,i)) = initVec.at(i);
+                        }
+                        auto repIp = vecToRep(finalVec);
+                        if (repIp < repImin) {
+                            repImin = repIp;
+                        }
+                        finalInd.push_back(repIp);
+                        factorList.push_back(pt_lattice->expKR(kIndex,r)/initNorm);
+                    }
+                }else{
+                    initNorm *= pt_lattice->getSiteNum() * pt_lattice->getPGOpNum(PGRepIndex);
+                    for (int r = 0; r < pt_lattice->getSiteNum(); r++){
+                        for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
+                            for(int i = 0; i < N; ++i){
+                                finalVec.at(pt_lattice->getOrbPG(p,pt_lattice->getOrbTran(r,i))) = initVec.at(i);
+                            }
+                            auto repIp = vecToRep(finalVec);
+                            if (repIp < repImin) {
+                                repImin = repIp;
+                            }
+                            finalInd.push_back(repIp);
+                            factorList.push_back(pt_lattice->expKR(kIndex,r)* pt_lattice->getChi(PGRepIndex,p)/initNorm);
+                        }
+                    }
+                }
+            #endif
+
+            break;
+        }
+        
+        default:{
+            std::cout<<"model not defined! must be: HUBBARD,tJ,HEISENBERG."<<std::endl;
+            exit(1);
+            break;
+        }
+    }
+    fac = 0.0;
+    for (int i = 0; i < (int)finalInd.size(); ++i) {
+        if (finalInd[i] == repImin) {
+            fac += factorList[i];
+        }
+    }
+    fac /= pt_lattice->getSiteNum();
+    if (PGRepIndex >= 0) {
+        fac /= pt_lattice->getPGOpNum(PGRepIndex);
     }
 }
