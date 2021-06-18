@@ -43,7 +43,6 @@ class Parameters{
     friend struct System;
     friend void setlatt(const Parameters&, std::unique_ptr<Geometry>&);
     friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
-    friend void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int, int, int, int);
     friend void setham(const Parameters&, std::unique_ptr<HamiltonianBase<dataType>>&, Geometry*, Basis*);
     friend void setmeasure(const Parameters&);
     friend void setpulse(const Parameters&, Pulse&);
@@ -103,7 +102,7 @@ std::optional<T> Parameters::get(std::string key, REQUIRED opt) const {
 void setpath(Parameters&);
 void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
 void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*);
-void setbasis(const Parameters&, std::unique_ptr<Basis>&, Geometry*, int nuf, int ndf, int kf, int pf);
+void setbasis(std::unique_ptr<Basis>&, LATTICE_MODEL, Geometry*, int nuf, int ndf, int kf, int pf);
 void setham(const Parameters&, std::unique_ptr<HamiltonianBase<dataType>>& H, Geometry*, Basis*);
 void setBasics(const Parameters&, std::unique_ptr<Geometry>& latt, std::unique_ptr<Basis>& B, std::unique_ptr<HamiltonianBase<dataType>>& H);
 
