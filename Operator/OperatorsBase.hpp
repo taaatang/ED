@@ -21,7 +21,7 @@ template<typename T>
 class OperatorBase: public FermionOperator<T>, public SpinOperator<T>, public SparseMatrix<T>{
 public:
     OperatorBase( ) { }
-    OperatorBase(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_ = 1, int dmNum_ = 0);
+    OperatorBase(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm = false, int spmNum_ = 1, int dmNum_ = 0);
     virtual ~OperatorBase( ) { }
     
     OperatorBase& pushLink(Link<T> link, int matidx);
@@ -50,8 +50,8 @@ protected:
 };
 
 template<typename T>
-OperatorBase<T>::OperatorBase (Geometry *latt, Basis *Bi, Basis *Bf, int spmNum_, int dmNum_) :\
- FermionOperator<T>(Bi), SpinOperator<T>(Bi), SparseMatrix<T>(Bi, Bf, spmNum_, dmNum_){
+OperatorBase<T>::OperatorBase (Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithSymm, int spmNum_, int dmNum_) :\
+ FermionOperator<T>(Bi, commuteWithSymm), SpinOperator<T>(Bi, commuteWithSymm), SparseMatrix<T>(Bi, Bf, spmNum_, dmNum_){
     this->latt = latt;
     this->model = this->Bi->getModel();
     assert(this->Bi->getModel() == this->Bf->getModel());

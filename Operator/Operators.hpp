@@ -25,7 +25,7 @@ template <typename T>
 class HamiltonianBase : public OperatorBase<T> {
 public:
     HamiltonianBase( ) { }
-    HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_ = 1, int dmNum_ = 0);
+    HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm = true, int spmNum_ = 1, int dmNum_ = 0);
     ~HamiltonianBase( ) { }
 
     // Add onsite energy V
@@ -59,7 +59,7 @@ private:
 template <LATTICE_MODEL M, typename T>
 class Hamiltonian: public HamiltonianBase<T> {
 public:
-    Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_ = 1, int dmNum_ = 0);
+    Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm = true, int spmNum_ = 1, int dmNum_ = 0);
     ~Hamiltonian( ) { }
 
     void setPeierls(Pulse* pulse = nullptr);
@@ -79,7 +79,7 @@ private:
 
 class Current: public OperatorBase<cdouble> {
 public:
-    Current(Geometry *latt, Basis *Ba);
+    Current(Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithSym);
     ~Current( ) { }
 
     void setDirection(const std::string &plz);
@@ -98,7 +98,7 @@ private:
 
 class Nocc: public OperatorBase<double> {
 public:
-    Nocc(Geometry *latt, Basis *Ba);
+    Nocc(Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithSymm = true);
     ~Nocc( ) { }
     
     template <typename T>
@@ -124,7 +124,7 @@ private:
 template <class T>
 class CkOp: public OperatorBase<T> {
 public:
-    CkOp(Geometry *latt, Basis *Bi, Basis *Bf);
+    CkOp(Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithSymm);
     ~CkOp( ) { }
 
     void set(LADDER pm, SPIN spin, Orbital orb);
@@ -142,7 +142,7 @@ private:
 template<class T>
 class RamanOp: public OperatorBase<T> {
 public:
-    RamanOp(Geometry *pt_lat, Basis *pt_Ba, int spmNum_=1, int dmNum = 0);
+    RamanOp(Geometry *pt_lat, Basis *Bi, Basis *Bf, bool commuteWithSymm, int spmNum_=1, int dmNum = 0);
     ~RamanOp( ) { }
 
     void setplz(Vec3d pIn_, Vec3d pOut_);
@@ -160,7 +160,7 @@ private:
 template <class T>
 class SSOp: public OperatorBase<T> {
 public:
-    SSOp(Geometry *latt, Basis* Bi, int spmNum = 1, int dmNum = 0, int spindim = 2);
+    SSOp(Geometry *latt, Basis* Bi, Basis *Bf, bool commuteWithSymm, int spmNum = 1, int dmNum = 0, int spindim = 2);
     ~SSOp( ) { }
 
     void setr(int r_);
@@ -178,7 +178,7 @@ private:
 template <class T>
 class SzkOp: public OperatorBase<T> {
 public:
-    SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum = 1, int dmNum = 0, int spindim = 2);
+    SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm, int spmNum = 1, int dmNum = 0, int spindim = 2);
     ~SzkOp( ) { }
 
     void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
@@ -196,8 +196,8 @@ private:
 */
 
 template<typename T>
-HamiltonianBase<T>::HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum_, int dmNum_):\
-OperatorBase<T>(latt, Bi, Bf, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
+HamiltonianBase<T>::HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm, int spmNum_, int dmNum_):\
+OperatorBase<T>(latt, Bi, Bf, commuteWithSymm, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
 
 }
 
@@ -265,7 +265,7 @@ double HamiltonianBase<T>::diagVal(const VecI& occ, const VecI& docc) const {
 }
 
 template <LATTICE_MODEL M, typename T>
-Hamiltonian<M, T>::Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum, int dmNum):HamiltonianBase<T>(latt, Bi, Bf, spmNum, dmNum) {
+Hamiltonian<M, T>::Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf,  bool commuteWithSymm, int spmNum, int dmNum):HamiltonianBase<T>(latt, Bi, Bf, commuteWithSymm, spmNum, dmNum) {
     
 }
 
@@ -522,8 +522,8 @@ void Hamiltonian<M, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
 
 
 template <class T>
-CkOp<T>::CkOp(Geometry *latt, Basis *Bi, Basis *Bf):\
-OperatorBase<T>(latt, Bi, Bf), expFactor(latt->getSiteNum()) {
+CkOp<T>::CkOp(Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithSymm):\
+OperatorBase<T>(latt, Bi, Bf, commuteWithSymm), expFactor(latt->getSiteNum()) {
     assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
     Ki = Bi->getkIndex();
     Kf = Bf->getkIndex();
@@ -553,6 +553,7 @@ void CkOp<T>::set(LADDER pm, SPIN spin, Orbital orb) {
     assert((int)posList.size() == this->latt->getSiteNum());
 }
 
+//TODO: Check Ck with symmetry
 template <class T>
 void CkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     #ifdef DISTRIBUTED_BASIS
@@ -580,7 +581,7 @@ void CkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
 }
 
 template<class T>
-RamanOp<T>::RamanOp(Geometry* latt, Basis* Bi, int spmNum, int dmNum):OperatorBase<T>(latt, Bi, Bi, spmNum, dmNum) {
+RamanOp<T>::RamanOp(Geometry* latt, Basis *Bi, Basis *Bf, bool commuteWithSymm, int spmNum, int dmNum):OperatorBase<T>(latt, Bi, Bf, commuteWithSymm, spmNum, dmNum) {
     pIn = Vec3d{1.0,0.0,0.0};
     pOut = Vec3d{0.0,1.0,0.0};
     NoRW = true;
@@ -642,7 +643,7 @@ void RamanOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     ********************
 */
 template <class T>
-SSOp<T>::SSOp(Geometry* latt, Basis* Bi, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bi, spmNum, dmNum),\
+SSOp<T>::SSOp(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bf, commuteWithSymm, spmNum, dmNum),\
     r(-1), siteJList(latt->getSiteNum()) {
     Vec3d coordi, coordr, coordf;
     for (int rIndex = 0; rIndex < latt->getSiteNum(); ++rIndex) {
@@ -752,7 +753,7 @@ void SSOp<T>::project(double s, T* vec){
 }
 
 template <class T>
-SzkOp<T>::SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bf, spmNum, dmNum), expFactor(latt->getSiteNum()) {
+SzkOp<T>::SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bf, commuteWithSymm, spmNum, dmNum), expFactor(latt->getSiteNum()) {
     assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
     Ki = Bi->getkIndex();
     Kf = Bf->getkIndex();
@@ -762,6 +763,7 @@ SzkOp<T>::SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, int spmNum, int dmNum, int
     }
 }
 
+//TODO: Check Szk with Symm
 template <class T>
 void SzkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     if (this->Bi->getSiteDim() == 2) {
