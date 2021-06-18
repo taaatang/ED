@@ -119,12 +119,13 @@ System<T>::System(std::string inputDir, bool isMaster_) {
     if (isMaster) {
         path.make();
         path.print();
+        para.print(path.parameterFile);
     }
     isZeroTmp = measure("zeroTmp");
     auto krylovOpt = measurePara.get<int>("krylovDim");
     krylovDim = krylovOpt.value_or(400);
     setlatt(para, latt);
-    //!FIX: Sparse Matrix setDm init diagValist with B->locDim. Error: 1.B not constructed, locDim is totDim; 2. B constructed, locDim is subDim, not H.locDim.
+    //!FIXME: Sparse Matrix setDm init diagValist with B->locDim. Error: 1.B not constructed, locDim is totDim; 2. B constructed, locDim is subDim, not H.locDim.
     // setBasics(para, latt, B, H);
 }
 
@@ -242,8 +243,9 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
     auto model = sys.B->getModel();
     switch (model) {
         case LATTICE_MODEL::HUBBARD: {
+            assert_msg(sys.B->getPGIndex() == -1, "HUBBARD model calculation only defined with translation symm!");
             if (key == "conductivity") {
-                Current J(sys.latt.get(), sys.B.get());
+                Current J(sys.latt.get(), sys.B.get(), sys.B.get(), true);
                 J.pushLinks(HubbardLink(*(sys.latt)));
                 auto ds = std::vector<std::string> {"x", "y", "z"};
                 for (auto d : ds) {
@@ -259,6 +261,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     }
                 }
             } else if (key == "akw") {
+                //TODO: fix Cp/m with PG symm
                 auto occi = sys.B->getOcc();
                 auto ki = sys.B->getkIndex();
                 std::unique_ptr<Basis> Bf;
@@ -270,12 +273,12 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                             auto& n = (spin == SPIN::UP) ? occf.at(0) : occf.at(1);
                             auto dn = (pm == LADDER::PLUS) ? 1 : -1;
                             n += dn;
-                            setbasis(sys.para, Bf, sys.latt.get(), occf.at(0), occf.at(1), kf, -1);
+                            setbasis(Bf, sys.para.getmodel(), sys.latt.get(), occf.at(0), occf.at(1), kf, -1);
                             setham(sys.para, Hf, sys.latt.get(), Bf.get());
                             Bf->construct(opt(sys.para, "basis"), sys.path.getBasisDir(Bf->getkIndex(),  Bf->getPGIndex()));
                             Hf->construct();
                             for (auto& orb : sys.latt->getUnitCell()) {
-                                CkOp<T> ck(sys.latt.get(), sys.B.get(), Bf.get());
+                                CkOp<T> ck(sys.latt.get(), sys.B.get(), Bf.get(), true);
                                 ck.set(pm, spin, orb);
                                 ck.construct();
                                 for (int n = 0; n < sys.stateNum; ++n) {
@@ -306,7 +309,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 int krylovDim = 15;
                 TimeEvolver<cdouble> Tevol(sys.evecs.at(0), sys.H.get(), krylovDim);
 
-                Nocc occ(sys.latt.get(), sys.B.get()); 
+                Nocc occ(sys.latt.get(), sys.B.get(), sys.B.get()); 
                 occ.construct();
 
                 timer.tik();
@@ -334,7 +337,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
         case LATTICE_MODEL::HEISENBERG: {
             if (key == "sisj") {
                 timer.tik();
-                SSOp<T> SS(sys.latt.get(), sys.B.get());
+                SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), sys.B->getPGIndex() == -1);
                 std::vector<std::vector<dataType>> ssvals;
                 ssvals.resize(sys.stateNum);
                 for (int i = 0; i < sys.latt->getSiteNum(); ++i) {
@@ -352,15 +355,17 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 timer.print("Spin Spin Correlation");
 
             } else if (key == "skw") {
+                //TODO: fix PG symm for skw
+                assert_msg(sys.B->getPGIndex() == -1, "skw only defined for traslation symm!");
                 auto occi = sys.B->getOcc();
                 for (int kf = 0; kf < sys.latt->getSiteNum(); ++kf) {
                     std::unique_ptr<Basis> Bf;
                     std::unique_ptr<HamiltonianBase<T>> Hf;
-                    setbasis(sys.para, Bf, sys.latt.get(), occi.at(0), occi.at(1), kf, -1);
-                    setham(sys.para, Hf, sys.latt.get(), Bf.get());
+                    setbasis(Bf, sys.para.getmodel(), sys.latt.get(), occi.at(0), occi.at(1), kf, -1);
                     Bf->construct(opt(sys.para,"basis"), sys.path.getBasisDir(Bf->getkIndex(), Bf->getPGIndex()));
+                    setham(sys.para, Hf, sys.latt.get(), Bf.get());    
                     Hf->construct();
-                    SzkOp<T> sk(sys.latt.get(), sys.B.get(), Bf.get());
+                    SzkOp<T> sk(sys.latt.get(), sys.B.get(), Bf.get(), sys.B->getPGIndex() == -1);
                     sk.construct();
                     for (int n = 0; n < sys.stateNum; ++n) {
                         SPECTRASolver<dataType> spectra(Hf.get(), sys.evals[n], &sk, sys.evecs[n], sys.krylovDim);
@@ -372,24 +377,42 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 auto J1 = sys.para.template get<double>("J1");
                 auto J2 = sys.para.template get<double>("J2");
                 auto channels = sys.template getMpara<VecStr>("RamanChannels");
-                for (auto channel : channels) { 
-                    Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), sys.B.get());
-                    R.pushLinks(RamanChannel(channel, J1.value_or(0.0), J2.value_or(0.0), *(sys.latt)));
-                    R.construct();
-                    if (sys.measure("lanczos")) {
-                        for (int n = 0; n < sys.stateNum; ++n) {
-                            SPECTRASolver<dataType> spectra(sys.H.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
-                            spectra.compute();
-                            if (sys.isMaster) spectra.save(sys.path.RamanDir + "/" + channel, n);
+                auto ki = sys.template getPara<int>("kidx");
+                auto pfmin = sys.template getMpara<int>("pfmin");
+                auto pfmax = sys.template getMpara<int>("pfmax");
+                auto occi = sys.B->getOcc();
+                for (int p = pfmin; p <= pfmax; ++p) {
+                    std::unique_ptr<Basis> Bf;
+                    std::unique_ptr<HamiltonianBase<T>> Hf;
+                    setbasis(Bf, sys.para.getmodel(), sys.latt.get(), occi.at(0), occi.at(1), ki, p);
+                    Bf->construct(opt(sys.para,"basis"), sys.path.getBasisDir(Bf->getkIndex(), Bf->getPGIndex()));
+                    setham(sys.para, Hf, sys.latt.get(), Bf.get());
+                    Hf->construct();
+                    // bool commuteWithSymm = (channel == "A1" || sys.B->getPGIndex() == -1);
+                    for (auto channel : channels) {                       
+                        Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), p == -1 && sys.B->getPGIndex() == -1);
+                        R.pushLinks(RamanChannel(channel, J1.value_or(0.0), J2.value_or(0.0), *(sys.latt)));
+                        R.construct();
+                        auto label = channel;
+                        if (p >= 0) {
+                            label = channel + "_p" + tostr(p);
                         }
-                    } else {
-                        for (int n = 0; n < sys.stateNum; ++n) {
-                            SPECTRASolverBiCGSTAB spectra(sys.H.get(), &R, sys.evecs[n], std::real(sys.evals[n]), n, sys.template getMpara<int>("iterMax"), sys.template getMpara<double>("wmin"), sys.template getMpara<double>("wmax"), sys.template getMpara<double>("dw"), sys.template getMpara<double>("epsilon"));
-                            spectra.compute(sys.path.RamanDir + "/" + channel);
+                        if (sys.measure("lanczos")) {
+                            for (int n = 0; n < sys.stateNum; ++n) {
+                                SPECTRASolver<dataType> spectra(Hf.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
+                                spectra.compute();
+                                if (sys.isMaster) spectra.save(sys.path.RamanDir + "/" + label, n);
+                            }
+                        } else {
+                            for (int n = 0; n < sys.stateNum; ++n) {
+                                SPECTRASolverBiCGSTAB spectra(Hf.get(), &R, sys.evecs[n], std::real(sys.evals[n]), n, sys.template getMpara<int>("iterMax"), sys.template getMpara<double>("wmin"), sys.template getMpara<double>("wmax"), sys.template getMpara<double>("dw"), sys.template getMpara<double>("epsilon"));
+                                spectra.compute(sys.path.RamanDir + "/" + label);
+                            }
                         }
                     }
                 }
             } else if (key == "ramanfl") {
+                //TODO: fix for PG symm
                 auto J1 = sys.para.template get<double>("J1");
                 auto J2 = sys.para.template get<double>("J2");
                 Vec3d plzX{1.0, 0.0, 0.0}, plzY{-1.0, 2.0, 0.0};
@@ -397,7 +420,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 std::vector<std::string> plzLabel{"x", "y"};
                 for(int i = 0; i < 1; ++i) {
                     for(int j = 0; j < 2; ++j) {
-                        RamanOp<dataType> R(sys.latt.get(), sys.B.get());
+                        RamanOp<dataType> R(sys.latt.get(), sys.B.get(), sys.B.get(), sys.B->getPGIndex() == -1);
                         if (std::abs(J1.value_or(0.0)) > INFINITESIMAL) {
                             auto link = HeisenbergLink("J1", *sys.latt.get());
                             link.setVal(link.getVal() * J1.value_or(0.0));
