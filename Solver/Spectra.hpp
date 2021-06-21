@@ -135,6 +135,7 @@ void SPECTRASolverBiCGSTAB::savefreq(std::string dataPath) {
     ::save<double>(&wmin, 1, dataPath + "/wmin_" + stateLabel);
     ::save<double>(&wmax, 1, dataPath + "/wmax_" + stateLabel);
     ::save<double>(&dw, 1, dataPath + "/dw_" + stateLabel);
+    ::save<double>(&epsilon, 1, dataPath + "/epsilon_" + stateLabel);
 }
 
 void SPECTRASolverBiCGSTAB::save(std::string dataPath, bool isApp) {
