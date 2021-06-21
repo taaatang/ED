@@ -55,11 +55,11 @@ int sort(std::vector<T>& evals, std::vector<T*>& evecs, bool groundState = true,
     return stateNum;
 }
 
-enum class MEASUREMENT_TYPE {expc, corr2, spectra, time};
+enum class MEASUREMENT {staticExp, dynamicExp, timeEvolve};
 
 template <typename T>
 struct Measurement {
-    MEASUREMENT_TYPE type;
+    MEASUREMENT type;
     OperatorBase<T>* op{nullptr};
 };
 
@@ -111,13 +111,20 @@ private:
     bool isDiag{false};
     bool isConstructed{false};
 };
+
+//TODO: static measurement
+template <typename T>
+void staticExp(const OperatorBase<T>& Op, const System<T>& sys) {
+    return;
+}
+
 template<typename T>
 System<T>::System(std::string inputDir, bool isMaster_) {
     isMaster = isMaster_;
     read(inputDir);
     path = Path(&pathPara, &para, &pulsePara);
     if (isMaster) {
-        path.make();
+        path.make(measurePara);
         path.print();
         para.print(path.parameterFile);
     }
@@ -356,7 +363,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
 
             } else if (key == "skw") {
                 //TODO: fix PG symm for skw
-                assert_msg(sys.B->getPGIndex() == -1, "skw only defined for traslation symm!");
+                // assert_msg(sys.B->getPGIndex() == -1, "skw only defined for traslation symm!");
                 auto occi = sys.B->getOcc();
                 for (int kf = 0; kf < sys.latt->getSiteNum(); ++kf) {
                     std::unique_ptr<Basis> Bf;
@@ -374,13 +381,15 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     }
                 }
             } else if (key == "raman") {
-                auto J1 = sys.para.template get<double>("J1");
-                auto J2 = sys.para.template get<double>("J2");
-                auto channels = sys.template getMpara<VecStr>("RamanChannels");
+                auto J1 = sys.template getPara<double>("J1");
+                auto J2 = sys.template getPara<double>("J2");
                 auto ki = sys.template getPara<int>("kidx");
+                auto occi = sys.B->getOcc();
+
+                auto channels = sys.template getMpara<VecStr>("RamanChannels");
                 auto pfmin = sys.template getMpara<int>("pfmin");
                 auto pfmax = sys.template getMpara<int>("pfmax");
-                auto occi = sys.B->getOcc();
+                
                 for (int p = pfmin; p <= pfmax; ++p) {
                     std::unique_ptr<Basis> Bf;
                     std::unique_ptr<HamiltonianBase<T>> Hf;
@@ -390,8 +399,8 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     Hf->construct();
                     // bool commuteWithSymm = (channel == "A1" || sys.B->getPGIndex() == -1);
                     for (auto channel : channels) {                       
-                        Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), p == -1 && sys.B->getPGIndex() == -1);
-                        R.pushLinks(RamanChannel(channel, J1.value_or(0.0), J2.value_or(0.0), *(sys.latt)));
+                        Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), sys.B->getPGIndex() == -1 && sys.B->getkIndex() == 0);
+                        R.pushLinks(RamanChannel(channel, J1, J2, *(sys.latt)));
                         R.construct();
                         auto label = channel;
                         if (p >= 0) {
@@ -401,12 +410,13 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                             for (int n = 0; n < sys.stateNum; ++n) {
                                 SPECTRASolver<dataType> spectra(Hf.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
                                 spectra.compute();
-                                if (sys.isMaster) spectra.save(sys.path.RamanDir + "/" + label, n);
+                                if (sys.isMaster) spectra.save(sys.path.RamanDir + "/Lanczos/" + label, n);
                             }
-                        } else {
+                        } 
+                        if (sys.measure("bicg")) {
                             for (int n = 0; n < sys.stateNum; ++n) {
                                 SPECTRASolverBiCGSTAB spectra(Hf.get(), &R, sys.evecs[n], std::real(sys.evals[n]), n, sys.template getMpara<int>("iterMax"), sys.template getMpara<double>("wmin"), sys.template getMpara<double>("wmax"), sys.template getMpara<double>("dw"), sys.template getMpara<double>("epsilon"));
-                                spectra.compute(sys.path.RamanDir + "/" + label);
+                                spectra.compute(sys.path.RamanDir + "/BiCGSTAB/" + label);
                             }
                         }
                     }
