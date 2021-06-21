@@ -759,7 +759,7 @@ SzkOp<T>::SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm, int 
     Kf = Bf->getkIndex();
     // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
     for (int i = 0; i < latt->getSiteNum(); ++i) {
-        expFactor[i] = latt->expKR(Kf,i)/latt->expKR(Ki,i)/latt->getSiteNum();
+        expFactor[i] = latt->expKR(Kf,i)/latt->expKR(Ki,i)/cdouble(latt->getSiteNum());
     }
 }
 
