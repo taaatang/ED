@@ -178,7 +178,7 @@ private:
 template <class T>
 class SzkOp: public OperatorBase<T> {
 public:
-    SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm, int spmNum = 1, int dmNum = 0, int spindim = 2);
+    SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm = false, int spmNum = 1, int dmNum = 0, int spindim = 2);
     ~SzkOp( ) { }
 
     void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
@@ -776,16 +776,26 @@ void SzkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             dval *= this->Bf->getNorm(rowID);
             rowMaps[0][repI] = dval;
         #else
-            idx_t colID;
-            auto repI = this->Bf->getRepI(rowID);
-            if (this->Bi->search(repI, colID)) {
-                T dval = 0.0;
+            std::vector<idx_t> finalIndList;
+            std::vector<cdouble> factorList;
+            this->Bf->genSymm(rowID, finalIndList, factorList);
+            for (int i = 0; i < int(finalIndList.size()); ++i) {
+                T val = 0.0;
                 for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
-                    dval += this->getSz(siteID,repI) * expFactor[siteID];
+                    val += this->getSz(siteID, finalIndList[i]) * expFactor[siteID];
                 }
-                dval *= this->Bf->getNorm(rowID)/this->Bi->getNorm(colID);
-                rowMaps[0][colID] = dval;
+                SpinOperator<T>::push(finalIndList[i], val, &rowMaps.at(0));
             }
+            // idx_t colID;
+            // auto repI = this->Bf->getRepI(rowID);
+            // if (this->Bi->search(repI, colID)) {
+            //     T dval = 0.0;
+            //     for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
+            //         dval += this->getSz(siteID,repI) * expFactor[siteID];
+            //     }
+            //     dval *= this->Bf->getNorm(rowID)/this->Bi->getNorm(colID);
+            //     rowMaps[0][colID] = dval;
+            // }
         #endif
     } else {
         #ifdef DISTRIBUTED_BASIS
