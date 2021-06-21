@@ -14,7 +14,7 @@ public:
     Path(const Parameters* path, const Parameters* model, const Parameters* pulse = nullptr);
     ~Path( ) { }
     
-    void make( ) const;
+    void make(const Parameters& mPara) const;
 
     void print(std::ostream& os = std::cout, bool brief = true) const;
 
@@ -130,19 +130,19 @@ std::string Path::getBasisDir(int kidx, int pidx) const {
     return bDir;
 }
 
-void Path::make( ) const { 
+void Path::make(const Parameters& mPara) const { 
     if (!parameterDir.empty()) mkdir_fs(parameterDir);
-    if (!basisDir.empty()) mkdir_fs(basisDir);
-    if (!wavefuncDir.empty()) mkdir_fs(wavefuncDir);
+    if (!basisDir.empty() && opt(mPara, "basis")) mkdir_fs(basisDir);
+    if (!wavefuncDir.empty() && opt(mPara, "state")) mkdir_fs(wavefuncDir);
     // hubbard dirs
     if (!particleDistrDir.empty()) mkdir_fs(particleDistrDir);
-    if (!sigmaDir.empty()) mkdir_fs(sigmaDir);
-    if (!AkwDir.empty()) mkdir_fs(AkwDir);
-    if (!pumpDir.empty()) mkdir_fs(pumpDir);
+    if (!sigmaDir.empty() && opt(mPara, "conductivity")) mkdir_fs(sigmaDir);
+    if (!AkwDir.empty() && opt(mPara, "Akw")) mkdir_fs(AkwDir);
+    if (!pumpDir.empty() && opt(mPara, "pump")) mkdir_fs(pumpDir);
     // heisenberg dirs
-    if (!SiSjDir.empty()) mkdir_fs(SiSjDir);
-    if (!SkwDir.empty()) mkdir_fs(SkwDir);
-    if (!RamanDir.empty()) mkdir_fs(RamanDir);
+    if (!SiSjDir.empty() && opt(mPara, "SiSj")) mkdir_fs(SiSjDir);
+    if (!SkwDir.empty() && opt(mPara, "Skw")) mkdir_fs(SkwDir);
+    if (!RamanDir.empty() && opt(mPara, "Raman")) mkdir_fs(RamanDir);
 }
 
 void Path::print(std::ostream& os, bool brief) const {
