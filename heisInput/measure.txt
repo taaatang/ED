@@ -17,26 +17,32 @@ zeroTmp:b:1
 nev:i:3
 
 # Spectra config
-lanczos:b:0 # 1 --> lanczos, 0 --> BiCGSTAB
+lanczos:b:1 # 1 --> lanczos, 0 --> BiCGSTAB
 # lanczos iteration number
-krylovDim:i:400
+krylovDim:i:200
+
+bicg:b:1
 # BiCG frequency sampling points
 wmin:d:0.0
 wmax:d:5.0
-dw:d:0.02
+dw:d:0.1
 # spectra broadenning
-epsilon:d:0.05
+epsilon:d:0.1
 # BiCG max iteration
 iterMax:i:500
 
-SiSj:b:0
+SiSj:b:1
 
-Skw:b:0
+Skw:b:1
 
 # Raman channels point group irrep
 Raman:b:1
 RamanChannels:vecs:
-A1 # A1, A2, E21, E22
+A1, A2, E21, E22
+# final point group space index: pfmin =< pid >= pfmax
+pfmin:i:-1
+pfmax:i:7
+
 
 # FL raman scattering operators
 RamanFL:b:0
