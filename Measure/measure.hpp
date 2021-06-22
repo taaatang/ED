@@ -372,12 +372,20 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     Bf->construct(opt(sys.para,"basis"), sys.path.getBasisDir(Bf->getkIndex(), Bf->getPGIndex()));
                     setham(sys.para, Hf, sys.latt.get(), Bf.get());    
                     Hf->construct();
-                    SzkOp<T> sk(sys.latt.get(), sys.B.get(), Bf.get(), sys.B->getPGIndex() == -1);
+                    SzkOp<T> sk(sys.latt.get(), sys.B.get(), Bf.get(), false);
                     sk.construct();
-                    for (int n = 0; n < sys.stateNum; ++n) {
-                        SPECTRASolver<dataType> spectra(Hf.get(), sys.evals[n], &sk, sys.evecs[n], sys.krylovDim);
-                        spectra.compute();
-                        if (sys.isMaster) spectra.save(sys.path.SkwDir + "/kf" + tostr(kf), n);
+                    if (sys.measure("lanczos")) {
+                        for (int n = 0; n < sys.stateNum; ++n) {
+                            SPECTRASolver<dataType> spectra(Hf.get(), sys.evals[n], &sk, sys.evecs[n], sys.krylovDim);
+                            spectra.compute();
+                            if (sys.isMaster) spectra.save(sys.path.SkwDir + "/Lanczos/kf" + tostr(kf), n);
+                        }
+                    }
+                    if (sys.measure("bicg")) {
+                        for (int n = 0; n < sys.stateNum; ++n) {
+                            SPECTRASolverBiCGSTAB spectra(Hf.get(), &sk, sys.evecs[n], std::real(sys.evals[n]), n, sys.template getMpara<int>("iterMax"), sys.template getMpara<double>("wmin"), sys.template getMpara<double>("wmax"), sys.template getMpara<double>("dw"), sys.template getMpara<double>("epsilon"));
+                            spectra.compute(sys.path.SkwDir + "/BiCGSTAB/kf" + tostr(kf));
+                        }
                     }
                 }
             } else if (key == "raman") {
