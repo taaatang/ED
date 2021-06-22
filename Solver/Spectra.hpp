@@ -104,7 +104,7 @@ void SPECTRASolverBiCGSTAB::compute(std::string dataPath) {
         spectra.push_back(std::imag(mpiDot(b.data(), x.data(), H->getnloc())) / PI);
         step++;
         if (isMaster) {
-            std::cout << "step: " << step << ", iter: " << iterCount << ", res: " << res << '\n' << std::flush;
+            // std::cout << "step: " << step << ", iter: " << iterCount << ", res: " << res << '\n' << std::flush;
             save(dataPath, spectra.size() > 1);
         }
     }
@@ -122,7 +122,7 @@ void SPECTRASolverBiCGSTAB::compute(std::string dataPath) {
         spectra.push_back(std::imag(mpiDot(b.data(), x.data(), H->getnloc())) / PI);
         step++;
         if (isMaster) {
-            std::cout << "step: " << step << ", iter: " << iterCount << ", res: " << res << '\n' << std::flush;
+            // std::cout << "step: " << step << ", iter: " << iterCount << ", res: " << res << '\n' << std::flush;
             save(dataPath, spectra.size() > 1);
         }
     }
