@@ -754,12 +754,12 @@ void SSOp<T>::project(double s, T* vec){
 
 template <class T>
 SzkOp<T>::SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithSymm, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bf, commuteWithSymm, spmNum, dmNum), expFactor(latt->getSiteNum()) {
-    assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
+    // assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
     Ki = Bi->getkIndex();
     Kf = Bf->getkIndex();
     // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
     for (int i = 0; i < latt->getSiteNum(); ++i) {
-        expFactor[i] = latt->expKR(Kf,i)/latt->expKR(Ki,i)/cdouble(latt->getSiteNum());
+        expFactor[i] = latt->expKR(Ki, i) / latt->expKR(Kf, i) / cdouble(latt->getSiteNum());
     }
 }
 
@@ -784,6 +784,7 @@ void SzkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                 for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
                     val += this->getSz(siteID, finalIndList[i]) * expFactor[siteID];
                 }
+                val *= factorList[i];
                 SpinOperator<T>::push(finalIndList[i], val, &rowMaps.at(0));
             }
             // idx_t colID;
