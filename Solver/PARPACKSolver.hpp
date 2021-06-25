@@ -187,13 +187,13 @@ void PARPACKSolver<T>::diag( ) {
     bool ismaster = (workerID == MPI_MASTER);
     if (ismaster) {
         printLine(50, '-');
-        std::cout<<"Begin PARPACK Iteration and timer started...\n";
+        std::cout << "Begin Diagonalization using PARPACK" << std::endl;
     }
     timer.tik();
     run();
     timer.tok();
     if (ismaster) {
-        std::cout<<"INFO:"<<info_<<". Total iteration:"<<iparam_[2]<<". Total time:"<<timer.elapse()<<" milliseconds.\n";
+        std::cout << "INFO:" << info_ << ". Total iteration:" << iparam_[2] << ". Total time:" << timer.elapse() << " milliseconds.\n";
     }
 
     if (ismaster) std::cout<<"Begin post processing...\n";
@@ -201,7 +201,7 @@ void PARPACKSolver<T>::diag( ) {
     postRun();
     timer.tok();
     if (ismaster) {
-        std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" milliseconds.\n";
+        std::cout << "INFO:" << info_ << ". Total ev found:" << iparam_[4] << ". post processing time:" <<timer.elapse() << " milliseconds." << std::endl;
     }
     // if (ismaster) {
     //     printLine(25);

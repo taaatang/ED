@@ -8,6 +8,7 @@
 #include "Operator/Operators.hpp"
 #include "Utils/paras.hpp"
 #include "Utils/path.hpp"
+#include "Utils/timer.hpp"
 #include "Solver/PARPACKSolver.hpp"
 #include "Solver/Spectra.hpp"
 #include "Pulse/pulse.hpp"
@@ -95,6 +96,7 @@ public:
 
 public:
     bool isMaster;
+    Timer timer;
     std::unique_ptr<Geometry> latt{nullptr};
     std::unique_ptr<Basis> B{nullptr};
     std::unique_ptr<HamiltonianBase<T>> H{nullptr};
@@ -119,8 +121,7 @@ void staticExp(const OperatorBase<T>& Op, const System<T>& sys) {
 }
 
 template<typename T>
-System<T>::System(std::string inputDir, bool isMaster_) {
-    isMaster = isMaster_;
+System<T>::System(std::string inputDir, bool isMaster_): isMaster(isMaster_), timer(isMaster_) {
     read(inputDir);
     path = Path(&pathPara, &para, &pulsePara);
     if (isMaster) {
@@ -159,10 +160,14 @@ void System<T>::construct() {
     if (isConstructed) {
         return;
     }
+    timer.tik();
     setbasis(para, B, latt.get());
     B->construct(opt(para, "basis"), path.getBasisDir(B->getkIndex(), B->getPGIndex()));
+    timer.print("Basis construction");
+    timer.tik();
     setham(para, H, latt.get(), B.get());
     H->construct();
+    timer.print("Hamiltonian construction");
     if (isMaster) {
         printLine(50, '-');
         B->print();
@@ -209,7 +214,7 @@ void System<T>::diag( ) {
                 save(evals.data(), int(evals.size()), path.evalFile);
             }
         } else {
-            std::cout<<"Warning: H is null in System.diag()!\n";
+            std::cout<<"Warning: H is null in System.diag()!" << std::endl;
         }
     }
 }
@@ -248,7 +253,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
     sys.diag();
     assert_msg(!sys.evecs.empty(), "No states to be measured!");
     auto model = sys.B->getModel();
-    switch (model) {
+    switch (model) { 
         case LATTICE_MODEL::HUBBARD: {
             assert_msg(sys.B->getPGIndex() == -1, "HUBBARD model calculation only defined with translation symm!");
             if (key == "conductivity") {
@@ -343,24 +348,24 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
 
         case LATTICE_MODEL::HEISENBERG: {
             if (key == "sisj") {
-                timer.tik();
                 SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), sys.B->getPGIndex() == -1);
                 std::vector<std::vector<dataType>> ssvals;
                 ssvals.resize(sys.stateNum);
                 for (int i = 0; i < sys.latt->getSiteNum(); ++i) {
+                    timer.tik();
                     SS.setr(i);
                     SS.construct();
+                    timer.print("S(r=" + tostr(i) + ") construction");
                     for (int n = 0; n < sys.stateNum; ++n) {
+                        timer.tik();
                         auto val = SS.vMv(sys.evecs[n], sys.evecs[n]) / dataType(sys.latt->getSiteNum());
-                        // if (isMaster) std::cout<<"ss(r="<<i<<")="<<val<<std::endl;
+                        timer.print("S(r=" + tostr(i) + ", n=" + tostr(n) + ") = " + tostr(std::real(val)));
                         ssvals[n].push_back(val);
                     }
                 }
                 for (int n = workerID; n < sys.stateNum; n += workerNum) {
                     save(ssvals[n].data(), (int)ssvals[n].size(), sys.path.SiSjFile + "_" + tostr(n));
                 }
-                timer.print("Spin Spin Correlation");
-
             } else if (key == "skw") {
                 //TODO: fix PG symm for skw
                 // assert_msg(sys.B->getPGIndex() == -1, "skw only defined for traslation symm!");
@@ -368,24 +373,34 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 for (int kf = 0; kf < sys.latt->getSiteNum(); ++kf) {
                     std::unique_ptr<Basis> Bf;
                     std::unique_ptr<HamiltonianBase<T>> Hf;
+                    timer.tik();
                     setbasis(Bf, sys.para.getmodel(), sys.latt.get(), occi.at(0), occi.at(1), kf, -1);
                     Bf->construct(opt(sys.para,"basis"), sys.path.getBasisDir(Bf->getkIndex(), Bf->getPGIndex()));
+                    timer.print("Bf(k=" + tostr(kf) + ") construction");
+                    timer.tik();
                     setham(sys.para, Hf, sys.latt.get(), Bf.get());    
                     Hf->construct();
+                    timer.print("Hf construction");
+                    timer.tik();
                     SzkOp<T> sk(sys.latt.get(), sys.B.get(), Bf.get(), false);
                     sk.construct();
+                    timer.print("Sq(kf=" + tostr(kf) + ") construction");
                     if (sys.measure("lanczos")) {
+                        timer.tik();
                         for (int n = 0; n < sys.stateNum; ++n) {
                             SPECTRASolver<dataType> spectra(Hf.get(), sys.evals[n], &sk, sys.evecs[n], sys.krylovDim);
                             spectra.compute();
                             if (sys.isMaster) spectra.save(sys.path.SkwDir + "/Lanczos/kf" + tostr(kf), n);
                         }
+                        timer.print("Sqw Lanczos");
                     }
                     if (sys.measure("bicg")) {
+                        timer.tik();
                         for (int n = 0; n < sys.stateNum; ++n) {
                             SPECTRASolverBiCGSTAB spectra(Hf.get(), &sk, sys.evecs[n], std::real(sys.evals[n]), n, sys.template getMpara<int>("iterMax"), sys.template getMpara<double>("wmin"), sys.template getMpara<double>("wmax"), sys.template getMpara<double>("dw"), sys.template getMpara<double>("epsilon"));
                             spectra.compute(sys.path.SkwDir + "/BiCGSTAB/kf" + tostr(kf));
                         }
+                        timer.print("Sqw BiCGSTAB");
                     }
                 }
             } else if (key == "raman") {
@@ -401,31 +416,41 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 for (int p = pfmin; p <= pfmax; ++p) {
                     std::unique_ptr<Basis> Bf;
                     std::unique_ptr<HamiltonianBase<T>> Hf;
+                    timer.tik();
                     setbasis(Bf, sys.para.getmodel(), sys.latt.get(), occi.at(0), occi.at(1), ki, p);
                     Bf->construct(opt(sys.para,"basis"), sys.path.getBasisDir(Bf->getkIndex(), Bf->getPGIndex()));
+                    timer.print("Bf(p=" + tostr(p) + ") construction");
+                    timer.tik();
                     setham(sys.para, Hf, sys.latt.get(), Bf.get());
                     Hf->construct();
+                    timer.print("Hf(p=" + tostr(p) + ") construction");
                     // bool commuteWithSymm = (channel == "A1" || sys.B->getPGIndex() == -1);
-                    for (auto channel : channels) {                       
+                    for (auto channel : channels) {
+                        timer.tik();                       
                         Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), sys.B->getPGIndex() == -1 && sys.B->getkIndex() == 0);
                         R.pushLinks(RamanChannel(channel, J1, J2, *(sys.latt)));
                         R.construct();
+                        timer.print("Raman Op channel " + channel + "construction");
                         auto label = channel;
                         if (p >= 0) {
                             label = channel + "_p" + tostr(p);
                         }
                         if (sys.measure("lanczos")) {
+                            timer.tik();
                             for (int n = 0; n < sys.stateNum; ++n) {
                                 SPECTRASolver<dataType> spectra(Hf.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
                                 spectra.compute();
                                 if (sys.isMaster) spectra.save(sys.path.RamanDir + "/Lanczos/" + label, n);
                             }
+                            timer.print("Raman Lanczos");
                         } 
                         if (sys.measure("bicg")) {
+                            timer.tik();
                             for (int n = 0; n < sys.stateNum; ++n) {
                                 SPECTRASolverBiCGSTAB spectra(Hf.get(), &R, sys.evecs[n], std::real(sys.evals[n]), n, sys.template getMpara<int>("iterMax"), sys.template getMpara<double>("wmin"), sys.template getMpara<double>("wmax"), sys.template getMpara<double>("dw"), sys.template getMpara<double>("epsilon"));
                                 spectra.compute(sys.path.RamanDir + "/BiCGSTAB/" + label);
                             }
+                            timer.print("Raman BiCGSTAB");
                         }
                     }
                 }

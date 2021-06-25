@@ -32,7 +32,7 @@ public:
         return duration_.count()*1000.0;
     }
     void print(std::string event, std::ostream& os = std::cout) {
-        if (talk) os<<event<<" time:"<<elapse()<<"ms.\n";
+        if (talk) os << event << " time:" << elapse() << "ms." << std::endl;
     }
 };
 

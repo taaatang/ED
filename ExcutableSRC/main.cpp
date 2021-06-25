@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         if (isMaster)
         {
             printLine(100);
-            std::cout << "Begin " << job << '\n';
+            std::cout << "Begin " << job << std::endl;
         }
         timer.tik();
         compute(sys, job, workerID, workerNum);
