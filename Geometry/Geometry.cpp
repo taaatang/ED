@@ -90,6 +90,46 @@ cdouble Geometry::twistPhase(int orbI, int orbJ) const {
     return std::exp(CPLX_I * dot(dPhase, rj - ri));
 }
 
+Generator<cdouble> Geometry::getGT(int kidx) const {
+    Generator<cdouble> g;
+    if (kidx == -1) {
+        Transform<cdouble> t(1.0, getOrbNum());
+        for (int i = 0; i < t.size; ++i) {
+            t[i] = i;
+        }
+        g.add(t);
+    } else {
+        for (int r = 0; r < getSiteNum(); ++r) {
+            Transform<cdouble> t(expKR(kidx, r)/cdouble(getSiteNum()), getOrbNum());
+            for (int i = 0; i < getOrbNum(); ++i) {
+                t[i] = getOrbTran(r, i);
+            }
+            g.add(t);
+        }
+    }
+    return g;
+}
+
+Generator<cdouble> Geometry::getGP(int pidx) const {
+    Generator<cdouble> g;
+    if (pidx == -1) {
+        Transform<cdouble> t(1.0, getOrbNum());
+        for (int i = 0; i < t.size; ++i) {
+            t[i] = i;
+        }
+        g.add(t);
+    } else {
+        for (int p = 0; p < getPGOpNum(pidx); ++p) {
+            Transform<cdouble> t(getChi(pidx, p)/cdouble(getPGOpNum(pidx)), getOrbNum());
+            for (int i = 0; i < getOrbNum(); ++i) {
+                t[i] = getOrbPG(p, i);
+            }
+            g.add(t);
+        }
+    }
+    return g;
+}
+
 bool Geometry::coordToOrbid(ORBITAL orb, const Vec3d &coord, int &orbid) const {
     bool cond;
     for (const auto& Orb:enlgOrbs) {

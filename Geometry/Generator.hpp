@@ -11,7 +11,8 @@ struct Generator {
 	size_t G{0};
 	bool condensed{false};
 	Transform<T>& operator[](int idx) { return U.at(idx); }
-	void add(Transform<T>& u) { G++; U.push_back(u); }
+	const Transform<T>& operator[](int idx) const { return U.at(idx); }
+	void add(const Transform<T>& u) { G++; U.push_back(u); }
 	void condense();
 };
 
@@ -51,7 +52,7 @@ Generator<T> operator*(const Generator<T>& lhs, const Generator<T>& rhs) {
 }
 
 template <typename T>
-bool operator==(const Generator<T>& lhs, const Generator<T>& rhs) {
+bool operator==(Generator<T>& lhs, Generator<T>& rhs) {
 	lhs.condense();
 	rhs.condense();
 	if (lhs.G != rhs.G) return false;

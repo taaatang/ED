@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include "Utils/io.hpp"
+#include "Utils/bitop.hpp"
 
 template <typename T>
 struct Transform {
@@ -12,7 +13,34 @@ struct Transform {
 	std::vector<int> transformList;
 	Transform(T fac, size_t N):factor(fac), size(N), transformList(N, 0) { }
 	int& operator[](int idx) { return transformList.at(idx); }
+	const int& operator[](int idx) const {return transformList.at(idx); }
+	idx_t tr(idx_t repI);
+	idx_t tr(idx_t repI, double sgn);
 };
+
+template<typename T>
+idx_t Transform<T>::tr(idx_t repI) {
+	idx_t repF{0};
+	for (int i = 0; i < size; ++i) {
+		if (bitTest(repI, i)) {
+			bitSet(repF, transformList[i]);
+		}
+	}
+}
+
+template<typename T>
+idx_t Transform<T>::tr(idx_t repI, double sgn) {
+	idx_t repF{0};
+	std::vector<int> seq;
+	for (int i = 0; i < size; ++i) {
+		if (bitTest(repI, i)) {
+			bitSet(repF, transformList[i]);
+			seq.push_back(transformList[i]);
+		}
+	}
+	return seqSign(seq);
+}
+
 
 template <typename T>
 inline void check(const Transform<T>& lhs, const Transform<T>& rhs) {
@@ -32,7 +60,7 @@ inline Transform<T> operator*(const Transform<T>& lhs, const Transform<T>& rhs) 
 template <typename T>
 bool operator==(const Transform<T>& lhs, const Transform<T>& rhs) {
 	check(lhs, rhs);
-	for (int i = 0; i < lhs,size; ++i) {
+	for (int i = 0; i < lhs.size; ++i) {
 		if (lhs[i] != rhs[i]) return false;
 	}
 	return true;
@@ -51,7 +79,7 @@ bool operator<(const Transform<T>& lhs, const Transform<T>& rhs) {
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const Transform<T>& t) {
 	os << "Transformation Character:" << t.factor << std::endl;
-	for (int i = 0; i < N; ++i) {
+	for (int i = 0; i < t.size; ++i) {
 		os << i << "->" << t[i] << '\t';
 	}
 	os << std::endl;
