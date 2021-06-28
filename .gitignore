@@ -11,6 +11,10 @@ __pycache__/
 # build
 build/
 
+# input
+heisInput/
+hubbInput/
+
 # Prerequisites
 *.d
 
