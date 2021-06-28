@@ -37,9 +37,9 @@ int main() {
 		auto T = latt.getGT(kidx);
 		for (int pidx = 0; pidx < latt.getPGRepNum(); pidx++) {
 			auto P = latt.getGP(pidx);
-			auto TP = T * P;
-			auto PT = P * T;
-			if (TP == PT) {
+			// auto TP = T * P;
+			// auto PT = P * T;
+			if (commute(T, P)) {
 				std::cout << "kidx = " << kidx << ", pidx = " << pidx << ": commute" << std::endl;
 			} else {
 				std::cout << "kidx = " << kidx << ", pidx = " << pidx << ": not commute" << std::endl;	

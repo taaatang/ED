@@ -67,6 +67,13 @@ bool operator==(Generator<T>& lhs, Generator<T>& rhs) {
 }
 
 template <typename T>
+bool commute(Generator<T>& lhs, Generator<T>& rhs) {
+	auto lr = lhs * rhs;
+	auto rl = rhs * lhs;
+	return lr == rl;
+}
+
+template <typename T>
 std::ostream& operator<<(std::ostream& os, const Generator<T>& g) {
 	os << "Generator Size:" << g.G << std::endl;
 	for (int i = 0; i < g.G; ++i) {
