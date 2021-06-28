@@ -9,12 +9,12 @@ kmin:i:0
 kmax:i:0
 # min/max point group rep index
 pmin:i:0
-pmax:i:5
+pmax:i:7
 
 # evals option
 state:b:1
 zeroTmp:b:1
-nev:i:3
+nev:i:2
 
 # Spectra config
 lanczos:b:1 # 1 --> lanczos, 0 --> BiCGSTAB
@@ -40,7 +40,7 @@ Raman:b:1
 RamanChannels:vecs:
 A1, A2, E21, E22
 # final point group space index: pfmin =< pid >= pfmax
-pfmin:i:-1
+pfmin:i:0
 pfmax:i:7
 
 

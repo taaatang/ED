@@ -1,5 +1,5 @@
 model name:s:Heisenberg
-parameter label:s:J1
+parameter label:s:PGtest/J2_0.24
 
 orbitals:vecs:
 single
@@ -8,5 +8,5 @@ coords:arrd:
 0.0, 0.0, 0.0
 
 J1:d:1.00
-J2:d:0.40
+J2:d:0.24
 Jk:d:0.00
