@@ -1,2 +1,0 @@
-rootDir:s:/Volumes/Sandisk/ProjectData#/oak/stanford/groups/tpd/tatang#/Users/tatang/Documents/work/projects/data 
-project:s:photodoping/test1
