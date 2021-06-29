@@ -121,9 +121,9 @@ public:
     bool search(idx_t repI, idx_t &idx) const;
     bool search(pairIdx_t pairRepI, idx_t &idx) const;
 
-    bool search(idx_t repI, idx_t &idx, cdouble &fac, bool useSymm) const;
+    bool search(idx_t repI, idx_t &idx, cdouble &fac, bool useTrans, bool usePG) const;
     //TODO: Implement this for 1/2 fermions
-    bool search(pairIdx_t pairRepI, idx_t &idx, cdouble &factor, bool useSymm) const;
+    bool search(pairIdx_t pairRepI, idx_t &idx, cdouble &factor, bool useTrans, bool usePG) const;
 
     /*
         ************
@@ -134,7 +134,7 @@ public:
     // finalInd contains all resulting basis indexes.
     void genSymm(idx_t rowID, std::vector<idx_t>& repIs) const;
     void genSymm(idx_t rowID, std::vector<idx_t>& repIs, std::vector<cdouble>& factorList) const;
-    void genRepMin(idx_t repI, idx_t &repImin, cdouble &fac) const;
+    void genRepMin(idx_t repI, idx_t &repImin, cdouble &fac, bool useTrans, bool usePG) const;
     void genSymm(idx_t rowID, std::vector<pairIdx_t>& pairRepIs, std::vector<cdouble>& factorList) const;
     
     // judge if repI is min repI. append symm operations tp symmList if symm(repI)==repI. not guanranteed to be MinRep since its norm might = 0

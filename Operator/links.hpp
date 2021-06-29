@@ -45,9 +45,6 @@ public:
     void setVal(T val_) { val = val_; }
     void setid(int linkid_, int matid_ = 0);
     void setmatid(int matid_ = 0) { matid = matid_;}
-    // set time evolve function for val
-    void setTimeFunc(T (*timeFunc_)(int));
-    void setVal( );
 
     // add one link (contains orbids in the same link)
     void push_back(std::vector<int> orbidList) { LinkList.push_back(orbidList); }
@@ -63,9 +60,6 @@ private:
     // same group ids will be contained in the same sparse matrix
     int linkid{0}, matid{0};
     bool is_Const{true}, is_Ordered{false};
-    T (*timeFunc)(int);
-    bool is_timeFunc_set{false};
-    int timeStep{0};
     std::vector<ORBITAL> orbList;
     std::vector<Vec3d> LinkVecs;
     std::vector<VecI> LinkList;
@@ -114,23 +108,7 @@ void Link<T>::setid(int linkid_, int matid_ ) {
 }
 
 template <class T>
-void Link<T>::setTimeFunc(T (*timeFunc_)(int)) {
-    timeFunc = timeFunc_; 
-    is_timeFunc_set = true;
-}
-
-template <class T>
-void Link<T>::setVal( ) {
-    if(!is_Const) {
-        if(!is_timeFunc_set){std::cout<<"time evolve function not set for linkid:"<<linkid<<std::endl; exit(1);}
-        val = timeFunc(timeStep); 
-    }
-    timeStep++;
-}
-
-template <class T>
 Link<T>& Link<T>::addLinkVec(Vec3d vec){
-    assert(vec.size()==3); 
     LinkVecs.push_back(vec); 
     return *this;
 }

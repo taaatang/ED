@@ -70,8 +70,11 @@ template <typename T>
 bool operator<(const Transform<T>& lhs, const Transform<T>& rhs) {
 	check(lhs, rhs);
 	for (int i = 0; i < lhs.size; ++i) {
-		if (lhs[i] < rhs[i]) return true;
-		if (lhs[i] > rhs[i]) return false;
+		if (lhs[i] < rhs[i]) {
+			return true;
+		} else if (lhs[i] > rhs[i]) {
+			return false;
+		}
 	}
 	return false;
 }

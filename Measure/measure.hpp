@@ -257,7 +257,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
         case LATTICE_MODEL::HUBBARD: {
             assert_msg(sys.B->getPGIndex() == -1, "HUBBARD model calculation only defined with translation symm!");
             if (key == "conductivity") {
-                Current J(sys.latt.get(), sys.B.get(), sys.B.get(), true);
+                Current J(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
                 J.pushLinks(HubbardLink(*(sys.latt)));
                 auto ds = std::vector<std::string> {"x", "y", "z"};
                 for (auto d : ds) {
@@ -290,7 +290,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                             Bf->construct(opt(sys.para, "basis"), sys.path.getBasisDir(Bf->getkIndex(),  Bf->getPGIndex()));
                             Hf->construct();
                             for (auto& orb : sys.latt->getUnitCell()) {
-                                CkOp<T> ck(sys.latt.get(), sys.B.get(), Bf.get(), true);
+                                CkOp<T> ck(sys.latt.get(), sys.B.get(), Bf.get(), true, false);
                                 ck.set(pm, spin, orb);
                                 ck.construct();
                                 for (int n = 0; n < sys.stateNum; ++n) {
@@ -348,10 +348,11 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
 
         case LATTICE_MODEL::HEISENBERG: {
             if (key == "sisj") {
-                SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), sys.B->getPGIndex() == -1);
+                SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), false, false);
                 std::vector<std::vector<dataType>> ssvals;
                 ssvals.resize(sys.stateNum);
-                for (int i = 0; i < sys.latt->getSiteNum(); ++i) {
+                // for (int i = 0; i < sys.latt->getSiteNum(); ++i) {
+                for (int i = 9; i < 10; ++i) {
                     timer.tik();
                     SS.setr(i);
                     SS.construct();
@@ -382,7 +383,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     Hf->construct();
                     timer.print("Hf construction");
                     timer.tik();
-                    SzkOp<T> sk(sys.latt.get(), sys.B.get(), Bf.get(), false);
+                    SzkOp<T> sk(sys.latt.get(), sys.B.get(), Bf.get(), false, false);
                     sk.construct();
                     timer.print("Sq(kf=" + tostr(kf) + ") construction");
                     if (sys.measure("lanczos")) {
@@ -427,7 +428,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     // bool commuteWithSymm = (channel == "A1" || sys.B->getPGIndex() == -1);
                     for (auto channel : channels) {
                         timer.tik();                       
-                        Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), sys.B->getPGIndex() == -1 && sys.B->getkIndex() == 0);
+                        Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), true, false);
                         R.pushLinks(RamanChannel(channel, J1, J2, *(sys.latt)));
                         R.construct();
                         timer.print("Raman Op channel " + channel + "construction");
@@ -463,7 +464,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 std::vector<std::string> plzLabel{"x", "y"};
                 for(int i = 0; i < 1; ++i) {
                     for(int j = 0; j < 2; ++j) {
-                        RamanOp<dataType> R(sys.latt.get(), sys.B.get(), sys.B.get(), sys.B->getPGIndex() == -1);
+                        RamanOp<dataType> R(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
                         if (std::abs(J1.value_or(0.0)) > INFINITESIMAL) {
                             auto link = HeisenbergLink("J1", *sys.latt.get());
                             link.setVal(link.getVal() * J1.value_or(0.0));

@@ -32,8 +32,10 @@ void Generator<T>::condense() {
 		}
 		auto end = std::unique(U.begin(), U.end());
 		if (end != U.end()) {
+			// std::cout << "original size:" << G << std::endl;
 			U.erase(end, U.end());
 			G = U.size();
+			// std::cout << "condensed size:" << G << std::endl;
 		}
 		condensed = true;
 	}

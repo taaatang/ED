@@ -33,7 +33,7 @@ template<typename T>
 class FermionOperator{
 public:
     FermionOperator( ) { }
-    FermionOperator(Basis* pt_Ba, bool commuteWithSymm = false);
+    FermionOperator(Basis* pt_Ba, bool commuteWithTrans = false, bool commuteWithPG = false);
     ~FermionOperator( ) { };
     // c^dagger/c with spin act on siteI of pairRepI 
     bool cp(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign);
@@ -68,7 +68,8 @@ protected:
     Basis* pt_Basis{nullptr};
     LATTICE_MODEL fmodel{LATTICE_MODEL::HUBBARD};
     int nuSign;
-    bool commuteWithLattSymm{false};
+    bool useTrans{true};
+    bool usePG{true};
 };
 
 template<typename T>
@@ -83,7 +84,7 @@ class SpinOperator{
 */
 public:
     SpinOperator( ) { }
-    SpinOperator(Basis* pt_Ba, bool commuteWithSymm = false);
+    SpinOperator(Basis* pt_Ba, bool commuteWithTrans = false, bool commuteWithPG = false);
     ~SpinOperator( ) { }
 
     void push(idx_t repIf, T val, MAP<T>* rowMap);
@@ -128,7 +129,8 @@ protected:
     LATTICE_MODEL smodel{LATTICE_MODEL::HEISENBERG};
     int spinDim{2};
     std::vector<double> szMat, spMat, smMat;
-    bool commuteWithLattSymm{false};
+    bool useTrans{true};
+    bool usePG{true};
 };
 
 /********************
@@ -136,9 +138,7 @@ protected:
  ********************/
 
 template <typename T>
-FermionOperator<T>::FermionOperator(Basis* pt_Ba, bool commute):pt_Basis(pt_Ba),fmodel(pt_Ba->getModel()) {
-    commuteWithLattSymm = commute;
-}
+FermionOperator<T>::FermionOperator(Basis* pt_Ba, bool Trans, bool PG):pt_Basis(pt_Ba),fmodel(pt_Ba->getModel()), useTrans(!Trans), usePG(!PG) { }
 
 template <typename T>
 bool FermionOperator<T>::cp(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign){
@@ -463,8 +463,10 @@ void FermionOperator<T>::push(pairIdx_t pairRepIf, T val, MAP<T>* rowMap) {
     if(pt_Basis->isfMin(pairRepIf.first)) MapPush(rowMap,pt_Basis->getRepI(pairRepIf),val);
     #else
     idx_t colidx;
-    if (pt_Basis->search(pairRepIf, colidx)){
+    T fac;
+    if (pt_Basis->search(pairRepIf, colidx, fac, useTrans, usePG)){
         val /= pt_Basis->getNorm(colidx);
+        val *= fac;
         MapPush(rowMap,colidx,val);
     }
     #endif // DISTRIBUTED_BASIS 
@@ -492,8 +494,8 @@ void FermionOperator<T>::diag(idx_t rowID, T factor, MAP<T>* rowMap){
  * SPIN OPERATOR *
  *****************/
 template<typename T>
-SpinOperator<T>::SpinOperator(Basis* pt_Ba, bool commute):\
-pt_Basis(pt_Ba),smodel(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()) {
+SpinOperator<T>::SpinOperator(Basis* pt_Ba, bool Trans, bool PG):\
+pt_Basis(pt_Ba), smodel(pt_Ba->getModel()), spinDim(pt_Ba->getSiteDim()), useTrans(!Trans), usePG(!PG) {
     double s = (double)(spinDim - 1)/2.0;
     double m = s;
     for (int i = 0; i < spinDim; ++i){
@@ -502,7 +504,6 @@ pt_Basis(pt_Ba),smodel(pt_Ba->getModel()),spinDim(pt_Ba->getSiteDim()) {
         smMat.push_back(std::sqrt(s*(s+1.0)-m*(m-1.0)));
         m -= 1.0;
     }
-    commuteWithLattSymm = commute;
 }
 
 template<typename T>
@@ -512,7 +513,7 @@ void SpinOperator<T>::push(idx_t repIf, T val, MAP<T>* rowMap){
     #else
         idx_t colID;
         cdouble fac;
-        if (pt_Basis->search(repIf, colID, fac, !commuteWithLattSymm)){
+        if (pt_Basis->search(repIf, colID, fac, useTrans, usePG)){
             double finalNorm = pt_Basis->getNorm(colID);
             val /= finalNorm;
             val *= fac;

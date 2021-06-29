@@ -417,15 +417,20 @@ idx_t Basis::search(pairIdx_t pairRepI) const {
     } 
 }
 
-bool Basis::search(idx_t repI, idx_t &idx, cdouble &fac, bool useSymm) const {
-    if (useSymm) {
+bool Basis::search(idx_t repI, idx_t &idx, cdouble &fac, bool useTrans, bool usePG) const {
+    if (useTrans or usePG) {
         idx_t repImin;
-        genRepMin(repI, repImin, fac);
+        genRepMin(repI, repImin, fac, useTrans, usePG);
         return search(repImin, idx);
     } else {
         fac = 1.0;
         return search(repI, idx);
     }
+}
+
+//TODO
+bool Basis::search(pairIdx_t pairRepI, idx_t &idx, cdouble &factor, bool useTrans, bool usePG) const {
+    
 }
 
 /*
@@ -1079,12 +1084,14 @@ void Basis::genSymm(idx_t rowid, std::vector<pairIdx_t>& finalInd, std::vector<c
     }
 }
 
-void Basis::genRepMin(idx_t repI, idx_t &repImin, cdouble &fac) const {
-    if (kIndex == -1) {
+void Basis::genRepMin(idx_t repI, idx_t &repImin, cdouble &fac, bool useTrans, bool usePG) const {
+    if (!(useTrans and (kIndex != -1)) and !(usePG and (PGRepIndex != -1))) {
         repImin = repI; 
         fac = 1.0;
         return;
     }
+    bool usedT{false};
+    bool usedPG{false};
     std::vector<idx_t> finalInd{};
     std::vector<cdouble> factorList{};
     repImin = repI;
@@ -1182,7 +1189,20 @@ void Basis::genRepMin(idx_t repI, idx_t &repImin, cdouble &fac) const {
 
         case LATTICE_MODEL::HEISENBERG:{
             #ifdef BINARY_REP
-                if(PGRepIndex==-1){
+                if((!useTrans and usePG) or (useTrans and usePG and (kIndex == -1))) {
+                   for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++) {
+                        idx_t repIp{0};
+                        for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
+                            if(bitTest(repI,i))bitSet(repIp,pt_lattice->getOrbPG(p,i));
+                        }
+                        if (repIp < repImin) {
+                            repImin = repIp;
+                        }
+                        finalInd.push_back(repIp);
+                        factorList.push_back(pt_lattice->getChi(PGRepIndex,p));
+                    } 
+                    usedPG = true;
+                } else if ((useTrans and !usePG) or (useTrans and usePG and (PGRepIndex == -1))) {
                     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                         idx_t repIp{0};
                         for(int i = 0; i < pt_lattice->getOrbNum(); ++i){
@@ -1194,7 +1214,8 @@ void Basis::genRepMin(idx_t repI, idx_t &repImin, cdouble &fac) const {
                         finalInd.push_back(repIp);
                         factorList.push_back(pt_lattice->expKR(kIndex,r));
                     }
-                }else{
+                    usedT = true;
+                } else if (useTrans and usePG) {
                     for (int r = 0; r < pt_lattice->getSiteNum(); r++){
                         for (int p = 0; p < pt_lattice->getPGOpNum(PGRepIndex);p++){
                             idx_t repIp{0};
@@ -1208,8 +1229,9 @@ void Basis::genRepMin(idx_t repI, idx_t &repImin, cdouble &fac) const {
                             factorList.push_back(pt_lattice->expKR(kIndex,r)* pt_lattice->getChi(PGRepIndex,p));
                         }
                     }
+                    usedT = true;
+                    usedPG = true;
                 }
-            
             #else
                 VecI initVec(N), finalVec(N);
                 repToVec(repI, initVec);
@@ -1259,8 +1281,10 @@ void Basis::genRepMin(idx_t repI, idx_t &repImin, cdouble &fac) const {
             fac += factorList[i];
         }
     }
-    fac /= pt_lattice->getSiteNum();
-    if (PGRepIndex >= 0) {
+    if (usedT) {
+        fac /= pt_lattice->getSiteNum();
+    }
+    if (usedPG) {
         fac /= pt_lattice->getPGOpNum(PGRepIndex);
     }
 }
