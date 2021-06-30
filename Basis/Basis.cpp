@@ -430,7 +430,7 @@ bool Basis::search(idx_t repI, idx_t &idx, cdouble &fac, bool useTrans, bool use
 
 //TODO
 bool Basis::search(pairIdx_t pairRepI, idx_t &idx, cdouble &factor, bool useTrans, bool usePG) const {
-    
+   return false; 
 }
 
 /*
