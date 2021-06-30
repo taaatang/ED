@@ -9,7 +9,9 @@
 #ifndef OperatorsBase_hpp
 #define OperatorsBase_hpp
 
+#include <algorithm>
 #include "Operator/links.hpp"
+#include "Operator/interaction_transform.hpp"
 #include "Operator/Operations.hpp"
 #include "Operator/SparseMatrix.hpp"
 #include "Global/globalPara.hpp"
@@ -27,6 +29,8 @@ public:
     OperatorBase& pushLink(Link<T> link, int matidx);
     OperatorBase& pushLinks(std::vector<Link<T>> links);
     void printLinks(bool brief = true) const;
+    // generate symmetry transformed operators
+    void transform();
 
     // Add onsite energy V
     virtual void pushV(std::vector<ORBITAL> orbList, double val) { }
@@ -41,17 +45,25 @@ public:
     
 protected:
     Geometry *latt{nullptr};
+    bool commuteWithTrans{false};
+    bool commuteWithPG{false};
     LATTICE_MODEL model{LATTICE_MODEL::HUBBARD};
     int linkCount{0};
     int spmCount{0};
     std::vector<Link<T>> Links, NCLinks;
-    std::vector<Link<T>> superExchangeJ, chiralTermK;
+    std::vector<Link<T>> supperExchangeJ, chiralTermK;
     std::vector<Link<T>> hoppingT, interBandU, exchangeJ, pairHoppingJ;
+
+    std::vector<TrInteractions<T,2>> trSupperExchangeJ;
+    std::vector<TrInteractions<T,3>> trChiralTermK;
+    std::vector<TrInteractions<T,2>> trHoppingT, trInterBandU, trExchangeJ, trPairHoppingJ; 
 };
 
 template<typename T>
-OperatorBase<T>::OperatorBase (Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithTrans, bool commuteWithPG, int spmNum_, int dmNum_) :\
- FermionOperator<T>(Bi, commuteWithTrans, commuteWithPG), SpinOperator<T>(Bi, commuteWithTrans, commuteWithPG), SparseMatrix<T>(Bi, Bf, spmNum_, dmNum_){
+OperatorBase<T>::OperatorBase (Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithTrans_, bool commuteWithPG_, int spmNum_, int dmNum_) :\
+ FermionOperator<T>(Bi, commuteWithTrans_, commuteWithPG_), SpinOperator<T>(Bi, commuteWithTrans, commuteWithPG), SparseMatrix<T>(Bi, Bf, spmNum_, dmNum_){
+    commuteWithTrans = commuteWithTrans_;
+    commuteWithPG = commuteWithPG_;
     this->latt = latt;
     this->model = this->Bi->getModel();
     assert(this->Bi->getModel() == this->Bf->getModel());
@@ -66,7 +78,7 @@ OperatorBase<T>& OperatorBase<T>::pushLink(Link<T> link, int matID){
         link.setid(linkCount, matID);
         switch (link.getLinkType()) {
             case LINK_TYPE::SUPER_EXCHANGE_J:
-                superExchangeJ.push_back(link);
+                supperExchangeJ.push_back(link);
                 break;
             case LINK_TYPE::CHIRAL_K:
                 chiralTermK.push_back(link);
@@ -113,11 +125,66 @@ void OperatorBase<T>::printLinks(bool brief) const {
     for (const auto& link:hoppingT) {
         link.print(brief);
     }
-    for (const auto& link:superExchangeJ) {
+    for (const auto& link:supperExchangeJ) {
         link.print(brief);
     }
     for (const auto& link:chiralTermK) {
         link.print(brief);
     }
+}
+
+template<typename T, size_t N>
+void addTrOp(const Generator<T>& Gi, const Generator<T>& Gf, const Link<T>& link, std::vector<TrInteractions<T, N>>& trOp) {
+    for (size_t i = 0; i < Gi.G; ++i) {
+        Generator<T> Gs;
+        Gs.add(Gi[i]);
+        auto op = trLink<T, N>(Gi[i], link); 
+        auto Gtot = Gs * Gf;
+        for (size_t j = 0; j < Gtot.G; ++j) {
+            TrInteractions<T, N> comp(Gtot[j], link.getLinkType());
+            auto found = std::lower_bound(trOp.begin(), trOp.end(), comp);
+            if (*found == comp) {
+                found->Op += op * Gtot[j].factor;
+            } else {
+                assert_msg(false, "transformation not found in addTrOp!");
+            }
+        }
+    }
+}
+
+template<typename T, size_t N>
+void assignTrOp(const Generator<T>& Gi, const Generator<T>& Gf, const std::vector<Transform<T>>& totTr, const std::vector<Link<T>>& links, std::vector<TrInteractions<T, N>>& trOps, char order) {
+    trOps.clear();
+    if (links.empty()) {
+        return;
+    }
+    for (const auto& t : totTr) {
+        trOps.push_back(TrInteractions<T,N>(t, links[0].getLinkType()));
+    }
+    for (const auto& link : links) {
+        addTrOp<T, N>(Gi, Gf, link, trOps);
+    }
+    for(auto& trOp : trOps) {
+        trOp.Op.condense(order);
+    }
+}
+template<typename T>
+void OperatorBase<T>::transform() {
+    Generator<T> Gi;
+    Gi.identity(latt->getOrbNum());
+    Generator<T> Gf = latt->getGP(this->Bf->getPGIndex()) * latt->getGT(this->Bf->getkIndex());
+    if (commuteWithPG) {
+        Gf = latt->getGP(this->Bi->getPGIndex()) * Gf;
+    } else {
+        Gi = latt->getGP(this->Bi->getPGIndex()) * Gi;
+    }
+    if (commuteWithTrans) {
+        Gf = latt->getGT(this->Bi->getkIndex()) * Gf;
+    } else {
+        Gi = latt->getGT(this->Bi->getkIndex()) * Gi;
+    }
+    auto Gtot = Gi * Gf;
+    assignTrOp<T, 2>(Gi, Gf, Gtot.U, supperExchangeJ, trSupperExchangeJ, 'n');
+    assignTrOp<T, 3>(Gi, Gf, Gtot.U, chiralTermK, trChiralTermK, 'c');
 }
 #endif // OperatorsBase_hpp
