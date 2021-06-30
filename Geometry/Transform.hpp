@@ -6,20 +6,28 @@
 #include "Utils/io.hpp"
 #include "Utils/bitop.hpp"
 
+/**
+ * @brief lattice symmetry transformation factor * g, where g is a symmetry operation (translation or point group symm). 
+ * g takes orbital i to transformList[i] 
+ * 
+ * @tparam T type of factor; should generally be complex
+ */
 template <typename T>
 struct Transform {
 	T factor;
 	size_t size;
 	std::vector<int> transformList;
+public:
 	Transform(T fac, size_t N):factor(fac), size(N), transformList(N, 0) { }
-	//? why this caused trouble in copying Transform
-	// Transform(const Transform<T>& t) { factor = t.factor; transformList = t.transformList;}
 	int& operator[](int idx) { return transformList.at(idx); }
 	const int& operator[](int idx) const {return transformList.at(idx); }
 	idx_t tr(idx_t repI) const;
 	idx_t tr(idx_t repI, double& sgn) const;
 };
-
+/**
+ * @brief transform basis sate repI to g(repI)
+ * 
+ */
 template<typename T>
 idx_t Transform<T>::tr(idx_t repI) const {
 	idx_t repF{0};
@@ -30,7 +38,14 @@ idx_t Transform<T>::tr(idx_t repI) const {
 	}
 	return repF;
 }
-
+/**
+ * @brief transform basis repI to g(repI) and returns the fermion permutation sign
+ * 
+ * @tparam T 
+ * @param repI input basis state
+ * @param sgn fermion sign due to the permutation of the transformation
+ * @return idx_t transformed basis state 
+ */
 template<typename T>
 idx_t Transform<T>::tr(idx_t repI, double& sgn) const {
 	idx_t repF{0};
@@ -50,7 +65,14 @@ template <typename T>
 inline void check(const Transform<T>& lhs, const Transform<T>& rhs) {
 	assert_msg(lhs.size == rhs.size, "mismatch transformation size:" + tostr(int(lhs.size)) + " vs " + tostr(int(rhs.size)));
 }
-
+/**
+ * @brief combines two transformations g_left*g_right
+ * 
+ * @tparam T 
+ * @param lhs 
+ * @param rhs 
+ * @return Transform<T> 
+ */
 template <typename T>
 inline Transform<T> operator*(const Transform<T>& lhs, const Transform<T>& rhs) {
 	check(lhs, rhs);
@@ -60,7 +82,10 @@ inline Transform<T> operator*(const Transform<T>& lhs, const Transform<T>& rhs) 
 	}
 	return res;
 }
-
+/**
+ * @brief two transformations are equal if their transfomationLists are the same
+ * 
+ */
 template <typename T>
 bool operator==(const Transform<T>& lhs, const Transform<T>& rhs) {
 	check(lhs, rhs);
@@ -69,7 +94,10 @@ bool operator==(const Transform<T>& lhs, const Transform<T>& rhs) {
 	}
 	return true;
 }
-
+/**
+ * @brief compare the transformationList from the first entry to the last entry
+ * 
+ */
 template <typename T>
 bool operator<(const Transform<T>& lhs, const Transform<T>& rhs) {
 	check(lhs, rhs);
