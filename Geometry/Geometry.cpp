@@ -94,7 +94,7 @@ Generator<cdouble> Geometry::getGT(int kidx) const {
     Generator<cdouble> g;
     if (kidx == -1) {
         Transform<cdouble> t(1.0, getOrbNum());
-        for (int i = 0; i < t.size; ++i) {
+        for (int i = 0; i < (int)t.size; ++i) {
             t[i] = i;
         }
         g.add(t);
@@ -114,7 +114,7 @@ Generator<cdouble> Geometry::getGP(int pidx) const {
     Generator<cdouble> g;
     if (pidx == -1) {
         Transform<cdouble> t(1.0, getOrbNum());
-        for (int i = 0; i < t.size; ++i) {
+        for (int i = 0; i < (int)t.size; ++i) {
             t[i] = i;
         }
         g.add(t);
@@ -677,6 +677,7 @@ TriAngLattice::TriAngLattice(int numSites, bool PBC){
             kylist = VecD {0.0, 0.0, +0.0, +1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, -1.0, -1.0};
             break;
         }
+        //TODO:fix 21-sites point group
         case 21:{
             R1 = 5.0 * a1 - 4.0 * a2;
             R2 = 4.0 * a1 + 1.0 * a2;
