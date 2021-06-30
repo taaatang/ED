@@ -348,12 +348,16 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
 
         case LATTICE_MODEL::HEISENBERG: {
             if (key == "sisj") {
-                SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), false, false);
+                // SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), false, false);
                 std::vector<std::vector<dataType>> ssvals;
                 ssvals.resize(sys.stateNum);
                 for (int i = 0; i < sys.latt->getSiteNum(); ++i) {
                     timer.tik();
-                    SS.setr(i);
+                    Hamiltonian<LATTICE_MODEL::HEISENBERG, cdouble> SS(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
+                    Link<cdouble> J(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {sys.latt->getSiteR(i)});
+                    SS.pushLink(J, 0);
+                    // SS.setr(i);
+                    SS.transform();
                     SS.construct();
                     timer.print("S(r=" + tostr(i) + ") construction");
                     for (int n = 0; n < sys.stateNum; ++n) {
