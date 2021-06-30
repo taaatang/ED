@@ -11,7 +11,9 @@ template<typename T, size_t N>
 struct Bond {
 	T val;
 	std::array<int, N> sites;
-	inline int& operator[](int idx) { reurn sites.at(idx); }
+	Bond( ) { };
+	Bond(T val_, std::array<int, N> sites_) : val(val_) { sites = sites_; }
+	inline int& operator[](int idx) { return sites.at(idx); }
 	inline const int& operator[](int idx) const { return sites.at(idx); }
 };
 
@@ -44,23 +46,17 @@ void normalOrder(Bond<T, N>& b) {
 
 template<typename T, size_t N>
 void cyclicOrder(Bond<T, N>& b) {
-	int i = 0;
-	for (int j = 1; j < N; ++j) {
+	size_t i = 0;
+	for (size_t j = 1; j < N; ++j) {
 		if (b[j] < b[i]) {
 			i = j;
 		}
 	}
-	array<int, N> sorted;
-	for (int j = 0; j < N; ++j) {
+	std::array<int, N> sorted;
+	for (size_t j = 0; j < N; ++j) {
 		sorted[j] = b[(i + j) % N];
 	}
 	b.sites = sorted;
-}
-
-template<typename T, size_t N>
-struct Interactions {
-	LINK_TYPE type;
-	std::vector<Bond<T, N>> bonds;
 }
 
 #endif // __BOND_H__
