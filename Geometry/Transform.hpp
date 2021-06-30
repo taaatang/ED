@@ -12,24 +12,27 @@ struct Transform {
 	size_t size;
 	std::vector<int> transformList;
 	Transform(T fac, size_t N):factor(fac), size(N), transformList(N, 0) { }
+	//? why this caused trouble in copying Transform
+	// Transform(const Transform<T>& t) { factor = t.factor; transformList = t.transformList;}
 	int& operator[](int idx) { return transformList.at(idx); }
 	const int& operator[](int idx) const {return transformList.at(idx); }
-	idx_t tr(idx_t repI);
-	idx_t tr(idx_t repI, double sgn);
+	idx_t tr(idx_t repI) const;
+	idx_t tr(idx_t repI, double& sgn) const;
 };
 
 template<typename T>
-idx_t Transform<T>::tr(idx_t repI) {
+idx_t Transform<T>::tr(idx_t repI) const {
 	idx_t repF{0};
-	for (int i = 0; i < size; ++i) {
+	for (int i = 0; i < (int)size; ++i) {
 		if (bitTest(repI, i)) {
 			bitSet(repF, transformList[i]);
 		}
 	}
+	return repF;
 }
 
 template<typename T>
-idx_t Transform<T>::tr(idx_t repI, double sgn) {
+idx_t Transform<T>::tr(idx_t repI, double& sgn) const {
 	idx_t repF{0};
 	std::vector<int> seq;
 	for (int i = 0; i < size; ++i) {
@@ -38,13 +41,14 @@ idx_t Transform<T>::tr(idx_t repI, double sgn) {
 			seq.push_back(transformList[i]);
 		}
 	}
-	return seqSign(seq);
+	sgn = seqSign(seq);
+	return repF;
 }
 
 
 template <typename T>
 inline void check(const Transform<T>& lhs, const Transform<T>& rhs) {
-	assert_msg(lhs.size == rhs.size, "mismatch transformation size!");
+	assert_msg(lhs.size == rhs.size, "mismatch transformation size:" + tostr(int(lhs.size)) + " vs " + tostr(int(rhs.size)));
 }
 
 template <typename T>
@@ -60,7 +64,7 @@ inline Transform<T> operator*(const Transform<T>& lhs, const Transform<T>& rhs) 
 template <typename T>
 bool operator==(const Transform<T>& lhs, const Transform<T>& rhs) {
 	check(lhs, rhs);
-	for (int i = 0; i < lhs.size; ++i) {
+	for (size_t i = 0; i < lhs.size; ++i) {
 		if (lhs[i] != rhs[i]) return false;
 	}
 	return true;
@@ -69,7 +73,7 @@ bool operator==(const Transform<T>& lhs, const Transform<T>& rhs) {
 template <typename T>
 bool operator<(const Transform<T>& lhs, const Transform<T>& rhs) {
 	check(lhs, rhs);
-	for (int i = 0; i < lhs.size; ++i) {
+	for (int i = 0; i < (int)lhs.size; ++i) {
 		if (lhs[i] < rhs[i]) {
 			return true;
 		} else if (lhs[i] > rhs[i]) {
@@ -82,7 +86,7 @@ bool operator<(const Transform<T>& lhs, const Transform<T>& rhs) {
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const Transform<T>& t) {
 	os << "Transformation Character:" << t.factor << std::endl;
-	for (int i = 0; i < t.size; ++i) {
+	for (size_t i = 0; i < t.size; ++i) {
 		os << i << "->" << t[i] << '\t';
 	}
 	os << std::endl;
