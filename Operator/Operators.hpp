@@ -446,7 +446,7 @@ void Hamiltonian<M, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                 }
             } 
 
-            for (const auto& link:this->supperExchangeJ) {
+            for (const auto& link:this->superExchangeJ) {
                 int matID = link.getmatid();
                 cdouble factor = factorList.at(i) * link.getVal();
                 for (const auto& bond : link.bond()) {
@@ -467,7 +467,7 @@ void Hamiltonian<M, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         if(this->Bf->getSiteDim()==2){
             auto repI0 = this->Bf->getRepI(rowID);
             auto nf = this->Bf->getNorm(rowID);
-            for (const auto& trOp : this->trSupperExchangeJ) {
+            for (const auto& trOp : this->trSuperExchangeJ) {
                 auto repI = trOp.g.tr(repI0);
                 for (const auto& bond : trOp.Op.bonds) {
                     auto val = bond.val/nf;
@@ -487,7 +487,7 @@ void Hamiltonian<M, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             // this->Bf->genSymm(rowID, finalIndList, factorList);
             // for (int i = 0; i < (int)finalIndList.size(); ++i) {
             //     auto repI = finalIndList[i];
-            //     for (const auto &link:this->supperExchangeJ) {
+            //     for (const auto &link:this->superExchangeJ) {
             //         int matID = link.getmatid();
             //         auto factor = factorList.at(i) * link.getVal();
             //         for (auto bond : link.bond()) {
@@ -609,10 +609,10 @@ template <class T>
 void RamanOp<T>::setplz(Vec3d pIn_, Vec3d pOut_) {
     pIn = pIn_;
     pOut = pOut_;
-    RamanWeight.resize(this->supperExchangeJ.size());
+    RamanWeight.resize(this->superExchangeJ.size());
     double norm = std::sqrt((this->latt->RdotR(pIn,pIn)) * (this->latt->RdotR(pOut,pOut)));
     int linkid = 0;
-    for(auto& link : this->supperExchangeJ){
+    for(auto& link : this->superExchangeJ){
         RamanWeight[linkid].resize(link.getLinkVecNum());
         for(int vecid=0; vecid < link.getLinkVecNum(); ++vecid){
             auto r = link.getvec(vecid);
@@ -630,7 +630,7 @@ void RamanOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     this->Bf->genSymm(rowID, finalIndList, factorList);
     for (int i = 0; i < (int)finalIndList.size(); ++i) {
         int linkid = 0;
-        for (const auto& link : this->supperExchangeJ) {
+        for (const auto& link : this->superExchangeJ) {
             int matID = link.getmatid();
             int matIDp = matID; 
             if (link.isOrdered()) ++matIDp;

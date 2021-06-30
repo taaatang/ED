@@ -51,10 +51,10 @@ protected:
     int linkCount{0};
     int spmCount{0};
     std::vector<Link<T>> Links, NCLinks;
-    std::vector<Link<T>> supperExchangeJ, chiralTermK;
+    std::vector<Link<T>> superExchangeJ, chiralTermK;
     std::vector<Link<T>> hoppingT, interBandU, exchangeJ, pairHoppingJ;
 
-    std::vector<TrInteractions<T,2>> trSupperExchangeJ;
+    std::vector<TrInteractions<T,2>> trSuperExchangeJ;
     std::vector<TrInteractions<T,3>> trChiralTermK;
     std::vector<TrInteractions<T,2>> trHoppingT, trInterBandU, trExchangeJ, trPairHoppingJ; 
 };
@@ -78,7 +78,7 @@ OperatorBase<T>& OperatorBase<T>::pushLink(Link<T> link, int matID){
         link.setid(linkCount, matID);
         switch (link.getLinkType()) {
             case LINK_TYPE::SUPER_EXCHANGE_J:
-                supperExchangeJ.push_back(link);
+                superExchangeJ.push_back(link);
                 break;
             case LINK_TYPE::CHIRAL_K:
                 chiralTermK.push_back(link);
@@ -125,7 +125,7 @@ void OperatorBase<T>::printLinks(bool brief) const {
     for (const auto& link:hoppingT) {
         link.print(brief);
     }
-    for (const auto& link:supperExchangeJ) {
+    for (const auto& link:superExchangeJ) {
         link.print(brief);
     }
     for (const auto& link:chiralTermK) {
@@ -184,7 +184,7 @@ void OperatorBase<T>::transform() {
         Gi = latt->getGT(this->Bi->getkIndex()) * Gi;
     }
     auto Gtot = Gi * Gf;
-    assignTrOp<T, 2>(Gi, Gf, Gtot.U, supperExchangeJ, trSupperExchangeJ, 'n');
+    assignTrOp<T, 2>(Gi, Gf, Gtot.U, superExchangeJ, trSuperExchangeJ, 'n');
     assignTrOp<T, 3>(Gi, Gf, Gtot.U, chiralTermK, trChiralTermK, 'c');
 }
 #endif // OperatorsBase_hpp
