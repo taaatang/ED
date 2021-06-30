@@ -341,6 +341,7 @@ void setham(const Parameters& para, std::unique_ptr<HamiltonianBase<dataType>>& 
         }
 
     }
+    H->transform();
     // std::cout<<"hamiltonian set!\n";
 }
 

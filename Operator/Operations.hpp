@@ -513,7 +513,8 @@ void SpinOperator<T>::push(idx_t repIf, T val, MAP<T>* rowMap){
     #else
         idx_t colID;
         cdouble fac;
-        if (pt_Basis->search(repIf, colID, fac, useTrans, usePG)){
+        //!Test
+        if (pt_Basis->search(repIf, colID, fac, false, false)){
             double finalNorm = pt_Basis->getNorm(colID);
             val /= finalNorm;
             val *= fac;

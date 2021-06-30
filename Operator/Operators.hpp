@@ -446,7 +446,7 @@ void Hamiltonian<M, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                 }
             } 
 
-            for (const auto& link:this->superExchangeJ) {
+            for (const auto& link:this->supperExchangeJ) {
                 int matID = link.getmatid();
                 cdouble factor = factorList.at(i) * link.getVal();
                 for (const auto& bond : link.bond()) {
@@ -463,34 +463,52 @@ void Hamiltonian<M, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         }
         // diag(rowID,val,&rowMaps[0]);
     } else if constexpr(M == LATTICE_MODEL::HEISENBERG) {
+        int matID = 0;
         if(this->Bf->getSiteDim()==2){
-            std::vector<idx_t> finalIndList;
-            std::vector<cdouble> factorList;
-            this->Bf->genSymm(rowID, finalIndList, factorList);
-            for (int i = 0; i < (int)finalIndList.size(); ++i) {
-                auto repI = finalIndList[i];
-                for (const auto &link:this->superExchangeJ) {
-                    int matID = link.getmatid();
-                    auto factor = factorList.at(i) * link.getVal();
-                    for (auto bond : link.bond()) {
-                        int siteI = bond.at(0);
-                        int siteJ = bond.at(1);
-                        this->szsz(siteI, siteJ, factor, repI, &rowMaps[matID]);
-                        this->spsm(siteI, siteJ, factor/2.0, repI, &rowMaps[matID]);
-                        this->smsp(siteI, siteJ, factor/2.0, repI, &rowMaps[matID]);
-                    }
-                }
-                for (const auto &link:this->chiralTermK) {
-                    int matID = link.getmatid();
-                    auto factor = factorList.at(i) * link.getVal();
-                    for (const auto& bond : link.bond()) {
-                        int siteI = bond.at(0);
-                        int siteJ = bond.at(1);
-                        int siteK = bond.at(2);
-                        this->chiral(siteI, siteJ, siteK, factor, repI, &rowMaps[matID]);
-                    }
+            auto repI0 = this->Bf->getRepI(rowID);
+            auto nf = this->Bf->getNorm(rowID);
+            for (const auto& trOp : this->trSupperExchangeJ) {
+                auto repI = trOp.g.tr(repI0);
+                for (const auto& bond : trOp.Op.bonds) {
+                    auto val = bond.val/nf;
+                    this->szsz(bond[0], bond[1], val, repI, &rowMaps[matID]);
+                    this->spsm(bond[0], bond[1], val/2.0, repI, &rowMaps[matID]);
+                    this->smsp(bond[0], bond[1], val/2.0, repI, &rowMaps[matID]);
                 }
             }
+            for (const auto& trOp : this->trChiralTermK) {
+                auto repI = trOp.g.tr(repI0);
+                for (const auto& bond : trOp.Op.bonds) {
+                    this->chiral(bond[0], bond[1], bond[2], bond.val/nf, repI, &rowMaps[matID]);
+                }
+            }
+            // std::vector<idx_t> finalIndList;
+            // std::vector<cdouble> factorList;
+            // this->Bf->genSymm(rowID, finalIndList, factorList);
+            // for (int i = 0; i < (int)finalIndList.size(); ++i) {
+            //     auto repI = finalIndList[i];
+            //     for (const auto &link:this->supperExchangeJ) {
+            //         int matID = link.getmatid();
+            //         auto factor = factorList.at(i) * link.getVal();
+            //         for (auto bond : link.bond()) {
+            //             int siteI = bond.at(0);
+            //             int siteJ = bond.at(1);
+            //             this->szsz(siteI, siteJ, factor, repI, &rowMaps[matID]);
+            //             this->spsm(siteI, siteJ, factor/2.0, repI, &rowMaps[matID]);
+            //             this->smsp(siteI, siteJ, factor/2.0, repI, &rowMaps[matID]);
+            //         }
+            //     }
+            //     for (const auto &link:this->chiralTermK) {
+            //         int matID = link.getmatid();
+            //         auto factor = factorList.at(i) * link.getVal();
+            //         for (const auto& bond : link.bond()) {
+            //             int siteI = bond.at(0);
+            //             int siteJ = bond.at(1);
+            //             int siteK = bond.at(2);
+            //             this->chiral(siteI, siteJ, siteK, factor, repI, &rowMaps[matID]);
+            //         }
+            //     }
+            // }
         } else {
             VecI initVec(this->latt->getOrbNum());
             std::vector<idx_t> finalIndList;
@@ -591,10 +609,10 @@ template <class T>
 void RamanOp<T>::setplz(Vec3d pIn_, Vec3d pOut_) {
     pIn = pIn_;
     pOut = pOut_;
-    RamanWeight.resize(this->superExchangeJ.size());
+    RamanWeight.resize(this->supperExchangeJ.size());
     double norm = std::sqrt((this->latt->RdotR(pIn,pIn)) * (this->latt->RdotR(pOut,pOut)));
     int linkid = 0;
-    for(auto& link : this->superExchangeJ){
+    for(auto& link : this->supperExchangeJ){
         RamanWeight[linkid].resize(link.getLinkVecNum());
         for(int vecid=0; vecid < link.getLinkVecNum(); ++vecid){
             auto r = link.getvec(vecid);
@@ -612,7 +630,7 @@ void RamanOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     this->Bf->genSymm(rowID, finalIndList, factorList);
     for (int i = 0; i < (int)finalIndList.size(); ++i) {
         int linkid = 0;
-        for (const auto& link : this->superExchangeJ) {
+        for (const auto& link : this->supperExchangeJ) {
             int matID = link.getmatid();
             int matIDp = matID; 
             if (link.isOrdered()) ++matIDp;

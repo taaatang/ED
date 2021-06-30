@@ -351,8 +351,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), false, false);
                 std::vector<std::vector<dataType>> ssvals;
                 ssvals.resize(sys.stateNum);
-                // for (int i = 0; i < sys.latt->getSiteNum(); ++i) {
-                for (int i = 9; i < 10; ++i) {
+                for (int i = 0; i < sys.latt->getSiteNum(); ++i) {
                     timer.tik();
                     SS.setr(i);
                     SS.construct();
