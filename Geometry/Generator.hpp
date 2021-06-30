@@ -10,16 +10,30 @@ struct Generator {
 	std::vector<Transform<T>> U{};
 	size_t G{0};
 	bool condensed{false};
+	Generator() { }
+	void identity(int N);
 	Transform<T>& operator[](int idx) { return U.at(idx); }
 	const Transform<T>& operator[](int idx) const { return U.at(idx); }
 	void add(const Transform<T>& u) { G++; U.push_back(u); }
 	void condense();
 };
 
+template<typename T>
+void Generator<T>::identity(int N) {
+	U.clear();
+	G = 0;
+	Transform<T> t(1.0, N);
+	for (int i = 0; i < N; ++i) {
+		t[i] = i;
+	}
+	this->add(t);
+}
+
+
 template <typename T>
 void Generator<T>::condense() {
 	if (!condensed) {
-		std:sort(U.begin(), U.end());
+		std::sort(U.begin(), U.end());
 		auto cur = U.begin();
 		auto next = cur + 1;
 		while (next != U.end()) {
@@ -44,8 +58,8 @@ void Generator<T>::condense() {
 template <typename T>
 Generator<T> operator*(const Generator<T>& lhs, const Generator<T>& rhs) {
 	Generator<T> res;
-	for (int i = 0; i < lhs.G; ++i) {
-		for (int j = 0; j < rhs.G; ++j) {
+	for (size_t i = 0; i < lhs.G; ++i) {
+		for (size_t j = 0; j < rhs.G; ++j) {
 			res.add(lhs[i] * rhs[j]);
 		}
 	}
@@ -78,7 +92,7 @@ bool commute(Generator<T>& lhs, Generator<T>& rhs) {
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const Generator<T>& g) {
 	os << "Generator Size:" << g.G << std::endl;
-	for (int i = 0; i < g.G; ++i) {
+	for (size_t i = 0; i < g.G; ++i) {
 		os << g[i];
 	}
 	return os;
