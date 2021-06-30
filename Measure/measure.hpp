@@ -426,6 +426,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     timer.print("Bf(p=" + tostr(p) + ") construction");
                     timer.tik();
                     setham(sys.para, Hf, sys.latt.get(), Bf.get());
+                    Hf->transform();
                     Hf->construct();
                     timer.print("Hf(p=" + tostr(p) + ") construction");
                     // bool commuteWithSymm = (channel == "A1" || sys.B->getPGIndex() == -1);
@@ -433,6 +434,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                         timer.tik();                       
                         Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), true, false);
                         R.pushLinks(RamanChannel(channel, J1, J2, *(sys.latt)));
+                        R.transform();
                         R.construct();
                         timer.print("Raman Op channel " + channel + "construction");
                         auto label = channel;
