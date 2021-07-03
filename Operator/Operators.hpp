@@ -776,9 +776,16 @@ SzkOp<T>::SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, bool trans, bool pg, int s
     Ki = Bi->getkIndex();
     Kf = Bf->getkIndex();
     // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
+    this->Sz.clear();
+    //!Fix: this is Szk^\dagger 
     for (int i = 0; i < latt->getSiteNum(); ++i) {
         expFactor[i] = latt->expKR(Ki, i) / latt->expKR(Kf, i) / cdouble(latt->getSiteNum());
+        this->Sz.add(Bond<T,1>(expFactor[i], {i}));
     }
+    Generator<T> Gi, Gf;
+    std::vector<Transform<T>> allTr;
+    this->getGiGf(Gi, Gf, allTr);
+    assignTrInteractions<T,1>(Gi, Gf, allTr, {this->Sz}, this->trSz, 'n');
 }
 
 //TODO: Check Szk with Symm
@@ -794,17 +801,34 @@ void SzkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             dval *= this->Bf->getNorm(rowID);
             rowMaps[0][repI] = dval;
         #else
-            std::vector<idx_t> finalIndList;
-            std::vector<cdouble> factorList;
-            this->Bf->genSymm(rowID, finalIndList, factorList);
-            for (int i = 0; i < int(finalIndList.size()); ++i) {
-                T val = 0.0;
-                for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
-                    val += this->getSz(siteID, finalIndList[i]) * expFactor[siteID];
+            auto repI = this->Bf->getRepI(rowID);
+            auto ni = this->Bf->getNorm(rowID);
+            for (const auto& gSz : this->trSz) {
+                auto repIf = gSz.g.tr(repI);
+                idx_t colID;
+                if (this->Bi->search(repIf, colID)) {
+                    T val = 0.0;
+                    for (const auto& bond : gSz.Op.bonds) {
+                        val += bond.val * this->getSz(bond[0], repIf);
+                    }
+                    val /= (ni * this->Bi->getNorm(colID));
+                    MapPush(&rowMaps.at(0), colID, val);
                 }
-                val *= factorList[i];
-                SpinOperator<T>::push(finalIndList[i], val, &rowMaps.at(0));
             }
+
+            //! Temporary implementation for point group symmetry 
+            // std::vector<idx_t> finalIndList;
+            // std::vector<cdouble> factorList;
+            // this->Bf->genSymm(rowID, finalIndList, factorList);
+            // for (int i = 0; i < int(finalIndList.size()); ++i) {
+            //     T val = 0.0;
+            //     for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
+            //         val += this->getSz(siteID, finalIndList[i]) * expFactor[siteID];
+            //     }
+            //     val *= factorList[i];
+            //     SpinOperator<T>::push(finalIndList[i], val, &rowMaps.at(0));
+            // }
+            //! Initial implementation
             // idx_t colID;
             // auto repI = this->Bf->getRepI(rowID);
             // if (this->Bi->search(repI, colID)) {

@@ -30,6 +30,7 @@ public:
     OperatorBase& pushLinks(std::vector<Link<T>> links);
     void printLinks(bool brief = true) const;
     // generate symmetry transformed operators
+    void getGiGf(Generator<T>& Gi, Generator<T>& Gf, std::vector<Transform<T>>& allTr) const;
     void transform();
 
     // Add onsite energy V
@@ -51,11 +52,14 @@ protected:
     int linkCount{0};
     int spmCount{0};
     std::vector<Link<T>> Links, NCLinks;
+    // Heisenberg terms
     std::vector<Link<T>> superExchangeJ, chiralTermK;
-    std::vector<Link<T>> hoppingT, interBandU, exchangeJ, pairHoppingJ;
-
+    Interactions<T,1> Sz{LINK_TYPE::SZ};
+    std::vector<TrInteractions<T,1>> trSz;
     std::vector<TrInteractions<T,2>> trSuperExchangeJ;
     std::vector<TrInteractions<T,3>> trChiralTermK;
+    // Hubbard terms
+    std::vector<Link<T>> hoppingT, interBandU, exchangeJ, pairHoppingJ;
     std::vector<TrInteractions<T,2>> trHoppingT, trInterBandU, trExchangeJ, trPairHoppingJ; 
 };
 
@@ -134,11 +138,11 @@ void OperatorBase<T>::printLinks(bool brief) const {
 }
 
 template<typename T, size_t N>
-void addTrOp(const Generator<T>& Gi, const Generator<T>& Gf, const Link<T>& link, std::vector<TrInteractions<T, N>>& trOp) {
+void addTrInteractions(const Generator<T>& Gi, const Generator<T>& Gf, const Link<T>& link, std::vector<TrInteractions<T, N>>& trOp) {
     for (size_t i = 0; i < Gi.G; ++i) {
         Generator<T> Gs;
         Gs.add(Gi[i]);
-        auto op = trLink<T, N>(Gi[i], link); 
+        auto op = linkToTrInteractions<T, N>(Gi[i], link); 
         auto Gtot = Gs * Gf;
         for (size_t j = 0; j < Gtot.G; ++j) {
             TrInteractions<T, N> comp(Gtot[j], link.getLinkType());
@@ -153,7 +157,7 @@ void addTrOp(const Generator<T>& Gi, const Generator<T>& Gf, const Link<T>& link
 }
 
 template<typename T, size_t N>
-void assignTrOp(const Generator<T>& Gi, const Generator<T>& Gf, const std::vector<Transform<T>>& totTr, const std::vector<Link<T>>& links, std::vector<TrInteractions<T, N>>& trOps, char order) {
+void assignTrInteractions(const Generator<T>& Gi, const Generator<T>& Gf, const std::vector<Transform<T>>& totTr, const std::vector<Link<T>>& links, std::vector<TrInteractions<T, N>>& trOps, char order) {
     trOps.clear();
     if (links.empty()) {
         return;
@@ -162,17 +166,54 @@ void assignTrOp(const Generator<T>& Gi, const Generator<T>& Gf, const std::vecto
         trOps.push_back(TrInteractions<T,N>(t, links[0].getLinkType()));
     }
     for (const auto& link : links) {
-        addTrOp<T, N>(Gi, Gf, link, trOps);
+        addTrInteractions<T, N>(Gi, Gf, link, trOps);
     }
     for(auto& trOp : trOps) {
         trOp.Op.condense(order);
     }
 }
+
+template<typename T, size_t N>
+void addTrInteractions(const Generator<T>& Gi, const Generator<T>& Gf, const Interactions<T, N>& Op, std::vector<TrInteractions<T, N>>& trOps) {
+    for (size_t i = 0; i < Gi.G; ++i) {
+        Generator<T> Gs;
+        Gs.add(Gi[i]);
+        auto trOp = Gi[i] * Op; 
+        auto Gtot = Gs * Gf;
+        for (size_t j = 0; j < Gtot.G; ++j) {
+            TrInteractions<T, N> comp(Gtot[j], Op.type);
+            auto found = std::lower_bound(trOps.begin(), trOps.end(), comp);
+            if (*found == comp) {
+                found->Op += trOp * Gtot[j].factor;
+            } else {
+                assert_msg(false, "transformation not found in addTrOp!");
+            }
+        }
+    }
+}
+
+template<typename T, size_t N>
+void assignTrInteractions(const Generator<T>& Gi, const Generator<T>& Gf, const std::vector<Transform<T>>& totTr, const std::vector<Interactions<T,N>>& Ops, std::vector<TrInteractions<T, N>>& trOps, char order) {
+    trOps.clear();
+    if (Ops.empty()) {
+        return;
+    }
+    for (const auto& t : totTr) {
+        trOps.push_back(TrInteractions<T,N>(t, Ops[0].type));
+    }
+    for (const auto& Op : Ops) {
+        addTrInteractions<T, N>(Gi, Gf, Op, trOps);
+    }
+    for(auto& trOp : trOps) {
+        trOp.Op.condense(order);
+    }
+}
+
+
 template<typename T>
-void OperatorBase<T>::transform() {
-    Generator<T> Gi;
-    Gi.identity(latt->getOrbNum());
-    Generator<T> Gf = latt->getGP(this->Bf->getPGIndex()) * latt->getGT(this->Bf->getkIndex());
+void OperatorBase<T>::getGiGf(Generator<T>& Gi, Generator<T>& Gf, std::vector<Transform<T>>& allTr) const {
+    Gi.setIdentity(latt->getOrbNum());
+    Gf = latt->getGP(this->Bf->getPGIndex()) * latt->getGT(this->Bf->getkIndex());
     if (commuteWithPG) {
         Gf = latt->getGP(this->Bi->getPGIndex()) * Gf;
     } else {
@@ -183,8 +224,16 @@ void OperatorBase<T>::transform() {
     } else {
         Gi = latt->getGT(this->Bi->getkIndex()) * Gi;
     }
-    auto Gtot = Gi * Gf;
-    assignTrOp<T, 2>(Gi, Gf, Gtot.U, superExchangeJ, trSuperExchangeJ, 'n');
-    assignTrOp<T, 3>(Gi, Gf, Gtot.U, chiralTermK, trChiralTermK, 'c');
+    auto Gtot = Gi * Gf; 
+    allTr = Gtot.U;
+}
+
+template<typename T>
+void OperatorBase<T>::transform() {
+    Generator<T> Gi, Gf;
+    std::vector<Transform<T>> allTr;
+    getGiGf(Gi, Gf, allTr);
+    assignTrInteractions<T, 2>(Gi, Gf, allTr, superExchangeJ, trSuperExchangeJ, 'n');
+    assignTrInteractions<T, 3>(Gi, Gf, allTr, chiralTermK, trChiralTermK, 'c');
 }
 #endif // OperatorsBase_hpp
