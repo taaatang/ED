@@ -213,16 +213,16 @@ void assignTrInteractions(const Generator<T>& Gi, const Generator<T>& Gf, const 
 template<typename T>
 void OperatorBase<T>::getGiGf(Generator<T>& Gi, Generator<T>& Gf, std::vector<Transform<T>>& allTr) const {
     Gi.setIdentity(latt->getOrbNum());
-    Gf = latt->getGP(this->Bf->getPGIndex()) * latt->getGT(this->Bf->getkIndex());
+    Gf = latt->getPointGroupGenerator(this->Bf->getPGIndex()) * latt->getTranslationGenerator(this->Bf->getkIndex());
     if (commuteWithPG) {
-        Gf = latt->getGP(this->Bi->getPGIndex()) * Gf;
+        Gf = latt->getPointGroupGenerator(this->Bi->getPGIndex()) * Gf;
     } else {
-        Gi = latt->getGP(this->Bi->getPGIndex()) * Gi;
+        Gi = latt->getPointGroupGenerator(this->Bi->getPGIndex()) * Gi;
     }
     if (commuteWithTrans) {
-        Gf = latt->getGT(this->Bi->getkIndex()) * Gf;
+        Gf = latt->getTranslationGenerator(this->Bi->getkIndex()) * Gf;
     } else {
-        Gi = latt->getGT(this->Bi->getkIndex()) * Gi;
+        Gi = latt->getTranslationGenerator(this->Bi->getkIndex()) * Gi;
     }
     auto Gtot = Gi * Gf; 
     allTr = Gtot.U;
