@@ -81,6 +81,10 @@ SPECTRASolverBiCGSTAB::SPECTRASolverBiCGSTAB(BaseMatrix<cdouble> *Ham, BaseMatri
 }
 
 void SPECTRASolverBiCGSTAB::compute(std::string dataPath) {
+    spectra.clear();
+    iterCountVec.clear();
+    resVec.clear();
+
     bool isMaster = (H->getWorkerID() == 0);
     // b is zero vector
     nb = mpiNorm(b.data(), b.size());
@@ -93,14 +97,20 @@ void SPECTRASolverBiCGSTAB::compute(std::string dataPath) {
         if (isMaster) {
             printLine(20, '!');
             std::cout << "Input vector b norm is zero for BiCG solver!" << std::endl;
+        
+            int count = 0;
+            for (auto w = wmin; w < wmax; w += dw) {
+                count++;
+            }
+            count *= 2;
+            iterCountVec = std::vector<int>(count, 0);
+            resVec = std::vector<double>(count, 0.0);
+            spectra = std::vector<double>(count, 0.0);
+            save(dataPath);
         }
         return;
     }
 
-    spectra.clear();
-    iterCountVec.clear();
-    resVec.clear();
-    
     if (isMaster) {
         savefreq(dataPath);
     }
@@ -170,10 +180,7 @@ void SPECTRASolverBiCGSTAB::save(std::string dataPath, bool isApp) {
 void SPECTRASolverBiCGSTAB::save(std::string dataPath) {
     mkdir_fs(dataPath);
     auto stateLabel =tostr(stateID);
-    ::save<double>(&w0, 1, dataPath + "/w0_" + stateLabel);
-    ::save<double>(&wmin, 1, dataPath + "/wmin_" + stateLabel);
-    ::save<double>(&wmax, 1, dataPath + "/wmax_" + stateLabel);
-    ::save<double>(&dw, 1, dataPath + "/dw_" + stateLabel);
+    savefreq(dataPath);
     ::save<double>(spectra.data(), int(spectra.size()), dataPath + "/spectra_" + stateLabel);
     ::save<int>(iterCountVec.data(), int(iterCountVec.size()), dataPath + "/iterCounts_" + stateLabel);
     ::save<double>(resVec.data(), int(resVec.size()), dataPath + "/resVec_" + stateLabel);
