@@ -52,6 +52,8 @@ private:
     BaseMatrix<cdouble> *H;
     BaseMatrix<cdouble> *O;
     std::vector<cdouble> b;
+    // norm of b
+    double nb;
     double w0;
     int stateID;
     int iterMax;
@@ -79,17 +81,33 @@ SPECTRASolverBiCGSTAB::SPECTRASolverBiCGSTAB(BaseMatrix<cdouble> *Ham, BaseMatri
 }
 
 void SPECTRASolverBiCGSTAB::compute(std::string dataPath) {
+    bool isMaster = (H->getWorkerID() == 0);
+    // b is zero vector
+    nb = mpiNorm(b.data(), b.size());
+    if (isMaster) {
+        mkdir_fs(dataPath);
+        auto stateLabel =tostr(stateID);
+        ::save<double>(&nb, 1, dataPath + "/norm_" + stateLabel);
+    }
+    if (nb < INFINITESIMAL) {
+        if (isMaster) {
+            printLine(20, '!');
+            std::cout << "Input vector b norm is zero for BiCG solver!" << std::endl;
+        }
+        return;
+    }
+
     spectra.clear();
     iterCountVec.clear();
     resVec.clear();
+    
+    if (isMaster) {
+        savefreq(dataPath);
+    }
     // Identity<cdouble> eye(H->getDim());
     SparseMatrix<cdouble> Minv(H->getDim(), H->getColDim(), 0, 1);
     std::vector<cdouble> diag;
     H->getDiag(diag);
-    bool isMaster = (H->getWorkerID() == 0);
-    if (isMaster) {
-        savefreq(dataPath);
-    }
     int step = 0;
     for (auto w = wmin; w < wmax; w += dw) {
         cdouble z{-(w + w0), -epsilon};
