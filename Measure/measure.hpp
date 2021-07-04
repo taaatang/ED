@@ -211,6 +211,8 @@ void System<T>::diag( ) {
                 std::cout << "sorted evals: " << evals << '\n';
                 save(evals.data(), int(evals.size()), path.evalFile);
             }
+            //? clear sparse matrix content
+            H->clear();
         } else {
             std::cout<<"Warning: H is null in System.diag()!" << std::endl;
         }
@@ -255,6 +257,9 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
         case LATTICE_MODEL::HUBBARD: {
             assert_msg(sys.B->getPGIndex() == -1, "HUBBARD model calculation only defined with translation symm!");
             if (key == "conductivity") {
+                if (sys.H->isEmpty()) {
+                    sys.H->construct();
+                }
                 Current J(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
                 J.pushLinks(HubbardLink(*(sys.latt)));
                 auto ds = std::vector<std::string> {"x", "y", "z"};
@@ -391,6 +396,8 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     timer.tik();
                     SzkOp<T> sk(sys.latt.get(), sys.B.get(), Bf.get(), false, false);
                     sk.construct();
+                    // release Bf resources
+                    Bf.reset(nullptr);
                     timer.print("Sq(kf=" + tostr(kf) + ") construction");
                     if (sys.measure("lanczos")) {
                         if (sys.isMaster) printLine(20, '-');
