@@ -104,7 +104,7 @@ template <typename T>
 bool operator==(const Generator<T>& lhs, const Generator<T>& rhs) {
 	assert_msg(lhs.condensed && rhs.condensed, "Generators should be condensed first before comparison!");
 	if (lhs.G != rhs.G) return false;
-	for (int i = 0; i < lhs.G; ++i) {
+	for (size_t i = 0; i < lhs.G; ++i) {
 		if (lhs[i] == rhs[i] and std::abs(lhs[i].factor - rhs[i].factor) < 1e-8) {
 			continue;
 		} else {
