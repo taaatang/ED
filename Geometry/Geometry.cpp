@@ -90,14 +90,10 @@ cdouble Geometry::twistPhase(int orbI, int orbJ) const {
     return std::exp(CPLX_I * dot(dPhase, rj - ri));
 }
 
-Generator<cdouble> Geometry::getGT(int kidx) const {
+Generator<cdouble> Geometry::getTranslationGenerator(int kidx) const {
     Generator<cdouble> g;
     if (kidx == -1) {
-        Transform<cdouble> t(1.0, getOrbNum());
-        for (int i = 0; i < (int)t.size; ++i) {
-            t[i] = i;
-        }
-        g.add(t);
+        g.setIdentity(getOrbNum());
     } else {
         for (int r = 0; r < getSiteNum(); ++r) {
             Transform<cdouble> t(expKR(kidx, r)/cdouble(getSiteNum()), getOrbNum());
@@ -110,14 +106,10 @@ Generator<cdouble> Geometry::getGT(int kidx) const {
     return g;
 }
 
-Generator<cdouble> Geometry::getGP(int pidx) const {
+Generator<cdouble> Geometry::getPointGroupGenerator(int pidx) const {
     Generator<cdouble> g;
     if (pidx == -1) {
-        Transform<cdouble> t(1.0, getOrbNum());
-        for (int i = 0; i < (int)t.size; ++i) {
-            t[i] = i;
-        }
-        g.add(t);
+        g.setIdentity(getOrbNum());
     } else {
         for (int p = 0; p < getPGOpNum(pidx); ++p) {
             Transform<cdouble> t(getChi(pidx, p)/cdouble(getPGOpNum(pidx)), getOrbNum());

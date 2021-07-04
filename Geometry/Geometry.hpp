@@ -122,9 +122,9 @@ public:
     int getOrbPG(int r, int id) const { return PGList.at(r).at(id); }
 
     // Generator for translation symmetry
-    Generator<cdouble> getGT(int kidx) const;
+    Generator<cdouble> getTranslationGenerator(int kidx) const;
     // Generator for point group symmetry
-    Generator<cdouble> getGP(int pidx) const;
+    Generator<cdouble> getPointGroupGenerator(int pidx) const;
 
     // a1-a2 coord -> orbid
     bool coordToOrbid(ORBITAL orb, const Vec3d &coord, int &orbid) const;
