@@ -82,6 +82,8 @@ public:
     void construct(std::string basisfile, std::string normfile, int workerID, int workerNum);
 
     void construct(bool saved, std::string basisDir);
+
+    void clear( ) { indexList.clear(); normList.clear();}
     
     int getSiteDim() const {return siteDim;}
     int getOrbNum() const {return N;}
