@@ -169,9 +169,7 @@ void System<T>::construct() {
     H->construct();
     timer.print("Hamiltonian construction");
     if (isMaster) {
-        printLine(50, '-');
         B->print();
-        printLine(50, '-');
         H->print("Hamiltonian from master worker");
     }
     isConstructed = true;
@@ -213,6 +211,8 @@ void System<T>::diag( ) {
                 std::cout << "sorted evals: " << evals << '\n';
                 save(evals.data(), int(evals.size()), path.evalFile);
             }
+            //? clear sparse matrix content
+            H->clear();
         } else {
             std::cout<<"Warning: H is null in System.diag()!" << std::endl;
         }
@@ -257,7 +257,10 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
         case LATTICE_MODEL::HUBBARD: {
             assert_msg(sys.B->getPGIndex() == -1, "HUBBARD model calculation only defined with translation symm!");
             if (key == "conductivity") {
-                Current J(sys.latt.get(), sys.B.get(), sys.B.get(), true);
+                if (sys.H->isEmpty()) {
+                    sys.H->construct();
+                }
+                Current J(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
                 J.pushLinks(HubbardLink(*(sys.latt)));
                 auto ds = std::vector<std::string> {"x", "y", "z"};
                 for (auto d : ds) {
@@ -290,7 +293,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                             Bf->construct(opt(sys.para, "basis"), sys.path.getBasisDir(Bf->getkIndex(),  Bf->getPGIndex()));
                             Hf->construct();
                             for (auto& orb : sys.latt->getUnitCell()) {
-                                CkOp<T> ck(sys.latt.get(), sys.B.get(), Bf.get(), true);
+                                CkOp<T> ck(sys.latt.get(), sys.B.get(), Bf.get(), true, false);
                                 ck.set(pm, spin, orb);
                                 ck.construct();
                                 for (int n = 0; n < sys.stateNum; ++n) {
@@ -348,12 +351,16 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
 
         case LATTICE_MODEL::HEISENBERG: {
             if (key == "sisj") {
-                SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), sys.B->getPGIndex() == -1);
+                // SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), false, false);
                 std::vector<std::vector<dataType>> ssvals;
                 ssvals.resize(sys.stateNum);
                 for (int i = 0; i < sys.latt->getSiteNum(); ++i) {
                     timer.tik();
-                    SS.setr(i);
+                    Hamiltonian<LATTICE_MODEL::HEISENBERG, cdouble> SS(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
+                    Link<cdouble> J(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {sys.latt->getSiteR(i)});
+                    SS.pushLink(J, 0);
+                    // SS.setr(i);
+                    SS.transform();
                     SS.construct();
                     timer.print("S(r=" + tostr(i) + ") construction");
                     for (int n = 0; n < sys.stateNum; ++n) {
@@ -371,6 +378,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 // assert_msg(sys.B->getPGIndex() == -1, "skw only defined for traslation symm!");
                 auto occi = sys.B->getOcc();
                 for (int kf = 0; kf < sys.latt->getSiteNum(); ++kf) {
+                    if (sys.isMaster) printLine(40, '-');
                     std::unique_ptr<Basis> Bf;
                     std::unique_ptr<HamiltonianBase<T>> Hf;
                     timer.tik();
@@ -381,11 +389,18 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     setham(sys.para, Hf, sys.latt.get(), Bf.get());    
                     Hf->construct();
                     timer.print("Hf construction");
+                    if (sys.isMaster) {
+                        Bf->print();
+                        Hf->print("Hf from master worker");
+                    }
                     timer.tik();
-                    SzkOp<T> sk(sys.latt.get(), sys.B.get(), Bf.get(), false);
+                    SzkOp<T> sk(sys.latt.get(), sys.B.get(), Bf.get(), false, false);
                     sk.construct();
+                    // release Bf resources
+                    Bf.reset(nullptr);
                     timer.print("Sq(kf=" + tostr(kf) + ") construction");
                     if (sys.measure("lanczos")) {
+                        if (sys.isMaster) printLine(20, '-');
                         timer.tik();
                         for (int n = 0; n < sys.stateNum; ++n) {
                             SPECTRASolver<dataType> spectra(Hf.get(), sys.evals[n], &sk, sys.evecs[n], sys.krylovDim);
@@ -395,6 +410,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                         timer.print("Sqw Lanczos");
                     }
                     if (sys.measure("bicg")) {
+                        if (sys.isMaster) printLine(20, '-');
                         timer.tik();
                         for (int n = 0; n < sys.stateNum; ++n) {
                             SPECTRASolverBiCGSTAB spectra(Hf.get(), &sk, sys.evecs[n], std::real(sys.evals[n]), n, sys.template getMpara<int>("iterMax"), sys.template getMpara<double>("wmin"), sys.template getMpara<double>("wmax"), sys.template getMpara<double>("dw"), sys.template getMpara<double>("epsilon"));
@@ -414,6 +430,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 auto pfmax = sys.template getMpara<int>("pfmax");
                 
                 for (int p = pfmin; p <= pfmax; ++p) {
+                    if (sys.isMaster) printLine(40, '-');
                     std::unique_ptr<Basis> Bf;
                     std::unique_ptr<HamiltonianBase<T>> Hf;
                     timer.tik();
@@ -422,20 +439,28 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                     timer.print("Bf(p=" + tostr(p) + ") construction");
                     timer.tik();
                     setham(sys.para, Hf, sys.latt.get(), Bf.get());
+                    Hf->transform();
                     Hf->construct();
                     timer.print("Hf(p=" + tostr(p) + ") construction");
+                    if (sys.isMaster) {
+                        Bf->print();
+                        Hf->print("Hf from master worker");
+                    }
                     // bool commuteWithSymm = (channel == "A1" || sys.B->getPGIndex() == -1);
                     for (auto channel : channels) {
+                        if (sys.isMaster) printLine(20, '-');
                         timer.tik();                       
-                        Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), sys.B->getPGIndex() == -1 && sys.B->getkIndex() == 0);
+                        Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), true, false);
                         R.pushLinks(RamanChannel(channel, J1, J2, *(sys.latt)));
+                        R.transform();
                         R.construct();
-                        timer.print("Raman Op channel " + channel + "construction");
+                        timer.print("Raman Op channel " + channel + " construction");
                         auto label = channel;
                         if (p >= 0) {
                             label = channel + "_p" + tostr(p);
                         }
                         if (sys.measure("lanczos")) {
+                            if (sys.isMaster) printLine(10, '-');
                             timer.tik();
                             for (int n = 0; n < sys.stateNum; ++n) {
                                 SPECTRASolver<dataType> spectra(Hf.get(), sys.evals[n], &R, sys.evecs[n], sys.krylovDim);
@@ -445,6 +470,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                             timer.print("Raman Lanczos");
                         } 
                         if (sys.measure("bicg")) {
+                            if (sys.isMaster) printLine(10, '-');
                             timer.tik();
                             for (int n = 0; n < sys.stateNum; ++n) {
                                 SPECTRASolverBiCGSTAB spectra(Hf.get(), &R, sys.evecs[n], std::real(sys.evals[n]), n, sys.template getMpara<int>("iterMax"), sys.template getMpara<double>("wmin"), sys.template getMpara<double>("wmax"), sys.template getMpara<double>("dw"), sys.template getMpara<double>("epsilon"));
@@ -463,7 +489,7 @@ void compute(System<T> &sys, std::string key, int workerID, int workerNum, bool 
                 std::vector<std::string> plzLabel{"x", "y"};
                 for(int i = 0; i < 1; ++i) {
                     for(int j = 0; j < 2; ++j) {
-                        RamanOp<dataType> R(sys.latt.get(), sys.B.get(), sys.B.get(), sys.B->getPGIndex() == -1);
+                        RamanOp<dataType> R(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
                         if (std::abs(J1.value_or(0.0)) > INFINITESIMAL) {
                             auto link = HeisenbergLink("J1", *sys.latt.get());
                             link.setVal(link.getVal() * J1.value_or(0.0));

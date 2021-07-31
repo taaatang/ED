@@ -52,6 +52,8 @@ private:
     BaseMatrix<cdouble> *H;
     BaseMatrix<cdouble> *O;
     std::vector<cdouble> b;
+    // norm of b
+    double nb;
     double w0;
     int stateID;
     int iterMax;
@@ -82,14 +84,40 @@ void SPECTRASolverBiCGSTAB::compute(std::string dataPath) {
     spectra.clear();
     iterCountVec.clear();
     resVec.clear();
+
+    bool isMaster = (H->getWorkerID() == 0);
+    // b is zero vector
+    nb = mpiNorm(b.data(), b.size());
+    if (isMaster) {
+        mkdir_fs(dataPath);
+        auto stateLabel =tostr(stateID);
+        ::save<double>(&nb, 1, dataPath + "/norm_" + stateLabel);
+    }
+    if (nb < INFINITESIMAL) {
+        if (isMaster) {
+            printLine(20, '!');
+            std::cout << "Input vector b norm is zero for BiCG solver!" << std::endl;
+        
+            int count = 0;
+            for (auto w = wmin; w < wmax; w += dw) {
+                count++;
+            }
+            count *= 2;
+            iterCountVec = std::vector<int>(count, 0);
+            resVec = std::vector<double>(count, 0.0);
+            spectra = std::vector<double>(count, 0.0);
+            save(dataPath);
+        }
+        return;
+    }
+
+    if (isMaster) {
+        savefreq(dataPath);
+    }
     // Identity<cdouble> eye(H->getDim());
     SparseMatrix<cdouble> Minv(H->getDim(), H->getColDim(), 0, 1);
     std::vector<cdouble> diag;
     H->getDiag(diag);
-    bool isMaster = (H->getWorkerID() == 0);
-    if (isMaster) {
-        savefreq(dataPath);
-    }
     int step = 0;
     for (auto w = wmin; w < wmax; w += dw) {
         cdouble z{-(w + w0), -epsilon};
@@ -152,10 +180,7 @@ void SPECTRASolverBiCGSTAB::save(std::string dataPath, bool isApp) {
 void SPECTRASolverBiCGSTAB::save(std::string dataPath) {
     mkdir_fs(dataPath);
     auto stateLabel =tostr(stateID);
-    ::save<double>(&w0, 1, dataPath + "/w0_" + stateLabel);
-    ::save<double>(&wmin, 1, dataPath + "/wmin_" + stateLabel);
-    ::save<double>(&wmax, 1, dataPath + "/wmax_" + stateLabel);
-    ::save<double>(&dw, 1, dataPath + "/dw_" + stateLabel);
+    savefreq(dataPath);
     ::save<double>(spectra.data(), int(spectra.size()), dataPath + "/spectra_" + stateLabel);
     ::save<int>(iterCountVec.data(), int(iterCountVec.size()), dataPath + "/iterCounts_" + stateLabel);
     ::save<double>(resVec.data(), int(resVec.size()), dataPath + "/resVec_" + stateLabel);

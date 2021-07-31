@@ -14,7 +14,7 @@
     *********************
 */
 
-Current::Current(Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithSymm):OperatorBase<cdouble>(latt, Bi, Bf, commuteWithSymm) {
+Current::Current(Geometry *latt, Basis *Bi, Basis *Bf, bool trans, bool pg):OperatorBase<cdouble>(latt, Bi, Bf, trans, pg) {
     
 }
 
@@ -78,7 +78,7 @@ void Current::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps) {
     }
 }
 
-Nocc::Nocc(Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithSymm):OperatorBase<double>(latt, Bi, Bf, commuteWithSymm, 0, latt->getUnitOrbNum()) {
+Nocc::Nocc(Geometry *latt, Basis *Bi, Basis *Bf, bool trans, bool pg):OperatorBase<double>(latt, Bi, Bf, trans, pg, 0, latt->getUnitOrbNum()) {
     for(int i = 0; i < latt->getUnitOrbNum(); ++i) diagValList.resize(BaseMatrix<double>::nloc);
     records.resize(latt->getUnitOrbNum());
 }

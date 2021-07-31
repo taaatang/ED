@@ -90,6 +90,38 @@ cdouble Geometry::twistPhase(int orbI, int orbJ) const {
     return std::exp(CPLX_I * dot(dPhase, rj - ri));
 }
 
+Generator<cdouble> Geometry::getTranslationGenerator(int kidx) const {
+    Generator<cdouble> g;
+    if (kidx == -1) {
+        g.setIdentity(getOrbNum());
+    } else {
+        for (int r = 0; r < getSiteNum(); ++r) {
+            Transform<cdouble> t(expKR(kidx, r)/cdouble(getSiteNum()), getOrbNum());
+            for (int i = 0; i < getOrbNum(); ++i) {
+                t[i] = getOrbTran(r, i);
+            }
+            g.add(t);
+        }
+    }
+    return g;
+}
+
+Generator<cdouble> Geometry::getPointGroupGenerator(int pidx) const {
+    Generator<cdouble> g;
+    if (pidx == -1) {
+        g.setIdentity(getOrbNum());
+    } else {
+        for (int p = 0; p < getPGOpNum(pidx); ++p) {
+            Transform<cdouble> t(getChi(pidx, p)/cdouble(getPGOpNum(pidx)), getOrbNum());
+            for (int i = 0; i < getOrbNum(); ++i) {
+                t[i] = getOrbPG(p, i);
+            }
+            g.add(t);
+        }
+    }
+    return g;
+}
+
 bool Geometry::coordToOrbid(ORBITAL orb, const Vec3d &coord, int &orbid) const {
     bool cond;
     for (const auto& Orb:enlgOrbs) {
@@ -637,6 +669,7 @@ TriAngLattice::TriAngLattice(int numSites, bool PBC){
             kylist = VecD {0.0, 0.0, +0.0, +1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, -1.0, -1.0};
             break;
         }
+        //TODO:fix 21-sites point group
         case 21:{
             R1 = 5.0 * a1 - 4.0 * a2;
             R2 = 4.0 * a1 + 1.0 * a2;

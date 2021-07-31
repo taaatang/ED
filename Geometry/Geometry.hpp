@@ -20,6 +20,7 @@
 #include "Geometry/Vec3.hpp"
 #include "Algebra/algebra.hpp"
 #include "Utils/bitop.hpp"
+#include "Geometry/Generator.hpp"
 
 
 /*
@@ -119,6 +120,12 @@ public:
     int getPGOpNum(int PGRepIdx) const { return CharacterList.at(PGRepIdx).size(); }
     // return the id' obtained by transform id by r-th Point Group Element
     int getOrbPG(int r, int id) const { return PGList.at(r).at(id); }
+
+    // Generator for translation symmetry
+    Generator<cdouble> getTranslationGenerator(int kidx) const;
+    // Generator for point group symmetry
+    Generator<cdouble> getPointGroupGenerator(int pidx) const;
+
     // a1-a2 coord -> orbid
     bool coordToOrbid(ORBITAL orb, const Vec3d &coord, int &orbid) const;
     // orbital occupancy count

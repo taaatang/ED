@@ -100,7 +100,7 @@ public:
 
     // local matrix nonzero elements count
     idx_t nzCount( ) const;    
-
+    bool isEmpty() const { return isMatrixFree; }
     // reserve memory for diagonal part
     void reserveDiag( ) { for(int i = 0; i < dmNum; ++i) diagValList.reserve(this->getnloc()); }
 

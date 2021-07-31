@@ -11,10 +11,8 @@
 template <class T>
 class Link{
 public:
-    Link( ) { }
     Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, bool is_Const_ = true, bool is_Ordered_ = false);
     Link(LINK_TYPE link_type_, std::vector<ORBITAL> orbList_, T val_, const std::vector<Vec3d>& vecs, bool is_Const_ = true, bool is_Ordered_ = false);
-    ~Link( ) { };
     
     LINK_TYPE getLinkType( ) const { return link_type; }
     T getVal( ) const { return val; }
@@ -26,7 +24,8 @@ public:
     // rep orbital of the link
     ORBITAL getRepOrb( ) const { return orbList.at(0); }
     std::vector<ORBITAL> getOrbs( ) const { return orbList; }
-    // number of orbs in one link
+    int getOrbNum() const { return orbList.size(); }
+    // number of orbs minus 1 in one link
     int getLinkSize( ) const { return orbList.size() - 1; }
     // size of LinkVecs
     int getLinkVecNum( ) const { return LinkVecs.size(); }
@@ -45,32 +44,34 @@ public:
     void setVal(T val_) { val = val_; }
     void setid(int linkid_, int matid_ = 0);
     void setmatid(int matid_ = 0) { matid = matid_;}
-    // set time evolve function for val
-    void setTimeFunc(T (*timeFunc_)(int));
-    void setVal( );
 
     // add one link (contains orbids in the same link)
-    void push_back(std::vector<int> orbidList) { LinkList.push_back(orbidList); }
+    void push_back(const std::vector<int>& orbidList) { LinkList.push_back(orbidList); }
     // add a orb's relative coord to the rep orb
-    Link<T>& addLinkVec(Vec3d vec);
+    Link<T>& addLinkVec(const Vec3d& vec);
     //generate all the links->linkList
     void genLinkMaps(Geometry* pt_lattice);
     void print(bool brief = true, std::ostream& os = std::cout) const;
 
+    
+
 private:
     LINK_TYPE link_type{LINK_TYPE::HOPPING_T};
     T val{0.0};
-    // same group ids will be contained in the same sparse matrix
+    // same matid will be contained in the same sparse matrix
     int linkid{0}, matid{0};
-    bool is_Const{true}, is_Ordered{false};
-    T (*timeFunc)(int);
-    bool is_timeFunc_set{false};
-    int timeStep{0};
+    // if true, val will not change
+    bool is_Const{true};
+    // if true, respect the order of orb in a bond
+    bool is_Ordered{false};
+    // ORBITAL involved in forming a single bond
     std::vector<ORBITAL> orbList;
     std::vector<Vec3d> LinkVecs;
+    // list of bonds
     std::vector<VecI> LinkList;
     // LinkVecIdList[i] is the id of LinkVec for i-th bond in LinkList
     VecI LinkVecIdList;
+    bool isGenerated{false};
 };
 
 Link<dataType> HeisenbergLink(std::string name, const Geometry& latt);
@@ -114,55 +115,49 @@ void Link<T>::setid(int linkid_, int matid_ ) {
 }
 
 template <class T>
-void Link<T>::setTimeFunc(T (*timeFunc_)(int)) {
-    timeFunc = timeFunc_; 
-    is_timeFunc_set = true;
-}
-
-template <class T>
-void Link<T>::setVal( ) {
-    if(!is_Const) {
-        if(!is_timeFunc_set){std::cout<<"time evolve function not set for linkid:"<<linkid<<std::endl; exit(1);}
-        val = timeFunc(timeStep); 
-    }
-    timeStep++;
-}
-
-template <class T>
-Link<T>& Link<T>::addLinkVec(Vec3d vec){
-    assert(vec.size()==3); 
+Link<T>& Link<T>::addLinkVec(const Vec3d& vec){
     LinkVecs.push_back(vec); 
     return *this;
 }
 
 template <class T>
 void Link<T>::genLinkMaps(Geometry* pt_lattice) {
+    LinkList.clear();
+    LinkVecIdList.clear();
     Vec3d coordi, coordf; 
     for (int orbid = 0; orbid < pt_lattice->getOrbNum(); ++orbid) {
         if(pt_lattice->is_Orbital(orbid,getRepOrb())) {
-            coordi = pt_lattice->getOrbR(orbid);
-            for (int j = 0; j < getLinkVecNum(); j += getLinkSize()) {
-                VecI tmp;
-                tmp.push_back(orbid);
-                bool is_bond = true;
-                for (int k = j; k < j + getLinkSize(); ++k) {
-                    coordf = coordi + LinkVecs.at(k);
-                    int orbidf;
-                    if (pt_lattice->coordToOrbid(orbList.at(k-j+1), coordf, orbidf)){
-                        assert(pt_lattice->getOrb(orbidf) == orbList.at(k-j+1));
-                        tmp.push_back(orbidf);
-                    }else{
-                        is_bond = false;
-                        break;
+            if (orbList.size() > 1) {
+                // bond involve multiple orbitals
+                coordi = pt_lattice->getOrbR(orbid);
+                for (int j = 0; j < getLinkVecNum(); j += getLinkSize()) {
+                    VecI tmp;
+                    tmp.push_back(orbid);
+                    bool is_bond = true;
+                    for (int k = j; k < j + getLinkSize(); ++k) {
+                        coordf = coordi + LinkVecs.at(k);
+                        int orbidf;
+                        if (pt_lattice->coordToOrbid(orbList.at(k-j+1), coordf, orbidf)){
+                            assert(pt_lattice->getOrb(orbidf) == orbList.at(k-j+1));
+                            tmp.push_back(orbidf);
+                        }else{
+                            is_bond = false;
+                            break;
+                        }
+                    }
+                    if(is_bond){
+                        push_back(tmp);
+                        LinkVecIdList.push_back(j);
                     }
                 }
-                if(is_bond){
-                    push_back(tmp);
-                    LinkVecIdList.push_back(j);
-                }
+            } else {
+                // single orbital "bond"
+                VecI tmp{orbid};
+                push_back(tmp);
             }
         }   
     }
+    isGenerated = true;
 }
 
 template <class T>
