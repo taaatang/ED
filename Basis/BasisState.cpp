@@ -154,9 +154,9 @@ PhononState ElectronPhononBasis::phMin = PhononState{};
 
 PhononState ElectronPhononBasis::phMax = PhononState{};
 
-ElectronPhononBasis ElectronPhononBasis::min = ElectronPhononBasis(ElectronBasis{}, PhononState{});
+ElectronPhononBasis ElectronPhononBasis::min = ElectronPhononBasis(ElectronBasis{BinaryState{}, BinaryState{}}, PhononState{});
 
-ElectronPhononBasis ElectronPhononBasis::max = ElectronPhononBasis(ElectronBasis{}, PhononState{});
+ElectronPhononBasis ElectronPhononBasis::max = ElectronPhononBasis(ElectronBasis{BinaryState{}, BinaryState{}}, PhononState{});
 
 ElectronPhononBasis::ElectronPhononBasis() {
     assert_msg(isConfigured() && isMinMaxSet, "ElectronPhononBasis is not configured!");

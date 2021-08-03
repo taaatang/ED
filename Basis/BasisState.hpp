@@ -132,8 +132,6 @@ class ElectronBasis : public BasisStateInterface {
 public:
     ElectronBasis();
 
-    ElectronBasis(int n_, int nu_, int n_d);
-
     ElectronBasis(BinaryState up_, BinaryState dn_) : up(up_), dn(dn_) { }
 
     static void configure(int nSite_, int nu_, int nd_, int maxPhPerSite_);
@@ -211,8 +209,6 @@ std::ostream& operator<<(std::ostream& os, const ElectronBasis& e);
 class ElectronPhononBasis : public BasisStateInterface {
 public:
     ElectronPhononBasis();
-
-    ElectronPhononBasis(int n_, int nu_, int nd_, int nPho_);
 
     ElectronPhononBasis(ElectronBasis el_, PhononState ph_) : el(el_), ph(std::move(ph_)) { }
 

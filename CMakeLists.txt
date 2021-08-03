@@ -8,11 +8,11 @@ elseif(HOST STREQUAL "sherlock" OR HOST STREQUAL "acer")
     set(CMAKE_CXX_COMPILER mpiicpc)
     set(OPENMP_FLAG -qopenmp)
 elseif(HOST STREQUAL "mac")
-    set(CMAKE_CXX_COMPILER /usr/local/bin/g++-10)
+    set(CMAKE_CXX_COMPILER /usr/local/bin/g++-11)
     set(OPENMP_FLAG -fopenmp)
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 project(ED VERSION 1.0.0 LANGUAGES CXX)
@@ -26,8 +26,8 @@ set(MKLROOT $ENV{MKLROOT})
 set(MKLINC ${MKLROOT}/include)
 
 if(HOST STREQUAL "mac")
-    set(MPIINC /usr/local/Cellar/open-mpi/4.1.0/include)
-    set(MPILIB /usr/local/Cellar/open-mpi/4.1.0/lib)
+    set(MPIINC /usr/local/Cellar/open-mpi/4.1.1_2/include)
+    set(MPILIB /usr/local/Cellar/open-mpi/4.1.1_2/lib)
     set(MPI mpi)
     set(MKLLIB ${MKLROOT}/lib)
 else()
@@ -76,7 +76,7 @@ set(GLOBAL_PARA "Global/globalType.hpp" "Global/globalPara.hpp" "Global/config.h
 set(UTILS "Utils/comb.cpp" "Utils/io.cpp"  "Utils/paras.cpp" "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" "Utils/paras.hpp" "Utils/path.hpp" "Utils/timer.hpp")
 set(PULSE "Pulse/pulse.cpp" "Pulse/pulse.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp" "Geometry/Vec3.hpp" "Geometry/Transform.hpp" "Geometry/Generator.hpp")
-set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp")
+set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp" "Basis/BasisState.cpp" "Basis/BasisState.hpp")
 set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
 set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/Operations.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
 
@@ -96,26 +96,12 @@ set(ALL_DEP ${SPECTRA_DEP} ${TIME} ${PULSE})
 # Excutables
 set(EXE_SRC ExcutableSRC)
 
-add_executable(hubbard.out ${EXE_SRC}/hubbard.cpp ${ALL_DEP})
-target_link_libraries(hubbard.out ${LINKS} gsl gslcblas)
-
-add_executable(heisenberg.out ${EXE_SRC}/heisenberg.cpp ${ALL_DEP})
-target_link_libraries(heisenberg.out ${LINKS} gsl gslcblas)
-
 add_executable(main.out ${EXE_SRC}/main.cpp ${ALL_DEP})
 target_link_libraries(main.out ${LINKS} gsl gslcblas)
 
 # Test
 set(TEST_SRC Test)
 
-add_executable(Test.out ${TEST_SRC}/symmTest.cpp ${ALL_DEP})
-target_link_libraries(Test.out ${LINKS} gsl gslcblas)
+add_executable(test.out ${TEST_SRC}/basisState.cpp ${ALL_DEP})
+target_link_libraries(test.out ${LINKS} gsl gslcblas)
 
-# add_executable(geometryTest.out ${TEST_SRC}/geometryTest.cpp ${GEOMETRY_DEP})
-
-# add_executable(timeTest.out ${TEST_SRC}/timeTest.cpp ${TIME_DEP})
-# target_link_libraries(timeTest.out ${LINKS} parpack gsl gslcblas)
-
-# add_executable(pulseTest.out ${TEST_SRC}/pulseTest.cpp ${ALL_DEP})
-# target_link_libraries(pulseTest.out ${LINKS} gsl gslcblas)
-# add_executable(Time.out timeTest.cpp algebra.cpp utils.cpp Basis.cpp Geometry.cpp Operators.cpp) 
