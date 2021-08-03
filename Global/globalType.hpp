@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <string>
 
-enum class LATTICE_MODEL {HUBBARD,tJ,HEISENBERG};
+enum class LATTICE_MODEL {HUBBARD, tJ, HEISENBERG, ElPh};
 /*
     D4m: for multi-band hubbard, due to orbital phases, the symmetry is only a sub group {I, RZ}. R is rotation, Z is reflection.
     D4m5: include 2 Pz orbitals. the symmetry is {I, RZ}x{I, M}. M is the mirror symmetry about the xy plane.
