@@ -10,7 +10,7 @@
 #include "Utils/io.hpp"
 
 template<typename T>
-concept ElPhConfigEnabled = requires (T) { T::configure(int, int, int, int) };
+concept ElPhConfigEnabled = requires (T, int n, int nu, int nd, int nPho) { T::configure(n, nu, nd, nPho); };
 
 template<typename T>
 concept SupportBasisStateInterface = std::derived_from<T, BasisStateInterface> && ElPhConfigEnabled<T>;
@@ -37,6 +37,9 @@ public:
     bool empty() const;
 
     void clear();
+
+    template<SupportBasisStateInterface T>
+    friend std::ostream& operator<<(std::ostream& os, const Basis<T>& b);
 
 private:
     bool isMinRep(BasisState_t state, double& basisNorm, const Generator<cdouble>* gs);
@@ -81,18 +84,13 @@ public:
     bool isUseSymm() const { return kIdx != -1 || pIdx != -1; }
 };
 
-template<typename BasisState_t>
+template<SupportBasisStateInterface BasisState_t>
 Basis<BasisState_t>::Basis(Geometry* lattptr, int nu, int nd, int maxPhPerSite, int k, int p) : latt(lattptr), kIdx(k), pIdx(p) {
     assert_msg(latt, "Null lattice_ptr!");
     BasisState_t::configure(latt->getOrbNum(), nu, nd, maxPhPerSite);
-    totDim = BasisState_t::getTotDim();
-    if (!isUseSymm()) {
-        subDim = totDim;
-        locDim = totDim;
-    }
 }
 
-template<typename BasisState_t>
+template<SupportBasisStateInterface BasisState_t>
 double Basis<BasisState_t>::norm(idx_t idx) const {
     if (isUseSymm()) {
         return normList.at(idx);
@@ -101,17 +99,21 @@ double Basis<BasisState_t>::norm(idx_t idx) const {
     }
 }
 
-template<typename BasisState_t>
+template<SupportBasisStateInterface BasisState_t>
 std::optional<idx_t> Basis<BasisState_t>::search(const BasisState_t &state) {
-
-    return std::optional<idx_t>();
+    auto low = std::lower_bound(basisList.begin(), basisList.end(), state);
+    if (low != basisList.end() && *low == state) {
+        return std::make_optional(low - basisList.begin());
+    }
+    return std::nullopt;
 }
 
-template<typename BasisState_t>
+template<SupportBasisStateInterface BasisState_t>
 void Basis<BasisState_t>::construct() {
     clear();
     auto gs = latt->getTranslationGenerator(kIdx) * latt->getPointGroupGenerator(pIdx);
-    BasisState_t state(siteNum, nu, nd, nPho);
+    BasisState_t state;
+    totDim = state.getTotDim();
     if (isUseSymm()) {
         double basisNorm;
         do {
@@ -119,11 +121,12 @@ void Basis<BasisState_t>::construct() {
                 basisList.push_back(state);
                 normList.push_back(basisNorm);
             }
-        } while (state.next(0));
+        } while (state.next());
     } else {
         do {
             basisList.push_back(state);
-        } while (state.next(0));
+        } while (state.next());
+        std::cout << "totDim " << totDim << " == " << basisList.size() << std::endl;
         assert_msg(basisList.size() == totDim, "Wrong basis dimension!");
     }
     subDim = basisList.size();
@@ -131,32 +134,32 @@ void Basis<BasisState_t>::construct() {
 }
 
 //TODO
-template<typename BasisState_t>
+template<SupportBasisStateInterface BasisState_t>
 void Basis<BasisState_t>::construct(const std::string &basisFile, const std::string &normFile) {
 
 }
 
 //TODO
-template<typename BasisState_t>
+template<SupportBasisStateInterface BasisState_t>
 void
 Basis<BasisState_t>::construct(const std::string &basisFile, const std::string &normFile, int workerID, int workerNum) {
 
 }
 
 //TODO:for hubbard model, we can use an empty basisList to save memory
-template<typename BasisState_t>
+template<SupportBasisStateInterface BasisState_t>
 bool Basis<BasisState_t>::empty() const {
     return basisList.empty();
 }
 
-template<typename BasisState_t>
+template<SupportBasisStateInterface BasisState_t>
 bool Basis<BasisState_t>::isMinRep(BasisState_t state, double &basisNorm, const Generator<cdouble>* gs) {
     if (isUseSymm()) {
-        BasisState_t trState = state;
         std::vector<BasisState_t> trStates;
         cdouble cNorm2 = 0.0;
         for (const auto &u : gs->U) {
-            auto sgn = trState.transform(u.transformList);
+            BasisState_t trState = state;
+            auto sgn = trState.transform(u);
             if (trState < state) {
                 return false;
             } else if (trState == state) {
@@ -166,6 +169,9 @@ bool Basis<BasisState_t>::isMinRep(BasisState_t state, double &basisNorm, const 
         cNorm2 *= double(gs->G);
         assert_msg(std::imag(cNorm2) < INFINITESIMAL, "basis norm should ne real!");
         basisNorm = std::sqrt(std::real(cNorm2));
+        if (basisNorm < INFINITESIMAL) {
+            return false;
+        }
         return true;
     } else {
         basisNorm = 1.0;
@@ -173,8 +179,18 @@ bool Basis<BasisState_t>::isMinRep(BasisState_t state, double &basisNorm, const 
     }
 }
 
-template<typename BasisState_t>
-bool Basis<BasisState_t>::empty() {
+template<SupportBasisStateInterface BasisState_t>
+void Basis<BasisState_t>::clear() {
     basisList.clear();
     normList.clear();
+}
+
+template<SupportBasisStateInterface T>
+std::ostream& operator<<(std::ostream& os, const Basis<T>& b) {
+    os << "k = " << b.getKIdx() << ", p = " << b.getPIdx() << ", total/sub dimension: "  << b.getTotDim() << "/" << b.getSubDim() << " = " << double(b.getTotDim())/b.getSubDim() << std::endl;
+    idx_t count = 0;
+    for (const auto& state : b.basisList) {
+        os << state << "\tnorm = " << b.norm(count++) << std::endl;
+    }
+    return os;
 }

@@ -141,7 +141,7 @@ double ElectronBasis::transform(const Transform<cdouble> &u) {
 
 idx_t ElectronBasis::getTotDim() {
     if (allowDoubleOcc) {
-        return BinaryState::getDim(getNSite(), getNu()) * BinaryState::getDim(getNSite(), getNu());
+        return BinaryState::getDim(getNSite(), getNu()) * BinaryState::getDim(getNSite(), getNd());
     } else {
         assert_msg(nu + nd <= nSite, "invalid input for getTotDim");
         return BinaryState::getDim(nSite, nu) * BinaryState::getDim(nSite - nu, nd);

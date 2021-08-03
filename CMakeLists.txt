@@ -76,7 +76,7 @@ set(GLOBAL_PARA "Global/globalType.hpp" "Global/globalPara.hpp" "Global/config.h
 set(UTILS "Utils/comb.cpp" "Utils/io.cpp"  "Utils/paras.cpp" "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" "Utils/paras.hpp" "Utils/path.hpp" "Utils/timer.hpp")
 set(PULSE "Pulse/pulse.cpp" "Pulse/pulse.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp" "Geometry/Vec3.hpp" "Geometry/Transform.hpp" "Geometry/Generator.hpp")
-set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp" "Basis/BasisState.cpp" "Basis/BasisState.hpp")
+set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp" "Basis/BasisState.cpp" "Basis/BasisState.hpp" "Basis/BasisBase.hpp")
 set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
 set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/Operations.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
 
