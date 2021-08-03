@@ -23,6 +23,7 @@ public:
 	const int& operator[](int idx) const {return transformList.at(idx); }
 	idx_t tr(idx_t repI) const;
 	idx_t tr(idx_t repI, double& sgn) const;
+	std::vector<uint8_t> tr(const std::vector<uint8_t>& rep) const;
 };
 /**
  * @brief transform basis sate repI to g(repI)
@@ -58,6 +59,17 @@ idx_t Transform<T>::tr(idx_t repI, double& sgn) const {
 	}
 	sgn = seqSign(seq);
 	return repF;
+}
+
+template<typename T>
+std::vector<uint8_t> Transform<T>::tr(const std::vector<uint8_t>& rep) const {
+	std::vector<uint8_t> res(rep.size(), 0);
+	for (int i = 0; i < size; ++i) {
+		if (rep.at(i)) {
+			res.at(transformList[i]) = rep[i];
+		}
+	}
+	return res;
 }
 
 
