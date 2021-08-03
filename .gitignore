@@ -1,6 +1,7 @@
 # macOS
 .DS_Store
 
+.idea/
 # vscode
 .vscode/
 *.code-workspace
@@ -50,3 +51,4 @@ hubbInput/
 
 # figures
 plot/
+/cmake-build-debug/
