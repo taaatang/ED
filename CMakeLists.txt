@@ -76,9 +76,9 @@ set(GLOBAL_PARA "Global/globalType.hpp" "Global/globalPara.hpp" "Global/config.h
 set(UTILS "Utils/comb.cpp" "Utils/io.cpp"  "Utils/paras.cpp" "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" "Utils/paras.hpp" "Utils/path.hpp" "Utils/timer.hpp")
 set(PULSE "Pulse/pulse.cpp" "Pulse/pulse.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp" "Geometry/Vec3.hpp" "Geometry/Transform.hpp" "Geometry/Generator.hpp")
-set(BASIS "Basis/Basis.cpp" "Basis/Basis.hpp" "Basis/BasisState.cpp" "Basis/BasisState.hpp" "Basis/BasisBase.hpp")
+set(BASIS "Basis/BasisState.cpp" "Basis/BasisState.hpp" "Basis/Basis.hpp")
 set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
-set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/Operations.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
+set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/localOperators.hpp" "Operator/Operations.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
 
 set(ARPACK "Solver/PARPACKSolver.hpp")
 set(LANCZOS "Solver/LANCZOSIterator.hpp")
@@ -102,6 +102,7 @@ target_link_libraries(main.out ${LINKS} gsl gslcblas)
 # Test
 set(TEST_SRC Test)
 
-add_executable(test.out ${TEST_SRC}/basisState.cpp ${ALL_DEP})
+#add_executable(test.out ${TEST_SRC}/basisState.cpp ${ALL_DEP})
+add_executable(test.out ${TEST_SRC}/basisState.cpp   ${BASIS} ${GEOMETRY} ${GLOBAL_PARA} Operator/localOperators.hpp "Utils/comb.cpp" "Utils/io.cpp"  "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" )
 target_link_libraries(test.out ${LINKS} gsl gslcblas)
 
