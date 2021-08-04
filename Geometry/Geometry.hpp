@@ -75,7 +75,8 @@ public:
     
     // id of an orbital (0~unitCell size - 1)
     VecI getOrbID(ORBITAL orb) const;
-    
+
+    VecI getOrbPos(ORBITAL orb) const;
     // test if the orbital at position id is orb_test
     bool is_Orbital(int id, ORBITAL orb_test) const { return orbs.at(id).orb == orb_test; }
     bool is_Orbital(int id, ORBITAL orb_test, int orbid) const;

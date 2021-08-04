@@ -194,7 +194,7 @@ private:
 
 template<typename T, IsBasisType B>
 HamiltonianBase<T, B>::HamiltonianBase(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum_, int dmNum_):\
-OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
+OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum_, dmNum_), V(latt->getOrbNum(),0.0), U(latt->getOrbNum(),0.0) {
 
 }
 
@@ -217,7 +217,7 @@ T* HamiltonianBase<T, B>::getEvec(int n) {
 template <typename T, IsBasisType B>
 void HamiltonianBase<T, B>::pushV(std::vector<ORBITAL> orbList, double val) {
     for (const auto& orb : orbList) {
-        auto ids = this->latt->getOrbID(orb);
+        auto ids = this->latt->getOrbPos(orb);
         for (auto& id : ids) {
             V.at(id) = val;
         }
@@ -227,7 +227,7 @@ void HamiltonianBase<T, B>::pushV(std::vector<ORBITAL> orbList, double val) {
 template <typename T, IsBasisType B>
 void HamiltonianBase<T, B>::pushU(std::vector<ORBITAL> orbList, double val) {
     for (const auto& orb : orbList) {
-        auto ids = this->latt->getOrbID(orb);
+        auto ids = this->latt->getOrbPos(orb);
         for (auto& id : ids) {
             U.at(id) = val;
         }

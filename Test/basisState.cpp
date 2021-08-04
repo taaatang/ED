@@ -7,7 +7,7 @@
 #include "Operator/localOperators.hpp"
 #include "Operator/Operators.hpp"
 
-using Basis_t = SpinBasis;
+using Basis_t = ElectronPhononBasis;
 
 int main() {
     int workerID{0}, workerNum{1};
@@ -18,7 +18,8 @@ int main() {
     int nSite = 4;
     int nu = 2;
     int nd = 2;
-    int nPho = 3;
+    int nPho = 0;
+    ElectronBasis::setAllowDoubleOcc(true);
 //    SpinBasis::configure(nSite, nu, nd, nPho);
 //    SpinBasis state;
 
@@ -39,7 +40,7 @@ int main() {
     latt.addOrb(Orbital{ORBITAL::SINGLE});
     latt.construct();
     latt.print();
-    ElectronBasis::setAllowDoubleOcc(false);
+
     Basis<Basis_t> b(&latt, nu, nd, nPho, -1);
     b.construct();
     std::cout << b << std::endl;
@@ -57,10 +58,16 @@ int main() {
 //    if (bvf) {
 //        std::cout << "final  : " << bvf->basis << ' ' << bvf->val << std::endl;
 //    }
-
-    Hamiltonian<dataType, Basis_t> H(&latt, &b, &b, true, true, 1, 0);
-    Link<dataType> SqLattJ1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {{1.0,0.0,0.0}, {0.0,1.0,0.0}});
-    H.pushLinks({SqLattJ1Link});
+    double J1{1.0};
+    double t1{1.0};
+    double V{0.0};
+    double U{8.0};
+    Hamiltonian<dataType, Basis_t> H(&latt, &b, &b, true, true, 1, 1);
+    Link<dataType> J1Sq(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1, {{1.0,0.0,0.0}, {0.0,1.0,0.0}});
+    Link<dataType> t1Sq(LINK_TYPE::HOPPING_T, {ORBITAL::SINGLE, ORBITAL::SINGLE}, t1, {{1.0,0.0,0.0}, {0.0,1.0,0.0}});
+    H.pushLinks({t1Sq});
+    H.pushV({ORBITAL::SINGLE}, V);
+    H.pushU({ORBITAL::SINGLE}, U);
     H.transform();
     H.construct();
     H.diag();
