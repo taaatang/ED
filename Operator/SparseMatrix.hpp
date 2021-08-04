@@ -579,6 +579,7 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
 #else
     template <class T>
     void SparseMatrix<T>::construct(int rowPerThread) {
+        clear();
         int threadNum;
         #pragma omp parallel
         {
