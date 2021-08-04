@@ -653,6 +653,7 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
                 }
             }
         }
+        std::cout << "Creating spMat: " << BaseMatrix<T>::nloc << " x " << BaseMatrix<T>::dim_col << std::endl;
         for (int i = 0; i < spmNum; ++i) MKL::create(A.at(i), BaseMatrix<T>::nloc, BaseMatrix<T>::dim_col, rowInitList.at(i), colList.at(i), valList.at(i));
         isMatrixFree = false;
     }
@@ -779,6 +780,28 @@ void SparseMatrix<T>::print(std::string info, std::ostream& os) const {
     os<<info<<":\n";
     os<<"matrix local/tot dim: "<<this->getnloc()<<" / "<<this->getDim()<<".\n";
     os<<"non-zero elements count: "<<this->nzCount()<<".\n";
+    std::cout<<"params: " << parameters << std::endl;
+    for (const auto& val : rowInitList) {
+        std::cout << "rowInit: ";
+        for (auto el : val) {
+            std::cout << el << " ";
+        }
+        std::cout << std::endl;
+    }
+    for (const auto& val : colList) {
+        std::cout << "colidx: ";
+        for (auto el : val) {
+            std::cout << el << " ";
+        }
+        std::cout << std::endl;
+    }
+    for (const auto& val : valList) {
+        std::cout << "matrix element: " << val << std::endl;
+    }
+    for (const auto& diag : diagValList) {
+        std::cout << "diag element:" << diag << std::endl;
+    }
+
 }
 
 #endif // SparseMatrix_hpp
