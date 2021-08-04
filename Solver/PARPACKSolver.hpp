@@ -203,12 +203,12 @@ void PARPACKSolver<T>::diag( ) {
     if (ismaster) {
         std::cout << "INFO:" << info_ << ". Total ev found:" << iparam_[4] << ". post processing time:" <<timer.elapse() << " milliseconds." << std::endl;
     }
-    // if (ismaster) {
-    //     printLine(25);
-    //     std::cout<<"Eigenvalues: ";
-    //     for (int i = 0; i < nev_; ++i) std::cout<<d_pt[i]<<", ";
-    //     std::cout<<"\n";
-    // }
+    if (ismaster) {
+        printLine(25);
+        std::cout<<"Eigenvalues: ";
+        for (int i = 0; i < nev_; ++i) std::cout<<d_pt[i]<<", ";
+        std::cout<<"\n";
+    }
 }
 
 template <class T>

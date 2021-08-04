@@ -287,7 +287,7 @@ bool operator==(const BinaryState &lhs, const BinaryState &rhs) {
 
 bool operator<(const PhononState &lhs, const PhononState &rhs) {
     assert_msg(lhs.state.size() == rhs.state.size(), "mismatch basis state length!");
-    for (int i = 0; i < lhs.state.size(); ++i) {
+    for (size_t i = 0; i < lhs.state.size(); ++i) {
         if (lhs.state[i] < rhs.state[i]) {
             return true;
         } else if (lhs.state[i] > rhs.state[i]) {
@@ -299,7 +299,7 @@ bool operator<(const PhononState &lhs, const PhononState &rhs) {
 
 bool operator==(const PhononState &lhs, const PhononState &rhs) {
     assert_msg(lhs.state.size() == rhs.state.size(), "mismatch basis state length!");
-    for (int i = 0; i < lhs.state.size(); ++i) {
+    for (size_t i = 0; i < lhs.state.size(); ++i) {
         if (lhs.state[i] != rhs.state[i]) {
             return false;
         }
@@ -359,13 +359,13 @@ std::ostream &operator<<(std::ostream &os, const SpinBasis &s) {
 std::ostream &operator<<(std::ostream &os, const ElectronBasis &e) {
     os << "up:";
     e.up.print(os, e.getNSite());
-    os << "\tdn:";
+    os << " dn:";
     e.dn.print(os, e.getNSite());
     return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const ElectronPhononBasis &ep) {
     os << ep.el;
-    os << '\t' << ep.ph;
+    os << ' ' << ep.ph;
     return os;
 }

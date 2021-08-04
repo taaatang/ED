@@ -10,16 +10,16 @@
 #include "Basis/Basis.hpp"
 #include "Utils/bitop.hpp"
 
-template<IsBasisType B>
+template<typename T, IsBasisType B>
 struct BasisVal {
     B basis;
-    double val{1.0};
+    T val{1.0};
     BasisVal() = delete;
     BasisVal(B b) : basis(b) {}
 };
 
-template<IsBasisType B>
-using BVopt = std::optional<BasisVal<B>>;
+template<typename T, IsBasisType B>
+using BVopt = std::optional<BasisVal<T, B>>;
 
 template<SPIN S>
 struct CPlus {
@@ -105,8 +105,8 @@ struct Sz {
     }
 };
 
-template<SPIN S, ContainCharge B>
-BVopt<B> operator*(const CPlus<S>& cp, BVopt<B> bv) {
+template<SPIN S, ContainCharge B, typename T>
+BVopt<T, B> operator*(const CPlus<S>& cp, BVopt<T, B> bv) {
     if (bv) {
         idx_t* state;
         if constexpr(S == SPIN::UP) {
@@ -129,8 +129,8 @@ BVopt<B> operator*(const CPlus<S>& cp, BVopt<B> bv) {
     return bv;
 }
 
-template<SPIN S, ContainCharge B>
-BVopt<B> operator*(const CMinus<S>& cm, BVopt<B> bv) {
+template<SPIN S, ContainCharge B, typename T>
+BVopt<T, B> operator*(const CMinus<S>& cm, BVopt<T, B> bv) {
     if (bv) {
         idx_t* state;
         if constexpr(S == SPIN::UP) {
@@ -153,8 +153,8 @@ BVopt<B> operator*(const CMinus<S>& cm, BVopt<B> bv) {
     return bv;
 }
 
-template<SPIN S, ContainCharge B>
-BVopt<B> operator*(const NCharge<S>& nch, BVopt<B> bv) {
+template<SPIN S, ContainCharge B, typename T>
+BVopt<T, B> operator*(const NCharge<S>& nch, BVopt<T, B> bv) {
     if (bv) {
         idx_t* state;
         if constexpr(S == SPIN::UP) {
@@ -171,8 +171,8 @@ BVopt<B> operator*(const NCharge<S>& nch, BVopt<B> bv) {
     return bv;
 }
 
-template<ContainPhonon B>
-BVopt<B> operator*(const APlus& ap, BVopt<B> bv) {
+template<ContainPhonon B, typename T>
+BVopt<T, B> operator*(const APlus& ap, BVopt<T, B> bv) {
     if (bv) {
         auto& state = bv->basis.phState();
         if (state.at(ap.pos) < B::getMaxPhPerSite()) {
@@ -184,8 +184,8 @@ BVopt<B> operator*(const APlus& ap, BVopt<B> bv) {
     return std::nullopt;
 }
 
-template<ContainPhonon B>
-BVopt<B> operator*(const AMinus& a, BVopt<B> bv) {
+template<ContainPhonon B, typename T>
+BVopt<T, B> operator*(const AMinus& a, BVopt<T, B> bv) {
     if (bv) {
         auto& state = bv->basis.phState();
         if (state.at(a.pos) > 0) {
@@ -197,8 +197,8 @@ BVopt<B> operator*(const AMinus& a, BVopt<B> bv) {
     return std::nullopt;
 }
 
-template<ContainPhonon B>
-BVopt<B> operator*(const NPhonon& n, BVopt<B> bv) {
+template<ContainPhonon B, typename T>
+BVopt<T, B> operator*(const NPhonon& n, BVopt<T, B> bv) {
     if (bv) {
         bv->val *= double(bv->basis.phState().at(n.pos));
         return bv;
@@ -206,8 +206,8 @@ BVopt<B> operator*(const NPhonon& n, BVopt<B> bv) {
     return std::nullopt;
 }
 
-template<ContainSpin B>
-BVopt<B> operator*(const SPlus& sp, BVopt<B> bv) {
+template<ContainSpin B, typename T>
+BVopt<T, B> operator*(const SPlus& sp, BVopt<T, B> bv) {
     if (bv) {
         if constexpr (IsPureSpin<B>) {
             auto& state = bv->basis.spinState();
@@ -222,8 +222,8 @@ BVopt<B> operator*(const SPlus& sp, BVopt<B> bv) {
     return std::nullopt;
 }
 
-template<ContainSpin B>
-BVopt<B> operator*(const SMinus& sm, BVopt<B> bv) {
+template<ContainSpin B, typename T>
+BVopt<T, B> operator*(const SMinus& sm, BVopt<T, B> bv) {
     if (bv) {
         if constexpr (IsPureSpin<B>) {
             auto& state = bv->basis.spinState();
@@ -238,8 +238,8 @@ BVopt<B> operator*(const SMinus& sm, BVopt<B> bv) {
     return std::nullopt;
 }
 
-template<ContainSpin B>
-BVopt<B> operator*(const Sz& sz, BVopt<B> bv) {
+template<ContainSpin B, typename T>
+BVopt<T, B> operator*(const Sz& sz, BVopt<T, B> bv) {
     if (bv) {
         if constexpr (IsPureSpin<B>) {
             auto& state = bv->basis.spinState();
@@ -256,4 +256,14 @@ BVopt<B> operator*(const Sz& sz, BVopt<B> bv) {
     }
     return std::nullopt;
 }
+
+template<typename T, IsBasisType B>
+BVopt<T, B> operator*(T fac, BVopt<T, B> bv) {
+    if (bv) {
+        bv->val *= fac;
+        return bv;
+    }
+    return std::nullopt;
+}
+
 #endif //ED_LOCALOPERATORS_HPP

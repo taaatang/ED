@@ -14,12 +14,6 @@
 #include "Pulse/pulse.hpp"
 #include "Solver/TimeEvolver.hpp"
 
-void init(int &workerID, int &workerNum, bool &isMaster) {
-    MPI_Init(NULL, NULL);
-    mpi_info(workerID, workerNum);
-    isMaster = (workerID == 0);
-}
-
 /**
  * @brief sort evals and evecs in ascending order
  * 

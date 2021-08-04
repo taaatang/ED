@@ -590,22 +590,26 @@ void Geometry::printOrbs() const {
 }
 void Geometry::printKLattice() const {
     // print kLattice
-    std::cout<<"k-Lattice:\n";
-    for (int i = 0; i < Nsite; i ++){
-        std::cout<<"siteID:"<<KLattice[i].id<<", coord:"<<KLattice[i].coord<<"\n";
+    if (is_PBC) {
+        std::cout << "k-Lattice:\n";
+        for (size_t i = 0; i < KLattice.size(); ++i) {
+            std::cout << "siteID:" << KLattice[i].id << ", coord:" << KLattice[i].coord << '\n';
+        }
+        std::cout << '\n';
     }
-    std::cout<<"\n";
 }
 void Geometry::printTrans() const {
-    std::cout<<"TransList:\n";
-    for (int r = 0; r < Nsite; r++){
-        std::cout<<"r("<<r<<"):\n";
-        for (int i = 0; i < Norb; ++i){
-            std::cout<<getOrbTran(r,i)<<" "<<"phase:"<<getOrbTranPhase(r,i)<<" ";
+    if (is_PBC) {
+        std::cout << "TransList:\n";
+        for (int r = 0; r < Nsite; ++r){
+            std::cout << "r(" << r << "):\n";
+            for (int i = 0; i < Norb; ++i){
+                std::cout << getOrbTran(r,i) <<" " << "phase:" <<getOrbTranPhase(r,i) << " ";
+            }
+            std::cout << '\n';
         }
-        std::cout<<"\n";
+        std::cout << '\n';
     }
-    std::cout<<"\n";
 }
 void Geometry::printPG() const {
     std::cout<<"Point Group Transformation List:\n";

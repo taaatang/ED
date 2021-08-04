@@ -13,16 +13,13 @@
 #include <omp.h>
 
 #include "Global/globalPara.hpp"
-#include "Basis/Basis.hpp"
 #include "Utils/mpiwrap.hpp"
 #include "Algebra/algebra.hpp"
-#include "Utils/timer.hpp"
 
 template <class T>
 class BaseMatrix{
 public:
     BaseMatrix(idx_t totRowDim = 0, idx_t totColDim = 0);
-    ~BaseMatrix( ) { }
 
     int getWorkerID( ) const { return workerID; }
     
@@ -40,7 +37,9 @@ public:
 
     // Matrix Vector Multiplication Interface
     virtual void MxV(T *vecIn, T *vecOut) = 0;
+
     virtual void getDiag(std::vector<T> &diag) {}
+
     // project to symmetry subspace labeled by val
     virtual void project(double val, T* vec) { };
 
@@ -93,9 +92,8 @@ class SparseMatrix: public BaseMatrix<T>{
   Version 4
 */
 public:
-    SparseMatrix( ) { }
+    SparseMatrix( ) = default;
     SparseMatrix(idx_t rowDim, idx_t colDim, int spmNum_ = 0, int dmNum_ = 0);
-    SparseMatrix(Basis *Bi_, Basis *Bf_, int spmNum_ = 0, int dmNum_ = 0);
     ~SparseMatrix( );
 
     // local matrix nonzero elements count
@@ -172,8 +170,6 @@ public:
 protected:
 
     MATRIX_PARTITION partition{ROW_PARTITION};
-    // <Bf|Op|Bi>.
-    Basis *Bi{nullptr}, *Bf{nullptr};
     int dmNum{0}; // number of diagonal matrix
     int spmNum{0}; // number of sparse matrix in csr format
     bool isMatrixFree{true};
@@ -262,25 +258,6 @@ std::vector<T> SparseMatrix<T>::vecBuf;
     * Sparse Matrix Source Code *
     *****************************
 */
-
-//TODO: fix BaseMatrix constructor when Bf_ and Bi_ is not constructed
-template <class T>
-SparseMatrix<T>::SparseMatrix(Basis *Bi_, Basis *Bf_, int spmNum_ , int dmNum_):BaseMatrix<T>(Bf_->getSubDim(), Bi_->getSubDim()), \
-Bi(Bi_), Bf(Bf_) {
-
-    setSpmNum(spmNum_);
-    setDmNum(dmNum_);
-
-    #ifdef DISTRIBUTED_BASIS
-
-        partition =  MATRIX_PARTITION::COL_PARTITION;
-
-    #else
-
-        partition = MATRIX_PARTITION::ROW_PARTITION;   
-
-    #endif
-}
 
 template <class T>
 SparseMatrix<T>::~SparseMatrix( ) {
@@ -602,10 +579,6 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
 #else
     template <class T>
     void SparseMatrix<T>::construct(int rowPerThread) {
-        assert_msg(!(Bi->empty()) && !(Bf->empty()), "Basis is empty when construct SparseMatrix!");
-        clear();
-        this->setDim(Bf->getSubDim());
-        this->setColDim(Bi->getSubDim());
         int threadNum;
         #pragma omp parallel
         {
@@ -680,7 +653,7 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
                 }
             }
         }
-        for (int i = 0; i < spmNum; ++i) MKL::create(A.at(i), BaseMatrix<T>::nloc, Bi->getSubDim(), rowInitList.at(i), colList.at(i), valList.at(i));
+        for (int i = 0; i < spmNum; ++i) MKL::create(A.at(i), BaseMatrix<T>::nloc, BaseMatrix<T>::dim_col, rowInitList.at(i), colList.at(i), valList.at(i));
         isMatrixFree = false;
     }
 #endif

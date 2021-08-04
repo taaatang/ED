@@ -51,7 +51,7 @@ template<typename T>
 idx_t Transform<T>::tr(idx_t repI, double& sgn) const {
 	idx_t repF{0};
 	std::vector<int> seq;
-	for (int i = 0; i < size; ++i) {
+	for (size_t i = 0; i < size; ++i) {
 		if (bitTest(repI, i)) {
 			bitSet(repF, transformList[i]);
 			seq.push_back(transformList[i]);
@@ -64,7 +64,7 @@ idx_t Transform<T>::tr(idx_t repI, double& sgn) const {
 template<typename T>
 std::vector<uint8_t> Transform<T>::tr(const std::vector<uint8_t>& rep) const {
 	std::vector<uint8_t> res(rep.size(), 0);
-	for (int i = 0; i < size; ++i) {
+	for (size_t i = 0; i < size; ++i) {
 		if (rep.at(i)) {
 			res.at(transformList[i]) = rep[i];
 		}

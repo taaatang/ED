@@ -1,246 +1,211 @@
-//
-//  Basis.hpp
-//  ED
-//
-//  Created by tatang on 10/26/19.
-//  Copyright © 2019 tatang. All rights reserved.
-//
+#pragma once
 
-#ifndef Basis_hpp
-#define Basis_hpp
-
-#include <stdio.h>
-#include <algorithm>
-#include <assert.h>
 #include <vector>
-#include <map>
-#include <unordered_map>
 #include <string>
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include <complex>
+#include <optional>
+#include <algorithm>
 
-#include "Global/globalPara.hpp"
+#include "BasisState.hpp"
 #include "Geometry/Geometry.hpp"
-#include "Utils/comb.hpp"
-#include "Utils/bitop.hpp"
-#include "Utils/mpiwrap.hpp"
 #include "Utils/io.hpp"
 
-struct ElPhState {
-    idx_t el;
-    std::vector<uint8_t> ph;
-};
+template<typename T>
+concept ElPhConfigEnabled = requires (T, int n, int nu, int nd, int nPho) { T::configure(n, nu, nd, nPho); };
 
-/*
-    ***************
-    * Basis Class *
-    ***************
-*/
-class Basis{
-/*
-    For Heisenberg model:
-            repI is the binary represnetation of the spin configurations
-    For Hubbard/tJ model,:
-        repI=fidx*sDim+sidx. fIndexList[fidx] and sIndexList[sidx] are corresponding binary representations of
-        spin-up and spin-down occupations.
-        pairRepI = (fIndexList[fidx], sIndexList[sidx])
-*/
-public:  
-    Basis():model(LATTICE_MODEL::HUBBARD), kIndex(-1), PGRepIndex(-1){};
+template<typename T>
+concept IsBasisType = std::derived_from<T, BasisStateInterface> && ElPhConfigEnabled<T>;
 
-    // occList contains occupation number on each site dimension
-    Basis(idx_t dim):totDim(dim), subDim(dim), locDim(dim) { };
+template<typename T>
+concept IsPureSpin = std::same_as<T, SpinBasis>;
 
-    Basis(LATTICE_MODEL input_model, Geometry *pt_lat, VecI occList, int kInd=-1, int PGRepInd = -1, int siteD=2);
+template<typename T>
+concept IsPureCharge = std::same_as<T, ElectronBasis>;
 
-    LATTICE_MODEL getModel( ) const { return model; }
+template<typename T>
+concept ContainPhonon =  std::same_as<T, ElectronPhononBasis>;
 
-    int getkIndex( ) const { return kIndex; }
+template<typename T>
+concept ContainCharge = IsPureCharge<T> || std::same_as<T, ElectronPhononBasis>;
 
-    int getPGIndex( ) const { return PGRepIndex; }
-    
-    VecI getOcc( ) const { return Nocc; }
-    
-    bool empty( ) const;
+template<typename T>
+concept ContainSpin = IsPureSpin<T> || ContainCharge<T>;
 
-    // Rep integer access
-    // rowidx->repI
-    idx_t getRepI(idx_t idx) const {if(kIndex==-1 and model==LATTICE_MODEL::HUBBARD)return idx; return indexList.at(idx);}
+template<IsBasisType BasisState_t>
+class Basis {
+public:
+    Basis(Geometry* lattptr, int nu, int nd, int maxPhPerSite, int k = -1, int p = -1);
 
-    // repI->pairRepI
-    pairIdx_t getPairRepI(idx_t repI) const {
-        assert_msg(model!=LATTICE_MODEL::HEISENBERG,"PairRepI not defined for Heisenberg Model!");
-        return std::make_pair(fIndexList.at(repI/sDim), sIndexList.at(repI%sDim));
-    }
+    BasisState_t get(idx_t idx) const { return basisList.at(idx); }
 
-    // pairRepI->repI
-    idx_t getRepI(pairIdx_t pairRepI) const {return fRepIdxHash.at(pairRepI.first)*sDim+sRepIdxHash.at(pairRepI.second);}
-    
-    idx_t getmul(int orbid) const {return mul.at(orbid);}
+    double norm(idx_t idx) const;
 
-    void initMinMaxRep() const;
+    std::optional<idx_t> search(const BasisState_t& state);
 
-    //generate fIdex,sIdex list for Hubbard and tJ model
-    void gendcmp();
-    
-    // construc k-subspace basis. need lattice to know symmetry operations
     void construct();
 
     void construct(int workerID, int workerNum);
-    
-    // construct k-subspace basis/norm from reps loaded from file
-    void construct(std::string basisfile);
 
-    void construct(std::string basisfile, std::string normfile);
+    void construct(const std::string& basisFile, const std::string& normFile);
 
-    // distributed basis
-    void construct(std::string basisfile, std::string normfile, int workerID, int workerNum);
+    void construct(const std::string& basisFile, const std::string& normFile, int workerID, int workerNum);
 
-    void construct(bool saved, std::string basisDir);
+    bool empty() const;
 
-    void clear( ) { indexList.clear(); normList.clear();}
-    
-    int getSiteDim() const {return siteDim;}
+    void clear();
 
-    int getOrbNum() const {return N;}
-
-    idx_t getTotDim() const {return totDim;}
-
-    idx_t getSubDim() const {return subDim;}
-
-    idx_t getLocDim() const {return locDim;}
-    
-    double getNorm(idx_t rowid) const {
-        if (kIndex==-1) return 1.0;
-        #ifdef KEEP_BASIS_NORM
-            return normList.at(rowid);
-        #else
-            return Norm(getRepI(rowid));
-        #endif
-    };
-    
-    // vec to Basis index
-    idx_t vecToRep(VecI& v) const;
-    pairIdx_t vecToRep(VecI& v, VecI& vp) const;
-    
-    // Basis index to Basis vec
-    void repToVec(idx_t index, VecI& v) const;
-    void repToVec(pairIdx_t pairInd, VecI& v, VecI& vp) const;
-    void repToVec(idx_t index, VecI& v, VecI& vp) const;
-
-    // for distributed basis. get the workerID where repI is possiblely stored
-    bool getBid(idx_t repI, int &bid) const;
-
-    // Binary search the position of index in indexList
-
-    //search full hilbert space
-    idx_t search(idx_t repI, const std::vector<idx_t> &indList) const;
-    idx_t search(idx_t repI) const;
-    idx_t search(pairIdx_t pairRepI) const;
-    //search current symm sector subspace
-    bool search(idx_t repI, idx_t &idx, const std::vector<idx_t> &indList) const;
-    bool search(idx_t repI, idx_t &idx) const;
-    bool search(pairIdx_t pairRepI, idx_t &idx) const;
-
-    bool search(idx_t repI, idx_t &idx, cdouble &fac, bool useTrans, bool usePG) const;
-
-    //TODO: Implement this for 1/2 fermions
-    bool search(pairIdx_t pairRepI, idx_t &idx, cdouble &factor, bool useTrans, bool usePG) const;
-
-    /*
-        ************
-        * Symmetry *
-        * **********
-    */
-    // apply all translation operations to a Basis vec indexed by rowID.
-    // finalInd contains all resulting basis indexes.
-    void genSymm(idx_t rowID, std::vector<idx_t>& repIs) const;
-
-    void genSymm(idx_t rowID, std::vector<idx_t>& repIs, std::vector<cdouble>& factorList) const;
-
-    void genRepMin(idx_t repI, idx_t &repImin, cdouble &fac, bool useTrans, bool usePG) const;
-
-    void genSymm(idx_t rowID, std::vector<pairIdx_t>& pairRepIs, std::vector<cdouble>& factorList) const;
-    
-    // judge if repI is min repI. append symm operations tp symmList if symm(repI)==repI. not guanranteed to be MinRep since its norm might = 0
-    bool isMin(idx_t repI, VecI& symmList);
-
-    bool isfMin(idx_t frepI) const {return kIndex==-1?true:fMinRepSymmHash.find(frepI)!=fMinRepSymmHash.end();}
-
-    // judge if a basis vec belongs to k-subspace rep vecs
-    // rep: smallest index and norm!=0
-    bool isMinRep(idx_t repI, double& norm) const;
-    
-    // calculate the norm of a genery repI
-    double Norm(idx_t repI) const;
-
-    // calculate the norm of a minimum repI in a symm cycle. only defined for Hubbard and tJ model.
-    double minNorm(idx_t repI) const;
-    
-    // I/O
-    void print(std::ostream& os = std::cout) const;
-    void save(std::string basisDir, bool saveNorm = true, bool is_app = false);
+    template<IsBasisType T>
+    friend std::ostream& operator<<(std::ostream& os, const Basis<T>& b);
 
 private:
-    LATTICE_MODEL model;
-    Geometry *pt_lattice;
+    bool isMinRep(BasisState_t state, double& basisNorm, const Generator<cdouble>* gs);
 
-    int kIndex; // default initial value kIndex=-1 ==> full hilbertspace
-    int PGRepIndex; // default -1 -> do not use point group symm
+private:
+    // total hilbert space dimension
+	idx_t totDim{0};
 
-    int siteDim{2}; // Hilbert Space dimension of a single Site
-    idx_t totDim{0}; // Total Hilbert Space dimension
-    idx_t subDim{0}; // Total subspace dimension of corresponding symm
-    idx_t locDim{0}; // Local stored dimension
-    idx_t fDim{0}, sDim{0};
+    // lattice symmetry subspace dimension
+	idx_t subDim{0};
 
-    // Heisenberg:Sztot in unit of hbar/2
-    int Sztot{0};
+	// local stored basis state number
+	idx_t locDim{0};
 
-    // Hubbard/tJ: N sites for spin-up, Np sites for spin-down.
-    int N{0};
+    Geometry* latt{nullptr};
 
-    // Nocc[i] is the occupation number at site dimension i.
-    VecI Nocc; 
+	int kIdx{-1};
 
-    /*
-        HUBBARD/tJ Model: fIndexList->spin-up, sIndexList->spin-down
-        repI = fIdx * len(sIndexList) + sIdx.
-        pairRepI = (fIndexList(fidx), sIndexList(sidx))
-    */
-    std::vector<idx_t> fIndexList, sIndexList;
-    std::unordered_map<idx_t,idx_t> fRepIdxHash,sRepIdxHash;
-    std::vector<idx_t> fMinRepList;
-    std::unordered_map<idx_t,VecI> fMinRepSymmHash;
+	int pIdx{-1};
 
-    /* 
-        repI list in corresponding subspace in ascending order
-        For Hubbard, if no symm is used, this is empty.
-    */
-    std::vector<idx_t> indexList;
-    std::unordered_map<idx_t,idx_t> repHashTable;
-    // repIStratList[workerID] is the smallest repI stored in workerID's RAM
-    std::vector<idx_t> repIStartList; 
-    // repIEndList[workerID] is the largest repI stored in workerID's RAM
-    std::vector<idx_t> repIEndList;
-    // norm for reps in symmetrized indexList
-    std::vector<double> normList; 
-    
-    // used for siteDim=2. Binary Rep
-    mutable idx_t fminRep{0},fmaxRep{0},sminRep{0},smaxRep{0};
-    /*
-        used only if siteDim>2
-        Heisenberg model: vec: 0 for spin-up 1 for spin-down
-        Hubbard/tJ:vec:1 for spin-up electron. vecp: 1 for spin-down electrons
-    */
-    mutable std::vector<int> vec, vecp; // mutable:can be modified in const function
-    
-    // Multipliers. Basis vec index = sum(i):vec(i)*mul(i)
-    std::vector<idx_t> mul;
+	std::vector<BasisState_t> basisList;
+
+	std::vector<double> normList;
+
+public:
+    idx_t getTotDim() const { return totDim; }
+
+    idx_t getSubDim() const { return subDim; }
+
+    idx_t getLocDim() const { return locDim; }
+
+    Geometry *getLatt() const { return latt; }
+
+    int getKIdx() const { return kIdx; }
+
+    void setKIdx(int kIdx_) { Basis::kIdx = kIdx_; }
+
+    int getPIdx() const { return pIdx; }
+
+    void setPIdx(int pIdx_) { Basis::pIdx = pIdx_; }
+
+    bool isUseSymm() const { return kIdx != -1 || pIdx != -1; }
 };
 
-void work_load(idx_t size, int workerID, int workerNum, idx_t& idxStart, idx_t& idxEnd);
+template<IsBasisType BasisState_t>
+Basis<BasisState_t>::Basis(Geometry* lattptr, int nu, int nd, int maxPhPerSite, int k, int p) : latt(lattptr), kIdx(k), pIdx(p) {
+    assert_msg(latt, "Null lattice_ptr!");
+    BasisState_t::configure(latt->getOrbNum(), nu, nd, maxPhPerSite);
+}
 
-#endif // Basis_hpp
+template<IsBasisType BasisState_t>
+double Basis<BasisState_t>::norm(idx_t idx) const {
+    if (isUseSymm()) {
+        return normList.at(idx);
+    } else {
+        return 1.0;
+    }
+}
+
+template<IsBasisType BasisState_t>
+std::optional<idx_t> Basis<BasisState_t>::search(const BasisState_t &state) {
+    auto low = std::lower_bound(basisList.begin(), basisList.end(), state);
+    if (low != basisList.end() && *low == state) {
+        return std::make_optional(low - basisList.begin());
+    }
+    return std::nullopt;
+}
+
+template<IsBasisType BasisState_t>
+void Basis<BasisState_t>::construct() {
+    clear();
+    auto gs = latt->getTranslationGenerator(kIdx) * latt->getPointGroupGenerator(pIdx);
+    BasisState_t state;
+    totDim = state.getTotDim();
+    if (isUseSymm()) {
+        double basisNorm;
+        do {
+            if (isMinRep(state, basisNorm, &gs)) {
+                basisList.push_back(state);
+                normList.push_back(basisNorm);
+            }
+        } while (state.next());
+    } else {
+        do {
+            basisList.push_back(state);
+        } while (state.next());
+        std::cout << "totDim " << totDim << " == " << basisList.size() << std::endl;
+        assert_msg(basisList.size() == totDim, "Wrong basis dimension!");
+    }
+    subDim = basisList.size();
+    locDim = subDim;
+}
+
+//TODO
+template<IsBasisType BasisState_t>
+void Basis<BasisState_t>::construct(const std::string &basisFile, const std::string &normFile) {
+
+}
+
+//TODO
+template<IsBasisType BasisState_t>
+void
+Basis<BasisState_t>::construct(const std::string &basisFile, const std::string &normFile, int workerID, int workerNum) {
+
+}
+
+//TODO:for hubbard model, we can use an empty basisList to save memory
+template<IsBasisType BasisState_t>
+bool Basis<BasisState_t>::empty() const {
+    return basisList.empty();
+}
+
+template<IsBasisType BasisState_t>
+bool Basis<BasisState_t>::isMinRep(BasisState_t state, double &basisNorm, const Generator<cdouble>* gs) {
+    if (isUseSymm()) {
+        std::vector<BasisState_t> trStates;
+        cdouble cNorm2 = 0.0;
+        for (const auto &u : gs->U) {
+            BasisState_t trState = state;
+            auto sgn = trState.transform(u);
+            if (trState < state) {
+                return false;
+            } else if (trState == state) {
+                cNorm2 += sgn * u.factor;
+            }
+        }
+        cNorm2 *= double(gs->G);
+        assert_msg(std::imag(cNorm2) < INFINITESIMAL, "basis norm should ne real!");
+        basisNorm = std::sqrt(std::real(cNorm2));
+        if (basisNorm < INFINITESIMAL) {
+            return false;
+        }
+        return true;
+    } else {
+        basisNorm = 1.0;
+        return true;
+    }
+}
+
+template<IsBasisType BasisState_t>
+void Basis<BasisState_t>::clear() {
+    basisList.clear();
+    normList.clear();
+}
+
+template<IsBasisType T>
+std::ostream& operator<<(std::ostream& os, const Basis<T>& b) {
+    os << "k = " << b.getKIdx() << ", p = " << b.getPIdx() << ", total/sub dimension: "  << b.getTotDim() << "/" << b.getSubDim() << " = " << double(b.getTotDim())/b.getSubDim() << std::endl;
+    idx_t count = 0;
+    for (const auto& state : b.basisList) {
+        os << state << " norm = " << b.norm(count++) << std::endl;
+    }
+    return os;
+}

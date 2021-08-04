@@ -39,6 +39,12 @@ void OMP_Info(int workerID);
 
 void mpi_info(int& workerID, int& workerNum);
 
+inline void init(int &workerID, int &workerNum, bool &isMaster) {
+    MPI_Init(NULL, NULL);
+    mpi_info(workerID, workerNum);
+    isMaster = (workerID == 0);
+}
+
 void exit_msg(std::string msg);
 
 void assert_msg(bool condition, std::string msg);

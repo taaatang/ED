@@ -4,7 +4,6 @@
 #include "Geometry/Transform.hpp"
 
 using idx_t = uint64_t;
-using sidx_t = int64_t;
 
 class BasisStateInterface {
 public:
@@ -48,6 +47,8 @@ public:
 	void next();
 
 	int count(int i) const { return bitTest(state, i); }
+
+	void flip(int i) { bitFlip(state, i); }
 
 	idx_t& operator()(){ return state;}
 
@@ -111,6 +112,8 @@ public:
 
     idx_t getTotDim() override;
 
+    auto& spinState() { return state.state; }
+
 public:
     BinaryState state;
 
@@ -143,6 +146,10 @@ public:
     idx_t getTotDim() override;
 
     bool isDoubleOcc() const { return  up.state & dn.state; }
+
+    auto& upState() { return up.state; }
+
+    auto& dnState() {return dn.state; }
 
 public:
 	BinaryState up;
@@ -219,6 +226,12 @@ public:
     double transform(const Transform<cdouble> &u) override;
 
     idx_t getTotDim() override;
+
+    auto& upState() { return el.upState(); }
+
+    auto& dnState() { return el.dnState(); }
+
+    auto& phState() { return ph.state; }
 
 public:
     ElectronBasis el;

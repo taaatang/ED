@@ -25,6 +25,15 @@ inline idx_t bitCount(idx_t& n, const VecI& idxs){
     for(auto it=idxs.begin(); it!=idxs.end(); it++) sum += n>>(*it) & idx_t{1};
     return sum; 
 }
+inline int bitCount(idx_t n, int len) {
+    int count = 0;
+    for (int i = 0; i < len; ++i) {
+        if (bitTest(n, i)) {
+            ++count;
+        }
+    }
+    return count;
+}
 inline void bitPrint(idx_t n, int range){
     for(int pos=range-1;pos>=0;pos--)std::cout<<((n>>pos) & idx_t{1});
     std::cout<<std::endl;

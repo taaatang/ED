@@ -203,17 +203,17 @@ protected:
 class TriAngLattice: public Geometry{
 public:
     // constructor for Lattice with D6 point group
-    TriAngLattice(int N, bool PBC =  true);
+    explicit TriAngLattice(int N, bool PBC =  true);
     // constructor for N1*N2 Lattice
     TriAngLattice(int N1, int N2, bool PBC = true);
-    ~TriAngLattice( ) { };
+    ~TriAngLattice( ) override = default;
 };
 
 class SquareLattice: public Geometry{
 public:
-    SquareLattice(int N, bool PBC=true);
+    explicit SquareLattice(int N, bool PBC=true);
     SquareLattice(int N1, int N2, bool PBC=true, bool TBC=false, double phase_x=0.0, double phase_y=0.0);
-    ~SquareLattice( ) { };
+    ~SquareLattice( ) override = default;
 };
 
 #endif

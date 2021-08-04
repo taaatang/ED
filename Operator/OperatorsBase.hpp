@@ -5,32 +5,57 @@
 //  Created by tatang on 10/26/19.
 //  Copyright © 2019 tatang. All rights reserved.
 //
-
-#ifndef OperatorsBase_hpp
-#define OperatorsBase_hpp
+#pragma once
 
 #include <algorithm>
+#include "Global/globalPara.hpp"
+#include "Geometry/Geometry.hpp"
+#include "Operator/SparseMatrix.hpp"
 #include "Operator/links.hpp"
 #include "Operator/interaction_transform.hpp"
-#include "Operator/Operations.hpp"
-#include "Operator/SparseMatrix.hpp"
-#include "Global/globalPara.hpp"
-#include "Basis/Basis.hpp"
-#include "Geometry/Geometry.hpp"
+#include "Operator/localOperators.hpp"
 #include "Pulse/pulse.hpp"
 
-template<typename T>
-class OperatorBase: public FermionOperator<T>, public SpinOperator<T>, public SparseMatrix<T>{
+// push data to an unordered map
+template <typename T>
+inline void MapPush(MAP<T>* map_pt, idx_t key, T val){
+    auto it = map_pt->find(key);
+    if constexpr (std::is_same<cdouble, T>::value) {
+        if (it == map_pt->end()) {
+            (*map_pt)[key] = std::conj(val);
+        } else {
+            it->second += std::conj(val);
+        }
+    } else if constexpr (std::is_same<double, T>::value) {
+        if (it == map_pt->end()) {
+            (*map_pt)[key] = val;
+        } else {
+            it->second += val;
+        }
+    } else {
+        std::cout<<"MapPush only defined for double/cdouble!\n";
+        exit(1);
+    }
+}
+
+template<typename T, IsBasisType B>
+class OperatorBase: public SparseMatrix<T>{
 public:
-    OperatorBase( ) { }
-    OperatorBase(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithTrans = false, bool commuteWithPG = false, int spmNum_ = 1, int dmNum_ = 0);
-    virtual ~OperatorBase( ) { }
+    OperatorBase( ) =default;
+
+    OperatorBase(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = false, bool commuteWithPG = false, int spmNum_ = 1, int dmNum_ = 0);
+
+    virtual ~OperatorBase( ) = default;
     
     OperatorBase& pushLink(Link<T> link, int matidx);
+
     OperatorBase& pushLinks(std::vector<Link<T>> links);
+
     void printLinks(bool brief = true) const;
+
     // generate symmetry transformed operators
     void getGiGf(Generator<T>& Gi, Generator<T>& Gf, std::vector<Transform<T>>& allTr) const;
+
     void transform();
 
     // Add onsite energy V
@@ -42,13 +67,16 @@ public:
     // O(t) --> O(t+dt)
     virtual bool next( ) {return false;}
 
+    void pushElement(const BVopt<T, B>& bv, MAP<T>* rowMap);
+
     virtual void row(idx_t rowID, std::vector<MAP<T>>& rowMaps) = 0;
     
 protected:
     Geometry *latt{nullptr};
+    Basis<B>* Bi{nullptr};
+    Basis<B>* Bf{nullptr};
     bool commuteWithTrans{false};
     bool commuteWithPG{false};
-    LATTICE_MODEL model{LATTICE_MODEL::HUBBARD};
     int linkCount{0};
     int spmCount{0};
     std::vector<Link<T>> Links, NCLinks;
@@ -60,21 +88,17 @@ protected:
     std::vector<TrInteractions<T,3>> trChiralTermK;
     // Hubbard terms
     std::vector<Link<T>> hoppingT, interBandU, exchangeJ, pairHoppingJ;
-    std::vector<TrInteractions<T,2>> trHoppingT, trInterBandU, trExchangeJ, trPairHoppingJ; 
+    std::vector<TrInteractions<T,2>> trHoppingT, trInterBandU, trExchangeJ, trPairHoppingJ;
 };
 
-template<typename T>
-OperatorBase<T>::OperatorBase (Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithTrans_, bool commuteWithPG_, int spmNum_, int dmNum_) :\
- FermionOperator<T>(Bi, commuteWithTrans_, commuteWithPG_), SpinOperator<T>(Bi, commuteWithTrans, commuteWithPG), SparseMatrix<T>(Bi, Bf, spmNum_, dmNum_){
-    commuteWithTrans = commuteWithTrans_;
-    commuteWithPG = commuteWithPG_;
-    this->latt = latt;
-    this->model = this->Bi->getModel();
-    assert(this->Bi->getModel() == this->Bf->getModel());
+template<typename T, IsBasisType B>
+OperatorBase<T, B>::OperatorBase (Geometry *latt_, Basis<B> *Bi_, Basis<B> *Bf_, bool commuteWithTrans_, bool commuteWithPG_, int spmNum_, int dmNum_) : SparseMatrix<T>(Bf_->getSubDim(), Bi_->getSubDim(), spmNum_, dmNum_),
+        latt(latt_), Bi(Bi_), Bf(Bf_), commuteWithTrans(commuteWithTrans_), commuteWithPG(commuteWithPG_) {
+
 }
 
-template<typename T>
-OperatorBase<T>& OperatorBase<T>::pushLink(Link<T> link, int matID){
+template<typename T, IsBasisType B>
+OperatorBase<T, B>& OperatorBase<T, B>::pushLink(Link<T> link, int matID){
     if(matID==0)assert(link.isConst());
     else assert(!link.isConst());
     link.genLinkMaps(latt);
@@ -114,8 +138,8 @@ OperatorBase<T>& OperatorBase<T>::pushLink(Link<T> link, int matID){
     // return *this;
 }
 
-template<typename T>
-OperatorBase<T>& OperatorBase<T>::pushLinks(std::vector<Link<T>> links){
+template<typename T, IsBasisType B>
+OperatorBase<T, B>& OperatorBase<T, B>::pushLinks(std::vector<Link<T>> links){
     assert(spmCount<SparseMatrix<T>::spmNum);
     for (auto& link : links) pushLink(link, spmCount);
     if (links.at(0).isOrdered()) spmCount += 2;
@@ -124,8 +148,8 @@ OperatorBase<T>& OperatorBase<T>::pushLinks(std::vector<Link<T>> links){
     return *this;
 }
 
-template<typename T>
-void OperatorBase<T>::printLinks(bool brief) const {
+template<typename T, IsBasisType B>
+void OperatorBase<T, B>::printLinks(bool brief) const {
     for (const auto& link:hoppingT) {
         link.print(brief);
     }
@@ -210,30 +234,48 @@ void assignTrInteractions(const Generator<T>& Gi, const Generator<T>& Gf, const 
 }
 
 
-template<typename T>
-void OperatorBase<T>::getGiGf(Generator<T>& Gi, Generator<T>& Gf, std::vector<Transform<T>>& allTr) const {
+template<typename T, IsBasisType B>
+void OperatorBase<T, B>::getGiGf(Generator<T>& Gi, Generator<T>& Gf, std::vector<Transform<T>>& allTr) const {
     Gi.setIdentity(latt->getOrbNum());
-    Gf = latt->getPointGroupGenerator(this->Bf->getPGIndex()) * latt->getTranslationGenerator(this->Bf->getkIndex());
+    Gf = latt->getPointGroupGenerator(this->Bf->getPIdx()) * latt->getTranslationGenerator(this->Bf->getKIdx());
     if (commuteWithPG) {
-        Gf = latt->getPointGroupGenerator(this->Bi->getPGIndex()) * Gf;
+        Gf = latt->getPointGroupGenerator(this->Bi->getPIdx()) * Gf;
     } else {
-        Gi = latt->getPointGroupGenerator(this->Bi->getPGIndex()) * Gi;
+        Gi = latt->getPointGroupGenerator(this->Bi->getPIdx()) * Gi;
     }
     if (commuteWithTrans) {
-        Gf = latt->getTranslationGenerator(this->Bi->getkIndex()) * Gf;
+        Gf = latt->getTranslationGenerator(this->Bi->getKIdx()) * Gf;
     } else {
-        Gi = latt->getTranslationGenerator(this->Bi->getkIndex()) * Gi;
+        Gi = latt->getTranslationGenerator(this->Bi->getKIdx()) * Gi;
     }
     auto Gtot = Gi * Gf; 
     allTr = Gtot.U;
 }
 
-template<typename T>
-void OperatorBase<T>::transform() {
+template<typename T, IsBasisType B>
+void OperatorBase<T, B>::transform() {
     Generator<T> Gi, Gf;
     std::vector<Transform<T>> allTr;
     getGiGf(Gi, Gf, allTr);
     assignTrInteractions<T, 2>(Gi, Gf, allTr, superExchangeJ, trSuperExchangeJ, 'n');
     assignTrInteractions<T, 3>(Gi, Gf, allTr, chiralTermK, trChiralTermK, 'c');
+    for (const auto& trOp : trSuperExchangeJ) {
+        std::cout << trOp.g.factor << " * " << trOp.g.transformList << std::endl;
+        for (const auto& bond : trOp.Op.bonds) {
+            std::cout << bond.val << " * " << bond.sites[0] << "--" << bond.sites[1] << std::endl;
+        }
+    }
 }
-#endif // OperatorsBase_hpp
+
+template<typename T, IsBasisType B>
+void OperatorBase<T, B>::pushElement(const BVopt<T, B> &bv, MAP<T> *rowMap) {
+    if (bv) {
+        auto idxOpt = Bi->search(bv->basis);
+        std::cout << "final state: " << bv->basis;
+        if (idxOpt) {
+            auto ni = Bi->norm(*idxOpt);
+            std::cout << "val: " << bv->val / ni << ", idx: " << *idxOpt << std::endl;
+            MapPush(rowMap, *idxOpt, bv->val / ni);
+        }
+    }
+}

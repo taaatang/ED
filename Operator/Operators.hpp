@@ -21,12 +21,12 @@
  * HAMILTONIAN *
  ***************/
 
-template <typename T> 
-class HamiltonianBase : public OperatorBase<T> {
+template <typename T, IsBasisType B>
+class HamiltonianBase : public OperatorBase<T, B> {
 public:
-    HamiltonianBase( ) { }
-    HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithTrans = true, bool commuteWithPG = true, int spmNum_ = 1, int dmNum_ = 0);
-    ~HamiltonianBase( ) { }
+    HamiltonianBase( ) = default;
+    HamiltonianBase(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = true, bool commuteWithPG = true, int spmNum_ = 1, int dmNum_ = 0);
+    ~HamiltonianBase( ) = default;
 
     // Add onsite energy V
     void pushV(std::vector<ORBITAL> orbList, double val);
@@ -51,16 +51,16 @@ public:
     T getEval(int n = 0);
     T* getEvec(int n = 0);
 
-private:
+protected:
     PARPACKSolver<T> solver;
     VecD V, U;
 };
 
-template <LATTICE_MODEL M, typename T>
-class Hamiltonian: public HamiltonianBase<T> {
+template <typename T, IsBasisType B>
+class Hamiltonian: public HamiltonianBase<T, B> {
 public:
-    Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithTrans = true, bool commuteWithPG = true, int spmNum_ = 1, int dmNum_ = 0);
-    ~Hamiltonian( ) { }
+    Hamiltonian(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = true, bool commuteWithPG = true, int spmNum_ = 1, int dmNum_ = 1);
+    ~Hamiltonian( ) = default;
 
     void setPeierls(Pulse* pulse = nullptr);
 
@@ -76,11 +76,10 @@ private:
 };
 
 
-
-class Current: public OperatorBase<cdouble> {
+template<ContainCharge B>
+class Current: public OperatorBase<cdouble, B> {
 public:
-    Current(Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithTrans = true, bool commuteWithPG = false);
-    ~Current( ) { }
+    Current(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = false);
 
     void setDirection(const std::string &plz);
 
@@ -96,9 +95,10 @@ private:
     std::string plz;
 };
 
-class Nocc: public OperatorBase<double> {
+template<ContainCharge B>
+class Nocc: public OperatorBase<double, B> {
 public:
-    Nocc(Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithTrans = true, bool commuteWithPG = true);
+    Nocc(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = true);
     ~Nocc( ) { }
     
     template <typename T>
@@ -121,11 +121,10 @@ private:
     std::vector<std::vector<double>> records;
 };
 
-template <class T>
-class CkOp: public OperatorBase<T> {
+template <class T, ContainCharge B>
+class CkOp: public OperatorBase<T, B> {
 public:
-    CkOp(Geometry *latt, Basis *Bi, Basis *Bf, bool commuteWithTrans = false, bool commuteWithPG = false);
-    ~CkOp( ) { }
+    CkOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = false, bool commuteWithPG = false);
 
     void set(LADDER pm, SPIN spin, Orbital orb);
     void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
@@ -139,13 +138,13 @@ private:
     VecI posList;
 };
 
-template<class T>
-class RamanOp: public OperatorBase<T> {
+template<class T, IsPureSpin B>
+class RamanOp: public OperatorBase<T, B> {
 public:
-    RamanOp(Geometry *pt_lat, Basis *Bi, Basis *Bf, bool commuteWithTrans = true, bool commuteWithPG = false, int spmNum_=1, int dmNum = 0);
-    ~RamanOp( ) { }
+    RamanOp(Geometry *pt_lat, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = false, int spmNum_=1, int dmNum = 0);
 
     void setplz(Vec3d pIn_, Vec3d pOut_);
+
     void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
 
 private:
@@ -157,11 +156,10 @@ private:
 
 // correlator:Si*Si+r
 // can also be used to construct total spin operator: S^2
-template <class T>
-class SSOp: public OperatorBase<T> {
+template <class T, ContainSpin B>
+class SSOp: public OperatorBase<T, B> {
 public:
-    SSOp(Geometry *latt, Basis* Bi, Basis *Bf, bool commuteWithTrans = true, bool commuteWithPG = false, int spmNum = 1, int dmNum = 0, int spindim = 2);
-    ~SSOp( ) { }
+    SSOp(Geometry *latt, Basis<B>* Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = false, int spmNum = 1, int dmNum = 0);
 
     void setr(int r_);
 
@@ -175,11 +173,10 @@ private:
     std::vector<VecI> siteJList;
 };
 
-template <class T>
-class SzkOp: public OperatorBase<T> {
+template <class T, ContainSpin B>
+class SzkOp: public OperatorBase<T, B> {
 public:
-    SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, bool commuteWithTrans = false, bool commuteWithPG = false, int spmNum = 1, int dmNum = 0, int spindim = 2);
-    ~SzkOp( ) { }
+    SzkOp(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = false, bool commuteWithPG = false, int spmNum = 1, int dmNum = 0);
 
     void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
 
@@ -195,30 +192,30 @@ private:
     ****************************
 */
 
-template<typename T>
-HamiltonianBase<T>::HamiltonianBase(Geometry* latt, Basis* Bi, Basis* Bf, bool trans, bool pg, int spmNum_, int dmNum_):\
-OperatorBase<T>(latt, Bi, Bf, trans, pg, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
+template<typename T, IsBasisType B>
+HamiltonianBase<T, B>::HamiltonianBase(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum_, int dmNum_):\
+OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum_, dmNum_), V(latt->getUnitOrbNum(),0.0), U(latt->getUnitOrbNum(),0.0) {
 
 }
 
-template<typename T>
-void HamiltonianBase<T>::diag(int nev) {
+template<typename T, IsBasisType B>
+void HamiltonianBase<T, B>::diag(int nev) {
     solver = PARPACKSolver<T>(this, nev);
     solver.diag();
 }
 
-template<typename T>
-T HamiltonianBase<T>::getEval(int n) {
+template<typename T, IsBasisType B>
+T HamiltonianBase<T, B>::getEval(int n) {
     return solver.getEigval(n);
 }
 
-template<typename T>
-T* HamiltonianBase<T>::getEvec(int n) {
+template<typename T, IsBasisType B>
+T* HamiltonianBase<T, B>::getEvec(int n) {
     return solver.getEigvec(n);
 }
 
-template <typename T>
-void HamiltonianBase<T>::pushV(std::vector<ORBITAL> orbList, double val) {
+template <typename T, IsBasisType B>
+void HamiltonianBase<T, B>::pushV(std::vector<ORBITAL> orbList, double val) {
     for (const auto& orb : orbList) {
         auto ids = this->latt->getOrbID(orb);
         for (auto& id : ids) {
@@ -227,8 +224,8 @@ void HamiltonianBase<T>::pushV(std::vector<ORBITAL> orbList, double val) {
     }
 }
 
-template <typename T>
-void HamiltonianBase<T>::pushU(std::vector<ORBITAL> orbList, double val) {
+template <typename T, IsBasisType B>
+void HamiltonianBase<T, B>::pushU(std::vector<ORBITAL> orbList, double val) {
     for (const auto& orb : orbList) {
         auto ids = this->latt->getOrbID(orb);
         for (auto& id : ids) {
@@ -237,8 +234,8 @@ void HamiltonianBase<T>::pushU(std::vector<ORBITAL> orbList, double val) {
     }
 }
 
-template <typename T>
-void HamiltonianBase<T>::printV(std::ostream& os) const {
+template <typename T, IsBasisType B>
+void HamiltonianBase<T, B>::printV(std::ostream& os) const {
     os<<"V: ";
     for (auto val : V) {
         os<<val<<", ";
@@ -246,8 +243,8 @@ void HamiltonianBase<T>::printV(std::ostream& os) const {
     os<<"\n";
 }
 
-template <typename T>
-void HamiltonianBase<T>::printU(std::ostream& os) const {
+template <typename T, IsBasisType B>
+void HamiltonianBase<T, B>::printU(std::ostream& os) const {
     os<<"U: ";
     for (auto val : U) {
         os<<val<<", ";
@@ -255,8 +252,8 @@ void HamiltonianBase<T>::printU(std::ostream& os) const {
     os<<"\n";
 }
 
-template <typename T>
-double HamiltonianBase<T>::diagVal(const VecI& occ, const VecI& docc) const {
+template <typename T, IsBasisType B>
+double HamiltonianBase<T, B>::diagVal(const VecI& occ, const VecI& docc) const {
     double val{0.0};
     for (int i = 0; i < this->latt->getUnitOrbNum(); ++i) {
         val += occ.at(i) * V.at(i) + docc.at(i) * U.at(i);
@@ -264,14 +261,14 @@ double HamiltonianBase<T>::diagVal(const VecI& occ, const VecI& docc) const {
     return val;
 }
 
-template <LATTICE_MODEL M, typename T>
-Hamiltonian<M, T>::Hamiltonian(Geometry* latt, Basis* Bi, Basis* Bf,  bool trans, bool pg, int spmNum, int dmNum):HamiltonianBase<T>(latt, Bi, Bf, trans, pg, spmNum, dmNum) {
+template <typename T, IsBasisType B>
+Hamiltonian<T, B>::Hamiltonian(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf,  bool trans, bool pg, int spmNum, int dmNum) : HamiltonianBase<T,B>(latt, Bi, Bf, trans, pg, spmNum, dmNum) {
     
 }
 
-template <LATTICE_MODEL M, typename T>
-void Hamiltonian<M, T>::setPeierls(Pulse* pulse) {
-    if constexpr (M == LATTICE_MODEL::HUBBARD or M == LATTICE_MODEL::tJ) {
+template <typename T, IsBasisType B>
+void Hamiltonian<T, B>::setPeierls(Pulse* pulse) {
+    if constexpr (ContainCharge<B>) {
         this->pulse = pulse;
         if (pulse) {
             auto epol = pulse->getPol();
@@ -304,39 +301,29 @@ void Hamiltonian<M, T>::setPeierls(Pulse* pulse) {
             PeierlsOverlap.insert(PeierlsOverlap.begin(), 0.0);
         }
     } else {
-        std::cout<<"Peierls substitution is not defined for "<<M<<"\n";
+        std::cout << "Peierls substitution is not defined for charge!\n";
         return;
     }
 }
 
-template<LATTICE_MODEL M, typename T>
-void Hamiltonian<M, T>::printPeierls(std::ostream& os) {
-    if constexpr (M == LATTICE_MODEL::HUBBARD or M == LATTICE_MODEL::tJ) {
+template<typename T, IsBasisType B>
+void Hamiltonian<T, B>::printPeierls(std::ostream& os) {
+    if constexpr (ContainCharge<B>) {
         for (int id = 0; id < (int)PeierlsOverlap.size(); ++id) {
-            os<<"A*dr = "<<PeierlsOverlap[id]<<"\n";
+            os << "A * dr = " << PeierlsOverlap[id] << std::endl;
             auto matid = (id == 0) ? id : 2 * id -1;
             for (const auto& link : this->hoppingT) {
                 if (link.getmatid() == matid) {
                     link.print();
                 }
             }
-            os<<"\n";
-            // if (id > 0) {
-            //     os<<"A*dr = "<<-PeierlsOverlap[id]<<"\n";
-            //     ++matid;
-            //     for (const auto& link : this->hoppingT) {
-            //         if (link.getmatid() == matid) {
-            //             link.print();
-            //         }
-            //     } 
-            //     os<<"\n";
-            // }
+            os << std::endl;
         }
     }
 }
 
-template<LATTICE_MODEL M, typename T>
-bool Hamiltonian<M, T>::next( ) {
+template<typename T, IsBasisType B>
+bool Hamiltonian<T, B>::next( ) {
     if (pulse) {
         auto A = pulse->getAa();
         for (int i = 1; i < (int)PeierlsOverlap.size(); ++i) {
@@ -351,209 +338,208 @@ bool Hamiltonian<M, T>::next( ) {
     }
 }
 
-template <LATTICE_MODEL M, typename T>
-void Hamiltonian<M, T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
-    if constexpr (M == LATTICE_MODEL::HUBBARD) {
+template <typename T, IsBasisType B>
+void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
+    if constexpr (ContainCharge<B>) {
+        auto state = this->Bf->get(rowID);
+        auto nf = this->Bf->norm(rowID);
         // diagonal part. occupancy and double-occ
-        VecI occ, docc;
-        idx_t repI = this->Bf->getRepI(rowID);
-        pairIdx_t pairRepI = this->Bf->getPairRepI(repI);
-        this->latt->orbOCC(pairRepI, occ, docc);
-        T val = this->diagVal(occ,docc);
+        T val = 0.0;
+        for (int i = 0; i < B::getNSite(); ++i) {
+            if (!this->V.empty()) {
+                if (bitTest(state.upState(), i)) {
+                    val += this->V.at(i);
+                }
+                if (bitTest(state.upState(), i)) {
+                    val += this->V.at(i);
+                }
+            }
+            if (!this->U.empty()) {
+                if (bitTest(state.upState(), i) && bitTest(state.dnState(), i)) {
+                    val += this->U.at(i);
+                }
+            }
+        }
         for (const auto& link : this->interBandU){
-            // auto bonds = link.bond();
             for (const auto& bond : link.bond()){
                 auto siteI = bond.at(0);
                 auto siteJ = bond.at(1);
                 assert(siteI!=siteJ);
-                val += link.getVal()*(double)(bitTest(pairRepI.first,siteI)+bitTest(pairRepI.second,siteI))*(double)(bitTest(pairRepI.first,siteJ)+bitTest(pairRepI.second,siteJ));
+                val += link.getVal()
+                        * double(bitTest(state.upState(), siteI) + bitTest(state.dnState(), siteI))
+                        * double(bitTest(state.upState(), siteJ) + bitTest(state.dnState(), siteJ));
             }
         }
         SparseMatrix<T>::putDiag(val,rowID);
         // off diagonal part
-        std::vector<pairIdx_t> finalIndList;
-        std::vector<cdouble> factorList;
-        this->Bf->genSymm(rowID, finalIndList, factorList);
-        int i = 0;
-        for (auto pairRepI : finalIndList) {
-            bool isfminRep = this->Bf->isfMin(pairRepI.first);
-            for (const auto& link:this->hoppingT) {
-                int matID = link.getmatid();
-                int matIDp = matID; 
-                if (link.isOrdered()) matIDp++;
-                cdouble factor = factorList.at(i) * link.getVal();
-                for (const auto& bond : link.bond()) {
-                    int siteI = bond.at(0);
-                    int siteJ = bond.at(1);
-                    cdouble phase = this->latt->twistPhase(siteI,siteJ);
-                    cdouble phase_c = std::conj(phase);
-                    // cp.siteI * cm.siteJ
-                    this->cpcm(SPIN::UP, siteI, siteJ, phase*factor, pairRepI, &rowMaps[matID]);
-                    this->cpcm(SPIN::UP, siteJ, siteI, phase_c*factor, pairRepI, &rowMaps[matIDp]);
-                    if(isfminRep){
-                        this->cpcm(SPIN::DOWN, siteI, siteJ, phase*factor, pairRepI, &rowMaps[matID]);
-                        this->cpcm(SPIN::DOWN, siteJ, siteI, phase_c*factor, pairRepI, &rowMaps[matIDp]);   
-                    }
-                }
+//        for (const auto& trOp : this->trHoppingT) {
+//            auto statef = state;
+//            statef.transform(trOp.g);
+//            for (const auto& bond : trOp.Op.bonds) {
+//                auto val = bond.val/nf;
+//                this->pushElement( val * (CPlus<SPIN::UP>(bond[0]) * (CMinus<SPIN::UP>(bond[1]) * BVopt<T, B>(statef))), mapPtr );
+//            }
+//        }
+        for (const auto& link:this->hoppingT) {
+            int matID = link.getmatid();
+            int matIDp = matID;
+            if (link.isOrdered()) matIDp++;
+            T val = link.getVal() / nf;
+            for (const auto& bond : link.bond()) {
+                int siteI = bond.at(0);
+                int siteJ = bond.at(1);
+                cdouble phase = this->latt->twistPhase(siteI,siteJ);
+                cdouble phase_c = std::conj(phase);
+                // cp.siteI * cm.siteJ
+                this->pushElement( phase * val * (CPlus<SPIN::UP>(siteI) * (CMinus<SPIN::UP>(siteJ) * BVopt<T, B>(state))),  &rowMaps[matID]);
+                this->pushElement( phase_c * val * (CPlus<SPIN::UP>(siteJ) * (CMinus<SPIN::UP>(siteI) * BVopt<T, B>(state))),  &rowMaps[matIDp]);
+                this->pushElement( phase * val * (CPlus<SPIN::DOWN>(siteI) * (CMinus<SPIN::DOWN>(siteJ) * BVopt<T, B>(state))),  &rowMaps[matID]);
+                this->pushElement( phase_c * val * (CPlus<SPIN::DOWN>(siteJ) * (CMinus<SPIN::DOWN>(siteI) * BVopt<T, B>(state))),  &rowMaps[matIDp]);
             }
-
-            for (const auto& link:this->exchangeJ) {
-                int matID = link.getmatid();
-                cdouble factor = factorList.at(i) * link.getVal();
-                for (const auto& bond : link.bond()){
-                    int siteI = bond.at(0);
-                    int siteJ = bond.at(1);
-                    this->exchange(siteI, siteJ, factor, pairRepI, &rowMaps[matID]);
-                }
-            }
-
-            for (const auto& link:this->pairHoppingJ) {
-                int matID = link.getmatid();
-                cdouble factor = factorList.at(i) * link.getVal();
-                for (const auto& bond : link.bond()){
-                    int siteI = bond.at(0);
-                    int siteJ = bond.at(1);
-                    this->pairHopping(siteI, siteJ, factor, pairRepI, &rowMaps[matID]);
-                }
-            }
-            ++i;
         }
-    } else if constexpr(M == LATTICE_MODEL::tJ) {
-        // off diagonal part
-        std::vector<idx_t> finalIndList;
-        std::vector<cdouble> factorList;
-        this->Bf->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < (int)finalIndList.size(); ++i){
-            pairIdx_t pairRepI = this->Bf->getPairRepI(finalIndList[i]);
-            bool isfminRep = this->Bf->isfMin(pairRepI.first);
-            for (const auto& link:this->hoppingT) {
-                int matID = link.getmatid();
-                int matIDp = matID; 
-                if (link.isOrdered()) ++matIDp;
-                cdouble factor = factorList.at(i) * link.getVal();
-                for (const auto& bond : link.bond()) {
-                    int siteI = bond.at(0);
-                    int siteJ = bond.at(1);
-                    cdouble phase = this->latt->twistPhase(siteI,siteJ);
-                    cdouble phase_c = std::conj(phase);
-                    // cp.siteI * cm.siteJ
-                    this->cpcm(SPIN::UP, siteI, siteJ, phase*factor, pairRepI, &rowMaps[matID]);
-                    this->cpcm(SPIN::UP, siteJ, siteI, phase_c*factor, pairRepI, &rowMaps[matIDp]);
-                    if(isfminRep){
-                        this->cpcm(SPIN::DOWN, siteI, siteJ, phase*factor, pairRepI, &rowMaps[matID]);
-                        this->cpcm(SPIN::DOWN, siteJ, siteI, phase_c*factor, pairRepI, &rowMaps[matIDp]);   
-                    }
-                }
-            } 
-
-            for (const auto& link:this->superExchangeJ) {
-                int matID = link.getmatid();
-                cdouble factor = factorList.at(i) * link.getVal();
-                for (const auto& bond : link.bond()) {
-                    int siteI = bond.at(0);
-                    int siteJ = bond.at(1);
-                    // szi * szj - 1/4*ni*nj 
-                    this->szsznn(siteI, siteJ, factor, finalIndList[i], &rowMaps[matID]);
-                    // 1/2 * sm.siteID * sp.siteIDp
-                    this->spsm(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]);
-                    // 1/2 * sp.siteID * sm.siteIDp
-                    this->smsp(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[matID]); 
-                }
-            } 
-        }
-        // diag(rowID,val,&rowMaps[0]);
-    } else if constexpr(M == LATTICE_MODEL::HEISENBERG) {
+//
+//        for (const auto& link:this->exchangeJ) {
+//            int matID = link.getmatid();
+//            cdouble factor = factorList.at(i) * link.getVal();
+//            for (const auto& bond : link.bond()){
+//                int siteI = bond.at(0);
+//                int siteJ = bond.at(1);
+//                this->exchange(siteI, siteJ, factor, pairRepI, &rowMaps[matID]);
+//            }
+//        }
+//
+//        for (const auto& link:this->pairHoppingJ) {
+//            int matID = link.getmatid();
+//            cdouble factor = factorList.at(i) * link.getVal();
+//            for (const auto& bond : link.bond()){
+//                int siteI = bond.at(0);
+//                int siteJ = bond.at(1);
+//                this->pairHopping(siteI, siteJ, factor, pairRepI, &rowMaps[matID]);
+//            }
+//        }
+    }
+    if constexpr(ContainSpin<B>) {
         int matID = 0;
-        if(this->Bf->getSiteDim()==2){
-            auto repI0 = this->Bf->getRepI(rowID);
-            auto nf = this->Bf->getNorm(rowID);
-            for (const auto& trOp : this->trSuperExchangeJ) {
-                auto repI = trOp.g.tr(repI0);
-                for (const auto& bond : trOp.Op.bonds) {
-                    auto val = bond.val/nf;
-                    this->szsz(bond[0], bond[1], val, repI, &rowMaps[matID]);
-                    this->spsm(bond[0], bond[1], val/2.0, repI, &rowMaps[matID]);
-                    this->smsp(bond[0], bond[1], val/2.0, repI, &rowMaps[matID]);
-                }
+        MAP<T>* mapPtr = &rowMaps[matID];
+        auto repI0 = this->Bf->get(rowID);
+        auto nf = this->Bf->norm(rowID);
+        std::cout << "init state: " << repI0 << ", norm:" << nf;
+        for (const auto& trOp : this->trSuperExchangeJ) {
+            auto repI = repI0;
+            repI.transform(trOp.g);
+            for (const auto& bond : trOp.Op.bonds) {
+                std::cout << "bond: " << bond.val << " * " << bond.sites[0] << "--" << bond.sites[1] << std::endl;
+                auto val = bond.val/nf;
+                this->pushElement( val * (Sz(bond[0]) * (Sz(bond[1]) * BVopt<T, B>(repI))), mapPtr );
+                this->pushElement( val / 2.0 * (SPlus(bond[0]) * (SMinus(bond[1]) * BVopt<T, B>(repI))), mapPtr );
+                this->pushElement( val / 2.0 * (SMinus(bond[0]) * (SPlus(bond[1]) * BVopt<T, B>(repI))), mapPtr );
             }
-            for (const auto& trOp : this->trChiralTermK) {
-                auto repI = trOp.g.tr(repI0);
-                for (const auto& bond : trOp.Op.bonds) {
-                    this->chiral(bond[0], bond[1], bond[2], bond.val/nf, repI, &rowMaps[matID]);
-                }
-            }
-            // std::vector<idx_t> finalIndList;
-            // std::vector<cdouble> factorList;
-            // this->Bf->genSymm(rowID, finalIndList, factorList);
-            // for (int i = 0; i < (int)finalIndList.size(); ++i) {
-            //     auto repI = finalIndList[i];
-            //     for (const auto &link:this->superExchangeJ) {
-            //         int matID = link.getmatid();
-            //         auto factor = factorList.at(i) * link.getVal();
-            //         for (auto bond : link.bond()) {
-            //             int siteI = bond.at(0);
-            //             int siteJ = bond.at(1);
-            //             this->szsz(siteI, siteJ, factor, repI, &rowMaps[matID]);
-            //             this->spsm(siteI, siteJ, factor/2.0, repI, &rowMaps[matID]);
-            //             this->smsp(siteI, siteJ, factor/2.0, repI, &rowMaps[matID]);
-            //         }
-            //     }
-            //     for (const auto &link:this->chiralTermK) {
-            //         int matID = link.getmatid();
-            //         auto factor = factorList.at(i) * link.getVal();
-            //         for (const auto& bond : link.bond()) {
-            //             int siteI = bond.at(0);
-            //             int siteJ = bond.at(1);
-            //             int siteK = bond.at(2);
-            //             this->chiral(siteI, siteJ, siteK, factor, repI, &rowMaps[matID]);
-            //         }
-            //     }
-            // }
-        } else {
-            VecI initVec(this->latt->getOrbNum());
-            std::vector<idx_t> finalIndList;
-            std::vector<cdouble> factorList;
-            this->Bf->genSymm(rowID, finalIndList, factorList);
-            for (int i = 0; i < (int)finalIndList.size(); ++i){
-                this->Bf->repToVec(finalIndList[i], initVec);
-                for (auto linkit = this->Links.begin(); linkit != this->Links.end(); linkit++){
-                    int matID = (*linkit).getmatid();
-                    cdouble factor = factorList.at(i) * (*linkit).getVal();
-                    for (auto bondit = (*linkit).begin(); bondit != (*linkit).end(); bondit++){
-                        int siteID = (*bondit).at(0);
-                        int siteIDp = (*bondit).at(1);
-                        // sz.siteID * sz.siteIDp
-                        this->szsz(siteID, siteIDp, factor, finalIndList[i], initVec, &rowMaps[matID]);
-                        // 1/2 * sm.siteID * sp.siteIDp
-                        this->spsm(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
-                        // 1/2 * sp.siteID * sm.siteIDp
-                        this->smsp(siteID, siteIDp, factor/2.0, finalIndList[i], initVec, &rowMaps[matID]);
-                    }
-                }
-            }
-        }  
-    } else {
-        std::cout<<" Input Lattice Model is not defined!\n";
-        exit(1);
+        }
+        //TODO:Chiral Terms
+//        for (const auto& trOp : this->trChiralTermK) {
+//            auto repI = repI0;
+//            repI.transform(trOp.g);
+//            for (const auto& bond : trOp.Op.bonds) {
+//                this->chiral(bond[0], bond[1], bond[2], bond.val/nf, repI, mapPtr);
+//            }
+//        }
+    }
+    if constexpr (ContainPhonon<B>) {
+
+    }
+}
+
+template<ContainCharge B>
+Nocc<B>::Nocc(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg) : OperatorBase<double, B>(latt, Bi, Bf, trans, pg, 0, latt->getUnitOrbNum()) {
+    for(int i = 0; i < latt->getUnitOrbNum(); ++i)  {
+        this->diagValList.resize(BaseMatrix<double>::nloc);
+    }
+    records.resize(latt->getUnitOrbNum());
+}
+
+template<ContainCharge B>
+void Nocc<B>::row(idx_t rowID) {
+    // diagonal part. occupancy
+    VecI occ;
+    auto state = this->Bf->get(rowID);
+    this->latt->orbOCC({state.upState(), state.dnState()}, occ);
+    idx_t loc_rowID = rowID - BaseMatrix<double>::startRow;
+    for (int i = 0; i < this->latt->getUnitOrbNum(); ++i) {
+        SparseMatrix<double>::diagValList[i][loc_rowID] = occ[i];
+    }
+}
+
+template<ContainCharge B>
+void Nocc<B>::construct( ) {
+    #pragma omp parallel for
+    for(idx_t rowID = BaseMatrix<double>::startRow; rowID < BaseMatrix<double>::endRow; rowID++) {
+        row(rowID);
+    }
+}
+
+template<ContainCharge B>
+double Nocc<B>::count(ORBITAL orbital, dataType* vec) {
+    VecI ids = this->latt->getOrbID(orbital);
+    double sum_final = 0.0;
+    for (auto id : ids) {
+        double sum = 0.0, part_sum = 0.0;
+        #pragma omp parallel for reduction(+:part_sum)
+        for(idx_t i = 0; i < BaseMatrix<double>::nloc; ++i){
+            part_sum += this->diagValList[id][i] * (std::real(vec[i]) * std::real(vec[i]) + std::imag(vec[i]) * std::imag(vec[i]));
+        }
+        MPI_Allreduce(&part_sum, &sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        sum_final += sum;
+    }
+    return sum_final;
+}
+
+template<ContainCharge B>
+double Nocc<B>::count(int id, dataType* vec) {
+    double sum = 0.0;
+    double part_sum = 0.0;
+    #pragma omp parallel for reduction(+:part_sum)
+    for(idx_t i = 0; i < BaseMatrix<double>::nloc; ++i){
+        part_sum += this->diagValList[id][i] * (std::real(vec[i]) * std::real(vec[i]) + std::imag(vec[i]) * std::imag(vec[i]));
+    }
+    MPI_Allreduce(&part_sum, &sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    return sum;
+}
+
+template<ContainCharge B>
+void Nocc<B>::count(dataType* vec) {
+    for (int id = 0; id < this->latt->getUnitOrbNum(); ++id) {
+        records.at(id).push_back(count(id, vec));
+    }
+}
+
+template<ContainCharge B>
+void Nocc<B>::clear( ) {
+    records.clear();
+}
+
+template<ContainCharge B>
+void Nocc<B>::save(const std::string &dir) {
+    for (int id = 0; id < this->latt->getUnitOrbNum(); ++id) {
+        ::save(records.at(id).data(), (int)records.at(id).size(), dir + "/orb" + tostr(id));
     }
 }
 
 
-template <class T>
-CkOp<T>::CkOp(Geometry *latt, Basis *Bi, Basis *Bf, bool trans, bool pg):\
-OperatorBase<T>(latt, Bi, Bf, trans, pg), expFactor(latt->getSiteNum()) {
+template <class T, ContainCharge B>
+CkOp<T, B>::CkOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg):\
+OperatorBase<T, B>(latt, Bi, Bf, trans, pg), expFactor(latt->getSiteNum()) {
     assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
     Ki = Bi->getkIndex();
     Kf = Bf->getkIndex();
     // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
     int N = latt->getSiteNum();
     for (int i = 0; i < N; ++i) {
-        expFactor[i] = latt->expKR(Ki,i)/latt->expKR(Kf,i)/std::sqrt(N);
+        expFactor[i] = latt->expKR(Ki, i) / latt->expKR(Kf, i) / std::sqrt(N);
     }
 }
 
-template <class T>
-void CkOp<T>::set(LADDER pm, SPIN spin, Orbital orb) {
+template <class T, ContainCharge B>
+void CkOp<T, B>::set(LADDER pm, SPIN spin, Orbital orb) {
     this->pm = pm;
     this->spin = spin;
     this->orb = orb;
@@ -572,41 +558,106 @@ void CkOp<T>::set(LADDER pm, SPIN spin, Orbital orb) {
 }
 
 //TODO: Check Ck with symmetry
-template <class T>
-void CkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
+template <class T, ContainCharge B>
+void CkOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
     #ifdef DISTRIBUTED_BASIS
  
     #else
-    std::vector<pairIdx_t> finalIndList;
-    std::vector<cdouble> factorList;
-    this->Bf->genSymm(rowID, finalIndList, factorList);
+    auto state = this->Bf->get(rowID);
+    auto nf = this->Bf->norm(rowID);
     if (pm == LADDER::MINUS) {
-        for (int i = 0; i < (int)finalIndList.size(); ++i){
-            for (int r = 0; r < (int)posList.size(); ++r){
-                cdouble factor = factorList.at(i) * expFactor.at(r);
-                this->cp(spin, posList[r], factor, finalIndList[i], &rowMaps[0]);
+        for (int r = 0; r < (int)posList.size(); ++r){
+            T factor = expFactor.at(r) / nf;
+            if (spin == SPIN::UP) {
+                this->pushElement(factor * (CPlus<SPIN::UP>(posList[r]) * BVopt<T, B>(state)), &rowMaps[0]);
+            } else {
+                this->pushElement(factor * (CPlus<SPIN::DOWN>(posList[r]) * BVopt<T, B>(state)), &rowMaps[0]);
             }
         }
     } else if (pm == LADDER::PLUS) {
-        for (int i = 0; i < (int)finalIndList.size(); ++i){
-            for (int r = 0; r < (int)posList.size(); ++r){
-                cdouble factor = factorList.at(i) * expFactor.at(r);
-                this->cm(spin, posList[r], factor, finalIndList[i], &rowMaps[0]);
+        for (int r = 0; r < (int)posList.size(); ++r){
+            T factor = expFactor.at(r) / nf;
+            if (spin == SPIN::UP) {
+                this->pushElement(factor * (CMinus<SPIN::UP>(posList[r]) * BVopt<T, B>(state)), &rowMaps[0]);
+            } else {
+                this->pushElement(factor * (CMinus<SPIN::DOWN>(posList[r]) * BVopt<T, B>(state)), &rowMaps[0]);
             }
-        } 
+        }
     }
     #endif
 }
 
-template<class T>
-RamanOp<T>::RamanOp(Geometry* latt, Basis *Bi, Basis *Bf, bool trans, bool pg, int spmNum, int dmNum):OperatorBase<T>(latt, Bi, Bf, trans, pg, spmNum, dmNum) {
+template<ContainCharge B>
+Current<B>::Current(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg) : OperatorBase<cdouble, B>(latt, Bi, Bf, trans, pg) {
+
+}
+
+template<ContainCharge B>
+void Current<B>::setDirection(const std::string& plz)
+{
+    this->plz = plz;
+    if (plz == "x")
+        direction = {1.0, 0.0, 0.0};
+    else if (plz == "y")
+        direction = {0.0, 1.0, 0.0};
+    else if (plz == "z")
+        direction = {0.0, 0.0, 1.0};
+    else
+        direction = {0.0, 0.0, 0.0};
+    setDirection(direction);
+}
+
+template<ContainCharge B>
+void Current<B>::setDirection(Vec3d d) {
+    direction = d;
+    myHoppingT.clear();
+    for (auto link : this->hoppingT) {
+        assert_msg(link.getLinkVecNum()==1, "In setDirection, each hopping link should only have one dr!");
+        auto dr = link.getvec(0);
+        dr = this->latt->RtoRxy(dr);
+        auto overlap = dot(direction, dr);
+        if (overlap != 0.0) {
+            link.setVal(link.getVal() * overlap);
+            myHoppingT.push_back(link);
+        }
+    }
+}
+
+template<ContainCharge B>
+void Current<B>::print(std::ostream &os) const {
+    for (const auto& link : this->myHoppingT) {
+        link.print(false, os);
+    }
+}
+
+template<ContainCharge B>
+void Current<B>::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps) {
+    auto state = this->Bf->get(rowID);
+    auto nf = this->Bf->norm(rowID);
+    for (const auto& link : this->myHoppingT) {
+        int matID = link.getmatid();
+        cdouble val = CPLX_I * link.getVal() / nf;
+        for (const auto& bond : link.bond()){
+            int siteI = bond.at(0);
+            int siteJ = bond.at(1);
+            // cp.siteI * cm.siteJ
+            this->pushElement( val * (CPlus<SPIN::UP>(siteI) * (CMinus<SPIN::UP>(siteJ) * BVopt<cdouble, B>(state))),  &rowMaps[matID]);
+            this->pushElement( -val * (CPlus<SPIN::UP>(siteJ) * (CMinus<SPIN::UP>(siteI) * BVopt<cdouble, B>(state))),  &rowMaps[matID]);
+            this->pushElement( val * (CPlus<SPIN::DOWN>(siteI) * (CMinus<SPIN::DOWN>(siteJ) * BVopt<cdouble, B>(state))),  &rowMaps[matID]);
+            this->pushElement( -val * (CPlus<SPIN::DOWN>(siteJ) * (CMinus<SPIN::DOWN>(siteI) * BVopt<cdouble, B>(state))),  &rowMaps[matID]);
+        }
+    }
+}
+
+template<class T, IsPureSpin B>
+RamanOp<T, B>::RamanOp(Geometry* latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum) {
     pIn = Vec3d{1.0,0.0,0.0};
     pOut = Vec3d{0.0,1.0,0.0};
     NoRW = true;
 }
 
-template <class T>
-void RamanOp<T>::setplz(Vec3d pIn_, Vec3d pOut_) {
+template<class T, IsPureSpin B>
+void RamanOp<T, B>::setplz(Vec3d pIn_, Vec3d pOut_) {
     pIn = pIn_;
     pOut = pOut_;
     RamanWeight.resize(this->superExchangeJ.size());
@@ -622,8 +673,8 @@ void RamanOp<T>::setplz(Vec3d pIn_, Vec3d pOut_) {
     }
     NoRW = false;
 }
-template <class T>
-void RamanOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
+template<class T, IsPureSpin B>
+void RamanOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     if (NoRW) setplz(pIn, pOut);
     std::vector<idx_t> finalIndList;
     std::vector<cdouble> factorList;
@@ -660,8 +711,8 @@ void RamanOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     * Correlator Class *
     ********************
 */
-template <class T>
-SSOp<T>::SSOp(Geometry* latt, Basis* Bi, Basis* Bf, bool trans, bool pg, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bf, trans, pg, spmNum, dmNum),\
+template <class T, ContainSpin B>
+SSOp<T, B>::SSOp(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum),\
     r(-1), siteJList(latt->getSiteNum()) {
     Vec3d coordi, coordr, coordf;
     for (int rIndex = 0; rIndex < latt->getSiteNum(); ++rIndex) {
@@ -681,78 +732,47 @@ SSOp<T>::SSOp(Geometry* latt, Basis* Bi, Basis* Bf, bool trans, bool pg, int spm
     }
 }
 
-template <class T>
-void SSOp<T>::setr(int r_) {
+template <class T, ContainSpin B>
+void SSOp<T, B>::setr(int r_) {
     assert(r_ < this->latt->getSiteNum());
     r=r_;
 }
 
-template <class T>
-void SSOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
-    //binary rep
-    if (this->Bf->getSiteDim()==2) {
-        std::vector<idx_t> finalIndList;
-        std::vector<cdouble> factorList;
-        this->Bf->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < (int)finalIndList.size(); ++i) {
-            T factor = factorList.at(i);
-            for (int siteI = 0; siteI < this->latt->getOrbNum(); ++siteI) {
-                if (r >= 0){
-                    int siteJ = siteJList[r][siteI];
+//FIXME
+template <class T, ContainSpin B>
+void SSOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
+    std::vector<idx_t> finalIndList;
+    std::vector<cdouble> factorList;
+    this->Bf->genSymm(rowID, finalIndList, factorList);
+    for (int i = 0; i < (int)finalIndList.size(); ++i) {
+        T factor = factorList.at(i);
+        for (int siteI = 0; siteI < this->latt->getOrbNum(); ++siteI) {
+            if (r >= 0){
+                int siteJ = siteJList[r][siteI];
+                // sz.siteI * sz.siteJ
+                this->szsz(siteI, siteJ, factor, finalIndList[i], &rowMaps[0]);
+                // 1/2 * sm.siteI * sp.siteJ
+                this->spsm(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[0]);
+                // 1/2 * sp.siteI * sm.siteJ
+                this->smsp(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[0]);
+            } else {
+                for (int rIndex = 0; rIndex < this->latt->getSiteNum(); ++rIndex){
+                    int siteJ = siteJList[rIndex][siteI];
                     // sz.siteI * sz.siteJ
                     this->szsz(siteI, siteJ, factor, finalIndList[i], &rowMaps[0]);
                     // 1/2 * sm.siteI * sp.siteJ
                     this->spsm(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[0]);
                     // 1/2 * sp.siteI * sm.siteJ
                     this->smsp(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[0]);
-                } else {
-                    for (int rIndex = 0; rIndex < this->latt->getSiteNum(); ++rIndex){
-                        int siteJ = siteJList[rIndex][siteI];
-                        // sz.siteI * sz.siteJ
-                        this->szsz(siteI, siteJ, factor, finalIndList[i], &rowMaps[0]);
-                        // 1/2 * sm.siteI * sp.siteJ
-                        this->spsm(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[0]);
-                        // 1/2 * sp.siteI * sm.siteJ
-                        this->smsp(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[0]);
-                    }
-                }
-            }
-        }
-    } else {
-        VecI initVec(this->latt->getOrbNum());
-        std::vector<idx_t> finalIndList;
-        std::vector<cdouble> factorList;
-        this->Bf->genSymm(rowID, finalIndList, factorList);
-        for (int i = 0; i < (int)finalIndList.size(); ++i) {
-            this->Bf->repToVec(finalIndList[i], initVec);
-            T factor = factorList.at(i);
-            for (int siteI = 0; siteI < this->latt->getOrbNum(); ++siteI) {
-                if (r >= 0){
-                    int siteJ = siteJList[r][siteI];
-                    // sz.siteI * sz.siteJ
-                    this->szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMaps[0]);
-                    // 1/2 * sm.siteI * sp.siteJ
-                    this->spsm(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
-                    // 1/2 * sp.siteI * sm.siteJ
-                    this->smsp(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
-                } else {
-                    for (int rIndex = 0; rIndex < this->latt->getSiteNum(); ++rIndex) {
-                        int siteJ = siteJList[rIndex][siteI];
-                        // sz.siteI * sz.siteJ
-                        this->szsz(siteI, siteJ, factor, finalIndList[i], initVec, &rowMaps[0]);
-                        // 1/2 * sm.siteI * sp.siteJ
-                        this->spsm(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
-                        // 1/2 * sp.siteI * sm.siteJ
-                        this->smsp(siteI, siteJ, factor/2.0, finalIndList[i], initVec, &rowMaps[0]);
-                    }
                 }
             }
         }
     }
 }
 
-template <class T>
-void SSOp<T>::project(double s, T* vec){
+//FIXME
+template <class T, ContainSpin B>
+void SSOp<T, B>::project(double s, T* vec){
     assert(r == -1);
     double stot = s * ( s + 1 );
     std::vector<T> tmp(this->getnloc());
@@ -770,8 +790,8 @@ void SSOp<T>::project(double s, T* vec){
     }
 }
 
-template <class T>
-SzkOp<T>::SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, bool trans, bool pg, int spmNum, int dmNum, int spindim):OperatorBase<T>(latt, Bi, Bf, trans, pg, spmNum, dmNum), expFactor(latt->getSiteNum()) {
+template <class T, ContainSpin B>
+SzkOp<T, B>::SzkOp(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum), expFactor(latt->getSiteNum()) {
     // assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
     Ki = Bi->getkIndex();
     Kf = Bf->getkIndex();
@@ -789,83 +809,33 @@ SzkOp<T>::SzkOp(Geometry* latt, Basis* Bi, Basis* Bf, bool trans, bool pg, int s
 }
 
 //TODO: Check Szk with Symm
-template <class T>
-void SzkOp<T>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
-    if (this->Bi->getSiteDim() == 2) {
-        #ifdef DISTRIBUTED_BASIS
-            idx_t repI = this->Bf->getRepI(rowID);
-            T dval = 0.0;
-            for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
-                dval += this->getSz(siteID, repI) * expFactor[siteID];
-            }
-            dval *= this->Bf->getNorm(rowID);
-            rowMaps[0][repI] = dval;
-        #else
-            auto repI = this->Bf->getRepI(rowID);
-            auto ni = this->Bf->getNorm(rowID);
-            for (const auto& gSz : this->trSz) {
-                auto repIf = gSz.g.tr(repI);
-                idx_t colID;
-                if (this->Bi->search(repIf, colID)) {
-                    T val = 0.0;
-                    for (const auto& bond : gSz.Op.bonds) {
-                        val += bond.val * this->getSz(bond[0], repIf);
-                    }
-                    val /= (ni * this->Bi->getNorm(colID));
-                    MapPush(&rowMaps.at(0), colID, val);
+template <class T, ContainSpin B>
+void SzkOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
+    #ifdef DISTRIBUTED_BASIS
+        idx_t repI = this->Bf->getRepI(rowID);
+        T dval = 0.0;
+        for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
+            dval += this->getSz(siteID, repI) * expFactor[siteID];
+        }
+        dval *= this->Bf->getNorm(rowID);
+        rowMaps[0][repI] = dval;
+    #else
+        auto repI = this->Bf->get(rowID);
+        auto nf = this->Bf->norm(rowID);
+        for (const auto& gSz : this->trSz) {
+            auto repIf = repI;
+            repIf.transform(gSz.g);
+            auto colID =this->Bi->search(repIf);
+            if (colID) {
+                T val = 0.0;
+                for (const auto& bond : gSz.Op.bonds) {
+                    val += bond.val * this->getSz(bond[0], repIf);
                 }
+                val /= (nf * this->Bi->norm(colID));
+                MapPush(&rowMaps.at(0), *colID, val);
             }
-
-            //! Temporary implementation for point group symmetry 
-            // std::vector<idx_t> finalIndList;
-            // std::vector<cdouble> factorList;
-            // this->Bf->genSymm(rowID, finalIndList, factorList);
-            // for (int i = 0; i < int(finalIndList.size()); ++i) {
-            //     T val = 0.0;
-            //     for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
-            //         val += this->getSz(siteID, finalIndList[i]) * expFactor[siteID];
-            //     }
-            //     val *= factorList[i];
-            //     SpinOperator<T>::push(finalIndList[i], val, &rowMaps.at(0));
-            // }
-            //! Initial implementation
-            // idx_t colID;
-            // auto repI = this->Bf->getRepI(rowID);
-            // if (this->Bi->search(repI, colID)) {
-            //     T dval = 0.0;
-            //     for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
-            //         dval += this->getSz(siteID,repI) * expFactor[siteID];
-            //     }
-            //     dval *= this->Bf->getNorm(rowID)/this->Bi->getNorm(colID);
-            //     rowMaps[0][colID] = dval;
-            // }
-        #endif
-    } else {
-        #ifdef DISTRIBUTED_BASIS
-            idx_t repI = this->Bf->getRepI(rowID);
-            VecI initVec(this->latt->getOrbNum());
-            T dval = 0.0;
-            this->Bf->repToVec(repI, initVec);
-            for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
-                dval += this->getSz(siteID,initVec) * expFactor[siteID];
-            }
-            dval *= this->Bf->getNorm(rowID);
-            rowMaps[0][repI] = dval;
-        #else
-            idx_t colID;
-            auto repI = this->Bf->getRepI(rowID);
-            if (this->Bi->search(repI, colID)) {
-                VecI initVec(this->latt->getOrbNum());
-                T dval = 0.0;
-                this->Bi->repToVec(repI, initVec);
-                for (int siteID = 0; siteID < this->latt->getOrbNum(); ++siteID) {
-                    dval += this->getSz(siteID,initVec) * expFactor[siteID];
-                }
-                dval *= this->Bf->getNorm(rowID)/this->Bi->getNorm(colID);
-                rowMaps[0][colID] = dval;
-            }
-        #endif
-    }
+        }
+    #endif
 }
 
 #endif // Operators_hpp
