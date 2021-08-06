@@ -20,8 +20,10 @@ template <class T>
 class BaseMatrix{
 public:
     BaseMatrix(idx_t totRowDim = 0, idx_t totColDim = 0);
+    virtual ~BaseMatrix() = default;
 
     int getWorkerID( ) const { return workerID; }
+    int getWorkerNum( ) const { return workerNum; }
     
     void setDim(idx_t totDim = 0);
     idx_t getDim( ) const { return dim; }
@@ -92,9 +94,14 @@ class SparseMatrix: public BaseMatrix<T>{
   Version 4
 */
 public:
-    SparseMatrix( ) = default;
+    SparseMatrix( ) = delete;
     SparseMatrix(idx_t rowDim, idx_t colDim, int spmNum_ = 0, int dmNum_ = 0);
-    ~SparseMatrix( );
+    //TODO:Fix Copy/Move constructor, assignment/move asignment
+    SparseMatrix(const SparseMatrix<T>&) = delete;
+    SparseMatrix(SparseMatrix<T>&&) = delete;
+    SparseMatrix<T>& operator=(const SparseMatrix<T>&) = delete;
+    SparseMatrix<T>& operator=(SparseMatrix<T>&&) = delete;
+    virtual ~SparseMatrix( );
 
     // local matrix nonzero elements count
     idx_t nzCount( ) const;    
@@ -654,7 +661,6 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
                 }
             }
         }
-        std::cout << "Creating spMat: " << BaseMatrix<T>::nloc << " x " << BaseMatrix<T>::dim_col << std::endl;
         for (int i = 0; i < spmNum; ++i) MKL::create(A.at(i), BaseMatrix<T>::nloc, BaseMatrix<T>::dim_col, rowInitList.at(i), colList.at(i), valList.at(i));
         isMatrixFree = false;
     }
@@ -665,10 +671,12 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
  */
 template <class T>
 void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
-    if(!isMVBuf()) setBuf();
+    if(!isMVBuf()) {
+        setBuf();
+    }
     
     if(!isMatrixFree){
-       
+
         #ifdef DISTRIBUTED_BASIS
 
             for (int id = 0; id < BaseMatrix<T>::workerNum; id++){
@@ -688,7 +696,6 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
             }
 
         #else
-
             #pragma omp parallel for
             for (idx_t i = 0; i < BaseMatrix<T>::nloc; ++i) vecOut[i] = 0.0;
             MPI_Allgather(vecIn,vecBuf.data(),this->getColnlocmax());
@@ -771,9 +778,13 @@ void SparseMatrix<T>::assignDiagShiftInv(std::vector<T> &diag, T shift) {
 
 template <class T>
 T SparseMatrix<T>::vMv(T *vecL, T *vecR){
-    std::vector<T> vecTmp(BaseMatrix<T>::nlocmax);
+    std::vector<T> vecTmp(this->getnlocmax());
+//    std::cout << "begin MxV" << std::endl;
+//    std::cout << "dim = " << this->getDim() << ", nlocmax = " << this->getnlocmax() << ", nloc = " << this->getnloc() << ", workerID / workerNUM = " << this->getWorkerID() << " / " << this->getWorkerNum() << std::endl;
+//    std::cout << "vecTmp size: " << vecTmp.size() << " vs nlocmax: " << this->nlocmax << std::endl;
     MxV(vecR, vecTmp.data());
-    return mpiDot<T>(vecL, vecTmp.data(), BaseMatrix<T>::nloc);
+//    std::cout << "begin mpidot" << std::endl;
+    return mpiDot<T>(vecL, vecTmp.data(), this->getnloc());
 }
 
 template <class T>
