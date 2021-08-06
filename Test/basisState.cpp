@@ -14,65 +14,52 @@ int main() {
     bool isMaster;
     init(workerID, workerNum, isMaster);
     Timer timer(isMaster);
-    std::cout << std::setprecision(20);
+    std::cout << std::setprecision(4);
     int nSite = 4;
     int nu = 2;
     int nd = 2;
     int nPho = 0;
     ElectronBasis::setAllowDoubleOcc(true);
-//    SpinBasis::configure(nSite, nu, nd, nPho);
-//    SpinBasis state;
 
-//    ElectronBasis::setAllowDoubleOcc(true);
-//    ElectronBasis::configure(nSite, nu, nd, nPho);
-//    ElectronBasis state;
-
-//    ElectronPhononBasis::configure(nSite, nu, nd, nPho);
-//    ElectronPhononBasis state;
-//    int count = 0;
-//    do {
-//        count++;
-//        std::cout << state << std::endl;
-//    } while (state.next());
-//    std::cout << "dim " << state.getTotDim() << " == count " << count << std::endl;
-
-    SquareLattice latt(nSite, 1, false);
-    latt.addOrb(Orbital{ORBITAL::SINGLE});
+    SquareLattice latt(nSite, 1, true);
+    latt.addOrb({ORBITAL::Dx2y2, 0, {0.0, 0.0, 0.0}}).addOrb({ORBITAL::Px, 1, {0.5, 0.0, 0.0}});
     latt.construct();
     latt.print();
 
     Basis<Basis_t> b(&latt, nu, nd, nPho, -1);
     b.construct();
     std::cout << b << std::endl;
-//     Test search
-//        for (idx_t i = 0; i < b.getSubDim(); ++i) {
-//            auto idxOpt = b.search(b.get(i));
-//            assert_msg(idxOpt != std::nullopt, "not found!");
-//            std::cout << "found " << *idxOpt << std::endl;
-//        }
 
-// Test localOperators
-//    auto bvi = BVopt<double, ElectronPhononBasis>{b.get(760)};
-//    auto bvf = Sz(2) * bvi;
-//    std::cout << "initial: " << bvi->basis << ' ' << bvi->val << std::endl;
-//    if (bvf) {
-//        std::cout << "final  : " << bvf->basis << ' ' << bvf->val << std::endl;
-//    }
     double J1{1.0};
     double t1{1.0};
-    double V{0.0};
-    double U{8.0};
+    double Vcu{0.0}, Vo{3.0};
+    double Ucu{8.0}, Uo{4.0};
     Hamiltonian<dataType, Basis_t> H(&latt, &b, &b, true, true, 1, 1);
-    Link<dataType> J1Sq(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1, {{1.0,0.0,0.0}, {0.0,1.0,0.0}});
-    Link<dataType> t1Sq(LINK_TYPE::HOPPING_T, {ORBITAL::SINGLE, ORBITAL::SINGLE}, t1, {{1.0,0.0,0.0}, {0.0,1.0,0.0}});
-    H.pushLinks({t1Sq});
-    H.pushV({ORBITAL::SINGLE}, V);
-    H.pushU({ORBITAL::SINGLE}, U);
-    H.transform();
-    H.construct();
+    // Link<dataType> J1Sq(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, J1, {{1.0,0.0,0.0}, {0.0,1.0,0.0}});
+    // Link<dataType> t1Sq(LINK_TYPE::HOPPING_T, {ORBITAL::SINGLE, ORBITAL::SINGLE}, t1, {{1.0,0.0,0.0}, {0.0,1.0,0.0}});
+    Link<dataType> tCuPx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px},    -t1, {{0.5, 0.0, 0.0}});
+    Link<dataType> tPxCu(LINK_TYPE::HOPPING_T, {ORBITAL::Px,    ORBITAL::Dx2y2},  t1, {{0.5, 0.0, 0.0}});
+    H.pushLinks({tCuPx, tPxCu}).pushV({ORBITAL::Dx2y2}, Vcu).pushV({ORBITAL::Px}, Vo).pushU({ORBITAL::Dx2y2}, Ucu).pushU({ORBITAL::Px}, Uo).transform().construct();
     H.diag();
-    H.print("Hamiltonian info");
-    std::cout << "eval: " << H.getEval() << std::endl;
+//    H.print("Hamiltonian info");
+//    std::cout << "eval: " << H.getEval() << std::endl;
+
+    Nocc<Basis_t> nocc(&latt, &b, &b);
+    nocc.construct();
+    nocc.count(H.getEvec());
+    std::cout << "chage distribution: " << nocc.lastCount() << std::endl;
+    std::vector<std::unique_ptr<SzkOp<dataType, Basis_t>>> szk;
+    for (int i = 0; i < nSite; ++i) {
+        szk.push_back(std::unique_ptr<SzkOp<dataType, Basis_t>>(new SzkOp<dataType, Basis_t>(i, ORBITAL::Px, &latt, &b, &b)));
+        szk[i]->construct();
+    }
+    std::vector<dataType> szkVal;
+    for (int i = 0; i < nSite; ++i) {
+        std::vector<dataType> v1(szk[i]->getnloc(), 0.0);
+        szk[i]->MxV(H.getEvec(), v1.data());
+        szkVal.push_back(szk[(nSite - i) % nSite]->vMv(H.getEvec(), v1.data()));
+    }
+    std::cout << "szk:\n" << szkVal << std::endl;
     MPI_Finalize();
     return 0;
 }
