@@ -29,10 +29,10 @@ public:
     ~HamiltonianBase( ) = default;
 
     // Add onsite energy V
-    void pushV(std::vector<ORBITAL> orbList, double val);
+    OperatorBase<T, B>& pushV(std::vector<ORBITAL> orbList, double val);
 
     // Add onsite Coulomb interaction U
-    void pushU(std::vector<ORBITAL> orbList, double val);
+    OperatorBase<T, B>& pushU(std::vector<ORBITAL> orbList, double val);
 
     void printV(std::ostream& os) const;
 
@@ -117,6 +117,8 @@ public:
     void clear( );
     void save(const std::string &dir);
 
+    std::vector<double> lastCount();
+
 private:
     std::vector<std::vector<double>> records;
 };
@@ -176,13 +178,16 @@ private:
 template <class T, ContainSpin B>
 class SzkOp: public OperatorBase<T, B> {
 public:
-    SzkOp(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = false, bool commuteWithPG = false, int spmNum = 1, int dmNum = 0);
+    SzkOp(int k, ORBITAL orb, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = false, bool commuteWithPG = false, int spmNum = 1, int dmNum = 0);
 
     void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
 
 private:
     // initial k index Ki and final k index Kf
+    int k{-1};
     int Ki, Kf;
+    ORBITAL orb;
+    std::vector<int> positions;
     std::vector<cdouble> expFactor;
 };
 
@@ -215,23 +220,25 @@ T* HamiltonianBase<T, B>::getEvec(int n) {
 }
 
 template <typename T, IsBasisType B>
-void HamiltonianBase<T, B>::pushV(std::vector<ORBITAL> orbList, double val) {
+OperatorBase<T, B>& HamiltonianBase<T, B>::pushV(std::vector<ORBITAL> orbList, double val) {
     for (const auto& orb : orbList) {
         auto ids = this->latt->getOrbPos(orb);
         for (auto& id : ids) {
             V.at(id) = val;
         }
     }
+    return *this;
 }
 
 template <typename T, IsBasisType B>
-void HamiltonianBase<T, B>::pushU(std::vector<ORBITAL> orbList, double val) {
+OperatorBase<T, B>& HamiltonianBase<T, B>::pushU(std::vector<ORBITAL> orbList, double val) {
     for (const auto& orb : orbList) {
         auto ids = this->latt->getOrbPos(orb);
         for (auto& id : ids) {
             U.at(id) = val;
         }
     }
+    return *this;
 }
 
 template <typename T, IsBasisType B>
@@ -423,12 +430,10 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         MAP<T>* mapPtr = &rowMaps[matID];
         auto repI0 = this->Bf->get(rowID);
         auto nf = this->Bf->norm(rowID);
-        std::cout << "init state: " << repI0 << ", norm:" << nf;
         for (const auto& trOp : this->trSuperExchangeJ) {
             auto repI = repI0;
             repI.transform(trOp.g);
             for (const auto& bond : trOp.Op.bonds) {
-                std::cout << "bond: " << bond.val << " * " << bond.sites[0] << "--" << bond.sites[1] << std::endl;
                 auto val = bond.val/nf;
                 this->pushElement( val * (Sz(bond[0]) * (Sz(bond[1]) * BVopt<T, B>(repI))), mapPtr );
                 this->pushElement( val / 2.0 * (SPlus(bond[0]) * (SMinus(bond[1]) * BVopt<T, B>(repI))), mapPtr );
@@ -524,6 +529,14 @@ void Nocc<B>::save(const std::string &dir) {
     }
 }
 
+template<ContainCharge B>
+std::vector<double> Nocc<B>::lastCount() {
+    std::vector<double> res{};
+    for (const auto& rec : records) {
+        res.push_back(rec.back());
+    }
+    return res;
+}
 
 template <class T, ContainCharge B>
 CkOp<T, B>::CkOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg):\
@@ -791,16 +804,25 @@ void SSOp<T, B>::project(double s, T* vec){
 }
 
 template <class T, ContainSpin B>
-SzkOp<T, B>::SzkOp(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum), expFactor(latt->getSiteNum()) {
+SzkOp<T, B>::SzkOp(int k_, ORBITAL orb_, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum), k(k_), orb(orb_), expFactor(latt->getSiteNum()) {
     // assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
-    Ki = Bi->getkIndex();
-    Kf = Bf->getkIndex();
+    positions = latt->getOrbPos(orb);
+    std::cout << "sk positions: " << positions << std::endl;
+    Ki = Bi->getKIdx();
+    Kf = Bf->getKIdx();
     // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
     this->Sz.clear();
-    //!Fix: this is Szk^\dagger 
-    for (int i = 0; i < latt->getSiteNum(); ++i) {
-        expFactor[i] = latt->expKR(Ki, i) / latt->expKR(Kf, i) / cdouble(latt->getSiteNum());
-        this->Sz.add(Bond<T,1>(expFactor[i], {i}));
+    //!Fix: this is Szk^\dagger
+    if (Ki != -1 && Kf != -1) {
+        for (int i = 0; i < latt->getSiteNum(); ++i) {
+            expFactor[i] = latt->expKR(Ki, i) / latt->expKR(Kf, i) / cdouble(latt->getSiteNum());
+            this->Sz.add(Bond<T,1>(expFactor[i], {positions.at(i)}));
+        }
+    } else {
+        for (int i = 0; i < latt->getSiteNum(); ++i) {
+            expFactor[i] = latt->expKR(k, i) / cdouble(latt->getSiteNum());
+            this->Sz.add(Bond<T,1>(expFactor[i], {positions.at(i)}));
+        }
     }
     Generator<T> Gi, Gf;
     std::vector<Transform<T>> allTr;
@@ -825,13 +847,16 @@ void SzkOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         for (const auto& gSz : this->trSz) {
             auto repIf = repI;
             repIf.transform(gSz.g);
-            auto colID =this->Bi->search(repIf);
+            auto colID = this->Bi->search(repIf);
             if (colID) {
                 T val = 0.0;
                 for (const auto& bond : gSz.Op.bonds) {
-                    val += bond.val * this->getSz(bond[0], repIf);
+                    auto bv = bond.val * (Sz(bond[0]) * BVopt<T, B>(repIf));
+                    if (bv) {
+                        val += bv->val;
+                    }
                 }
-                val /= (nf * this->Bi->norm(colID));
+                val /= (nf * this->Bi->norm(*colID));
                 MapPush(&rowMaps.at(0), *colID, val);
             }
         }
