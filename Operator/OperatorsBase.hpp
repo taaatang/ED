@@ -39,9 +39,9 @@ inline void MapPush(MAP<T>* map_pt, idx_t key, T val){
 }
 
 template<typename T, IsBasisType B>
-class OperatorBase: public SparseMatrix<T>{
+class OperatorBase: public SparseMatrix<T> {
 public:
-    OperatorBase( ) =default;
+    OperatorBase( ) = delete;
 
     OperatorBase(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = false, bool commuteWithPG = false, int spmNum_ = 1, int dmNum_ = 0);
 
@@ -56,13 +56,13 @@ public:
     // generate symmetry transformed operators
     void getGiGf(Generator<T>& Gi, Generator<T>& Gf, std::vector<Transform<T>>& allTr) const;
 
-    void transform();
+    OperatorBase& transform();
 
     // Add onsite energy V
-    virtual void pushV(std::vector<ORBITAL> orbList, double val) { }
+    virtual OperatorBase& pushV(std::vector<ORBITAL> orbList, double val) { return *this; }
 
     // Add onsite Coulomb interaction U
-    virtual void pushU(std::vector<ORBITAL> orbList, double val) { }
+    virtual OperatorBase& pushU(std::vector<ORBITAL> orbList, double val) { return *this; }
 
     // O(t) --> O(t+dt)
     virtual bool next( ) {return false;}
@@ -253,7 +253,7 @@ void OperatorBase<T, B>::getGiGf(Generator<T>& Gi, Generator<T>& Gf, std::vector
 }
 
 template<typename T, IsBasisType B>
-void OperatorBase<T, B>::transform() {
+OperatorBase<T, B>& OperatorBase<T, B>::transform() {
     Generator<T> Gi, Gf;
     std::vector<Transform<T>> allTr;
     getGiGf(Gi, Gf, allTr);
@@ -265,16 +265,15 @@ void OperatorBase<T, B>::transform() {
             std::cout << bond.val << " * " << bond.sites[0] << "--" << bond.sites[1] << std::endl;
         }
     }
+    return *this;
 }
 
 template<typename T, IsBasisType B>
 void OperatorBase<T, B>::pushElement(const BVopt<T, B> &bv, MAP<T> *rowMap) {
     if (bv) {
         auto idxOpt = Bi->search(bv->basis);
-        std::cout << "final state: " << bv->basis;
         if (idxOpt) {
             auto ni = Bi->norm(*idxOpt);
-            std::cout << "val: " << bv->val / ni << ", idx: " << *idxOpt << std::endl;
             MapPush(rowMap, *idxOpt, bv->val / ni);
         }
     }
