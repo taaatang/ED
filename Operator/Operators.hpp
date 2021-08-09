@@ -334,7 +334,7 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                 if (bitTest(state.upState(), i)) {
                     val += this->V.at(i);
                 }
-                if (bitTest(state.upState(), i)) {
+                if (bitTest(state.dnState(), i)) {
                     val += this->V.at(i);
                 }
             }
