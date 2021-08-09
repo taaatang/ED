@@ -12,7 +12,7 @@ Path::Path(const Parameters* path, const Parameters* model, const Parameters* pu
     if (ly > 0) lattSize += "x" + tostr(ly);
     lattice += sep + lattSize;
 
-    particleNum = tostr(*model->template get<int>("nu")) + "u" + tostr(*model->template get<int>("nd")) + "d";
+    particleNum = tostr(*model->template get<int>("nu")) + "u" + tostr(*model->template get<int>("nd")) + "d" + tostr(*model->template get<int>("maxPhPerSite")) + "ph";
 
     lattSymm = "k" + tostr(*model->template get<int>("kidx"));
     auto pidx = *model->template get<int>("pidx");
