@@ -147,7 +147,7 @@ public:
 
     T vMv(T *vecL, T *vecR);
 
-    virtual void print(std::string info, std::ostream& os = std::cout) const;
+    virtual void print(std::string info, std::ostream& os = std::cout, bool brief = true) const;
 
     // create one row. store sparse matrixes data in corresponding rowMaps. (repI, val) for distributed basis. (idx,val) otherwise
     virtual void row(idx_t rowID, std::vector<MAP<T>>& rowMaps) { };
@@ -698,7 +698,6 @@ void SparseMatrix<T>::MxV(T *vecIn, T *vecOut) {
     if(!isMVBuf()) {
         setBuf();
     }
-    
     if(!isMatrixFree){
         #ifdef DISTRIBUTED_BASIS
             for (int id = 0; id < BaseMatrix<T>::workerNum; id++){
@@ -806,30 +805,32 @@ T SparseMatrix<T>::vMv(T *vecL, T *vecR){
 }
 
 template <class T>
-void SparseMatrix<T>::print(std::string info, std::ostream& os) const {
+void SparseMatrix<T>::print(std::string info, std::ostream& os, bool brief) const {
     os<<info<<":\n";
     os<<"matrix local/tot dim: "<<this->getnloc()<<" / "<<this->getDim()<<".\n";
     os<<"non-zero elements count: "<<this->nzCount()<<".\n";
     std::cout<<"params: " << parameters << std::endl;
-    for (const auto& val : rowInitList) {
-        std::cout << "rowInit: ";
-        for (auto el : val) {
-            std::cout << el << " ";
+    if (!brief) {
+        for (const auto& val : rowInitList) {
+            std::cout << "rowInit: ";
+            for (auto el : val) {
+                std::cout << el << " ";
+            }
+            std::cout << std::endl;
         }
-        std::cout << std::endl;
-    }
-    for (const auto& val : colList) {
-        std::cout << "colidx: ";
-        for (auto el : val) {
-            std::cout << el << " ";
+        for (const auto& val : colList) {
+            std::cout << "colidx: ";
+            for (auto el : val) {
+                std::cout << el << " ";
+            }
+            std::cout << std::endl;
         }
-        std::cout << std::endl;
-    }
-    for (const auto& val : valList) {
-        std::cout << "matrix element: " << val << std::endl;
-    }
-    for (const auto& diag : diagValList) {
-        std::cout << "diag element:" << diag << std::endl;
+        for (const auto& val : valList) {
+            std::cout << "matrix element: " << val << std::endl;
+        }
+        for (const auto& diag : diagValList) {
+            std::cout << "diag element:" << diag << std::endl;
+        }
     }
 }
 
