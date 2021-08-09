@@ -6,8 +6,7 @@
 //  Copyright © 2019 tatang. All rights reserved.
 //
 
-#ifndef Operators_hpp
-#define Operators_hpp
+#pragma once
 
 #include <iostream>
 #include <cmath>
@@ -22,59 +21,73 @@
  ***************/
 
 template <typename T, IsBasisType B>
-class HamiltonianBase : public OperatorBase<T, B> {
+class Hamiltonian : public OperatorBase<T, B> {
 public:
-    HamiltonianBase( ) = default;
-    HamiltonianBase(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = true, bool commuteWithPG = true, int spmNum_ = 1, int dmNum_ = 0);
-    ~HamiltonianBase( ) = default;
-
-    // Add onsite energy V
-    OperatorBase<T, B>& pushV(std::vector<ORBITAL> orbList, double val);
-
-    // Add onsite Coulomb interaction U
-    OperatorBase<T, B>& pushU(std::vector<ORBITAL> orbList, double val);
-
-    void printV(std::ostream& os) const;
-
-    void printU(std::ostream& os) const;
+    Hamiltonian( ) = default;
+    Hamiltonian(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = true, bool commuteWithPG = true, int spmNum_ = 1, int dmNum_ = 0);
 
     // Calculate the sum of onsite energy and Coulomb interaction
     double diagVal(const VecI& occ, const VecI& docc) const;
     
-    virtual void setPeierls(Pulse* pulse = nullptr) { }
+    void setPeierls(Pulse* pulse = nullptr);
 
-    virtual void printPeierls(std::ostream& os = std::cout) { }
+    void turnOffPulse();
 
-    virtual void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps){};
+    void printPeierls(std::ostream& os = std::cout);
+
+    void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps);
+
+    bool next( );
 
     void diag(int nev = 1);
+
     T getEval(int n = 0);
+
     T* getEvec(int n = 0);
 
 protected:
     PARPACKSolver<T> solver;
-    VecD V, U;
-};
 
-template <typename T, IsBasisType B>
-class Hamiltonian: public HamiltonianBase<T, B> {
-public:
-    Hamiltonian(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = true, bool commuteWithPG = true, int spmNum_ = 1, int dmNum_ = 1);
-    ~Hamiltonian( ) = default;
-
-    void setPeierls(Pulse* pulse = nullptr);
-
-    void printPeierls(std::ostream& os = std::cout);
-
-    bool next( );
-
-    void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps);
-
-private:
     Pulse* pulse{nullptr};
+
     VecD PeierlsOverlap;
 };
 
+/**
+ * @brief sort evals and evecs in ascending order
+ * 
+ * @tparam T eval and evec data type
+ * @param evals vector<T>
+ * @param evecs  vector<T*>: pointers to evecs
+ * @param groundState bool: if true return number ground state
+ * @param degeneracyTol double: if abs(e1 - e2) < tol, then e1 and e2 is considered to be degenerate
+ * @return int: number of states
+ */
+template <typename T>
+int sort(std::vector<T>& evals, std::vector<T*>& evecs, bool groundState = true, double degeneracyTol = 1e-8) {
+    assert_msg(evals.size() == evecs.size(), "not have same number of eval and evec");
+    using eigpair = std::pair<T,T*>;
+    std::vector<eigpair> pairs;
+    for (size_t i = 0; i < evals.size(); ++i) {
+        pairs.push_back(std::make_pair(evals[i], evecs[i]));
+    }
+    std::sort(pairs.begin(), pairs.end(), [](const eigpair &a, const eigpair &b) {return std::real(a.first) < std::real(b.first);});
+    for (size_t i = 0; i < pairs.size(); ++i) {
+        evals[i] = pairs[i].first;
+        evecs[i] = pairs[i].second;
+    }
+    int stateNum = 0;
+    if (groundState) {
+        auto w0 = std::real(evals.at(0));
+        for (auto &w : evals) {
+            if (std::abs(std::real(w) - w0) > degeneracyTol) break;
+            ++stateNum;
+        }
+    } else {
+        stateNum = evals.size();
+    }
+    return stateNum;
+}
 
 template<ContainCharge B>
 class Current: public OperatorBase<cdouble, B> {
@@ -83,7 +96,7 @@ public:
 
     void setDirection(const std::string &plz);
 
-    void print(std::ostream &os = std::cout) const;
+    void printCurrLink(std::ostream &os = std::cout) const;
 
     void row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps);
 
@@ -99,7 +112,6 @@ template<ContainCharge B>
 class Nocc: public OperatorBase<double, B> {
 public:
     Nocc(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = true);
-    ~Nocc( ) { }
     
     template <typename T>
     friend void save(T *d_pt, int size, std::string filename, bool is_app);
@@ -198,79 +210,34 @@ private:
 */
 
 template<typename T, IsBasisType B>
-HamiltonianBase<T, B>::HamiltonianBase(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum_, int dmNum_):\
-OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum_, dmNum_), V(latt->getOrbNum(),0.0), U(latt->getOrbNum(),0.0) {
+Hamiltonian<T, B>::Hamiltonian(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum_, int dmNum_):\
+OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum_, dmNum_) {
 
 }
 
 template<typename T, IsBasisType B>
-void HamiltonianBase<T, B>::diag(int nev) {
+void Hamiltonian<T, B>::diag(int nev) {
     solver = PARPACKSolver<T>(this, nev);
     solver.diag();
 }
 
 template<typename T, IsBasisType B>
-T HamiltonianBase<T, B>::getEval(int n) {
+T Hamiltonian<T, B>::getEval(int n) {
     return solver.getEigval(n);
 }
 
 template<typename T, IsBasisType B>
-T* HamiltonianBase<T, B>::getEvec(int n) {
+T* Hamiltonian<T, B>::getEvec(int n) {
     return solver.getEigvec(n);
 }
 
 template <typename T, IsBasisType B>
-OperatorBase<T, B>& HamiltonianBase<T, B>::pushV(std::vector<ORBITAL> orbList, double val) {
-    for (const auto& orb : orbList) {
-        auto ids = this->latt->getOrbPos(orb);
-        for (auto& id : ids) {
-            V.at(id) = val;
-        }
-    }
-    return *this;
-}
-
-template <typename T, IsBasisType B>
-OperatorBase<T, B>& HamiltonianBase<T, B>::pushU(std::vector<ORBITAL> orbList, double val) {
-    for (const auto& orb : orbList) {
-        auto ids = this->latt->getOrbPos(orb);
-        for (auto& id : ids) {
-            U.at(id) = val;
-        }
-    }
-    return *this;
-}
-
-template <typename T, IsBasisType B>
-void HamiltonianBase<T, B>::printV(std::ostream& os) const {
-    os<<"V: ";
-    for (auto val : V) {
-        os<<val<<", ";
-    }
-    os<<"\n";
-}
-
-template <typename T, IsBasisType B>
-void HamiltonianBase<T, B>::printU(std::ostream& os) const {
-    os<<"U: ";
-    for (auto val : U) {
-        os<<val<<", ";
-    }
-    os<<"\n";
-}
-
-template <typename T, IsBasisType B>
-double HamiltonianBase<T, B>::diagVal(const VecI& occ, const VecI& docc) const {
+double Hamiltonian<T, B>::diagVal(const VecI& occ, const VecI& docc) const {
     double val{0.0};
     for (int i = 0; i < this->latt->getUnitOrbNum(); ++i) {
-        val += occ.at(i) * V.at(i) + docc.at(i) * U.at(i);
+        val += occ.at(i) * this->V.at(i) + docc.at(i) * this->U.at(i);
     }
     return val;
-}
-
-template <typename T, IsBasisType B>
-Hamiltonian<T, B>::Hamiltonian(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf,  bool trans, bool pg, int spmNum, int dmNum) : HamiltonianBase<T,B>(latt, Bi, Bf, trans, pg, spmNum, dmNum) {
-    
 }
 
 template <typename T, IsBasisType B>
@@ -313,6 +280,16 @@ void Hamiltonian<T, B>::setPeierls(Pulse* pulse) {
     }
 }
 
+template <typename T, IsBasisType B>
+void Hamiltonian<T, B>::turnOffPulse() {
+    for (int i = 1; i < (int)PeierlsOverlap.size(); ++i) {
+        auto idx = 2 * i - 1;
+        this->setVal(idx, 1.0);
+        this->setVal(idx + 1, 1.0);
+    }
+    this->pulse = nullptr;
+}
+
 template<typename T, IsBasisType B>
 void Hamiltonian<T, B>::printPeierls(std::ostream& os) {
     if constexpr (ContainCharge<B>) {
@@ -341,15 +318,15 @@ bool Hamiltonian<T, B>::next( ) {
         }
         return pulse->next();
     } else {
-        return false;
+        return true;
     }
 }
 
 template <typename T, IsBasisType B>
 void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
+    auto state = this->Bf->get(rowID);
+    auto nf = this->Bf->norm(rowID);
     if constexpr (ContainCharge<B>) {
-        auto state = this->Bf->get(rowID);
-        auto nf = this->Bf->norm(rowID);
         // diagonal part. occupancy and double-occ
         T val = 0.0;
         for (int i = 0; i < B::getNSite(); ++i) {
@@ -378,15 +355,7 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             }
         }
         SparseMatrix<T>::putDiag(val,rowID);
-        // off diagonal part
-//        for (const auto& trOp : this->trHoppingT) {
-//            auto statef = state;
-//            statef.transform(trOp.g);
-//            for (const auto& bond : trOp.Op.bonds) {
-//                auto val = bond.val/nf;
-//                this->pushElement( val * (CPlus<SPIN::UP>(bond[0]) * (CMinus<SPIN::UP>(bond[1]) * BVopt<T, B>(statef))), mapPtr );
-//            }
-//        }
+
         for (const auto& link:this->hoppingT) {
             int matID = link.getmatid();
             int matIDp = matID;
@@ -428,10 +397,8 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     if constexpr(ContainSpin<B>) {
         int matID = 0;
         MAP<T>* mapPtr = &rowMaps[matID];
-        auto repI0 = this->Bf->get(rowID);
-        auto nf = this->Bf->norm(rowID);
         for (const auto& trOp : this->trSuperExchangeJ) {
-            auto repI = repI0;
+            auto repI = state;
             repI.transform(trOp.g);
             for (const auto& bond : trOp.Op.bonds) {
                 auto val = bond.val/nf;
@@ -450,6 +417,24 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
 //        }
     }
     if constexpr (ContainPhonon<B>) {
+        int matID = 0;
+        MAP<T>* mapPtr = &rowMaps[matID];
+        for (const auto& link : this->nelSitePh) {
+            T val = link.getVal() / nf;
+            for (const auto& bond : link.bond()) {
+                int siteI = bond.at(0);
+                int siteJ = bond.at(1);
+                // cp.siteI * cm.siteJ
+                if (auto statei = APlus(siteJ) * BVopt<T, B>(state); statei) {
+                    this->pushElement( val * (NCharge<SPIN::UP>(siteI) * statei), mapPtr );
+                    this->pushElement( val * (NCharge<SPIN::DOWN>(siteI) * statei),  mapPtr);
+                }
+                if (auto statei = AMinus(siteJ) * BVopt<T, B>(state); statei) {
+                    this->pushElement( val * (NCharge<SPIN::UP>(siteI) * statei),  mapPtr );
+                    this->pushElement( val * (NCharge<SPIN::DOWN>(siteI) * statei),  mapPtr );
+                }
+            }
+        }
 
     }
 }
@@ -637,7 +622,7 @@ void Current<B>::setDirection(Vec3d d) {
 }
 
 template<ContainCharge B>
-void Current<B>::print(std::ostream &os) const {
+void Current<B>::printCurrLink(std::ostream &os) const {
     for (const auto& link : this->myHoppingT) {
         link.print(false, os);
     }
@@ -862,5 +847,3 @@ void SzkOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         }
     #endif
 }
-
-#endif // Operators_hpp
