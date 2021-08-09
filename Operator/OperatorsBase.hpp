@@ -56,16 +56,20 @@ public:
     // generate symmetry transformed operators
     void getGiGf(Generator<T>& Gi, Generator<T>& Gf, std::vector<Transform<T>>& allTr) const;
 
-    OperatorBase& transform();
-
     // Add onsite energy V
-    virtual OperatorBase& pushV(std::vector<ORBITAL> orbList, double val) { return *this; }
+    OperatorBase& pushV(std::vector<ORBITAL> orbList, double val);
 
     // Add onsite Coulomb interaction U
-    virtual OperatorBase& pushU(std::vector<ORBITAL> orbList, double val) { return *this; }
+    OperatorBase& pushU(std::vector<ORBITAL> orbList, double val);
+
+    void printV(std::ostream& os) const;
+
+    void printU(std::ostream& os) const;
+
+    OperatorBase& transform();
 
     // O(t) --> O(t+dt)
-    virtual bool next( ) {return false;}
+    virtual bool next( ) {return true;}
 
     void pushElement(const BVopt<T, B>& bv, MAP<T>* rowMap);
 
@@ -73,27 +77,44 @@ public:
     
 protected:
     Geometry *latt{nullptr};
+
     Basis<B>* Bi{nullptr};
+
     Basis<B>* Bf{nullptr};
+
     bool commuteWithTrans{false};
+
     bool commuteWithPG{false};
+
     int linkCount{0};
+
     int spmCount{0};
+
+    VecD V, U;
+
     std::vector<Link<T>> Links, NCLinks;
+
     // Heisenberg terms
     std::vector<Link<T>> superExchangeJ, chiralTermK;
+
     Interactions<T,1> Sz{LINK_TYPE::SZ};
+
     std::vector<TrInteractions<T,1>> trSz;
+
     std::vector<TrInteractions<T,2>> trSuperExchangeJ;
+
     std::vector<TrInteractions<T,3>> trChiralTermK;
+
     // Hubbard terms
     std::vector<Link<T>> hoppingT, interBandU, exchangeJ, pairHoppingJ;
+
+    std::vector<Link<T>> nelSitePh, nelBondPh, hopBondPh;
+
     std::vector<TrInteractions<T,2>> trHoppingT, trInterBandU, trExchangeJ, trPairHoppingJ;
 };
 
 template<typename T, IsBasisType B>
-OperatorBase<T, B>::OperatorBase (Geometry *latt_, Basis<B> *Bi_, Basis<B> *Bf_, bool commuteWithTrans_, bool commuteWithPG_, int spmNum_, int dmNum_) : SparseMatrix<T>(Bf_->getSubDim(), Bi_->getSubDim(), spmNum_, dmNum_),
-        latt(latt_), Bi(Bi_), Bf(Bf_), commuteWithTrans(commuteWithTrans_), commuteWithPG(commuteWithPG_) {
+OperatorBase<T, B>::OperatorBase (Geometry *latt_, Basis<B> *Bi_, Basis<B> *Bf_, bool commuteWithTrans_, bool commuteWithPG_, int spmNum_, int dmNum_)  : SparseMatrix<T>(Bf_->getSubDim(), Bi_->getSubDim(), spmNum_, dmNum_), latt(latt_), Bi(Bi_), Bf(Bf_), commuteWithTrans(commuteWithTrans_), commuteWithPG(commuteWithPG_), V(latt->getOrbNum(),0.0), U(latt->getOrbNum(),0.0) {
 
 }
 
@@ -122,6 +143,15 @@ OperatorBase<T, B>& OperatorBase<T, B>::pushLink(Link<T> link, int matID){
                 break;
             case LINK_TYPE::PAIR_HOPPING_J:
                 pairHoppingJ.push_back(link);
+                break;
+            case LINK_TYPE::NCHARGE_SITE_PHONON:
+                nelSitePh.push_back(link);
+                break;
+            case LINK_TYPE::NCHARGE_BOND_PHONON:
+                nelBondPh.push_back(link);
+                break;
+            case LINK_TYPE::HOPPING_BOND_PHONON:
+                hopBondPh.push_back(link);
                 break;
             default:
                 std::cout<<"link_type not defined!\n";
@@ -159,6 +189,49 @@ void OperatorBase<T, B>::printLinks(bool brief) const {
     for (const auto& link:chiralTermK) {
         link.print(brief);
     }
+    for (const auto& link:nelSitePh) {
+        link.print(brief);
+    }
+}
+
+template <typename T, IsBasisType B>
+OperatorBase<T, B>& OperatorBase<T, B>::pushV(std::vector<ORBITAL> orbList, double val) {
+    for (const auto& orb : orbList) {
+        auto ids = this->latt->getOrbPos(orb);
+        for (auto& id : ids) {
+            V.at(id) = val;
+        }
+    }
+    return *this;
+}
+
+template <typename T, IsBasisType B>
+OperatorBase<T, B>& OperatorBase<T, B>::pushU(std::vector<ORBITAL> orbList, double val) {
+    for (const auto& orb : orbList) {
+        auto ids = this->latt->getOrbPos(orb);
+        for (auto& id : ids) {
+            U.at(id) = val;
+        }
+    }
+    return *this;
+}
+
+template <typename T, IsBasisType B>
+void OperatorBase<T, B>::printV(std::ostream& os) const {
+    os<<"V: ";
+    for (auto val : V) {
+        os<<val<<", ";
+    }
+    os<<"\n";
+}
+
+template <typename T, IsBasisType B>
+void OperatorBase<T, B>::printU(std::ostream& os) const {
+    os<<"U: ";
+    for (auto val : U) {
+        os<<val<<", ";
+    }
+    os<<"\n";
 }
 
 template<typename T, size_t N>
