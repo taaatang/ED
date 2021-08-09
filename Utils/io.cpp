@@ -135,25 +135,34 @@ std::ostream& operator<<(std::ostream& os, LINK_TYPE linkt) {
     os<<"LINK TYPE:";
     switch (linkt) {
         case LINK_TYPE::SUPER_EXCHANGE_J:
-            os<<"SUPER_EXCHANGE_J";
+            os << "SUPER_EXCHANGE_J";
             break;
         case LINK_TYPE::CHIRAL_K:
-            os<<"CHIRAL_K";
+            os << "CHIRAL_K";
             break;
         case LINK_TYPE::HOPPING_T:
-            os<<"HOPPING_T";
+            os << "HOPPING_T";
             break;
         case LINK_TYPE::CHARGE_TRANSFER_V:
-            os<<"CHARGE_TRANSFER_V";
+            os << "CHARGE_TRANSFER_V";
             break;
         case LINK_TYPE::HUBBARD_U:
-            os<<"HUBBARD_U";
+            os << "HUBBARD_U";
             break;
         case LINK_TYPE::EXCHANGE_J:
-            os<<"EXCHANGE_J";
+            os << "EXCHANGE_J";
             break;
         case LINK_TYPE::PAIR_HOPPING_J:
-            os<<"PAIR_HOPPING_J";
+            os << "PAIR_HOPPING_J";
+            break;
+        case LINK_TYPE::NCHARGE_SITE_PHONON:
+            os << "NCHARGE_SITE_PHONON";
+            break;
+        case LINK_TYPE::NCHARGE_BOND_PHONON:
+            os << "NCHARGE_BOND_PHONON";
+            break;
+        case LINK_TYPE::HOPPING_BOND_PHONON:
+            os << "HOPPING_BOND_PHONON";
             break;
         default:
             os<<"not defined!\n";
