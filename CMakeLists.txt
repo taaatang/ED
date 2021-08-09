@@ -72,13 +72,13 @@ endif()
 
 
 # SRC and Hearder files
-set(GLOBAL_PARA "Global/globalType.hpp" "Global/globalPara.hpp" "Global/config.hpp")
+set(GLOBAL_PARA "Global/globalType.hpp" "Global/globalPara.hpp")
 set(UTILS "Utils/comb.cpp" "Utils/io.cpp"  "Utils/paras.cpp" "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" "Utils/paras.hpp" "Utils/path.hpp" "Utils/timer.hpp")
 set(PULSE "Pulse/pulse.cpp" "Pulse/pulse.hpp")
 set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp" "Geometry/Vec3.hpp" "Geometry/Transform.hpp" "Geometry/Generator.hpp")
 set(BASIS "Basis/BasisState.cpp" "Basis/BasisState.hpp" "Basis/Basis.hpp")
 set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
-set(OPERATOR "Operator/links.cpp" "Operator/Operators.cpp" "Operator/localOperators.hpp" "Operator/Operations.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
+set(OPERATOR "Operator/links.cpp" "Operator/localOperators.hpp" "Operator/Operations.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
 
 set(ARPACK "Solver/PARPACKSolver.hpp")
 set(LANCZOS "Solver/LANCZOSIterator.hpp")
@@ -103,6 +103,6 @@ target_link_libraries(main.out ${LINKS} gsl gslcblas)
 set(TEST_SRC Test)
 
 #add_executable(test.out ${TEST_SRC}/basisState.cpp ${ALL_DEP})
-add_executable(test.out ${TEST_SRC}/basisState.cpp ${ALGEBRA} ${PULSE} ${BASIS} ${GEOMETRY} ${GLOBAL_PARA} Operator/localOperators.hpp "Utils/comb.cpp" "Utils/io.cpp"  "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" )
+add_executable(test.out ${TEST_SRC}/basisState.cpp ${ALGEBRA} ${PULSE} ${BASIS} ${GEOMETRY} ${GLOBAL_PARA} Operator/localOperators.hpp "Utils/comb.cpp" "Utils/io.cpp"  "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" "Utils/paras.cpp" "Utils/paras.hpp" "Utils/path.cpp" "Utils/path.hpp" "Pulse/pulse.cpp" "Pulse/pulse.hpp" "Measure/config.cpp" "Measure/config.hpp")
 target_link_libraries(test.out ${LINKS} gsl gslcblas)
 
