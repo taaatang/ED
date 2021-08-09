@@ -103,6 +103,6 @@ target_link_libraries(main.out ${LINKS} gsl gslcblas)
 set(TEST_SRC Test)
 
 #add_executable(test.out ${TEST_SRC}/basisState.cpp ${ALL_DEP})
-add_executable(test.out ${TEST_SRC}/basisState.cpp ${ALGEBRA} ${PULSE} ${BASIS} ${GEOMETRY} ${GLOBAL_PARA} Operator/localOperators.hpp "Utils/comb.cpp" "Utils/io.cpp"  "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" "Utils/paras.cpp" "Utils/paras.hpp" "Utils/path.cpp" "Utils/path.hpp" "Pulse/pulse.cpp" "Pulse/pulse.hpp" "Measure/config.cpp" "Measure/config.hpp")
+add_executable(test.out ${TEST_SRC}/test.cpp ${ALGEBRA} ${PULSE} ${BASIS} ${GEOMETRY} ${GLOBAL_PARA} Operator/localOperators.hpp "Utils/comb.cpp" "Utils/io.cpp"  "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" "Utils/paras.cpp" "Utils/paras.hpp" "Utils/path.cpp" "Utils/path.hpp" "Pulse/pulse.cpp" "Pulse/pulse.hpp" "Measure/config.cpp" "Measure/config.hpp")
 target_link_libraries(test.out ${LINKS} gsl gslcblas)
 
