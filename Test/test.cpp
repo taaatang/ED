@@ -64,10 +64,16 @@ int main(int argc, char *argv[]) {
     // H.print("Hamiltonian info", std::cout, false);
 //    std::cout << "eval: " << H.getEval() << std::endl;
 
-    Nocc<Basis_t> nocc(&latt, &b, &b);
-    nocc.construct();
-    nocc.count(H.getEvec());
-    std::cout << "charge distribution: " << nocc.lastCount() << std::endl;
+    NelOp<Basis_t> nel(&latt, &b, &b);
+    nel.construct();
+    nel.count(H.getEvec());
+    std::cout << "charge distribution: " << nel.lastCount() << std::endl;
+
+    NphOp<Basis_t> nph(&latt, &b, &b);
+    nph.construct();
+    nph.count(H.getEvec());
+    std::cout << "phonon distribution: " << nph.lastCount() << std::endl;
+
     double time = 0.0;
     VecD timePoints{time};
 
@@ -85,9 +91,11 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    ORBITAL orb = (*measurePara.template get<int>("skOrbId") == 0) ? ORBITAL::Dx2y2 : ORBITAL::Px;
+    std::string orbName = (orb == ORBITAL::Dx2y2) ? "Cu" : "Ox";
     std::vector<std::unique_ptr<SzkOp<dataType, Basis_t>>> szk;
     for (int i = 0; i < nSite; ++i) {
-        szk.push_back(std::unique_ptr<SzkOp<dataType, Basis_t>>(new SzkOp<dataType, Basis_t>(i, ORBITAL::Dx2y2, &latt, &b, &b)));
+        szk.push_back(std::unique_ptr<SzkOp<dataType, Basis_t>>(new SzkOp<dataType, Basis_t>(i, orb, &latt, &b, &b)));
         szk[i]->construct();
     }
     // std::vector<dataType> szkVal;
@@ -99,10 +107,11 @@ int main(int argc, char *argv[]) {
     // }
     // std::cout << "szk:\n" << szkVal << std::endl;
     if (opt(measurePara, "Skw")) {
-        for (int n = 0; n < szk.size(); ++n) {
-            SPECTRASolver<dataType> spectra(&H, H.getEval(), szk[n].get(), H.getEvec(), 100);
+        for (int k = 0; k < szk.size(); ++k) {
+            SPECTRASolver<dataType> spectra(&H, H.getEval(), szk[k].get(), H.getEvec(), 100);
             spectra.compute();
-            if (isMaster) spectra.save(path.SkwDir + "/Cu/Lanczos/k" + tostr(n), 0);
+            if (isMaster) spectra.save(path.SkwDir + "/" + orbName + "/Lanczos/k" + tostr(k), 0);
+            doubleTimeCorrelator(szk[(nSite - k) % nSite].get(), szk[k].get(), &H, H.getEvec(), timeKD, 0.5, 800, path.SkwDir + "/" + orbName + "/time/k" + tostr(k), isMaster);
         }
     }
     
@@ -116,7 +125,8 @@ int main(int argc, char *argv[]) {
             timer.tik();
             while (H.next()) {
                 Tevol.evolve(pulse.getdt());
-                nocc.count(Tevol.getVec());
+                nel.count(Tevol.getVec());
+                nph.count(Tevol.getVec());
                 time += pulse.getdt();
                 timePoints.push_back(time);
                 if (isMaster) {
@@ -132,20 +142,22 @@ int main(int argc, char *argv[]) {
             double dt2 = *measurePara.template get<double>("dt2");
             int steps2 = *measurePara.template get<int>("steps2");
             for (int i = 0; i < steps1; ++i) {
-                nocc.count(Tevol.getVec());
+                nel.count(Tevol.getVec());
+                nph.count(Tevol.getVec());
                 time += dt1;
                 timePoints.push_back(time);
                 int k = 2;
                 // for (int k = 0; k < szk.size(); ++k) {
                 timer.tik();
-                doubleTimeCorrelator(szk[(nSite - k) % nSite].get(), szk[k].get(), &H, Tevol.getVec(), timeKD, dt2, steps2, path.NeqSkwDir + "Cu/k" + tostr(k) + "/t1_" + tostr(i), isMaster);
+                doubleTimeCorrelator(szk[(nSite - k) % nSite].get(), szk[k].get(), &H, Tevol.getVec(), timeKD, dt2, steps2, path.NeqSkwDir + "/" + orbName + "/k" + tostr(k) + "/t1_" + tostr(i), isMaster);
                 // }
                 Tevol.evolve(dt1);
                 timer.print("szk(t1,t2)");
             }
         }
-        nocc.save(path.NeqOccDir);
-        save<double>(timePoints.data(), int(timePoints.size()), path.NeqOccDir + "/timePoints");
+        nel.save(path.NeqNelDir);
+        nph.save(path.NeqNphDir);
+        save<double>(timePoints.data(), int(timePoints.size()), path.NeqNelDir + "/timePoints");
     }
     
     MPI_Finalize();

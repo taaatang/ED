@@ -52,7 +52,8 @@ Path::Path(const Parameters* path, const Parameters* model, const Parameters* pu
         sep + "phi_" + tostr(*pulse->template get<double>("phase"));
 
         pumpFile = pumpDir + sep + "pumpParameter.txt";
-        NeqOccDir = pumpDir + sep + "occpt";
+        NeqNelDir = pumpDir + sep + "nel";
+        NeqNphDir = pumpDir + sep + "nph";
         NeqSkwDir = pumpDir + sep + "skw";
     }
 }
@@ -99,8 +100,11 @@ void Path::make(const Parameters& mPara) const {
 	}
     if (!pumpDir.empty() && opt(mPara, "pump")) {
 		mkdir_fs(pumpDir);
-        if(!NeqOccDir.empty() && opt(mPara, "neqOcc")) {
-            mkdir_fs(NeqOccDir);
+        if(!NeqNelDir.empty() && opt(mPara, "neqOcc")) {
+            mkdir_fs(NeqNelDir);
+        }
+        if(!NeqNphDir.empty() && opt(mPara, "neqOcc")) {
+            mkdir_fs(NeqNphDir);
         }
         if(!NeqSkwDir.empty() && opt(mPara, "neqSkw")) {
             mkdir_fs(NeqSkwDir);

@@ -108,31 +108,49 @@ private:
     std::string plz;
 };
 
-template<ContainCharge B>
-class Nocc: public OperatorBase<double, B> {
+template<IsBasisType B>
+class NparticleOp: public OperatorBase<double, B> {
 public:
-    Nocc(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = true);
+    NparticleOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = true);
     
-    template <typename T>
-    friend void save(T *d_pt, int size, std::string filename, bool is_app);
-    template <typename T>
-    friend void save(T *d_pt, idx_t size, std::string filename, bool is_app);
+    // template <typename T>
+    // friend void save(T *d_pt, int size, std::string filename, bool is_app);
 
-    void row(idx_t rowID, std::vector<MAP<double>>& rowMaps) { };
-    inline void row(idx_t rowID);
-    void construct( );
+    // template <typename T>
+    // friend void save(T *d_pt, idx_t size, std::string filename, bool is_app);
+
+    virtual void row(idx_t rowID, std::vector<MAP<double>>& rowMaps) = 0;
 
     double count(ORBITAL orbital, dataType* vec);
+
     double count(int orbid, dataType* vec);
+
     void count(dataType* vec);
 
-    void clear( );
+    void clearRecords( );
+
     void save(const std::string &dir);
 
     std::vector<double> lastCount();
 
-private:
+protected:
+    std::vector<std::vector<int>> positions;
+
     std::vector<std::vector<double>> records;
+};
+
+template<ContainCharge B>
+class NelOp : public NparticleOp<B> {
+public:
+    NelOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = true);
+    void row(idx_t rowID, std::vector<MAP<double>>& rowMaps);
+};
+
+template<ContainPhonon B>
+class NphOp : public NparticleOp<B> {
+public:
+    NphOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = true);
+    void row(idx_t rowID, std::vector<MAP<double>>& rowMaps);
 };
 
 template <class T, ContainCharge B>
@@ -354,7 +372,7 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                         * double(bitTest(state.upState(), siteJ) + bitTest(state.dnState(), siteJ));
             }
         }
-        SparseMatrix<T>::putDiag(val,rowID);
+        SparseMatrix<T>::putDiag(val/nf/nf,rowID);
 
         for (const auto& link:this->hoppingT) {
             int matID = link.getmatid();
@@ -439,36 +457,16 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     }
 }
 
-template<ContainCharge B>
-Nocc<B>::Nocc(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg) : OperatorBase<double, B>(latt, Bi, Bf, trans, pg, 0, latt->getUnitOrbNum()) {
-    for(int i = 0; i < latt->getUnitOrbNum(); ++i)  {
-        this->diagValList.resize(BaseMatrix<double>::nloc);
-    }
+template<IsBasisType B>
+NparticleOp<B>::NparticleOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg) : OperatorBase<double, B>(latt, Bi, Bf, trans, pg, 0, latt->getUnitOrbNum()) {
     records.resize(latt->getUnitOrbNum());
-}
-
-template<ContainCharge B>
-void Nocc<B>::row(idx_t rowID) {
-    // diagonal part. occupancy
-    VecI occ;
-    auto state = this->Bf->get(rowID);
-    this->latt->orbOCC({state.upState(), state.dnState()}, occ);
-    idx_t loc_rowID = rowID - BaseMatrix<double>::startRow;
-    for (int i = 0; i < this->latt->getUnitOrbNum(); ++i) {
-        SparseMatrix<double>::diagValList[i][loc_rowID] = occ[i];
+    for (const auto& orb : latt->getUnitCell()) {
+        positions.push_back(latt->getOrbPos(orb.orb));
     }
 }
 
-template<ContainCharge B>
-void Nocc<B>::construct( ) {
-    #pragma omp parallel for
-    for(idx_t rowID = BaseMatrix<double>::startRow; rowID < BaseMatrix<double>::endRow; rowID++) {
-        row(rowID);
-    }
-}
-
-template<ContainCharge B>
-double Nocc<B>::count(ORBITAL orbital, dataType* vec) {
+template<IsBasisType B>
+double NparticleOp<B>::count(ORBITAL orbital, dataType* vec) {
     VecI ids = this->latt->getOrbID(orbital);
     double sum_final = 0.0;
     for (auto id : ids) {
@@ -483,8 +481,8 @@ double Nocc<B>::count(ORBITAL orbital, dataType* vec) {
     return sum_final;
 }
 
-template<ContainCharge B>
-double Nocc<B>::count(int id, dataType* vec) {
+template<IsBasisType B>
+double NparticleOp<B>::count(int id, dataType* vec) {
     double sum = 0.0;
     double part_sum = 0.0;
     #pragma omp parallel for reduction(+:part_sum)
@@ -495,32 +493,75 @@ double Nocc<B>::count(int id, dataType* vec) {
     return sum;
 }
 
-template<ContainCharge B>
-void Nocc<B>::count(dataType* vec) {
+template<IsBasisType B>
+void NparticleOp<B>::count(dataType* vec) {
     for (int id = 0; id < this->latt->getUnitOrbNum(); ++id) {
         records.at(id).push_back(count(id, vec));
     }
 }
 
-template<ContainCharge B>
-void Nocc<B>::clear( ) {
+template<IsBasisType B>
+void NparticleOp<B>::clearRecords( ) {
     records.clear();
 }
 
-template<ContainCharge B>
-void Nocc<B>::save(const std::string &dir) {
+template<IsBasisType B>
+void NparticleOp<B>::save(const std::string &dir) {
     for (int id = 0; id < this->latt->getUnitOrbNum(); ++id) {
         ::save(records.at(id).data(), (int)records.at(id).size(), dir + "/orb" + tostr(id));
     }
 }
 
-template<ContainCharge B>
-std::vector<double> Nocc<B>::lastCount() {
+template<IsBasisType B>
+std::vector<double> NparticleOp<B>::lastCount() {
     std::vector<double> res{};
     for (const auto& rec : records) {
         res.push_back(rec.back());
     }
     return res;
+}
+
+template<ContainCharge B>
+NelOp<B>::NelOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg) : NparticleOp<B>(latt, Bi, Bf, trans, pg) { 
+
+}
+
+template<ContainCharge B>
+void NelOp<B>::row(idx_t rowID, std::vector<MAP<double>>& rowMaps) {
+    auto state = this->Bf->get(rowID);
+    auto nf = this->Bf->norm(rowID);
+    auto nf2 = nf * nf;
+    for (int matIdx = 0; matIdx < this->dmNum; ++matIdx) {
+        double val = 0.0;
+        for (auto pos : this->positions.at(matIdx)) {
+            if (bitTest(state.upState(), pos)) {
+                val += 1.0;
+            }
+            if (bitTest(state.dnState(), pos)) {
+                val += 1.0;
+            }
+        }
+        this->putDiag(val / nf2, rowID, matIdx);
+    }
+}
+
+template<ContainPhonon B>
+NphOp<B>::NphOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg) : NparticleOp<B>(latt, Bi, Bf, trans, pg) { 
+
+}
+
+template<ContainPhonon B>
+void NphOp<B>::row(idx_t rowID, std::vector<MAP<double>>& rowMaps) {
+    auto state = this->Bf->get(rowID);
+    auto nf = this->Bf->norm(rowID);
+    auto nf2 = nf * nf;
+    for (int matIdx = 0; matIdx < this->dmNum; ++matIdx) {
+        double val = 0.0;
+        for (auto pos : this->positions.at(matIdx)) {
+            val += state.phState().at(pos);
+        }
+        this->putDiag(val / nf2, rowID, matIdx);
+    }
 }
 
 template <class T, ContainCharge B>
