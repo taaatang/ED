@@ -28,7 +28,7 @@ enum class SPIN {UP, DOWN};
     ***************
 */
 // Matrix index and repI type
-using idx_t =  unsigned long long int; 
+using idx_t = uint64_t;
 using pairIdx_t = std::pair<idx_t,idx_t>;
 using uint = unsigned int;
 using cdouble = std::complex<double>;
