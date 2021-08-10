@@ -344,9 +344,9 @@ template <typename T, IsBasisType B>
 void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
     auto state = this->Bf->get(rowID);
     auto nf = this->Bf->norm(rowID);
+    // diagonal part. occupancy and double-occ
+    T val = 0.0;
     if constexpr (ContainCharge<B>) {
-        // diagonal part. occupancy and double-occ
-        T val = 0.0;
         for (int i = 0; i < B::getNSite(); ++i) {
             if (!this->V.empty()) {
                 if (bitTest(state.upState(), i)) {
@@ -372,8 +372,16 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                         * double(bitTest(state.upState(), siteJ) + bitTest(state.dnState(), siteJ));
             }
         }
-        SparseMatrix<T>::putDiag(val/nf/nf,rowID);
+    }
+    if constexpr (ContainPhonon<B>) {
+        for (int i = 0; i < B::getNSite(); ++i) {
+            val += state.phState().at(i) * this->PhW0.at(i);
+        }
+    }
+    SparseMatrix<T>::putDiag(val/nf/nf,rowID);
 
+    // off-diagonal part
+    if constexpr (ContainCharge<B>) {
         for (const auto& link:this->hoppingT) {
             int matID = link.getmatid();
             int matIDp = matID;
@@ -833,7 +841,6 @@ template <class T, ContainSpin B>
 SzkOp<T, B>::SzkOp(int k_, ORBITAL orb_, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum), k(k_), orb(orb_), expFactor(latt->getSiteNum()) {
     // assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
     positions = latt->getOrbPos(orb);
-    std::cout << "sk positions: " << positions << std::endl;
     Ki = Bi->getKIdx();
     Kf = Bf->getKIdx();
     // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)

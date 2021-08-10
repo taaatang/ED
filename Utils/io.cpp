@@ -155,6 +155,9 @@ std::ostream& operator<<(std::ostream& os, LINK_TYPE linkt) {
         case LINK_TYPE::PAIR_HOPPING_J:
             os << "PAIR_HOPPING_J";
             break;
+        case LINK_TYPE::PHONON_W0:
+            os << "PHONON_W0";
+            break;
         case LINK_TYPE::NCHARGE_SITE_PHONON:
             os << "NCHARGE_SITE_PHONON";
             break;
