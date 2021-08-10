@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 
     Basis<Basis_t> b(&latt, nu, nd, maxPhPerSite, -1);
     b.construct();
-    // std::cout << b << std::endl;
+    if (isMaster) std::cout << b << std::endl;
     
     Hamiltonian<dataType, Basis_t> H(&latt, &b, &b, true, true, 1, 1);
     Link<dataType> tCuPx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px},    -tdp, {{0.5, 0.0, 0.0}});
@@ -61,9 +61,8 @@ int main(int argc, char *argv[]) {
     Link<dataType> gCu(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Dx2y2, ORBITAL::Dx2y2}, gd, {{0.0, 0.0, 0.0}});
     Link<dataType> gPx(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Px, ORBITAL::Px}, gp, {{0.0, 0.0, 0.0}});
     H.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).transform().construct();
-    // H.printLinks();
+    if (isMaster) H.print("Hamiltonian info", std::cout, true);
     H.diag();
-    // H.print("Hamiltonian info", std::cout, false);
 //    std::cout << "eval: " << H.getEval() << std::endl;
 
     NelOp<Basis_t> nel(&latt, &b, &b);

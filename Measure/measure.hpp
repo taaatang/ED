@@ -32,16 +32,18 @@ void doubleTimeCorrelator(OperatorBase<T, B>* opt, OperatorBase<T, B>* opi, Hami
     TimeEvolver right(stateR.data(), H, krydim);
     TimeEvolver left(stateL.data(), H, krydim);
     int progressPrint = steps / 20;
-    std::cout << "Begin time corr: |";
+    if (isMaster) std::cout << "Begin time corr: |";
     for (int count = 0; count < steps; ++count) {
         right.evolve(-dt);
         left.evolve(-dt);
         results.push_back(opt->vMv(left.getVec(), right.getVec()));
-        if (count % progressPrint == 0) {
-            std::cout << ">" << std::flush;
+        if (isMaster) {
+            if (count % progressPrint == 0) {
+                std::cout << ">" << std::flush;
+            }
         }
     }
-    std::cout << "done!" << std::endl;
+    if (isMaster) std::cout << "done!" << std::endl;
     if (isMaster) {
         mkdir_fs(dir);
         save<double>(&dt, 1, dir + "/dt");

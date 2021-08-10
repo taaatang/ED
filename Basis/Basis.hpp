@@ -141,7 +141,6 @@ void Basis<BasisState_t>::construct() {
         do {
             basisList.push_back(state);
         } while (state.next());
-        std::cout << "totDim " << totDim << " == " << basisList.size() << std::endl;
         assert_msg(basisList.size() == totDim, "Wrong basis dimension!");
     }
     subDim = basisList.size();
@@ -203,9 +202,9 @@ void Basis<BasisState_t>::clear() {
 template<IsBasisType T>
 std::ostream& operator<<(std::ostream& os, const Basis<T>& b) {
     os << "k = " << b.getKIdx() << ", p = " << b.getPIdx() << ", total/sub dimension: "  << b.getTotDim() << "/" << b.getSubDim() << " = " << double(b.getTotDim())/b.getSubDim() << std::endl;
-    idx_t count = 0;
-    for (const auto& state : b.basisList) {
-        os << state << " norm = " << b.norm(count++) << std::endl;
-    }
+    // idx_t count = 0;
+    // for (const auto& state : b.basisList) {
+    //     os << state << " norm = " << b.norm(count++) << std::endl;
+    // }
     return os;
 }

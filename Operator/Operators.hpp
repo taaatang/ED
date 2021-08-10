@@ -833,7 +833,6 @@ template <class T, ContainSpin B>
 SzkOp<T, B>::SzkOp(int k_, ORBITAL orb_, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum), k(k_), orb(orb_), expFactor(latt->getSiteNum()) {
     // assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
     positions = latt->getOrbPos(orb);
-    std::cout << "sk positions: " << positions << std::endl;
     Ki = Bi->getKIdx();
     Kf = Bf->getKIdx();
     // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
