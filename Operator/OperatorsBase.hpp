@@ -62,9 +62,13 @@ public:
     // Add onsite Coulomb interaction U
     OperatorBase& pushU(std::vector<ORBITAL> orbList, double val);
 
+    OperatorBase& pushPhW0(std::vector<ORBITAL> orbList, double val);
+
     void printV(std::ostream& os) const;
 
     void printU(std::ostream& os) const;
+
+    void printPhW0(std::ostream& os) const;
 
     OperatorBase& transform();
 
@@ -90,7 +94,7 @@ protected:
 
     int spmCount{0};
 
-    VecD V, U;
+    VecD V, U, PhW0;
 
     std::vector<Link<T>> Links, NCLinks;
 
@@ -114,7 +118,7 @@ protected:
 };
 
 template<typename T, IsBasisType B>
-OperatorBase<T, B>::OperatorBase (Geometry *latt_, Basis<B> *Bi_, Basis<B> *Bf_, bool commuteWithTrans_, bool commuteWithPG_, int spmNum_, int dmNum_)  : SparseMatrix<T>(Bf_->getSubDim(), Bi_->getSubDim(), spmNum_, dmNum_), latt(latt_), Bi(Bi_), Bf(Bf_), commuteWithTrans(commuteWithTrans_), commuteWithPG(commuteWithPG_), V(latt->getOrbNum(),0.0), U(latt->getOrbNum(),0.0) {
+OperatorBase<T, B>::OperatorBase (Geometry *latt_, Basis<B> *Bi_, Basis<B> *Bf_, bool commuteWithTrans_, bool commuteWithPG_, int spmNum_, int dmNum_)  : SparseMatrix<T>(Bf_->getSubDim(), Bi_->getSubDim(), spmNum_, dmNum_), latt(latt_), Bi(Bi_), Bf(Bf_), commuteWithTrans(commuteWithTrans_), commuteWithPG(commuteWithPG_), V(latt->getOrbNum(),0.0), U(latt->getOrbNum(),0.0), PhW0(latt->getOrbNum(),0.0) {
 
 }
 
@@ -217,6 +221,17 @@ OperatorBase<T, B>& OperatorBase<T, B>::pushU(std::vector<ORBITAL> orbList, doub
 }
 
 template <typename T, IsBasisType B>
+OperatorBase<T, B>& OperatorBase<T, B>::pushPhW0(std::vector<ORBITAL> orbList, double val) {
+    for (const auto& orb : orbList) {
+        auto ids = this->latt->getOrbPos(orb);
+        for (auto& id : ids) {
+            PhW0.at(id) = val;
+        }
+    }
+    return *this;
+}
+
+template <typename T, IsBasisType B>
 void OperatorBase<T, B>::printV(std::ostream& os) const {
     os<<"V: ";
     for (auto val : V) {
@@ -229,6 +244,15 @@ template <typename T, IsBasisType B>
 void OperatorBase<T, B>::printU(std::ostream& os) const {
     os<<"U: ";
     for (auto val : U) {
+        os<<val<<", ";
+    }
+    os<<"\n";
+}
+
+template <typename T, IsBasisType B>
+void OperatorBase<T, B>::printPhW0(std::ostream& os) const {
+    os<<"Phonon frequency: ";
+    for (auto val : PhW0) {
         os<<val<<", ";
     }
     os<<"\n";
