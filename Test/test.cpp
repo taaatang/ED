@@ -41,6 +41,8 @@ int main(int argc, char *argv[]) {
     double Vp = *para.template get<double>("Vp");
     double Udd = *para.template get<double>("Udd"); 
     double Upp = *para.template get<double>("Upp");
+    double wd = *para.template get<double>("wd");
+    double wp = *para.template get<double>("wp");
     double gd = *para.template get<double>("gd");
     double gp = *para.template get<double>("gp");
     int specKD = *measurePara.template get<int>("spectraKrylovDim");
@@ -60,7 +62,7 @@ int main(int argc, char *argv[]) {
     Link<dataType> tPxCu(LINK_TYPE::HOPPING_T, {ORBITAL::Px,    ORBITAL::Dx2y2},  tdp, {{0.5, 0.0, 0.0}});
     Link<dataType> gCu(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Dx2y2, ORBITAL::Dx2y2}, gd, {{0.0, 0.0, 0.0}});
     Link<dataType> gPx(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Px, ORBITAL::Px}, gp, {{0.0, 0.0, 0.0}});
-    H.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).transform().construct();
+    H.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
     if (isMaster) H.print("Hamiltonian info", std::cout, true);
     H.diag();
 //    std::cout << "eval: " << H.getEval() << std::endl;
