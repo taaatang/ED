@@ -26,8 +26,10 @@ int main(int argc, char *argv[]) {
     Parameters pulsePara(inputDir, {"pulse.txt"});
     Parameters measurePara (inputDir, {"measure.txt"});
     Path path(&pathPara, &para, &pulsePara);
-    path.make(measurePara);
-    para.print(path.parameterFile);
+    if (isMaster) {
+        path.make(measurePara);
+        para.print(path.parameterFile);
+    }
 
     ElectronBasis::setAllowDoubleOcc(true);
     int nSite = *para.template get<int>("lx");
