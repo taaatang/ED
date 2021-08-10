@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     Link<dataType> gCu(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Dx2y2, ORBITAL::Dx2y2}, gd, {{0.0, 0.0, 0.0}});
     Link<dataType> gPx(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Px, ORBITAL::Px}, gp, {{0.0, 0.0, 0.0}});
     H.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).transform().construct();
-    H.printLinks();
+    // H.printLinks();
     H.diag();
     // H.print("Hamiltonian info", std::cout, false);
 //    std::cout << "eval: " << H.getEval() << std::endl;
@@ -67,12 +67,12 @@ int main(int argc, char *argv[]) {
     NelOp<Basis_t> nel(&latt, &b, &b);
     nel.construct();
     nel.count(H.getEvec());
-    std::cout << "charge distribution: " << nel.lastCount() << std::endl;
+    if (isMaster) std::cout << "charge distribution: " << nel.lastCount() << std::endl;
 
     NphOp<Basis_t> nph(&latt, &b, &b);
     nph.construct();
     nph.count(H.getEvec());
-    std::cout << "phonon distribution: " << nph.lastCount() << std::endl;
+    if (isMaster) std::cout << "phonon distribution: " << nph.lastCount() << std::endl;
 
     double time = 0.0;
     VecD timePoints{time};
@@ -82,8 +82,7 @@ int main(int argc, char *argv[]) {
         jx.pushLinks({tCuPx, tPxCu});
         jx.setDirection("x");
         jx.construct();
-        jx.print("x current");
-        std::cout << "specKD = " << specKD << std::endl;
+        // jx.print("x current");
         SPECTRASolver<cdouble> spectra(&H, H.getEval(), &jx, H.getEvec(), specKD);
         spectra.compute();
         if (isMaster) {
@@ -116,27 +115,27 @@ int main(int argc, char *argv[]) {
     }
     
     if (opt(measurePara, "pump")) {
-            Pulse pulse;
-            setpulse(pulsePara, pulse);
-            H.setPeierls(&pulse);
-            H.construct();
-            TimeEvolver<dataType> Tevol(H.getEvec(), &H, timeKD);
-            pulse.progressBar(20);
-            timer.tik();
-            while (H.next()) {
-                Tevol.evolve(pulse.getdt());
-                nel.count(Tevol.getVec());
-                nph.count(Tevol.getVec());
-                time += pulse.getdt();
-                timePoints.push_back(time);
-                if (isMaster) {
-                    pulse.progress();
-                }
+        Pulse pulse;
+        setpulse(pulsePara, pulse);
+        H.setPeierls(&pulse);
+        H.construct();
+        TimeEvolver<dataType> Tevol(H.getEvec(), &H, timeKD);
+        if (isMaster) pulse.progressBar(20);
+        timer.tik();
+        while (H.next()) {
+            Tevol.evolve(pulse.getdt());
+            nel.count(Tevol.getVec());
+            nph.count(Tevol.getVec());
+            time += pulse.getdt();
+            timePoints.push_back(time);
+            if (isMaster) {
+                pulse.progress();
             }
-            timer.print("pump time evolution");
-            H.turnOffPulse();
+        }
+        timer.print("pump time evolution");
+        H.turnOffPulse();
 
-            if (opt(measurePara, "neqSkw")) {
+        if (opt(measurePara, "neqSkw")) {
             double dt1 = *measurePara.template get<double>("dt1");
             int steps1 = *measurePara.template get<int>("steps1");
             double dt2 = *measurePara.template get<double>("dt2");
@@ -155,9 +154,11 @@ int main(int argc, char *argv[]) {
                 timer.print("szk(t1,t2)");
             }
         }
-        nel.save(path.NeqNelDir);
-        nph.save(path.NeqNphDir);
-        save<double>(timePoints.data(), int(timePoints.size()), path.NeqNelDir + "/timePoints");
+        if (isMaster) {
+            nel.save(path.NeqNelDir);
+            nph.save(path.NeqNphDir);
+            save<double>(timePoints.data(), int(timePoints.size()), path.NeqNelDir + "/timePoints");
+        }
     }
     
     MPI_Finalize();
