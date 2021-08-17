@@ -53,6 +53,8 @@ public:
 
     void clear();
 
+    void print(std::ostream& os = std::cout, bool brief = true);
+
     template<IsBasisType T>
     friend std::ostream& operator<<(std::ostream& os, const Basis<T>& b);
 
@@ -169,7 +171,6 @@ bool Basis<BasisState_t>::empty() const {
 template<IsBasisType BasisState_t>
 bool Basis<BasisState_t>::isMinRep(BasisState_t state, double &basisNorm, const Generator<cdouble>* gs) {
     if (isUseSymm()) {
-        std::vector<BasisState_t> trStates;
         cdouble cNorm2 = 0.0;
         for (const auto &u : gs->U) {
             BasisState_t trState = state;
@@ -180,7 +181,7 @@ bool Basis<BasisState_t>::isMinRep(BasisState_t state, double &basisNorm, const 
                 cNorm2 += sgn * u.factor;
             }
         }
-        cNorm2 *= double(gs->G);
+        // cNorm2 *= double(gs->G);
         assert_msg(std::imag(cNorm2) < INFINITESIMAL, "basis norm should ne real!");
         basisNorm = std::sqrt(std::real(cNorm2));
         if (basisNorm < INFINITESIMAL) {
@@ -199,12 +200,13 @@ void Basis<BasisState_t>::clear() {
     normList.clear();
 }
 
-template<IsBasisType T>
-std::ostream& operator<<(std::ostream& os, const Basis<T>& b) {
-    os << "k = " << b.getKIdx() << ", p = " << b.getPIdx() << ", total/sub dimension: "  << b.getTotDim() << "/" << b.getSubDim() << " = " << double(b.getTotDim())/b.getSubDim() << std::endl;
-    // idx_t count = 0;
-    // for (const auto& state : b.basisList) {
-    //     os << state << " norm = " << b.norm(count++) << std::endl;
-    // }
-    return os;
+template<IsBasisType BasisState_t>
+void Basis<BasisState_t>::print(std::ostream& os, bool brief) {
+    os << "k = " << getKIdx() << ", p = " << getPIdx() << ", total/sub dimension: "  << getTotDim() << "/" << getSubDim() << " = " << double(getTotDim())/getSubDim() << std::endl;
+    if (!brief) {
+        idx_t count = 0;
+        for (const auto& state : basisList) {
+            os << state << " norm = " << norm(count++) << std::endl;
+        }
+    }
 }

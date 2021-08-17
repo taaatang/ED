@@ -25,11 +25,13 @@
  */
 template<typename T, size_t N>
 struct Bond {
-	T val;
+	int spmIdx{0};
+	bool isOrdered{false};
+	T val{0.0};
 	std::array<int, N> sites;
 public:
 	Bond() = default;
-	Bond(T val_, std::array<int, N> sites_) : val(val_), sites(sites_){ }
+	Bond(T val_, std::array<int, N> sites_) : val(val_), sites(sites_) { }
 	inline int& operator[](int idx) { return sites.at(idx); }
 	inline const int& operator[](int idx) const { return sites.at(idx); }
 };
@@ -37,6 +39,8 @@ public:
 template<typename T, size_t N>
 Bond<T,N> operator*(const Transform<T>& g, const Bond<T,N>& b) {
 	Bond<T,N> gb;
+	gb.spmIdx = b.spmIdx;
+	gb.isOrdered = b.isOrdered;
 	gb.val = b.val;
 	for (size_t i = 0; i < N; ++i) {
 		gb[i] = g[b[i]];

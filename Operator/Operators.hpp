@@ -92,19 +92,20 @@ int sort(std::vector<T>& evals, std::vector<T*>& evecs, bool groundState = true,
 template<ContainCharge B>
 class Current: public OperatorBase<cdouble, B> {
 public:
-    Current(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = false);
-
-    void setDirection(const std::string &plz);
+    Current(const std::string &plz, Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = false);
 
     void printCurrLink(std::ostream &os = std::cout) const;
+
+    void setDirection();
 
     void row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps);
 
 private:
     void setDirection(Vec3d d);
 
+private:
     Vec3d direction;
-    std::vector<Link<cdouble>> myHoppingT;
+
     std::string plz;
 };
 
@@ -330,6 +331,7 @@ bool Hamiltonian<T, B>::next( ) {
         auto A = pulse->getAa();
         for (int i = 1; i < (int)PeierlsOverlap.size(); ++i) {
             auto factor = std::exp(CPLX_I * A * PeierlsOverlap[i]);
+            std::cout << "A:" << A << ", overlap:" << PeierlsOverlap[i] << ", factor:" << factor << std::endl;
             auto idx = 2 * i - 1;
             this->setVal(idx, factor);
             this->setVal(idx + 1, std::conj(factor));
@@ -378,27 +380,45 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             val += state.phState().at(i) * this->PhW0.at(i);
         }
     }
-    SparseMatrix<T>::putDiag(val/nf/nf,rowID);
+    SparseMatrix<T>::putDiag(val, rowID);
 
     // off-diagonal part
     if constexpr (ContainCharge<B>) {
-        for (const auto& link:this->hoppingT) {
-            int matID = link.getmatid();
-            int matIDp = matID;
-            if (link.isOrdered()) matIDp++;
-            T val = link.getVal() / nf;
-            for (const auto& bond : link.bond()) {
-                int siteI = bond.at(0);
-                int siteJ = bond.at(1);
+        for (const auto& trOp : this->trHoppingT) {
+            auto statei = state;
+            auto sgn = statei.transform(trOp.g);
+            for (const auto& bond : trOp.Op.bonds) {
+                auto val = sgn * bond.val / nf;
+                auto matID = bond.spmIdx;
+                auto matIDp = bond.isOrdered ? matID + 1 : matID;
+                int siteI = bond[0];
+                int siteJ = bond[1];
                 cdouble phase = this->latt->twistPhase(siteI,siteJ);
                 cdouble phase_c = std::conj(phase);
                 // cp.siteI * cm.siteJ
-                this->pushElement( phase * val * (CPlus<SPIN::UP>(siteI) * (CMinus<SPIN::UP>(siteJ) * BVopt<T, B>(state))),  &rowMaps[matID]);
-                this->pushElement( phase_c * val * (CPlus<SPIN::UP>(siteJ) * (CMinus<SPIN::UP>(siteI) * BVopt<T, B>(state))),  &rowMaps[matIDp]);
-                this->pushElement( phase * val * (CPlus<SPIN::DOWN>(siteI) * (CMinus<SPIN::DOWN>(siteJ) * BVopt<T, B>(state))),  &rowMaps[matID]);
-                this->pushElement( phase_c * val * (CPlus<SPIN::DOWN>(siteJ) * (CMinus<SPIN::DOWN>(siteI) * BVopt<T, B>(state))),  &rowMaps[matIDp]);
+                this->pushElement( phase * val * (CPlus<SPIN::UP>(siteI) * (CMinus<SPIN::UP>(siteJ) * BVopt<T, B>(statei))),  &rowMaps[matID]);
+                this->pushElement( phase_c * val * (CPlus<SPIN::UP>(siteJ) * (CMinus<SPIN::UP>(siteI) * BVopt<T, B>(statei))),  &rowMaps[matIDp]);
+                this->pushElement( phase * val * (CPlus<SPIN::DOWN>(siteI) * (CMinus<SPIN::DOWN>(siteJ) * BVopt<T, B>(statei))),  &rowMaps[matID]);
+                this->pushElement( phase_c * val * (CPlus<SPIN::DOWN>(siteJ) * (CMinus<SPIN::DOWN>(siteI) * BVopt<T, B>(statei))),  &rowMaps[matIDp]);
             }
         }
+        // for (const auto& link:this->hoppingT) {
+        //     int matID = link.getmatid();
+        //     int matIDp = matID;
+        //     if (link.isOrdered()) matIDp++;
+        //     T val = link.getVal() / nf;
+        //     for (const auto& bond : link.bond()) {
+        //         int siteI = bond.at(0);
+        //         int siteJ = bond.at(1);
+        //         cdouble phase = this->latt->twistPhase(siteI,siteJ);
+        //         cdouble phase_c = std::conj(phase);
+        //         // cp.siteI * cm.siteJ
+        //         this->pushElement( phase * val * (CPlus<SPIN::UP>(siteI) * (CMinus<SPIN::UP>(siteJ) * BVopt<T, B>(state))),  &rowMaps[matID]);
+        //         this->pushElement( phase_c * val * (CPlus<SPIN::UP>(siteJ) * (CMinus<SPIN::UP>(siteI) * BVopt<T, B>(state))),  &rowMaps[matIDp]);
+        //         this->pushElement( phase * val * (CPlus<SPIN::DOWN>(siteI) * (CMinus<SPIN::DOWN>(siteJ) * BVopt<T, B>(state))),  &rowMaps[matID]);
+        //         this->pushElement( phase_c * val * (CPlus<SPIN::DOWN>(siteJ) * (CMinus<SPIN::DOWN>(siteI) * BVopt<T, B>(state))),  &rowMaps[matIDp]);
+        //     }
+        // }
 //
 //        for (const auto& link:this->exchangeJ) {
 //            int matID = link.getmatid();
@@ -425,9 +445,9 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         MAP<T>* mapPtr = &rowMaps[matID];
         for (const auto& trOp : this->trSuperExchangeJ) {
             auto repI = state;
-            repI.transform(trOp.g);
+            auto sgn = repI.transform(trOp.g);
             for (const auto& bond : trOp.Op.bonds) {
-                auto val = bond.val/nf;
+                auto val = sgn * bond.val / nf;
                 this->pushElement( val * (Sz(bond[0]) * (Sz(bond[1]) * BVopt<T, B>(repI))), mapPtr );
                 this->pushElement( val / 2.0 * (SPlus(bond[0]) * (SMinus(bond[1]) * BVopt<T, B>(repI))), mapPtr );
                 this->pushElement( val / 2.0 * (SMinus(bond[0]) * (SPlus(bond[1]) * BVopt<T, B>(repI))), mapPtr );
@@ -442,26 +462,43 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
 //            }
 //        }
     }
-    if constexpr (ContainPhonon<B>) {
-        int matID = 0;
-        MAP<T>* mapPtr = &rowMaps[matID];
-        for (const auto& link : this->nelSitePh) {
-            T val = link.getVal() / nf;
-            for (const auto& bond : link.bond()) {
-                int siteI = bond.at(0);
-                int siteJ = bond.at(1);
-                // cp.siteI * cm.siteJ
-                if (auto statei = APlus(siteJ) * BVopt<T, B>(state); statei) {
+    if constexpr (ContainCharge<B> && ContainPhonon<B>) {
+        for (const auto& trOp : this->trNelSitePh) {
+            auto stateTr = state;
+            auto sgn = stateTr.transform(trOp.g);
+            for (const auto& bond : trOp.Op.bonds) {
+                MAP<T>* mapPtr = &rowMaps[bond.spmIdx];
+                auto val = sgn * bond.val / nf;
+                auto siteI = bond[0];
+                auto siteJ = bond[1];
+                if (auto statei = APlus(siteJ) * BVopt<T, B>(stateTr); statei) {
                     this->pushElement( val * (NCharge<SPIN::UP>(siteI) * statei), mapPtr );
                     this->pushElement( val * (NCharge<SPIN::DOWN>(siteI) * statei),  mapPtr);
                 }
-                if (auto statei = AMinus(siteJ) * BVopt<T, B>(state); statei) {
+                if (auto statei = AMinus(siteJ) * BVopt<T, B>(stateTr); statei) {
                     this->pushElement( val * (NCharge<SPIN::UP>(siteI) * statei),  mapPtr );
                     this->pushElement( val * (NCharge<SPIN::DOWN>(siteI) * statei),  mapPtr );
                 }
             }
         }
-
+        // int matID = 0;
+        // MAP<T>* mapPtr = &rowMaps[matID];
+        // for (const auto& link : this->nelSitePh) {
+        //     T val = link.getVal() / nf;
+        //     for (const auto& bond : link.bond()) {
+        //         int siteI = bond.at(0);
+        //         int siteJ = bond.at(1);
+        //         // cp.siteI * cm.siteJ
+        //         if (auto statei = APlus(siteJ) * BVopt<T, B>(state); statei) {
+        //             this->pushElement( val * (NCharge<SPIN::UP>(siteI) * statei), mapPtr );
+        //             this->pushElement( val * (NCharge<SPIN::DOWN>(siteI) * statei),  mapPtr);
+        //         }
+        //         if (auto statei = AMinus(siteJ) * BVopt<T, B>(state); statei) {
+        //             this->pushElement( val * (NCharge<SPIN::UP>(siteI) * statei),  mapPtr );
+        //             this->pushElement( val * (NCharge<SPIN::DOWN>(siteI) * statei),  mapPtr );
+        //         }
+        //     }
+        // }
     }
 }
 
@@ -537,8 +574,6 @@ NelOp<B>::NelOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg)
 template<ContainCharge B>
 void NelOp<B>::row(idx_t rowID, std::vector<MAP<double>>& rowMaps) {
     auto state = this->Bf->get(rowID);
-    auto nf = this->Bf->norm(rowID);
-    auto nf2 = nf * nf;
     for (int matIdx = 0; matIdx < this->dmNum; ++matIdx) {
         double val = 0.0;
         for (auto pos : this->positions.at(matIdx)) {
@@ -549,7 +584,7 @@ void NelOp<B>::row(idx_t rowID, std::vector<MAP<double>>& rowMaps) {
                 val += 1.0;
             }
         }
-        this->putDiag(val / nf2, rowID, matIdx);
+        this->putDiag(val, rowID, matIdx);
     }
 }
 
@@ -561,14 +596,12 @@ NphOp<B>::NphOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg)
 template<ContainPhonon B>
 void NphOp<B>::row(idx_t rowID, std::vector<MAP<double>>& rowMaps) {
     auto state = this->Bf->get(rowID);
-    auto nf = this->Bf->norm(rowID);
-    auto nf2 = nf * nf;
     for (int matIdx = 0; matIdx < this->dmNum; ++matIdx) {
         double val = 0.0;
         for (auto pos : this->positions.at(matIdx)) {
             val += state.phState().at(pos);
         }
-        this->putDiag(val / nf2, rowID, matIdx);
+        this->putDiag(val, rowID, matIdx);
     }
 }
 
@@ -635,63 +668,70 @@ void CkOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
 }
 
 template<ContainCharge B>
-Current<B>::Current(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg) : OperatorBase<cdouble, B>(latt, Bi, Bf, trans, pg) {
+Current<B>::Current(const std::string &plz_, Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg) : OperatorBase<cdouble, B>(latt, Bi, Bf, trans, pg), plz(plz_) {
 
 }
 
 template<ContainCharge B>
-void Current<B>::setDirection(const std::string& plz)
-{
-    this->plz = plz;
-    if (plz == "x")
+void Current<B>::setDirection() {
+    if (plz == "x") {
         direction = {1.0, 0.0, 0.0};
-    else if (plz == "y")
+    }
+    else if (plz == "y") {
         direction = {0.0, 1.0, 0.0};
-    else if (plz == "z")
+    }
+    else if (plz == "z") {
         direction = {0.0, 0.0, 1.0};
-    else
+    }
+    else {
         direction = {0.0, 0.0, 0.0};
+    }
     setDirection(direction);
 }
 
 template<ContainCharge B>
 void Current<B>::setDirection(Vec3d d) {
     direction = d;
-    myHoppingT.clear();
-    for (auto link : this->hoppingT) {
+    for (auto& link : this->hoppingT) {
         assert_msg(link.getLinkVecNum()==1, "In setDirection, each hopping link should only have one dr!");
         auto dr = link.getvec(0);
         dr = this->latt->RtoRxy(dr);
         auto overlap = dot(direction, dr);
-        if (overlap != 0.0) {
-            link.setVal(link.getVal() * overlap);
-            myHoppingT.push_back(link);
-        }
+        link.setVal(link.getVal() * overlap);
     }
+    std::erase_if(this->hoppingT, [](const auto& link) {
+        std::cout << "link overlap: " <<  std::abs(link.getVal()) << std::endl;
+        return std::abs(link.getVal()) < INFINITESIMAL;
+    });
 }
 
 template<ContainCharge B>
 void Current<B>::printCurrLink(std::ostream &os) const {
-    for (const auto& link : this->myHoppingT) {
+    for (const auto& link : this->hoppingT) {
         link.print(false, os);
     }
 }
 
+//TODO:FIX Current translation symm
 template<ContainCharge B>
 void Current<B>::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps) {
     auto state = this->Bf->get(rowID);
     auto nf = this->Bf->norm(rowID);
-    for (const auto& link : this->myHoppingT) {
-        int matID = link.getmatid();
-        cdouble val = CPLX_I * link.getVal() / nf;
-        for (const auto& bond : link.bond()){
-            int siteI = bond.at(0);
-            int siteJ = bond.at(1);
+    MAP<cdouble> *mapPtr = &rowMaps[0];
+    for (const auto& trOp : this->trHoppingT) {
+        auto statei = state;
+        auto sgn = statei.transform(trOp.g);
+        // std::cout << "state:" << state << ", statei:" << statei << ", sgn:" << sgn << ", norm:" << nf << std::endl;
+        for (const auto& bond : trOp.Op.bonds){
+            cdouble val = CPLX_I * bond.val * sgn / nf;
+            // std::cout << "bond: " << val << " * " << bond[0] << " - " << bond[1] << std::endl;
+            int siteI = bond[0];
+            int siteJ = bond[1];
             // cp.siteI * cm.siteJ
-            this->pushElement( val * (CPlus<SPIN::UP>(siteI) * (CMinus<SPIN::UP>(siteJ) * BVopt<cdouble, B>(state))),  &rowMaps[matID]);
-            this->pushElement( -val * (CPlus<SPIN::UP>(siteJ) * (CMinus<SPIN::UP>(siteI) * BVopt<cdouble, B>(state))),  &rowMaps[matID]);
-            this->pushElement( val * (CPlus<SPIN::DOWN>(siteI) * (CMinus<SPIN::DOWN>(siteJ) * BVopt<cdouble, B>(state))),  &rowMaps[matID]);
-            this->pushElement( -val * (CPlus<SPIN::DOWN>(siteJ) * (CMinus<SPIN::DOWN>(siteI) * BVopt<cdouble, B>(state))),  &rowMaps[matID]);
+            this->pushElement( val * (CPlus<SPIN::UP>(siteI) * (CMinus<SPIN::UP>(siteJ) * BVopt<cdouble, B>(statei))),  mapPtr);
+            this->pushElement( -val * (CPlus<SPIN::UP>(siteJ) * (CMinus<SPIN::UP>(siteI) * BVopt<cdouble, B>(statei))),  mapPtr);
+            this->pushElement( val * (CPlus<SPIN::DOWN>(siteI) * (CMinus<SPIN::DOWN>(siteJ) * BVopt<cdouble, B>(statei))),  mapPtr);
+            this->pushElement( -val * (CPlus<SPIN::DOWN>(siteJ) * (CMinus<SPIN::DOWN>(siteI) * BVopt<cdouble, B>(statei))),  mapPtr);
         }
     }
 }
@@ -853,7 +893,7 @@ SzkOp<T, B>::SzkOp(int k_, ORBITAL orb_, Geometry* latt, Basis<B>* Bi, Basis<B>*
         }
     } else {
         for (int i = 0; i < latt->getSiteNum(); ++i) {
-            expFactor[i] = latt->expKR(k, i) / cdouble(latt->getSiteNum());
+            expFactor[i] = std::conj(latt->expKR(k, i) / cdouble(latt->getSiteNum()));
             this->Sz.add(Bond<T,1>(expFactor[i], {positions.at(i)}));
         }
     }

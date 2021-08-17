@@ -133,6 +133,8 @@ Interactions<T, N> linkToInteraction(const Link<T>& link) {
 	T val = link.getVal();
 	for (const auto& sites : link.bond()) {
 		Bond<T, N> b;
+		b.spmIdx = link.getmatid();
+		b.isOrdered = link.isOrdered();
 		b.val = val;
 		for (size_t i = 0; i < N; ++i) {
 			b[i] = sites.at(i);

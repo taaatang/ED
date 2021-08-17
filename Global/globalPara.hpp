@@ -1,5 +1,4 @@
-#ifndef __GLOBALPARA_H__
-#define __GLOBALPARA_H__
+#pragma once
 
 //
 // globalPara.hpp
@@ -47,6 +46,3 @@ constexpr int SPIN_DIM = 2;
     #define SPM_ROW_PARTITION
     const MATRIX_PARTITION PARTITION = ROW_PARTITION;
 #endif
-
-
-#endif // __GLOBALPARA_H__

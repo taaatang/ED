@@ -44,7 +44,7 @@ SpinBasis::SpinBasis() {
 }
 
 double SpinBasis::transform(const Transform<cdouble> &u) {
-    state() = u.tr(state());
+    spinState() = u.tr(spinState());
     return 1.0;
 }
 
@@ -133,9 +133,9 @@ bool ElectronBasis::next() {
 
 double ElectronBasis::transform(const Transform<cdouble> &u) {
     double sgnUp;
-    up() = u.tr(up(), sgnUp);
+    upState() = u.tr(upState(), sgnUp);
     double sgnDn;
-    dn() = u.tr(dn(), sgnDn);
+    dnState() = u.tr(dnState(), sgnDn);
     return sgnUp * sgnDn;
 }
 

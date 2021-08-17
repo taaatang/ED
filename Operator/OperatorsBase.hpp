@@ -72,6 +72,8 @@ public:
 
     OperatorBase& transform();
 
+    void printTrInteractions();
+
     // O(t) --> O(t+dt)
     virtual bool next( ) {return true;}
 
@@ -115,6 +117,8 @@ protected:
     std::vector<Link<T>> nelSitePh, nelBondPh, hopBondPh;
 
     std::vector<TrInteractions<T,2>> trHoppingT, trInterBandU, trExchangeJ, trPairHoppingJ;
+
+    std::vector<TrInteractions<T,2>> trNelSitePh, trNelBondPh, trHopBondPh;
 };
 
 template<typename T, IsBasisType B>
@@ -174,11 +178,11 @@ OperatorBase<T, B>& OperatorBase<T, B>::pushLink(Link<T> link, int matID){
 
 template<typename T, IsBasisType B>
 OperatorBase<T, B>& OperatorBase<T, B>::pushLinks(std::vector<Link<T>> links){
-    assert(spmCount<SparseMatrix<T>::spmNum);
+    assert(spmCount < SparseMatrix<T>::spmNum);
     for (auto& link : links) pushLink(link, spmCount);
     if (links.at(0).isOrdered()) spmCount += 2;
     else spmCount++;
-    assert(spmCount<=SparseMatrix<T>::spmNum);
+    assert(spmCount <= SparseMatrix<T>::spmNum);
     return *this;
 }
 
@@ -354,15 +358,48 @@ OperatorBase<T, B>& OperatorBase<T, B>::transform() {
     Generator<T> Gi, Gf;
     std::vector<Transform<T>> allTr;
     getGiGf(Gi, Gf, allTr);
-    assignTrInteractions<T, 2>(Gi, Gf, allTr, superExchangeJ, trSuperExchangeJ, 'n');
-    assignTrInteractions<T, 3>(Gi, Gf, allTr, chiralTermK, trChiralTermK, 'c');
-    for (const auto& trOp : trSuperExchangeJ) {
-        std::cout << trOp.g.factor << " * " << trOp.g.transformList << std::endl;
-        for (const auto& bond : trOp.Op.bonds) {
-            std::cout << bond.val << " * " << bond.sites[0] << "--" << bond.sites[1] << std::endl;
-        }
+    if constexpr (ContainSpin<B>) {
+        assignTrInteractions<T, 2>(Gi, Gf, allTr, superExchangeJ, trSuperExchangeJ, 'n');
+        assignTrInteractions<T, 3>(Gi, Gf, allTr, chiralTermK, trChiralTermK, 'c');
+    }
+    if constexpr (ContainCharge<B>) {
+        assignTrInteractions<T, 2>(Gi, Gf, allTr, hoppingT, trHoppingT, 'n');
+    }
+    if constexpr (ContainCharge<B> && ContainPhonon<B>) {
+        assignTrInteractions<T, 2>(Gi, Gf, allTr, nelSitePh, trNelSitePh, 'n');
     }
     return *this;
+}
+
+template<typename T, IsBasisType B>
+void OperatorBase<T, B>::printTrInteractions() {
+    if constexpr (ContainSpin<B>) {
+        std::cout << "transformed superexchange J * Si * Sj :" << std::endl;
+        for (const auto& trOp : trSuperExchangeJ) {
+            std::cout << trOp.g.factor << " * " << trOp.g.transformList << std::endl;
+            for (const auto& bond : trOp.Op.bonds) {
+                std::cout << bond.val << " * " << bond.sites[0] << "--" << bond.sites[1] << std::endl;
+            }
+        }
+    }
+    if constexpr (ContainCharge<B>) {
+        std::cout << "transformed hopping t * ci^dagger * cj + h.c. :" << std::endl;
+        for (const auto& trOp : trHoppingT) {
+            std::cout << trOp.g.factor << " * " << trOp.g.transformList << std::endl;
+            for (const auto& bond : trOp.Op.bonds) {
+                std::cout << bond.val << " * " << bond.sites[0] << "--" << bond.sites[1] << ", matid = " << bond.spmIdx << ", order = " << bond.isOrdered <<  std::endl;
+            }
+        }
+    }
+    if constexpr (ContainCharge<B> && ContainPhonon<B>) {
+        std::cout << "transformed Holstein term g * ni * ai + h.c. :" << std::endl;
+        for (const auto& trOp : trNelSitePh) {
+            std::cout << trOp.g.factor << " * " << trOp.g.transformList << std::endl;
+            for (const auto& bond : trOp.Op.bonds) {
+                std::cout << bond.val << " * " << bond.sites[0] << "--" << bond.sites[1] << std::endl;
+            }
+        }
+    }
 }
 
 template<typename T, IsBasisType B>

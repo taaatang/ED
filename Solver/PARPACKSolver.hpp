@@ -19,7 +19,7 @@
 #include "Utils/timer.hpp"
 #include "Utils/io.hpp"
 // MAX parpack iterations
-constexpr int PARPACK_MAXITERATION = 5000;
+constexpr int PARPACK_MAXITERATION = 10000;
 //MIN and MAX ncv
 constexpr int PARPACK_MINNCV = 3;
 // const int PARPACK_MAXNCV = 500;
