@@ -13,6 +13,7 @@ __pycache__/
 build/
 
 # input
+input/
 phononInput/
 heisInput/
 hubbInput/
