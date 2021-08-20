@@ -1,21 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(HOST $ENV{MY_HOST})
-if(HOST STREQUAL "cori")
+project(ED VERSION 1.0.0 LANGUAGES CXX)
+
+# set(HOST $ENV{MY_HOST})
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_CXX_COMPILER g++)
-    set(OPENMP_FLAG -fopenmp)
-elseif(HOST STREQUAL "sherlock" OR HOST STREQUAL "acer")
-    set(CMAKE_CXX_COMPILER mpiicpc)
-    set(OPENMP_FLAG -qopenmp)
-elseif(HOST STREQUAL "mac")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(CMAKE_CXX_COMPILER /usr/local/bin/g++-11)
-    set(OPENMP_FLAG -fopenmp)
 endif()
+set(OPENMP_FLAG -fopenmp)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-project(ED VERSION 1.0.0 LANGUAGES CXX)
 
 # PARPACK
 set(ARPACKINC $ENV{ARPACKINC})
@@ -24,31 +20,30 @@ set(ARPACKLIB $ENV{ARPACKLIB})
 # MKL library with ilp64 support
 set(MKLROOT $ENV{MKLROOT})
 set(MKLINC ${MKLROOT}/include)
-set(MPIDIR $ENV{MPICH_DIR})
-
-if(HOST STREQUAL "mac")
-    set(MPIINC /usr/local/Cellar/open-mpi/4.1.1_2/include)
-    set(MPILIB /usr/local/Cellar/open-mpi/4.1.1_2/lib)
-    set(MPI mpi)
-    set(MKLLIB ${MKLROOT}/lib)
-else()
-    set(MPIINC ${MPIDIR}/include)
-    set(MPILIB ${MPIDIR}/lib)
-    set(MPI mpich)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(MKLLIB ${MKLROOT}/lib/intel64)
+    set(MPIDIR $ENV{MPICH_DIR})
+    set(MPI mpich)
+else(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(MKLLIB ${MKLROOT}/lib)
+    set(MPIDIR $ENV{OMPI_DIR})
+    set(MPI mpi)
 endif()
 
 set(MKL_FLAGS "-DMKL_ILP64")
 add_library(MKL_ilp64 STATIC IMPORTED)
 set_target_properties(MKL_ilp64 PROPERTIES IMPORTED_LOCATION ${MKLLIB}/libmkl_intel_ilp64.a)
+
 add_library(MKL_thread STATIC IMPORTED)
 set_target_properties(MKL_thread PROPERTIES IMPORTED_LOCATION ${MKLLIB}/libmkl_intel_thread.a)
+
 add_library(MKL_core STATIC IMPORTED)
 set_target_properties(MKL_core PROPERTIES IMPORTED_LOCATION ${MKLLIB}/libmkl_core.a)
-if(HOST STREQUAL "mac")
-    set(MKL MKL_ilp64 MKL_thread MKL_core MKL_ilp64 MKL_thread MKL_core iomp5 pthread m dl)
-else()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(MKL -Wl,--start-group MKL_ilp64 MKL_thread MKL_core -Wl,--end-group iomp5 pthread m dl)
+else()
+    set(MKL MKL_ilp64 MKL_thread MKL_core MKL_ilp64 MKL_thread MKL_core iomp5 pthread m dl)
 endif()
 # Boost
 set(BOOSTROOT $ENV{BOOST_ROOT})
@@ -58,13 +53,12 @@ set(BOOST boost_system boost_filesystem)
 set(GSLDIR $ENV{GSL_DIR})
 set(GSL gsl gslcblas)
 
-set(LINKS ${MKL} ${BOOST} parpack ${MPI} ${GSL})
-
 # Compiler Flags
 set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall ${OPENMP_FLAG}")
 # Include/Library Path
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${BOOSTROOT} ${MPIINC} ${GSLDIR}/include)
-link_directories(${ARPACKLIB} ${BOOSTLIB} ${MPILIB} ${GSLDIR}/lib /opt/intel/lib)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${BOOSTROOT} ${MPIDIR}/include ${GSLDIR}/include)
+link_directories(${ARPACKLIB} ${BOOSTLIB} ${MPIDIR}/lib ${GSLDIR}/lib /opt/intel/lib)
+set(LINKS ${MKL} ${BOOST} parpack ${MPI} ${GSL})
 
 # SRC and Hearder files
 set(GLOBAL_PARA "Global/globalType.hpp" "Global/globalPara.hpp")
