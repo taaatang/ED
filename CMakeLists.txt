@@ -4,8 +4,10 @@ project(ED VERSION 1.0.0 LANGUAGES CXX)
 
 # set(HOST $ENV{MY_HOST})
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(STATUS "build on Linux ...")
     set(CMAKE_CXX_COMPILER g++)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    message(STATUS "build on macOS ...")
     set(CMAKE_CXX_COMPILER /usr/local/bin/g++-11)
 endif()
 set(OPENMP_FLAG -fopenmp)
@@ -60,38 +62,15 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${BOOSTRO
 link_directories(${ARPACKLIB} ${BOOSTLIB} ${MPIDIR}/lib ${GSLDIR}/lib /opt/intel/lib)
 set(LINKS ${MKL} ${BOOST} parpack ${MPI} ${GSL})
 
-# SRC and Hearder files
-set(GLOBAL_PARA "Global/globalType.hpp" "Global/globalPara.hpp")
-set(UTILS "Utils/comb.cpp" "Utils/io.cpp"  "Utils/paras.cpp" "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" "Utils/paras.hpp" "Utils/path.hpp" "Utils/timer.hpp")
-set(PULSE "Pulse/pulse.cpp" "Pulse/pulse.hpp")
-set(GEOMETRY "Geometry/Geometry.cpp" "Geometry/Geometry.hpp" "Geometry/Vec3.hpp" "Geometry/Transform.hpp" "Geometry/Generator.hpp")
-set(BASIS "Basis/BasisState.cpp" "Basis/BasisState.hpp" "Basis/Basis.hpp")
-set(ALGEBRA "Algebra/algebra.cpp" "Algebra/algebra.hpp")
-set(OPERATOR "Operator/links.cpp" "Operator/localOperators.hpp" "Operator/Operations.hpp" "Operator/OperatorsBase.hpp"  "Operator/Operators.hpp" "Operator/SparseMatrix.hpp" "Operator/links.hpp")
-
-set(ARPACK "Solver/PARPACKSolver.hpp")
-set(LANCZOS "Solver/LANCZOSIterator.hpp")
-set(BiCGSTAB "Solver/BiCGSTAB.hpp")
-set(SPECTRA "Solver/Spectra.hpp" ${LANCZOS} ${BiCGSTAB})
-set(TIME "Solver/TimeEvolver.hpp" ${LANCZOS})
-
-set(GEOMETRY_DEP ${GEOMETRY} ${GLOBAL_PARA} ${UTILS})
-set(BASIS_DEP ${BASIS} ${GEOMETRY_DEP})
-set(GROUND_STATE_DEP ${BASIS_DEP} ${OPERATOR} ${ARPACK} ${ALGEBRA})
-set(SPECTRA_DEP ${GROUND_STATE_DEP} ${SPECTRA})
-set(TIME_DEP ${GROUND_STATE_DEP} ${TIME} ${PULSE})
-set(ALL_DEP ${SPECTRA_DEP} ${TIME} ${PULSE})
+add_library(ed STATIC Geometry/Geometry.cpp Basis/BasisState.cpp Operator/links.cpp Measure/config.cpp Algebra/algebra.cpp Pulse/pulse.cpp Utils/comb.cpp Utils/io.cpp Utils/paras.cpp Utils/path.cpp)
+target_link_libraries(ed ${LINKS})
 
 # Excutables
 set(EXE_SRC ExcutableSRC)
-
-add_executable(main.out ${EXE_SRC}/main.cpp ${ALL_DEP})
-target_link_libraries(main.out ${LINKS} gsl gslcblas)
+add_executable(main.out ${EXE_SRC}/main.cpp)
+target_link_libraries(main.out ed ${LINKS})
 
 # Test
 set(TEST_SRC Test)
-
-#add_executable(test.out ${TEST_SRC}/basisState.cpp ${ALL_DEP})
-add_executable(test.out ${TEST_SRC}/test.cpp ${ALGEBRA} ${PULSE} ${BASIS} ${GEOMETRY} ${GLOBAL_PARA} Operator/localOperators.hpp "Utils/comb.cpp" "Utils/io.cpp"  "Utils/bitop.hpp" "Utils/comb.hpp" "Utils/io.hpp" "Utils/mpiwrap.hpp" "Utils/paras.cpp" "Utils/paras.hpp" "Utils/path.cpp" "Utils/path.hpp" "Pulse/pulse.cpp" "Pulse/pulse.hpp" "Measure/config.cpp" "Measure/config.hpp")
-target_link_libraries(test.out ${LINKS} gsl gslcblas)
-
+add_executable(test.out ${TEST_SRC}/test.cpp)
+target_link_libraries(test.out ed ${LINKS})
