@@ -55,22 +55,16 @@ set(BOOSTROOT $ENV{BOOST_ROOT})
 set(BOOSTLIB $ENV{BOOST_LIB})
 set(BOOST boost_system boost_filesystem)
 
-set(LINKS ${MKL} ${BOOST} parpack ${MPI})
+set(GSLDIR $ENV{GSL_DIR})
+set(GSL gsl gslcblas)
+
+set(LINKS ${MKL} ${BOOST} parpack ${MPI} ${GSL})
 
 # Compiler Flags
 set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall ${OPENMP_FLAG}")
 # Include/Library Path
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${BOOSTROOT} ${MPIINC})
-link_directories(${ARPACKLIB} ${BOOSTLIB} ${MPILIB} /opt/intel/lib)
-if(HOST STREQUAL "mac")
-    include_directories(/usr/local/Cellar/gsl/2.6/include)
-    link_directories(/usr/local/Cellar/gsl/2.6/lib)
-endif()
-if(HOST STREQUAL "cori")
-    include_directories(/global/common/sw/cray/cnl7/haswell/gsl/2.5/intel/19.0.3.199/7twqxxq/include)
-    link_directories(/global/common/sw/cray/cnl7/haswell/gsl/2.5/intel/19.0.3.199/7twqxxq/lib)
-endif()
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${BOOSTROOT} ${MPIINC} ${GSLDIR}/include)
+link_directories(${ARPACKLIB} ${BOOSTLIB} ${MPILIB} ${GSLDIR}/lib /opt/intel/lib)
 
 # SRC and Hearder files
 set(GLOBAL_PARA "Global/globalType.hpp" "Global/globalPara.hpp")
