@@ -8,15 +8,12 @@
 //
 #include "global/globalType.hpp"
 
-constexpr bool OPT_USE_MKL = true;
-
-constexpr bool DEBUG = false;
 /*
     *******
     * MPI *
     *******
 */
-constexpr int MPI_MASTER = 0;
+inline constexpr int MPI_MASTER = 0;
 
 /*
     ******************
@@ -24,16 +21,10 @@ constexpr int MPI_MASTER = 0;
     ******************
 */
 
-const double INFINITESIMAL = 1e-8;
-const double PI = 3.14159265358979323846;
-const std::complex<double> CPLX_I(0.0, 1.0);
+inline constexpr double INFINITESIMAL = 1e-8;
+inline constexpr double PI = 3.14159265358979323846;
+inline constexpr std::complex<double> CPLX_I(0.0, 1.0);
 
-/*
-    ******************
-    * Spin Operators *
-    ******************
-*/
-constexpr int SPIN_DIM = 2;
 /*
     **********************************
     * Sparse Matrix PARTITION Method *
