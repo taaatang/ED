@@ -62,9 +62,7 @@ void printLine(int n = 50, char c = '*');
 
 std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model);
 std::ostream& operator<<(std::ostream& os, LINK_TYPE linkt);
-std::ostream& operator<<(std::ostream& os, SPIN s);
 std::ostream& operator<<(std::ostream& os, LADDER t);
-
 std::ostream& operator<<(std::ostream& os, const VecD& vec);
 std::ostream& operator<<(std::ostream& os, const VecI& vec);
 std::ostream& operator<<(std::ostream& os, const std::vector<cdouble>& vec);

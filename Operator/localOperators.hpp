@@ -8,6 +8,8 @@
 #include "basis/basis.hpp"
 #include "utils/bitop.hpp"
 
+enum class SPIN {UP, DOWN};
+
 template<typename T, IsBasisType B>
 struct BasisVal {
     B basis;
@@ -262,4 +264,20 @@ BVopt<T, B> operator*(T fac, BVopt<T, B> bv) {
         return bv;
     }
     return std::nullopt;
+}
+
+inline std::ostream& operator<<(std::ostream& os, SPIN s) {
+    // os<<"spin_";
+    switch (s) {
+        case SPIN::UP:
+            os<<"up";
+            break;
+        case SPIN::DOWN:
+            os<<"dn";
+            break;
+        default:
+            os<<"undefined";
+            break;
+    }
+    return os;
 }
