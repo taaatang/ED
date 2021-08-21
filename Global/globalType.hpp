@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include <string>
 
-enum class LATTICE_MODEL {HUBBARD, tJ, HEISENBERG, ElPh};
 /**
  * @brief Interaction Type
  * 

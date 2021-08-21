@@ -87,7 +87,7 @@ int main(int argc, const char * argv[]) {
     */
     
     timer.tik();
-    Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
+    Basis B(MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
     if (BASIS_IS_SAVED){
         // #ifdef DISTRIBUTED_BASIS

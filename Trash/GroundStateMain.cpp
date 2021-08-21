@@ -30,7 +30,7 @@ int main(int argc, const char * argv[]) {
     * Input And Initialization *
     ****************************
 */
-    LATTICE_MODEL model = LATTICE_MODEL::tJ;
+    MODEL model = MODEL::tJ;
     int Nx, Ny, N, Nu, Nd;
     int kIndex = -1; // Gamma Point
     int PGRepIndex = -1;

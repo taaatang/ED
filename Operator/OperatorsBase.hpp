@@ -13,7 +13,7 @@
 #include "operator/sparseMatrix.hpp"
 #include "operator/links.hpp"
 #include "operator/interaction_transform.hpp"
-#include "operator/localoperators.hpp"
+#include "operator/localOperators.hpp"
 #include "pulse/pulse.hpp"
 
 // push data to an unordered map

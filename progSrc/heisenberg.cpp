@@ -112,7 +112,7 @@ int main( ) {
         auto J1 = *para.get<double>("J1");
         auto J2 = *para.get<double>("J2");
         for (auto channel : std::vector<std::string> {"A1", "A2", "E21", "E22"}) {
-            Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(latt.get(), Bi.get(), Bi.get());
+            Hamiltonian<MODEL::HEISENBERG, dataType> R(latt.get(), Bi.get(), Bi.get());
             R.pushLinks(RamanChannel(channel, J1, J2, *latt));
             R.construct();
             for (int n = 0; n < nstate; ++n) {

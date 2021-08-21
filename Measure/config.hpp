@@ -12,7 +12,7 @@ Orbital stringToOrb(std::string name, int id);
 
 LATTICE getLattType(const Parameters& para);
 
-LATTICE_MODEL getModel(const Parameters& para);
+MODEL getModel(const Parameters& para);
 
 void setlatt(const Parameters&, std::unique_ptr<Geometry>& latt);
 
@@ -20,7 +20,7 @@ template <IsBasisType B>
 void setbasis(const Parameters&, std::unique_ptr<Basis<B>>&, Geometry*);
 
 template <IsBasisType B>
-void setbasis(std::unique_ptr<Basis<B>>&, LATTICE_MODEL, Geometry*, int nuf, int ndf, int kf, int pf);
+void setbasis(std::unique_ptr<Basis<B>>&, MODEL, Geometry*, int nuf, int ndf, int kf, int pf);
 
 template <typename T, IsBasisType B>
 void setham(const Parameters&, std::unique_ptr<Hamiltonian<T, B>>&, Geometry*, Basis<B>*);
@@ -44,7 +44,7 @@ void setbasis(const Parameters& para, std::unique_ptr<Basis<B>>& ba, Geometry* l
 
 
 template <IsBasisType B>
-void setbasis(std::unique_ptr<Basis<B>>& ba, LATTICE_MODEL model, Geometry* latt, int nuf, int ndf, int nPhof, int kf, int pf) {
+void setbasis(std::unique_ptr<Basis<B>>& ba, MODEL model, Geometry* latt, int nuf, int ndf, int nPhof, int kf, int pf) {
     ba = std::unique_ptr<Basis<B>>(new Basis<B>(latt, nuf, ndf, nPhof, kf, pf));
 }
 

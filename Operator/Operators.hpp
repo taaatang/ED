@@ -15,6 +15,8 @@
 #include "pulse/pulse.hpp"
 #include "solver/parpackSolver.hpp"
 
+enum class MODEL {HUBBARD, tJ, HEISENBERG, ElPh};
+
 /***************
  * HAMILTONIAN *
  ***************/
@@ -933,4 +935,24 @@ void SzkOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
             }
         }
     #endif
+}
+
+inline std::ostream& operator<<(std::ostream& os, MODEL model) {
+    os<<"MODEL:";
+    switch (model) {
+        case MODEL::HUBBARD:
+            os<<"Hubbard Model";
+            break;
+        case MODEL::HEISENBERG:
+            os<<"Heisenberg Model";
+            break;
+        case MODEL::tJ:
+            os<<"tJ Model";
+            break;
+        default:
+            os<<"not defined!\n";
+            exit(1);
+            break;
+    }
+    return os;
 }

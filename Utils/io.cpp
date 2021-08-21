@@ -60,46 +60,11 @@ void toupper(std::string &str) {
     }
 }
 
-void printModel(LATTICE_MODEL model) {
-    switch(model){
-        case LATTICE_MODEL::HUBBARD:
-            std::cout<<"Hubbard Model\n";
-            break;
-        case LATTICE_MODEL::HEISENBERG:
-            std::cout<<"Heisenberg Model\n";
-            break;
-        case LATTICE_MODEL::tJ:
-            std::cout<<"tJ Model\n";
-            break;
-        default:
-            std::cout<<"Moel Not Defined!(utils::printModel()).\n";
-            exit(1);
-    }
-}
-
 void printLine(int n, char c) {
     std::cout << std::string(n, c) << '\n';
 }
 
-std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model) {
-    os<<"MODEL:";
-    switch (model) {
-        case LATTICE_MODEL::HUBBARD:
-            os<<"Hubbard Model";
-            break;
-        case LATTICE_MODEL::HEISENBERG:
-            os<<"Heisenberg Model";
-            break;
-        case LATTICE_MODEL::tJ:
-            os<<"tJ Model";
-            break;
-        default:
-            os<<"not defined!\n";
-            exit(1);
-            break;
-    }
-    return os;
-}
+
 std::ostream& operator<<(std::ostream& os, LINK_TYPE linkt) {
     os<<"LINK TYPE:";
     switch (linkt) {

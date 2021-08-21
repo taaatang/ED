@@ -48,8 +48,6 @@ void exit_msg(std::string msg);
 
 void assert_msg(bool condition, std::string msg);
 
-void printModel(LATTICE_MODEL model);
-
 std::string tostr(double val, int digit = 2);
 
 std::string tostr(int val);
@@ -60,7 +58,6 @@ void toupper(std::string &str);
 
 void printLine(int n = 50, char c = '*');
 
-std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model);
 std::ostream& operator<<(std::ostream& os, LINK_TYPE linkt);
 std::ostream& operator<<(std::ostream& os, const VecD& vec);
 std::ostream& operator<<(std::ostream& os, const VecI& vec);

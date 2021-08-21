@@ -47,14 +47,14 @@ LATTICE getLattType(const Parameters& para) {
     }
 }
 
-LATTICE_MODEL getModel(const Parameters& para) {
+MODEL getModel(const Parameters& para) {
     auto name = para.template get<std::string>("model name");
     if (name.value() == "Hubbard") {
-        return LATTICE_MODEL::HUBBARD;
+        return MODEL::HUBBARD;
     } else if (name.value() == "Heisenberg") {
-        return LATTICE_MODEL::HEISENBERG;
+        return MODEL::HEISENBERG;
     } else if (name.value() == "tJ") {
-        return LATTICE_MODEL::tJ;
+        return MODEL::tJ;
     } else {
         std::cout << "Model name: " << name.value() << ", not defined!\n";
         exit(1);

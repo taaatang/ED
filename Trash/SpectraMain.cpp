@@ -35,7 +35,7 @@ int main(int argc, const char * argv[]) {
     a_int nev = 5;
     // int Nx = 6, Ny = 6;
     // int N = Nx * Ny;
-    LATTICE_MODEL model = LATTICE_MODEL::HEISENBERG;
+    MODEL model = MODEL::HEISENBERG;
     int Nx, Ny, N=12, Nu=6, Nd=6;
     int kIndex = 0; // Gamma Point
     int PGRepIndex = -1;

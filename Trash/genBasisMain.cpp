@@ -72,7 +72,7 @@ int main(int argc, const char * argv[]) {
         VecI occList{Nu, Nd};
     
         timer.tik();
-        Basis B(LATTICE_MODEL::HEISENBERG, &Lattice, occList, kIndex);
+        Basis B(MODEL::HEISENBERG, &Lattice, occList, kIndex);
         B.construct();
         timer.tok();
         std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
@@ -80,7 +80,7 @@ int main(int argc, const char * argv[]) {
 
         //Paralel Construction
         // timer.tik();
-        // Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex);
+        // Basis B(MODEL::HUBBARD, &Lattice, occList, kIndex);
         // B.construct(workerID,workerNum);
         // timer.tok();
         // std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", local size="<<B.getLocDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;

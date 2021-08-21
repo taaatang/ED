@@ -195,7 +195,7 @@ void compute(System<T, B> &sys, std::string key, int workerID, int workerNum, bo
     assert_msg(!sys.evecs.empty(), "No states to be measured!");
     auto model = sys.B->getModel();
     switch (model) { 
-        case LATTICE_MODEL::HUBBARD: {
+        case MODEL::HUBBARD: {
             assert_msg(sys.B->getPGIndex() == -1, "HUBBARD model calculation only defined with translation symm!");
             if (key == "conductivity") {
                 if (sys.H->isEmpty()) {
@@ -290,14 +290,14 @@ void compute(System<T, B> &sys, std::string key, int workerID, int workerNum, bo
             break;
         }
 
-        case LATTICE_MODEL::HEISENBERG: {
+        case MODEL::HEISENBERG: {
             if (key == "sisj") {
                 // SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), false, false);
                 std::vector<std::vector<dataType>> ssvals;
                 ssvals.resize(sys.stateNum);
                 for (int i = 0; i < sys.latt->getSiteNum(); ++i) {
                     timer.tik();
-                    Hamiltonian<LATTICE_MODEL::HEISENBERG, cdouble> SS(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
+                    Hamiltonian<MODEL::HEISENBERG, cdouble> SS(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
                     Link<cdouble> J(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {sys.latt->getSiteR(i)});
                     SS.pushLink(J, 0);
                     // SS.setr(i);
@@ -391,7 +391,7 @@ void compute(System<T, B> &sys, std::string key, int workerID, int workerNum, bo
                     for (auto channel : channels) {
                         if (sys.isMaster) printLine(20, '-');
                         timer.tik();                       
-                        Hamiltonian<LATTICE_MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), true, false);
+                        Hamiltonian<MODEL::HEISENBERG, dataType> R(sys.latt.get(), sys.B.get(), Bf.get(), true, false);
                         R.pushLinks(RamanChannel(channel, J1, J2, *(sys.latt)));
                         R.transform();
                         R.construct();
@@ -454,7 +454,7 @@ void compute(System<T, B> &sys, std::string key, int workerID, int workerNum, bo
             break;
         }
 
-        case LATTICE_MODEL::tJ: {
+        case MODEL::tJ: {
             break;
         }
 

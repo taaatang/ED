@@ -86,7 +86,7 @@ int main(int argc, const char * argv[]) {
     */
     
     timer.tik();
-    Basis B(LATTICE_MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
+    Basis B(MODEL::HUBBARD, &Lattice, occList, kIndex, PGRepIndex);
     if(workerID==MPI_MASTER)std::cout<<"begin construc basis..."<<std::endl;
     if (BASIS_IS_SAVED){
         #ifdef DISTRIBUTED_BASIS
@@ -186,7 +186,7 @@ int main(int argc, const char * argv[]) {
         // VecI occListf; if(spin==UP)occListf = VecI{Nu-1,Nd}; else occListf = VecI{Nu,Nd-1};
         // for(int kf=0; kf<N; ++kf){
         //     timer.tik();
-        //     Basis Bf(LATTICE_MODEL::HUBBARD, &Lattice, occListf, kf, PGRepIndex);
+        //     Basis Bf(MODEL::HUBBARD, &Lattice, occListf, kf, PGRepIndex);
         //     Bf.construct();
         //     CkOp<dataType> Ck(pm_option, spin,orb, &Lattice, &B, &Bf);
         //     #ifdef DISTRIBUTED_BASIS

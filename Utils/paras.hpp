@@ -49,8 +49,6 @@ public:
     template <typename T>
     std::optional<T> get(std::string key, REQUIRED opt = REQUIRED::YES) const;
 
-    LATTICE_MODEL getmodel() const;
-
 private:
     std::string rootDataPath;
 

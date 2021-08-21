@@ -65,7 +65,7 @@ public:
     
 protected:
     Basis* pt_Basis{nullptr};
-    LATTICE_MODEL fmodel{LATTICE_MODEL::HUBBARD};
+    MODEL fmodel{MODEL::HUBBARD};
     int nuSign;
     bool useTrans{true};
     bool usePG{true};
@@ -125,7 +125,7 @@ public:
 
 protected:
     Basis* pt_Basis{nullptr};
-    LATTICE_MODEL smodel{LATTICE_MODEL::HEISENBERG};
+    MODEL smodel{MODEL::HEISENBERG};
     int spinDim{2};
     std::vector<double> szMat, spMat, smMat;
     bool useTrans{true};
@@ -142,7 +142,7 @@ FermionOperator<T>::FermionOperator(Basis* pt_Ba, bool Trans, bool PG):pt_Basis(
 template <typename T>
 bool FermionOperator<T>::cp(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign){
     switch(fmodel){
-        case LATTICE_MODEL::HUBBARD: {
+        case MODEL::HUBBARD: {
             if (spin == SPIN::UP) {
                 if (!bitTest(pairRepI.first,siteI)) {
                     bitFlip(pairRepI.first,siteI);
@@ -172,7 +172,7 @@ bool FermionOperator<T>::cp(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign
             }
             break;
         }
-        case LATTICE_MODEL::tJ: {
+        case MODEL::tJ: {
             if (spin == SPIN::UP) {
                 if (!bitTest(pairRepI.first, siteI) and !bitTest(pairRepI.second, siteI)) {
                     bitFlip(pairRepI.first, siteI);
@@ -216,7 +216,7 @@ bool FermionOperator<T>::cp(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign
 template <typename T>
 bool FermionOperator<T>::cm(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign){
     switch (fmodel) {
-        case LATTICE_MODEL::HUBBARD: {
+        case MODEL::HUBBARD: {
             if (spin == SPIN::UP) {
                 if (bitTest(pairRepI.first, siteI)) {
                     bitFlip(pairRepI.first, siteI);
@@ -246,7 +246,7 @@ bool FermionOperator<T>::cm(SPIN spin, int siteI, pairIdx_t& pairRepI, int &sign
             }
             break;
         }
-        case LATTICE_MODEL::tJ: {
+        case MODEL::tJ: {
             if (spin == SPIN::UP) {
                 if (bitTest(pairRepI.first, siteI)) {
                     bitFlip(pairRepI.first, siteI);
@@ -297,7 +297,7 @@ bool FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, pairIdx_t& pairRe
         }
     } else {
         switch(fmodel){
-            case LATTICE_MODEL::HUBBARD: {
+            case MODEL::HUBBARD: {
                 if (bitTest(repI, siteJ) && (!bitTest(repI, siteI))){
                     bitFlip(repI, siteI);
                     bitFlip(repI, siteJ);
@@ -318,7 +318,7 @@ bool FermionOperator<T>::cpcm(SPIN spin, int siteI, int siteJ, pairIdx_t& pairRe
             }
 
             // no double occupancy
-            case LATTICE_MODEL::tJ: {
+            case MODEL::tJ: {
                 idx_t repIp = (spin == SPIN::DOWN) ? pairRepI.first : pairRepI.second;
                 if (bitTest(repI, siteJ) && (!bitTest(repI, siteI)) && (!bitTest(repIp, siteI))) {
                     bitFlip(repI,siteI);
@@ -615,11 +615,11 @@ void SpinOperator<T>::smsp(int siteI, int siteJ, T factor, idx_t initInd, VecI& 
 template<typename T>
 double SpinOperator<T>::getSz(int siteI, idx_t repI) const {
     switch(smodel){
-        case LATTICE_MODEL::HEISENBERG:{
+        case MODEL::HEISENBERG:{
             return szMat.at(1&(repI>>siteI));
             break;
         }
-        case LATTICE_MODEL::tJ:{
+        case MODEL::tJ:{
             pairIdx_t pairRepI=pt_Basis->getPairRepI(repI);
             if(bitTest(pairRepI.first,siteI)){
                 return szMat.at(0);
@@ -651,7 +651,7 @@ void SpinOperator<T>::szsz(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* r
 template<typename T>
 void SpinOperator<T>::szsznn(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* rowMap){
     // for tJ model, szi*szj -1/4*ni*nj
-    assert_msg(smodel==LATTICE_MODEL::tJ,"SpinOperator::szsznn only defined for tJ model");
+    assert_msg(smodel==MODEL::tJ,"SpinOperator::szsznn only defined for tJ model");
     pairIdx_t pairRepI = pt_Basis->getPairRepI(repI);
     if((bitTest(pairRepI.first,siteI) && bitTest(pairRepI.second,siteJ)) || (bitTest(pairRepI.first,siteJ) && bitTest(pairRepI.second,siteI))){
         #ifdef DISTRIBUTED_BASIS
@@ -668,11 +668,11 @@ template<typename T>
 void SpinOperator<T>::spsm(int siteI, T factor, idx_t repI, MAP<T>* rowMap){
     bool condition;
     switch(smodel){
-        case LATTICE_MODEL::HEISENBERG:{
+        case MODEL::HEISENBERG:{
             condition = !bitTest(repI,siteI);
             break;
         }
-        case LATTICE_MODEL::tJ:{
+        case MODEL::tJ:{
             pairIdx_t pairRepI = pt_Basis->getPairRepI(repI);
             condition = bitTest(pairRepI.first,siteI);
             break;
@@ -697,11 +697,11 @@ template<typename T>
 void SpinOperator<T>::smsp(int siteI, T factor, idx_t repI, MAP<T>* rowMap){
     bool condition;
     switch(smodel){
-        case LATTICE_MODEL::HEISENBERG:{
+        case MODEL::HEISENBERG:{
             condition = bitTest(repI,siteI);
             break;
         }
-        case LATTICE_MODEL::tJ:{
+        case MODEL::tJ:{
             pairIdx_t pairRepI = pt_Basis->getPairRepI(repI);
             condition = bitTest(pairRepI.second,siteI);
             break;
@@ -729,7 +729,7 @@ void SpinOperator<T>::spsm(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* r
         return;
     }
     switch(smodel){
-        case LATTICE_MODEL::HEISENBERG:{
+        case MODEL::HEISENBERG:{
             if (bitTest(repI,siteI) && (!bitTest(repI,siteJ))){
                 bitFlip(repI,siteI);
                 bitFlip(repI,siteJ);
@@ -742,7 +742,7 @@ void SpinOperator<T>::spsm(int siteI, int siteJ, T factor, idx_t repI, MAP<T>* r
             }
             break;
         }
-        case LATTICE_MODEL::tJ:{
+        case MODEL::tJ:{
             pairIdx_t pairRepI = pt_Basis->getPairRepI(repI);
             if (bitTest(pairRepI.first,siteJ) && bitTest(pairRepI.second,siteI)){
                 bitFlip(pairRepI.first,siteI);
@@ -783,7 +783,7 @@ void SpinOperator<T>::szspsm(int siteI, int siteJ, int siteK, T factor, idx_t re
     */
     // assert_msg(siteI!=siteJ && siteJ!=siteK, "chiral term szspsm(i,j,k) only defined for three different sites (i,j,k)!");
     switch (smodel){
-        case LATTICE_MODEL::HEISENBERG:{
+        case MODEL::HEISENBERG:{
             bool cond = false;
             cdouble sign;
             if (bitTest(repI,siteJ) && (!bitTest(repI,siteK))){
