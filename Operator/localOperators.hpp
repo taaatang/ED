@@ -10,6 +10,8 @@
 
 enum class SPIN {UP, DOWN};
 
+enum class LADDER {PLUS, MINUS};
+
 template<typename T, IsBasisType B>
 struct BasisVal {
     B basis;
@@ -274,6 +276,22 @@ inline std::ostream& operator<<(std::ostream& os, SPIN s) {
             break;
         case SPIN::DOWN:
             os<<"dn";
+            break;
+        default:
+            os<<"undefined";
+            break;
+    }
+    return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os, LADDER t) {
+    // os<<"ladder_";
+    switch (t) {
+        case LADDER::PLUS:
+            os<<"plus";
+            break;
+        case LADDER::MINUS:
+            os<<"minus";
             break;
         default:
             os<<"undefined";

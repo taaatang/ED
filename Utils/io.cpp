@@ -144,22 +144,6 @@ std::ostream& operator<<(std::ostream& os, LINK_TYPE linkt) {
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, LADDER t) {
-    // os<<"ladder_";
-    switch (t) {
-        case LADDER::PLUS:
-            os<<"plus";
-            break;
-        case LADDER::MINUS:
-            os<<"minus";
-            break;
-        default:
-            os<<"undefined";
-            break;
-    }
-    return os;
-}
-
 std::ostream& operator<<(std::ostream& os, const VecD& vec) {
     os<<"[";
     for (auto val:vec) {
