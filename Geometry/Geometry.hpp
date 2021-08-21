@@ -28,6 +28,10 @@ enum class PointGroup {NONE,D6, C6, D4, D4m, D4m5, C4, D3, C3};
 
 std::ostream& operator<<(std::ostream& os, PointGroup p);
 
+enum class ORBITAL {SINGLE, Dx2y2, Dz2, Px, Py, Pzu, Pzd};
+
+std::ostream& operator<<(std::ostream& os, ORBITAL orb);
+
 /*
    ***************************
    *   Geometry Base Class   *

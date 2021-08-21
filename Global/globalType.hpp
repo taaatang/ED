@@ -7,7 +7,6 @@
 #include <string>
 
 enum class LATTICE_MODEL {HUBBARD, tJ, HEISENBERG, ElPh};
-enum class ORBITAL {SINGLE, Dx2y2, Dz2, Px, Py, Pzu, Pzd};
 /**
  * @brief Interaction Type
  * 

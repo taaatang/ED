@@ -100,37 +100,6 @@ std::ostream& operator<<(std::ostream& os, LATTICE_MODEL model) {
     }
     return os;
 }
-std::ostream& operator<<(std::ostream& os, ORBITAL orb) {
-    // os<<"orbital_";
-    switch (orb) {
-        case ORBITAL::SINGLE:
-            os<<"single";
-            break;
-        case ORBITAL::Dx2y2:
-            os<<"dx2y2";
-            break;
-        case ORBITAL::Dz2:
-            os<<"dz2";
-            break;
-        case ORBITAL::Px:
-            os<<"px";
-            break;
-        case ORBITAL::Py:
-            os<<"py";
-            break;
-        case ORBITAL::Pzu:
-            os<<"pzu";
-            break;
-        case ORBITAL::Pzd:
-            os<<"pzd";
-            break;
-        default:
-            os<<"not defined!";
-            exit(1);
-            break;
-    }
-    return os;
-}
 std::ostream& operator<<(std::ostream& os, LINK_TYPE linkt) {
     os<<"LINK TYPE:";
     switch (linkt) {
