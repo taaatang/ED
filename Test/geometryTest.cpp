@@ -6,9 +6,9 @@
 //  Copyright © 2019 tatang. All rights reserved.
 //
 
-#include "../Global/globalPara.hpp"
-#include "../Geometry/Geometry.hpp"
-#include "../Operator/OperatorsBase.hpp"
+#include "../global/globalPara.hpp"
+#include "../geometry/geometry.hpp"
+#include "../operator/operatorsBase.hpp"
 
 #include <iostream>
 

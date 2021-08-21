@@ -1,12 +1,11 @@
-#ifndef __LINKS_H__
-#define __LINKS_H__
+#pragma once
 
 #include <vector>
 #include <iostream>
 
-#include "Global/globalPara.hpp"
-#include "Geometry/Vec3.hpp"
-#include "Geometry/Geometry.hpp"
+#include "global/globalPara.hpp"
+#include "geometry/vec3.hpp"
+#include "geometry/geometry.hpp"
 
 template <class T>
 class Link{
@@ -172,5 +171,3 @@ void Link<T>::print(bool brief, std::ostream& os) const {
         for (const auto& bond : LinkList) os<<bond<<"\n";
     }
 }
-
-#endif // __LINKS_H__

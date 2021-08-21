@@ -6,8 +6,7 @@
 //
 //
 
-#ifndef algebra_hpp
-#define algebra_hpp
+#pragma once
 
 // #include <Eigen/Dense>
 // #include <Eigen/Eigenvalues>
@@ -17,13 +16,13 @@
 #include <functional>
 #include "omp.h"
 
-#include "Global/globalType.hpp"
+#include "global/globalType.hpp"
 #define MKL_INT idx_t
 #define MKL_Complex16 cdouble
 #include "mkl.h"
 
-#include "Utils/mpiwrap.hpp"
-#include "Utils/io.hpp"
+#include "utils/mpiwrap.hpp"
+#include "utils/io.hpp"
 
 namespace MKL{
     /*
@@ -188,7 +187,3 @@ template <typename T>
 inline double mpiNorm(const T* v, idx_t size) {
     return std::sqrt(std::real(mpiDot(v, v, size)));
 }
-/*
-    Eigen solver for a self adjoint matrix
-*/
-#endif

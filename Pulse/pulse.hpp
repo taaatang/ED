@@ -1,3 +1,4 @@
+#pragma once
 //
 //  pulse.hpp
 //  ED
@@ -6,16 +7,13 @@
 //  Copyright © 2019 tatang. All rights reserved.
 //
 
-#ifndef pulse_hpp
-#define pulse_hpp
-
 #include <gsl/gsl_integration.h>
 #include <cmath>
 #include <iostream>
 
-#include "Global/globalPara.hpp"
-#include "Geometry/Vec3.hpp"
-#include "Utils/io.hpp"
+#include "global/globalPara.hpp"
+#include "geometry/vec3.hpp"
+#include "utils/io.hpp"
 
 double GaussPulse(double t, void* params);
 
@@ -133,5 +131,3 @@ private:
 
     double epsabs{1e-8}, epsrel{1e-8};
 };
-
-#endif // pulse_hpp

@@ -1,4 +1,4 @@
-#include "Measure/config.hpp"
+#include "measure/config.hpp"
 
 Orbital stringToOrb(std::string name, int id) {
     ORBITAL orb;

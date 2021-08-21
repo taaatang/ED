@@ -1,14 +1,12 @@
+#pragma once
 //
 // Created by tatang on 8/3/21.
 //
 
-#ifndef ED_LOCALOPERATORS_HPP
-#define ED_LOCALOPERATORS_HPP
-
 #include <optional>
-#include "Global/globalType.hpp"
-#include "Basis/Basis.hpp"
-#include "Utils/bitop.hpp"
+#include "global/globalType.hpp"
+#include "basis/basis.hpp"
+#include "utils/bitop.hpp"
 
 template<typename T, IsBasisType B>
 struct BasisVal {
@@ -265,5 +263,3 @@ BVopt<T, B> operator*(T fac, BVopt<T, B> bv) {
     }
     return std::nullopt;
 }
-
-#endif //ED_LOCALOPERATORS_HPP

@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(ED VERSION 1.0.0 LANGUAGES CXX)
+project(ED VERSION 2.0.0 LANGUAGES CXX)
 
-# set(HOST $ENV{MY_HOST})
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(STATUS "build on Linux ...")
     set(CMAKE_CXX_COMPILER g++)
@@ -51,7 +50,7 @@ endif()
 set(BOOSTROOT $ENV{BOOST_ROOT})
 set(BOOSTLIB $ENV{BOOST_LIB})
 set(BOOST boost_system boost_filesystem)
-
+# gsl
 set(GSLDIR $ENV{GSL_DIR})
 set(GSL gsl gslcblas)
 
@@ -62,15 +61,15 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${BOOSTRO
 link_directories(${ARPACKLIB} ${BOOSTLIB} ${MPIDIR}/lib ${GSLDIR}/lib /opt/intel/lib)
 set(LINKS ${MKL} ${BOOST} parpack ${MPI} ${GSL})
 
-add_library(ed STATIC Geometry/Geometry.cpp Basis/BasisState.cpp Operator/links.cpp Measure/config.cpp Algebra/algebra.cpp Pulse/pulse.cpp Utils/comb.cpp Utils/io.cpp Utils/paras.cpp Utils/path.cpp)
+add_library(ed STATIC geometry/geometry.cpp basis/basisState.cpp operator/links.cpp measure/config.cpp algebra/algebra.cpp pulse/pulse.cpp utils/comb.cpp utils/io.cpp utils/paras.cpp utils/path.cpp)
 target_link_libraries(ed ${LINKS})
 
 # Excutables
-set(EXE_SRC ExcutableSRC)
+set(EXE_SRC progSrc)
 add_executable(main.out ${EXE_SRC}/main.cpp)
 target_link_libraries(main.out ed ${LINKS})
 
 # Test
-set(TEST_SRC Test)
+set(TEST_SRC test)
 add_executable(test.out ${TEST_SRC}/test.cpp)
 target_link_libraries(test.out ed ${LINKS})

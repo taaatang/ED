@@ -1,4 +1,4 @@
-#include "Geometry/Geometry.hpp"
+#include "geometry/geometry.hpp"
 using namespace std;
 int main() {
 	TriAngLattice latt(36);

@@ -1,11 +1,10 @@
-#ifndef __OPERATIONS_H__
-#define __OPERATIONS_H__
+#pragma once
 
 #include <vector>
 #include <cmath>
 #include <iostream>
 
-#include "Basis/Basis.hpp"
+#include "basis/basis.hpp"
 
 // push data to an unordered map
 template <typename T>
@@ -826,5 +825,3 @@ void SpinOperator<T>::chiral(int siteI, int siteJ, int siteK, T factor, idx_t re
     szspsm(siteJ, siteK, siteI, factor, repI, rowMap);
     szspsm(siteK, siteI, siteJ, factor, repI, rowMap);
 }
-
-#endif // __OPERATIONS_H__

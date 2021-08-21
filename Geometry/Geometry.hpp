@@ -1,13 +1,11 @@
+#pragma once
 //
-//  Geometry.hpp
+//  geometry.hpp
 //  ED
 //
 //  Created by tatang on 10/26/19.
 //  Copyright © 2019 tatang. All rights reserved.
 //
-
-#ifndef Geometry_hpp
-#define Geometry_hpp
 
 #include <vector>
 #include <string>
@@ -16,11 +14,11 @@
 #include <complex>
 #include <cassert>
 
-#include "Global/globalPara.hpp"
-#include "Geometry/Vec3.hpp"
-#include "Algebra/algebra.hpp"
-#include "Utils/bitop.hpp"
-#include "Geometry/Generator.hpp"
+#include "global/globalPara.hpp"
+#include "geometry/vec3.hpp"
+#include "algebra/algebra.hpp"
+#include "utils/bitop.hpp"
+#include "geometry/generator.hpp"
 
 
 /*
@@ -216,5 +214,3 @@ public:
     SquareLattice(int N1, int N2, bool PBC=true, bool TBC=false, double phase_x=0.0, double phase_y=0.0);
     ~SquareLattice( ) override = default;
 };
-
-#endif

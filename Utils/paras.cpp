@@ -1,4 +1,4 @@
-#include "Utils/paras.hpp"
+#include "utils/paras.hpp"
 
 Parameters::Parameters(std::string inputDir, std::vector<std::string> files) {
     for(auto const& file:files){

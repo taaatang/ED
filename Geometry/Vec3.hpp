@@ -1,5 +1,4 @@
-#ifndef __VEC3_H__
-#define __VEC3_H__
+#pragma once
 
 #include <array>
 #include <iostream>
@@ -87,5 +86,3 @@ inline std::ostream& operator<<(std::ostream &os, Vec3<T> v) {
     os<<"["<<v[0]<<" "<<v[1]<<" "<<v[2]<<"]";
     return os;
 }
-
-#endif // __VEC3_H__

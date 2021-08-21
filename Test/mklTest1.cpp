@@ -1,6 +1,6 @@
 #include <vector>
 #include <iostream>
-#include "Algebra/algebra.hpp"
+#include "algebra/algebra.hpp"
 
 using namespace std;
 using val_t = double;

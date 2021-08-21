@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Measure/measure.hpp"
+#include "measure/measure.hpp"
 
 /**
  * @brief struct containing lattice, current hilbert space basis and Hamiltonian

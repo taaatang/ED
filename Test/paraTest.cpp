@@ -1,8 +1,8 @@
 #include <iostream>
-#include "Utils/paras.hpp"
-#include "Global/config.hpp"
-#include "Solver/PARPACKSolver.hpp"
-#include "Solver/TimeEvolver.hpp"
+#include "utils/paras.hpp"
+#include "global/config.hpp"
+#include "solver/parpackSolver.hpp"
+#include "solver/timeEvolver.hpp"
 
 using namespace std;
 

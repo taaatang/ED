@@ -1,5 +1,4 @@
-#ifndef __IO_H__
-#define __IO_H__
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -15,9 +14,9 @@
     #include <boost/filesystem.hpp>
 #endif //CPP_17_FS
 
-#include "Global/globalType.hpp"
-#include "Global/globalPara.hpp"
-#include "Utils/mpiwrap.hpp"
+#include "global/globalType.hpp"
+#include "global/globalPara.hpp"
+#include "utils/mpiwrap.hpp"
 
 #define LOCATION(cond) if (cond) {std::cout << "line number: "<< __LINE__ << "\nfrom func: " << __func__ << "\nfrom file: "<< __FILE__ << '\n';}
 
@@ -228,5 +227,3 @@ inline void infile(std::vector<T*> para, std::string filename){
     }
     file.close();
 }
-
-#endif // __IO_H__

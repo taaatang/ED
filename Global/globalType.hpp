@@ -1,5 +1,4 @@
-#ifndef __GLOBALTYPE_H__
-#define __GLOBALTYPE_H__
+#pragma once
 
 #include <vector>
 #include <complex>
@@ -81,5 +80,3 @@ enum MATRIX_PARTITION {ROW_PARTITION, COL_PARTITION};
 */
 
 enum LANCZOS_OPTION {ALPHA_BETA, ALPHA_BETA_Q};
-
-#endif // __GLOBALTYPE_H__

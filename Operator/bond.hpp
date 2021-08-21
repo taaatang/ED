@@ -1,5 +1,4 @@
-#ifndef __BOND_H__
-#define __BOND_H__
+#pragma once
 /**
  * @file bond.hpp
  * @author Ta Tang (tatang.physics@gmail.com)
@@ -14,8 +13,8 @@
 #include <vector>
 #include <array>
 #include <algorithm>
-#include "Global/globalType.hpp"
-#include "Geometry/Transform.hpp"
+#include "global/globalType.hpp"
+#include "geometry/transform.hpp"
 
 /**
  * @brief sited ids form a bond
@@ -89,5 +88,3 @@ void cyclicOrder(Bond<T, N>& b) {
 	}
 	b.sites = sorted;
 }
-
-#endif // __BOND_H__

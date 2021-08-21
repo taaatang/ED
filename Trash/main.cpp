@@ -11,8 +11,8 @@
 // #undef OMP_
 
 #include "globalPara.hpp"
-#include "PARPACKSolver.hpp"
-#include "LANCZOSIterator.hpp"
+#include "parpackSolver.hpp"
+#include "lanczos.hpp"
 
 #include <iostream>
 #include <iomanip> // std::setprecision

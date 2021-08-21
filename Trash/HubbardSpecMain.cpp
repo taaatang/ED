@@ -6,10 +6,10 @@
 //  Copyright © 2019 tatang. All rights reserved.
 //
 
-#include "../Operator/Operators.hpp"
-#include "../Solver/PARPACKSolver.hpp"
-#include "../Solver/Spectra.hpp"
-#include "../Utils/timer.hpp"
+#include "../operator/operators.hpp"
+#include "../solver/parpackSolver.hpp"
+#include "../solver/spectra.hpp"
+#include "../utils/timer.hpp"
 
 #include <iostream>
 #include <iomanip> // std::setprecision
@@ -58,7 +58,7 @@ int main(int argc, const char * argv[]) {
     std::ofstream outfile;
     // basis data path
     bool BASIS_IS_SAVED = false;
-    std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
+    std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";
  

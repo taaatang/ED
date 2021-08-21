@@ -1,7 +1,6 @@
-#ifndef __GENERATOR_H__
-#define __GENERATOR_H__
+#pragma once
 /**
- * @file Generator.hpp
+ * @file generator.hpp
  * @author Ta Tang (tatang.physics@gmail.com)
  * @brief 
  * @version 0.1
@@ -12,7 +11,7 @@
  */
 #include <algorithm>
 #include <cmath>
-#include "Geometry/Transform.hpp"
+#include "geometry/transform.hpp"
 
 /**
  * 
@@ -129,5 +128,3 @@ std::ostream& operator<<(std::ostream& os, const Generator<T>& g) {
 	}
 	return os;
 }
-
-#endif // __GENERATOR_H__

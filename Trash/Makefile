@@ -66,14 +66,14 @@ geometryTest.o:geometryTest.cpp
 #globalClass.o:globalClass.cpp
 #	$(CXX) $(CXXFLAGS) -c globalClass.cpp
 
-Geometry.o:Geometry.cpp
-	$(CXX) $(CXXFLAGS) -c Geometry.cpp
+Geometry.o:geometry.cpp
+	$(CXX) $(CXXFLAGS) -c geometry.cpp
 
 Basis.o:Basis.cpp
 	$(CXX) $(CXXFLAGS) -c Basis.cpp
 
-Operators.o:Operators.cpp
-	$(CXX) $(CXXFLAGS) -c Operators.cpp
+Operators.o:operators.cpp
+	$(CXX) $(CXXFLAGS) -c operators.cpp
 
 utils.o:utils.cpp
 	$(CXX) $(CXXFLAGS) -c utils.cpp

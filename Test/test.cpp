@@ -2,13 +2,13 @@
 // Created by tatang on 8/2/21.
 //
 
-#include "Basis/BasisState.hpp"
-#include "Basis/Basis.hpp"
-#include "Operator/localOperators.hpp"
-#include "Operator/Operators.hpp"
-#include "Solver/Spectra.hpp"
-#include "Measure/config.hpp"
-#include "Measure/measure.hpp"
+#include "basis/basisState.hpp"
+#include "basis/basis.hpp"
+#include "operator/localoperators.hpp"
+#include "operator/operators.hpp"
+#include "solver/spectra.hpp"
+#include "measure/config.hpp"
+#include "measure/measure.hpp"
 
 using Basis_t = ElectronPhononBasis;
 

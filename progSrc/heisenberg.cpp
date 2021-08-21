@@ -1,9 +1,9 @@
 #include <iostream>
 #include <sstream>
-#include "Utils/paras.hpp"
-#include "Global/config.hpp"
-#include "Solver/PARPACKSolver.hpp"
-#include "Solver/Spectra.hpp"
+#include "utils/paras.hpp"
+#include "global/config.hpp"
+#include "solver/parpackSolver.hpp"
+#include "solver/spectra.hpp"
 
 int main( ) {
 

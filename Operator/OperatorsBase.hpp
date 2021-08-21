@@ -1,20 +1,20 @@
+#pragma once
 //
-//  Operators.hpp
+//  operators.hpp
 //  ED
 //
 //  Created by tatang on 10/26/19.
 //  Copyright © 2019 tatang. All rights reserved.
 //
-#pragma once
 
 #include <algorithm>
-#include "Global/globalPara.hpp"
-#include "Geometry/Geometry.hpp"
-#include "Operator/SparseMatrix.hpp"
-#include "Operator/links.hpp"
-#include "Operator/interaction_transform.hpp"
-#include "Operator/localOperators.hpp"
-#include "Pulse/pulse.hpp"
+#include "global/globalPara.hpp"
+#include "geometry/geometry.hpp"
+#include "operator/sparseMatrix.hpp"
+#include "operator/links.hpp"
+#include "operator/interaction_transform.hpp"
+#include "operator/localoperators.hpp"
+#include "pulse/pulse.hpp"
 
 // push data to an unordered map
 template <typename T>

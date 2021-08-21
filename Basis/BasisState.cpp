@@ -3,10 +3,10 @@
 //
 
 #include <bitset>
-#include "BasisState.hpp"
-#include "Utils/bitop.hpp"
-#include "Utils/io.hpp"
-#include "Utils/comb.hpp"
+#include "basisState.hpp"
+#include "utils/bitop.hpp"
+#include "utils/io.hpp"
+#include "utils/comb.hpp"
 
 bool BasisStateInterface::configured = false;
 

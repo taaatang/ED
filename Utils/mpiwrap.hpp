@@ -1,9 +1,7 @@
-#ifndef __MPIWRAP_H__
-#define __MPIWRAP_H__
+#pragma once
 
 #include <mpi.h>
-
-#include "Global/globalType.hpp"
+#include "global/globalType.hpp"
 
 /* MPI send */
 inline void MPI_Send(int* buf, int count, int dest){
@@ -85,5 +83,3 @@ inline void MPI_Alltoallv(double *sendBuff,int *sendCounts,int *sdispls,double *
 inline void MPI_Alltoallv(cdouble *sendBuff,int *sendCounts,int *sdispls,cdouble *recBuff, int *recCounts, int *rdispls){
     MPI_Alltoallv(sendBuff,sendCounts,sdispls,MPI_DOUBLE_COMPLEX,recBuff,recCounts, rdispls,MPI_DOUBLE_COMPLEX,MPI_COMM_WORLD);
 }
-
-#endif // __MPIWRAP_H__

@@ -1,12 +1,10 @@
+#pragma once
 //
 // HelperClass.hpp
 // ED
 //
 // Created by tatang on 9/2/20
 //
-
-#ifndef timer_hpp
-#define timer_hpp
 
 #include <chrono>
 #include <iostream>
@@ -35,5 +33,3 @@ public:
         if (talk) os << event << " time:" << elapse() << "ms." << std::endl;
     }
 };
-
-#endif // timer_hpp

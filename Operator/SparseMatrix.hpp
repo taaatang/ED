@@ -1,20 +1,18 @@
+#pragma once
 //
-// SparseMatrix.hpp
+// sparseMatrix.hpp
 // ED
 //
 // Created by tatang on 10/26/19
 //
 
-#ifndef SparseMatrix_hpp
-#define SparseMatrix_hpp
-
 #include <type_traits>
 #include <climits>
 #include <omp.h>
 
-#include "Global/globalPara.hpp"
-#include "Utils/mpiwrap.hpp"
-#include "Algebra/algebra.hpp"
+#include "global/globalPara.hpp"
+#include "utils/mpiwrap.hpp"
+#include "algebra/algebra.hpp"
 
 template <class T>
 class BaseMatrix{
@@ -833,5 +831,3 @@ void SparseMatrix<T>::print(std::string info, std::ostream& os, bool brief) cons
         }
     }
 }
-
-#endif // SparseMatrix_hpp

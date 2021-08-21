@@ -6,8 +6,8 @@
 //  Copyright © 2019 tatang. All rights reserved.
 //
 
-#include "../Basis/Basis.hpp"
-#include "../Utils/timer.hpp"
+#include "../basis/basis.hpp"
+#include "../utils/timer.hpp"
 
 #include <iostream>
 #include <iomanip> // std::setprecision
@@ -52,7 +52,7 @@ int main(int argc, const char * argv[]) {
     // for(kIndex=0; kIndex<N; kIndex++){
     if(kIndex < N){
         // create data path
-        std::string dataDir = PROJECT_DATA_PATH+ subDir +"/kSpace/Basis/"+std::to_string(kIndex);
+        std::string dataDir = PROJECT_DATA_PATH+ subDir +"/kSpace/basis/"+std::to_string(kIndex);
         mkdir_fs(dataDir);
         std::string basisfile = dataDir + "/basis";
         std::string normfile = dataDir + "/norm";

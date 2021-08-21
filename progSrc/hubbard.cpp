@@ -1,11 +1,11 @@
 #include <iostream>
 #include <sstream>
-#include "Utils/paras.hpp"
-#include "Global/config.hpp"
-#include "Solver/PARPACKSolver.hpp"
-#include "Solver/Spectra.hpp"
-#include "Pulse/pulse.hpp"
-#include "Solver/TimeEvolver.hpp"
+#include "utils/paras.hpp"
+#include "global/config.hpp"
+#include "solver/parpackSolver.hpp"
+#include "solver/spectra.hpp"
+#include "pulse/pulse.hpp"
+#include "solver/timeEvolver.hpp"
 
 int main( ) {
 

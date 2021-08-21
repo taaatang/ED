@@ -1,5 +1,4 @@
-#ifndef __INTERACTION_TRANSFORM_H__
-#define __INTERACTION_TRANSFORM_H__
+#pragma once
 /**
  * @file interaction_transform.hpp
  * @author Ta Tang (tatang.physics@gmail.com)
@@ -10,9 +9,9 @@
  * @copyright Copyright (c) 2021
  * 
  */
-#include "Geometry/Generator.hpp"
-#include "Operator/interaction.hpp"
-#include "Operator/links.hpp"
+#include "geometry/generator.hpp"
+#include "operator/interaction.hpp"
+#include "operator/links.hpp"
 
 /**
  * @brief g.factor * Op * g, where g is a symmetry operation.
@@ -52,5 +51,3 @@ template <typename T, size_t N>
 Interactions<T, N> linkToTrInteractions(const Transform<T>& g, const Link<T>& link) {
 	return g * linkToInteraction<T, N>(link);
 } 
-
-#endif // __INTERACTION_TRANSFORM_H__

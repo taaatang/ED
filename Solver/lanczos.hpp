@@ -1,3 +1,4 @@
+#pragma once
 //
 // globalPara.hpp
 // ED
@@ -6,15 +7,12 @@
 //
 //
 
-#ifndef LANCZOSIterator_hpp
-#define LANCZOSIterator_hpp
-
 #include <vector>
 #include <cmath>
 
-#include "Global/globalType.hpp"
-#include "Operator/SparseMatrix.hpp"
-#include "Algebra/algebra.hpp"
+#include "global/globalType.hpp"
+#include "operator/sparseMatrix.hpp"
+#include "algebra/algebra.hpp"
 
 // // #define USE_MKL
 
@@ -235,5 +233,3 @@ void LANCZOSIterator<T>::run(T* vec){
 }
 
 // #endif // USE_MKL
-
-#endif // LANCZOSIterator_hpp

@@ -1,13 +1,11 @@
+#pragma once
 //
-//  PARPACKSolver.hpp
+//  parpackSolver.hpp
 //  ED
 //
 //  Created by tatang on 11/18/19.
 //  Copyright © 2019 tatang. All rights reserved.
 //
-
-#ifndef PARPACKSolver_hpp
-#define PARPACKSolver_hpp
 
 #include <iostream>
 #include <vector>
@@ -15,9 +13,9 @@
 #include <type_traits>
 #include "parpack.hpp"
 
-#include "Operator/SparseMatrix.hpp"
-#include "Utils/timer.hpp"
-#include "Utils/io.hpp"
+#include "operator/sparseMatrix.hpp"
+#include "utils/timer.hpp"
+#include "utils/io.hpp"
 // MAX parpack iterations
 constexpr int PARPACK_MAXITERATION = 10000;
 //MIN and MAX ncv
@@ -317,5 +315,3 @@ void PARPACKSolver<T>::postRun( ) {
     exit(1);
   }
 }
-
-#endif // PARPACKSolver_hpp

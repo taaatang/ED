@@ -1,10 +1,9 @@
-#ifndef __TRANSFORM_H__
-#define __TRANSFORM_H__
+#pragma once
 
 #include <iostream>
 #include <vector>
-#include "Utils/io.hpp"
-#include "Utils/bitop.hpp"
+#include "utils/io.hpp"
+#include "utils/bitop.hpp"
 
 /**
  * @brief lattice symmetry transformation factor * g, where g is a symmetry operation (translation or point group symm). 
@@ -132,5 +131,3 @@ std::ostream& operator<<(std::ostream& os, const Transform<T>& t) {
 	os << std::endl;
 	return os;
 }
-
-#endif // __TRANSFORM_H__

@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file interaction.hpp
  * @author Ta Tang (tatang.physics@gmail.com)
@@ -8,17 +9,15 @@
  * @copyright Copyright (c) 2021
  * 
  */
-#ifndef __INTERACTION_H__
-#define __INTERACTION_H__
 
 #include <iostream>
 #include <cmath>
 #include <vector>
 #include <array>
 #include <algorithm>
-#include "Geometry/Generator.hpp"
-#include "Operator/bond.hpp"
-#include "Operator/links.hpp"
+#include "geometry/generator.hpp"
+#include "operator/bond.hpp"
+#include "operator/links.hpp"
 
 /**
  * @brief struct contains all bonds for an interaction
@@ -143,5 +142,3 @@ Interactions<T, N> linkToInteraction(const Link<T>& link) {
 	}
 	return Op;
 }
-
-#endif // __INTERACTION_H__

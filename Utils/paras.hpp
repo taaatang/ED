@@ -10,8 +10,8 @@
 #include <utility>
 #include <type_traits>
 
-#include "Global/globalType.hpp"
-#include "Utils/io.hpp"
+#include "global/globalType.hpp"
+#include "utils/io.hpp"
 
 
 template<typename T>

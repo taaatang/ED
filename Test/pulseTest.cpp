@@ -1,4 +1,4 @@
-#include "Pulse/pulse.hpp"
+#include "pulse/pulse.hpp"
 using namespace std;
 int main( ) {
     /**

@@ -1,6 +1,6 @@
 #include <iostream>
-#include "Solver/BiCGSTAB.hpp"
-#include "Measure/measure.hpp"
+#include "solver/bicg.hpp"
+#include "measure/measure.hpp"
 
 int main( ) {
 	int workerID, workerNum;

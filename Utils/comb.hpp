@@ -1,5 +1,4 @@
-#ifndef __COMB_H__
-#define __COMB_H__
+#pragma once
 
 #include <iostream>
 #include <cmath>
@@ -60,5 +59,3 @@ Type combination(Type n, Type k) {
     delete[] v2;
     return result2/result1;
 }
-
-#endif // __COMB_H__

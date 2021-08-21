@@ -1,15 +1,14 @@
+#pragma once
 //
-//  Spectra.hpp
+//  spectra.hpp
 //  ED
 //
 //  Created by tatang on 2/20/20.
 //  Copyright © 2019 tatang. All rights reserved.
 //
-#ifndef Spectra_hpp
-#define Spectra_hpp
 
-#include "LANCZOSIterator.hpp"
-#include "BiCGSTAB.hpp"
+#include "lanczos.hpp"
+#include "bicg.hpp"
 
 template <class T>
 class SPECTRASolver: public LANCZOSIterator<T>{
@@ -185,6 +184,3 @@ void SPECTRASolverBiCGSTAB::save(std::string dataPath) {
     ::save<int>(iterCountVec.data(), int(iterCountVec.size()), dataPath + "/iterCounts_" + stateLabel);
     ::save<double>(resVec.data(), int(resVec.size()), dataPath + "/resVec_" + stateLabel);
 }
-
-#endif //Spectra_hpp
-

@@ -2,9 +2,9 @@
 
 #include <memory>
 
-#include "Operator/Operators.hpp"
-#include "Utils/path.hpp"
-#include "Utils/paras.hpp"
+#include "operator/operators.hpp"
+#include "utils/path.hpp"
+#include "utils/paras.hpp"
 
 void setpath(Parameters&);
 

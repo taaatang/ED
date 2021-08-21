@@ -1,7 +1,6 @@
-#ifndef __BITOP_H__
-#define __BITOP_H__
+#pragma once
 
-#include "Global/globalType.hpp"
+#include "global/globalType.hpp"
 
 /*
     ******************
@@ -56,5 +55,3 @@ inline UnsignedType nextLexicographicalNumber(UnsignedType x) {
     UnsignedType t = (x | (x - 1)) + 1; //find pivot position and set it to 1
     return t | ((((t & -t) / (x & -x)) >> 1) - 1); //reverse bits after the pivot
 }
-
-#endif // __BITOP_H__

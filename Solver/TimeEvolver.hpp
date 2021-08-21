@@ -1,13 +1,11 @@
+#pragma once
 //
-// TimeEvolver.hpp
+// timeEvolver.hpp
 // ED
 //
 // Created by tatang on 11/19/19
 //
 //
-
-#ifndef TimeEvolver_hpp
-#define TimeEvolver_hpp
 
 #include <mpi.h>
 #include <vector>
@@ -15,8 +13,8 @@
 #include <cmath>
 #include "omp.h"
 
-#include "LANCZOSIterator.hpp"
-#include "Algebra/algebra.hpp"
+#include "lanczos.hpp"
+#include "algebra/algebra.hpp"
 
 /*
     Krylov Subspace Algorithm for exp(-iH)*v
@@ -72,5 +70,3 @@ void TimeEvolver<T>::evolve(double expFac){
         vec[i] = sum;
     }
 }
-
-#endif //TimeEvolver_hpp

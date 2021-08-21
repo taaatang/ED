@@ -1,5 +1,5 @@
-#include "Global/globalType.hpp"
-#include "Operator/links.hpp"
+#include "global/globalType.hpp"
+#include "operator/links.hpp"
 
 /**********************
  *   SQUARE LATTICE   *

@@ -1,12 +1,11 @@
-#ifndef __BICGSTAB_H__
-#define __BICGSTAB_H__
+#pragma once
 
 #include <vector>
 #include <cmath>
 
-#include "Global/globalType.hpp"
-#include "Operator/SparseMatrix.hpp"
-#include "Algebra/algebra.hpp"
+#include "global/globalType.hpp"
+#include "operator/sparseMatrix.hpp"
+#include "algebra/algebra.hpp"
 
 // solve (A + z) x = b left precomditioned by  Minv * (A + z) ~ I. Minv is the simple Jacobi preconditioner.
 // based on Numerical Linear Algebra with Julia, Eric Darve, chp9.4; and wikipedia BiCGSTAB page.
@@ -77,4 +76,3 @@ void BiCGSTAB(BaseMatrix<T> *A, T z, const T *b, T *x, idx_t size, BaseMatrix<T>
 		rho_0 = rho_1;
 	}	
 } 
-#endif // __BICGSTAB_H__

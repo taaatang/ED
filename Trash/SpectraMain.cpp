@@ -7,10 +7,10 @@
 //
 
 
-#include "../Operator/Operators.hpp"
-#include "../Solver/PARPACKSolver.hpp"
-#include "../Solver/Spectra.hpp"
-#include "../Utils/timer.hpp"
+#include "../operator/operators.hpp"
+#include "../solver/parpackSolver.hpp"
+#include "../solver/spectra.hpp"
+#include "../utils/timer.hpp"
 
 #include <iostream>
 #include <iomanip> // std::setprecision
@@ -62,7 +62,7 @@ int main(int argc, const char * argv[]) {
     // std::string subDir = std::to_string(Nx) + "by" + std::to_string(Ny);
     // std::string subDir = "N"+tostr(N)+"Nu"+tostr(Nu)+"Nd"+tostr(Nd);
     std::string subDir = tostr(N)+"_test";
-    std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
+    std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";
     /*
@@ -205,7 +205,7 @@ int main(int argc, const char * argv[]) {
         for (int kIndexf = 0; kIndexf < Lattice.getSiteNum(); kIndexf++){
             timer.tik();
             if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndexf<<std::endl<<"********************"<<std::endl;
-            std::string basisDirp = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/Basis/"+std::to_string(kIndexf);
+            std::string basisDirp = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/basis/"+std::to_string(kIndexf);
             std::string basisfilep = basisDirp + "/basis";
             std::string normfilep = basisDirp + "/norm";
             Basis *B = new Basis(model, &Lattice, occList, kIndex);

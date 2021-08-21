@@ -6,7 +6,7 @@
 //
 // Created by tatang on 11/19/19
 //
-#include "Global/globalType.hpp"
+#include "global/globalType.hpp"
 
 constexpr bool OPT_USE_MKL = true;
 

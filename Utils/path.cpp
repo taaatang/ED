@@ -1,4 +1,4 @@
-#include "Utils/path.hpp"
+#include "utils/path.hpp"
 
 Path::Path(const Parameters* path, const Parameters* model, const Parameters* pulse) {
     rootDir = *path->template get<Str>("rootDir");

@@ -1,20 +1,19 @@
+#pragma once
 //
-//  Operators.hpp
+//  operators.hpp
 //  ED
 //
 //  Created by tatang on 10/26/19.
 //  Copyright © 2019 tatang. All rights reserved.
 //
 
-#pragma once
-
 #include <iostream>
 #include <cmath>
 #include <algorithm>
 
-#include "Operator/OperatorsBase.hpp"
-#include "Pulse/pulse.hpp"
-#include "Solver/PARPACKSolver.hpp"
+#include "operator/operatorsBase.hpp"
+#include "pulse/pulse.hpp"
+#include "solver/parpackSolver.hpp"
 
 /***************
  * HAMILTONIAN *

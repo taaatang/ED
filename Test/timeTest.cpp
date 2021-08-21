@@ -1,8 +1,8 @@
-#include "../Operator/Operators.hpp"
-#include "../Solver/PARPACKSolver.hpp"
-#include "../Solver/TimeEvolver.hpp"
-#include "../Pulse/pulse.hpp"
-#include "../Utils/timer.hpp"
+#include "../operator/operators.hpp"
+#include "../solver/parpackSolver.hpp"
+#include "../solver/timeEvolver.hpp"
+#include "../pulse/pulse.hpp"
+#include "../utils/timer.hpp"
 
 #include <fstream>
 #include <iomanip>
@@ -59,7 +59,7 @@ int main(int argc, const char * argv[]){
     VecI occList{Nu, Nd};
     idx_t fullDim=0, totDim=0;
     std::ofstream outfile;
-    std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/Basis/"+std::to_string(kIndex);
+    std::string basisDir = PROJECT_DATA_PATH+"/" + subDir + "/kSpace/basis/"+std::to_string(kIndex);
     std::string basisfile = basisDir + "/basis";
     std::string normfile = basisDir + "/norm";
     /*

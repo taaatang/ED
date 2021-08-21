@@ -2,12 +2,12 @@
 
 #include <vector>
 #include <memory>
-#include "Operator/Operators.hpp"
-#include "Utils/paras.hpp"
-#include "Utils/path.hpp"
-#include "Solver/Spectra.hpp"
-#include "Solver/TimeEvolver.hpp"
-#include "Utils/timer.hpp"
+#include "operator/operators.hpp"
+#include "utils/paras.hpp"
+#include "utils/path.hpp"
+#include "solver/spectra.hpp"
+#include "solver/timeEvolver.hpp"
+#include "utils/timer.hpp"
 
 template <typename T, IsBasisType B>
 void timeEvolve(Hamiltonian<T, B>* H, const T* sate, double dt, int steps, std::vector<OperatorBase<T, B>*> ops);
