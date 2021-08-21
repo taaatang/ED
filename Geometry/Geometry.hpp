@@ -20,6 +20,13 @@
 #include "utils/bitop.hpp"
 #include "geometry/generator.hpp"
 
+/*
+    D4m: for multi-band hubbard, due to orbital phases, the symmetry is only a sub group {I, RZ}. R is rotation, Z is reflection.
+    D4m5: include 2 Pz orbitals. the symmetry is {I, RZ}x{I, M}. M is the mirror symmetry about the xy plane.
+*/
+enum class PointGroup {NONE,D6, C6, D4, D4m, D4m5, C4, D3, C3};
+
+std::ostream& operator<<(std::ostream& os, PointGroup p);
 
 /*
    ***************************

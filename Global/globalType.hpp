@@ -7,11 +7,6 @@
 #include <string>
 
 enum class LATTICE_MODEL {HUBBARD, tJ, HEISENBERG, ElPh};
-/*
-    D4m: for multi-band hubbard, due to orbital phases, the symmetry is only a sub group {I, RZ}. R is rotation, Z is reflection.
-    D4m5: include 2 Pz orbitals. the symmetry is {I, RZ}x{I, M}. M is the mirror symmetry about the xy plane.
-*/
-enum class PointGroup {NONE,D6, C6, D4, D4m, D4m5, C4, D3, C3};
 enum class ORBITAL {SINGLE, Dx2y2, Dz2, Px, Py, Pzu, Pzd};
 /**
  * @brief Interaction Type
@@ -55,17 +50,8 @@ typedef std::vector<std::vector<int>> BondMap;
     * Basis Class *
     ***************
 */
-// use the binary form of an integer to represent basis state
-#define BINARY_REP
-#define KEEP_BASIS_NORM
 // basis distributed among MPI workers
 // #define DISTRIBUTED_BASIS
-
-/*
-    **********************************
-    * Sparse Matrix PARTITION Method *
-    **********************************
-*/
 
 /*
     *******************

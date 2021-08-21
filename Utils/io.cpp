@@ -174,43 +174,6 @@ std::ostream& operator<<(std::ostream& os, LINK_TYPE linkt) {
     }
     return os;
 }
-std::ostream& operator<<(std::ostream& os, PointGroup p) {
-    os<<"Point Group:";
-    switch (p) {
-        case PointGroup::NONE:
-            os<<"None";
-            break;
-        case PointGroup::D6:
-            os<<"D6";
-            break;
-        case PointGroup::C6:
-            os<<"C6";
-            break;
-        case PointGroup::D4:
-            os<<"D4";
-            break;
-        case PointGroup::D4m:
-            os<<"D4m";
-            break;
-        case PointGroup::D4m5:
-            os<<"D4m5";
-            break;
-        case PointGroup::C4:
-            os<<"C4";
-            break;
-        case PointGroup::D3:
-            os<<"D3";
-            break;
-        case PointGroup::C3:
-            os<<"C3";
-            break;
-        default:
-            os<<"not defined!\n";
-            exit(1);
-            break;
-    }
-    return os;
-}
 
 std::ostream& operator<<(std::ostream& os, SPIN s) {
     // os<<"spin_";
