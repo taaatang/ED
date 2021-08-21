@@ -60,18 +60,12 @@ typedef std::vector<std::vector<int>> BondMap;
 #define KEEP_BASIS_NORM
 // basis distributed among MPI workers
 // #define DISTRIBUTED_BASIS
-#ifdef DISTRIBUTED_BASIS
-    // wavefunction vectors distributed among MPI workers
-    #define DISTRIBUTED_STATE
-#endif
 
 /*
     **********************************
     * Sparse Matrix PARTITION Method *
     **********************************
 */
-
-enum MATRIX_PARTITION {ROW_PARTITION, COL_PARTITION};
 
 /*
     *******************

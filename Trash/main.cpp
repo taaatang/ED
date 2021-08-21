@@ -10,7 +10,7 @@
 #define OMP_
 // #undef OMP_
 
-#include "globalPara.hpp"
+#include "constant.hpp"
 #include "parpackSolver.hpp"
 #include "lanczos.hpp"
 

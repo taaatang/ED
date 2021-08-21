@@ -15,7 +15,7 @@
 #endif //CPP_17_FS
 
 #include "global/globalType.hpp"
-#include "global/globalPara.hpp"
+#include "global/constant.hpp"
 #include "utils/mpiwrap.hpp"
 
 #define LOCATION(cond) if (cond) {std::cout << "line number: "<< __LINE__ << "\nfrom func: " << __func__ << "\nfrom file: "<< __FILE__ << '\n';}

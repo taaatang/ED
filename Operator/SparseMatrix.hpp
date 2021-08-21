@@ -10,9 +10,19 @@
 #include <climits>
 #include <omp.h>
 
-#include "global/globalPara.hpp"
+#include "global/constant.hpp"
 #include "utils/mpiwrap.hpp"
 #include "algebra/algebra.hpp"
+
+enum MATRIX_PARTITION {ROW_PARTITION, COL_PARTITION};
+
+#ifdef DISTRIBUTED_BASIS
+    #define SPM_COL_PARTITION
+    inline constexpr MATRIX_PARTITION PARTITION = COL_PARTITION;
+#else
+    #define SPM_ROW_PARTITION
+    inline constexpr MATRIX_PARTITION PARTITION = ROW_PARTITION;
+#endif
 
 template <class T>
 class BaseMatrix{
@@ -105,7 +115,7 @@ public:
 /*
     Sparse Matrix in CSR form (ROW_PARTITION)
     can be easily changed to CSC form for symmetric or hermitian matrix (COL_PARTITION)
-    Use the global constant PARTITION in globalPara.hpp to choose the format
+    Use the global constant PARTITION in constant.hpp to choose the format
     The format will affect how MxV is carried out.
     The buffer vector for MxV in COL_PARTITION setting is scalable with MPI task number.
 */
@@ -194,7 +204,7 @@ protected:
 
     static std::vector<T> vecBuf; // common buffer for matrix vector multiplication
 
-#ifndef DISTRIBUTED_STATE
+#ifndef DISTRIBUTED_BASIS
 public:
     void pushRow(std::unordered_map<idx_t,T>* rowMap, int matID = 0);
 
@@ -394,7 +404,7 @@ void SparseMatrix<T>::setSpmNum(int num) {
         row.push_back(0);
     }
 
-    #ifdef DISTRIBUTED_STATE
+    #ifdef DISTRIBUTED_BASIS
         blockNum = BaseMatrix<T>::workerNum;
         idxSendBuff.resize(num);
         idxRecvBuff.resize(num);

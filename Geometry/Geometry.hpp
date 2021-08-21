@@ -14,7 +14,7 @@
 #include <complex>
 #include <cassert>
 
-#include "global/globalPara.hpp"
+#include "global/constant.hpp"
 #include "geometry/vec3.hpp"
 #include "algebra/algebra.hpp"
 #include "utils/bitop.hpp"

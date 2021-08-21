@@ -8,7 +8,7 @@
 //
 
 #include <algorithm>
-#include "global/globalPara.hpp"
+#include "global/constant.hpp"
 #include "geometry/geometry.hpp"
 #include "operator/sparseMatrix.hpp"
 #include "operator/links.hpp"

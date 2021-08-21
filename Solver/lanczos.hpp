@@ -1,6 +1,6 @@
 #pragma once
 //
-// globalPara.hpp
+// constant.hpp
 // ED
 //
 // Created by tatang on 11/19/19

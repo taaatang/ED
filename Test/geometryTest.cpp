@@ -6,7 +6,7 @@
 //  Copyright © 2019 tatang. All rights reserved.
 //
 
-#include "../global/globalPara.hpp"
+#include "../global/constant.hpp"
 #include "../geometry/geometry.hpp"
 #include "../operator/operatorsBase.hpp"
 
