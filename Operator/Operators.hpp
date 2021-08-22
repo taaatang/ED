@@ -14,6 +14,7 @@
 #include "operator/operatorsBase.hpp"
 #include "pulse/pulse.hpp"
 #include "solver/parpackSolver.hpp"
+#include "utils/readWrite.hpp"
 
 enum class MODEL {HUBBARD, tJ, HEISENBERG, ElPh};
 

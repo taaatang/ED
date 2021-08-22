@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include "utils/io.hpp"
+#include "utils/runtimeCheck.hpp"
 #include "utils/bitop.hpp"
 
 /**
