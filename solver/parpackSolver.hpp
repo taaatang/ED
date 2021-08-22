@@ -9,13 +9,13 @@
 
 #include <iostream>
 #include <vector>
-#include <assert.h>
+#include <cassert>
 #include <type_traits>
 #include "parpack.hpp"
 
 #include "operator/sparseMatrix.hpp"
 #include "utils/timer.hpp"
-#include "utils/io.hpp"
+
 // MAX parpack iterations
 constexpr int PARPACK_MAXITERATION = 10000;
 //MIN and MAX ncv
@@ -25,32 +25,36 @@ constexpr int PARPACK_MINNCV = 3;
 template <class T>
 class PARPACKSolver {
 public:
-    PARPACKSolver( ) { }
+    PARPACKSolver( ) = default;
     PARPACKSolver(BaseMatrix<T>* M, a_int nev = 1);
-    ~PARPACKSolver( ) { }
 
     T getEigval(int nth = 0) {return d_pt.at(nth);}
+
     T* getEigvec(int nth = 0) {return V_pt.data() + nloc_ * nth;}
 
     void setStartVec(T* vec);
+
     void setNev(a_int nev);
+
     void setNcv(a_int ncv);
+
     void setMaxIter(int iterNum);
+
     void setRvec(a_int rvec);
 
     void diag();
+
     void diag(double spin, BaseMatrix<T>* P);
 
 private:
     void check( );
 
     void run( );
+
     void postRun( );
 
     // project to spin sector
     void run(double spin, BaseMatrix<T>* P);
-    // project out states
-    void run(T* states, int statesNum, double penalty=1000.0);
 
 private:
     MPI_Fint MCW;
@@ -274,31 +278,6 @@ void PARPACKSolver<T>::run(double spin, BaseMatrix<T>* P){
         std::cout << "ERROR: iparam[4] " << iparam_[4] << ", nev " << nev_ << ", info " << info_ <<",iterations taken:"<<iparam_[2]<< std::endl;
         exit(1);
     }
-}
-
-// project out solved eigen states
-template <class T>
-void PARPACKSolver<T>::run(T* states, int statesNum, double penalty){
-    while (ido_ != 99) {
-        if constexpr (std::is_same<T, double>::value) {
-            arpack::saupd(MCW, ido_, arpack::bmat::identity, nloc_, arpack::which::smallest_algebraic, nev_, tol_, resid_pt.data(), ncv_, \
-                V_pt.data(), ldv_, iparam_.data(), ipntr_.data(), workd_pt.data(), workl_pt.data(), lworkl_, info_);
-        } else if constexpr (std::is_same<T, cdouble>::value) { 
-            arpack::naupd(MCW, ido_, arpack::bmat::identity, nloc_, arpack::which::smallest_realpart, nev_, tol_, resid_pt.data(), ncv_, \
-                V_pt.data(), ldv_, iparam_.data(), ipntr_.data(), workd_pt.data(), workl_pt.data(), lworkl_, rwork_pt.data(), info_);
-        }
-        M_->MxV(&(workd_pt[ipntr_[0] - 1]), &(workd_pt[ipntr_[1] - 1]));
-        for (int i = 0; i < statesNum; ++i){
-            auto overlap = mpiDot(states+i*nloc_, &(workd_pt[ipntr_[0]-1], nloc_));
-            axpy(&(workd_pt[ipntr_[1] - 1]), overlap*penalty, states+i*nloc_, nloc_);
-        }
-    }
-
-  // check number of ev found by arpack
-  if (iparam_[4] < nev_ /*arpack may succeed to compute more EV than expected*/ || info_ != 0) {
-    std::cout << "ERROR: iparam[4] " << iparam_[4] << ", nev " << nev_ << ", info " << info_ << ",iterations taken:"<<iparam_[2]<<std::endl;
-    exit(1);
-  }
 }
 
 template <class T>
