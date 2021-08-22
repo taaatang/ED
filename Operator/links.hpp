@@ -3,7 +3,7 @@
 #include <vector>
 #include <iostream>
 
-#include "global/constant.hpp"
+// #include "global/constant.hpp"
 #include "geometry/geometry.hpp"
 
 /**
