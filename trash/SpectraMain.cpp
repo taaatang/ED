@@ -167,7 +167,7 @@ int main(int argc, const char * argv[]) {
         std::vector<dataType> vecTmp(SS.getnlocmax());
         cdouble val;
         std::vector<cdouble> ssvals;
-        for (int i = 0; i < Lattice.getSiteNum(); ++i){
+        for (int i = 0; i < Lattice.getUnitCellNum(); ++i){
             val = 0.0;
             SS.setr(i);
             SS.construct();
@@ -175,7 +175,7 @@ int main(int argc, const char * argv[]) {
                 dataType* state = PDiag.getEigvec(idx);
                 SS.MxV(state, vecTmp.data());
                 val = mpiDot<dataType>(state, vecTmp.data(), SS.getnloc());
-                val /= Lattice.getSiteNum();
+                val /= Lattice.getUnitCellNum();
                 ssvals.push_back(val);
                 MPI_Barrier(MPI_COMM_WORLD);
             }
@@ -185,7 +185,7 @@ int main(int argc, const char * argv[]) {
         }
         delete B;
         // save ss(i)
-        if (workerID==MPI_MASTER) save<cdouble>(ssvals.data(), Lattice.getSiteNum(), &outfile, dataDir + "/spinspin_k"+std::to_string(kIndex));
+        if (workerID==MPI_MASTER) save<cdouble>(ssvals.data(), Lattice.getUnitCellNum(), &outfile, dataDir + "/spinspin_k"+std::to_string(kIndex));
         timer.tok();
         if (workerID==MPI_MASTER) std::cout<<"SS time:"<<timer.elapse()<<" milliseconds."<<std::endl;
     }
@@ -202,7 +202,7 @@ int main(int argc, const char * argv[]) {
         H->clearBuf();
         delete H;
         if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin Sqw ..."<<std::endl<<"********************"<<std::endl;
-        for (int kIndexf = 0; kIndexf < Lattice.getSiteNum(); kIndexf++){
+        for (int kIndexf = 0; kIndexf < Lattice.getUnitCellNum(); kIndexf++){
             timer.tik();
             if (workerID==MPI_MASTER) std::cout<<"********************"<<std::endl<<"Begin kIndex = "<<kIndexf<<std::endl<<"********************"<<std::endl;
             std::string basisDirp = PROJECT_DATA_PATH+"/"+subDir+"/kSpace/basis/"+std::to_string(kIndexf);

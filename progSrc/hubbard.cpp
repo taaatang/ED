@@ -69,7 +69,7 @@ int main( ) {
         timer.tik();
         auto occi = Bi->getOcc();
         auto ki = Bi->getkIndex();
-        for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
+        for (int kf = 0; kf < latt->getUnitCellNum(); ++kf) {
             for (auto spin : std::vector<SPIN> {SPIN::UP, SPIN::DOWN}) {
                 for (auto pm : std::vector<LADDER> {LADDER::PLUS, LADDER::MINUS}) {
                     auto occf = occi;

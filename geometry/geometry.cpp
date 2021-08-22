@@ -103,8 +103,8 @@ Generator<cdouble> Geometry::getTranslationGenerator(int kidx) const {
     if (kidx == -1) {
         g.setIdentity(getOrbNum());
     } else {
-        for (int r = 0; r < getSiteNum(); ++r) {
-            Transform<cdouble> t(expKR(kidx, r)/cdouble(getSiteNum()), getOrbNum());
+        for (int r = 0; r < getUnitCellNum(); ++r) {
+            Transform<cdouble> t(expKR(kidx, r)/cdouble(getUnitCellNum()), getOrbNum());
             for (int i = 0; i < getOrbNum(); ++i) {
                 t[i] = getOrbTran(r, i);
             }
@@ -152,14 +152,14 @@ bool Geometry::coordToOrbid(ORBITAL orb, const Vec3d &coord, int &orbid) const {
 }
 
 void Geometry::orbOCC(VecI& vec, VecI& occ) const {
-    occ = VecI(getUnitOrbNum(),0); 
+    occ = VecI(getUnitCellSize(),0); 
     for(int i = 0; i < getOrbNum(); ++i) {
         if (vec[i]) occ.at(orbs.at(i).orbid) += 1;
     }
 }
 
 void Geometry::orbOCC(VecI& vecu, VecI& vecd, VecI& occ) const {
-    occ = VecI(getUnitOrbNum(),0);
+    occ = VecI(getUnitCellSize(),0);
     for(int i = 0; i < getOrbNum(); ++i) {
         if (vecu[i]) occ.at(orbs.at(i).orbid) += 1;
         if (vecd[i]) occ.at(orbs.at(i).orbid) += 1;
@@ -167,8 +167,8 @@ void Geometry::orbOCC(VecI& vecu, VecI& vecd, VecI& occ) const {
 }
 
 void Geometry::orbOCC(VecI& vecu, VecI& vecd, VecI& occ, VecI& docc) const {
-    occ = VecI(getUnitOrbNum(),0); 
-    docc = VecI(getUnitOrbNum(),0);
+    occ = VecI(getUnitCellSize(),0); 
+    docc = VecI(getUnitCellSize(),0);
     for(int i = 0; i < getOrbNum(); ++i) {
         if (vecu[i]) {
             occ.at(orbs.at(i).orbid) += 1;
@@ -181,7 +181,7 @@ void Geometry::orbOCC(VecI& vecu, VecI& vecd, VecI& occ, VecI& docc) const {
 }
 
 void Geometry::orbOCC(idx_t repI, VecI& occ) const {
-    occ = VecI(getUnitOrbNum(),0); 
+    occ = VecI(getUnitCellSize(),0); 
     for(int i = 0; i < getOrbNum(); ++i) {
         if(bitTest(repI,i)) {
             occ.at(orbs.at(i).id) += 1;
@@ -189,7 +189,7 @@ void Geometry::orbOCC(idx_t repI, VecI& occ) const {
     }
 }
 void Geometry::orbOCC(pairIdx_t pairRepI, VecI& occ) const {
-    occ = VecI(getUnitOrbNum(),0);
+    occ = VecI(getUnitCellSize(),0);
     for(int i = 0; i < getOrbNum(); ++i) {
         if (bitTest(pairRepI.first,i)) {
             occ.at(orbs.at(i).orbid) += 1;
@@ -200,7 +200,7 @@ void Geometry::orbOCC(pairIdx_t pairRepI, VecI& occ) const {
     }
 }
 void Geometry::orbOCC(pairIdx_t pairRepI, VecI& occ, VecI& docc) const {
-    occ = VecI(getUnitOrbNum(),0); docc = VecI(getUnitOrbNum(),0);
+    occ = VecI(getUnitCellSize(),0); docc = VecI(getUnitCellSize(),0);
     for(int i = 0; i < getOrbNum(); ++i) {
         if(bitTest(pairRepI.first,i)) {
             occ.at(orbs.at(i).orbid) += 1;
@@ -251,7 +251,7 @@ void Geometry::genTransList( ) {
     TransList.clear();
     std::vector<int> tmp;
     std::vector<cdouble> phasetmp;
-    for (int r = 0; r < getSiteNum(); ++r) {
+    for (int r = 0; r < getUnitCellNum(); ++r) {
         tmp.clear();
         phasetmp.clear();
         coordr = getSiteR(r);
@@ -520,21 +520,21 @@ void Geometry::genPGList(){
 
 void Geometry::construct(){
     if (PG==PointGroup::D4){
-        if(getUnitOrbNum()==1) PG=PointGroup::D4;
-        else if(getUnitOrbNum()==3) PG=PointGroup::D4m;
-        else if(getUnitOrbNum()==5) PG=PointGroup::D4m5;
+        if(getUnitCellSize()==1) PG=PointGroup::D4;
+        else if(getUnitCellSize()==3) PG=PointGroup::D4m;
+        else if(getUnitCellSize()==5) PG=PointGroup::D4m5;
         else PG=PointGroup::NONE;
     }
     if (boundary.size() > 0) assert(!is_PBC);
     Norb = Nsite * unitSite.size() + boundary.size();
     Norb_enlg = is_PBC ? Norb * TranVecs.size() : Norb;
     assert(Nsite>0 and Norb>0 and Norb_enlg>=Norb);
-    assert((int)xlist.size() == getSiteNum() and (int)ylist.size() == getSiteNum() and (int)zlist.size( )== getSiteNum());
+    assert((int)xlist.size() == getUnitCellNum() and (int)ylist.size() == getUnitCellNum() and (int)zlist.size( )== getUnitCellNum());
     Vec3d vsite;
     Vec3d vorb;
     int id = 0;
     // construc Lattice and orbs
-    for (int siteid = 0; siteid < getSiteNum(); ++siteid) {
+    for (int siteid = 0; siteid < getUnitCellNum(); ++siteid) {
         vsite = xlist.at(siteid) * a1 + ylist.at(siteid) * a2 + zlist.at(siteid) * a3; 
         Lattice.push_back(Site{siteid, vsite});
         for (int i = 0; i < (int)unitSite.size(); ++i){
@@ -565,9 +565,9 @@ void Geometry::construct(){
     assert((int)enlgOrbs.size() == Norb_enlg);
     // construct corresponding k-space lattice
     if (is_PBC) {
-        assert((int)kxlist.size() == getSiteNum() and (int)kylist.size() == getSiteNum() and (int)kzlist.size() == getSiteNum());
+        assert((int)kxlist.size() == getUnitCellNum() and (int)kylist.size() == getUnitCellNum() and (int)kzlist.size() == getUnitCellNum());
         Vec3d vsite_phase;
-        for (int siteid = 0; siteid < getSiteNum(); ++siteid){
+        for (int siteid = 0; siteid < getUnitCellNum(); ++siteid){
             vsite = kxlist.at(siteid) * b10 + kylist.at(siteid) * b20 + kzlist.at(siteid) * b30;
             vsite_phase = vsite + dPhase;
             KLattice.push_back(Site{siteid, vsite_phase});

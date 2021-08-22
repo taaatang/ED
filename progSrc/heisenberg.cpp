@@ -27,7 +27,7 @@ int main( ) {
     // compute and save basis with translation symm
     if (measure("basis") && !*para.get<bool>("basis")) {
         setlatt(para, latt);
-        for (int kidx = workerID; kidx < latt->getSiteNum(); kidx += workerNum) {
+        for (int kidx = workerID; kidx < latt->getUnitCellNum(); kidx += workerNum) {
             Basis b(para.getmodel(), latt.get(), {*para.get<int>("nu"), *para.get<int>("nd")}, kidx);
             b.construct();
             b.save(path.getBasisDir(kidx));
@@ -71,11 +71,11 @@ int main( ) {
         SSOp<dataType> SS(latt.get(), Bi.get());
         std::vector<std::vector<dataType>> ssvals;
         ssvals.resize(nstate);
-        for (int i = 0; i < latt->getSiteNum(); ++i) {
+        for (int i = 0; i < latt->getUnitCellNum(); ++i) {
             SS.setr(i);
             SS.construct();
             for (int n = 0; n < nstate; ++n) {
-                auto val = SS.vMv(state[n], state[n]) / dataType(latt->getSiteNum());
+                auto val = SS.vMv(state[n], state[n]) / dataType(latt->getUnitCellNum());
                 if (isMaster) std::cout<<"ss(r="<<i<<")="<<val<<std::endl;
                 ssvals[n].push_back(val);
             }
@@ -90,7 +90,7 @@ int main( ) {
     if (measure("Skw")) {
         timer.tik();
         auto occi = Bi->getOcc();
-        for (int kf = 0; kf < latt->getSiteNum(); ++kf) {
+        for (int kf = 0; kf < latt->getUnitCellNum(); ++kf) {
             setbasis(para, Bf, latt.get(), occi.at(0), occi.at(1), kf, -1);
             setham(para, Hf, latt.get(), Bf.get());
             Bf->construct(opt(para,"basis"), path.getBasisDir(Bf->getkIndex(), Bf->getPGIndex()));

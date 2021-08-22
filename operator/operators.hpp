@@ -255,7 +255,7 @@ T* Hamiltonian<T, B>::getEvec(int n) {
 template <typename T, IsBasisType B>
 double Hamiltonian<T, B>::diagVal(const VecI& occ, const VecI& docc) const {
     double val{0.0};
-    for (int i = 0; i < this->latt->getUnitOrbNum(); ++i) {
+    for (int i = 0; i < this->latt->getUnitCellSize(); ++i) {
         val += occ.at(i) * this->V.at(i) + docc.at(i) * this->U.at(i);
     }
     return val;
@@ -505,8 +505,8 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
 }
 
 template<IsBasisType B>
-NparticleOp<B>::NparticleOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg) : OperatorBase<double, B>(latt, Bi, Bf, trans, pg, 0, latt->getUnitOrbNum()) {
-    records.resize(latt->getUnitOrbNum());
+NparticleOp<B>::NparticleOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg) : OperatorBase<double, B>(latt, Bi, Bf, trans, pg, 0, latt->getUnitCellSize()) {
+    records.resize(latt->getUnitCellSize());
     for (const auto& orb : latt->getUnitCell()) {
         positions.push_back(latt->getOrbPos(orb.orb));
     }
@@ -542,7 +542,7 @@ double NparticleOp<B>::count(int id, dataType* vec) {
 
 template<IsBasisType B>
 void NparticleOp<B>::count(dataType* vec) {
-    for (int id = 0; id < this->latt->getUnitOrbNum(); ++id) {
+    for (int id = 0; id < this->latt->getUnitCellSize(); ++id) {
         records.at(id).push_back(count(id, vec));
     }
 }
@@ -554,7 +554,7 @@ void NparticleOp<B>::clearRecords( ) {
 
 template<IsBasisType B>
 void NparticleOp<B>::save(const std::string &dir) {
-    for (int id = 0; id < this->latt->getUnitOrbNum(); ++id) {
+    for (int id = 0; id < this->latt->getUnitCellSize(); ++id) {
         ::save(records.at(id).data(), (int)records.at(id).size(), dir + "/orb" + tostr(id));
     }
 }
@@ -609,12 +609,12 @@ void NphOp<B>::row(idx_t rowID, std::vector<MAP<double>>& rowMaps) {
 
 template <class T, ContainCharge B>
 CkOp<T, B>::CkOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool trans, bool pg):\
-OperatorBase<T, B>(latt, Bi, Bf, trans, pg), expFactor(latt->getSiteNum()) {
+OperatorBase<T, B>(latt, Bi, Bf, trans, pg), expFactor(latt->getUnitCellNum()) {
     assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
     Ki = Bi->getkIndex();
     Kf = Bf->getkIndex();
     // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
-    int N = latt->getSiteNum();
+    int N = latt->getUnitCellNum();
     for (int i = 0; i < N; ++i) {
         expFactor[i] = latt->expKR(Ki, i) / latt->expKR(Kf, i) / std::sqrt(N);
     }
@@ -636,7 +636,7 @@ void CkOp<T, B>::set(LADDER pm, SPIN spin, Orbital orb) {
     for (int i = 0; i < Norb; ++i) {
         if (this->latt->is_Orbital(i, orb.orb, orb.orbid)) posList.push_back(i);
     }
-    assert((int)posList.size() == this->latt->getSiteNum());
+    assert((int)posList.size() == this->latt->getUnitCellNum());
 }
 
 //TODO: Check Ck with symmetry
@@ -802,10 +802,10 @@ void RamanOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
 */
 template <class T, ContainSpin B>
 SSOp<T, B>::SSOp(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum),\
-    r(-1), siteJList(latt->getSiteNum()) {
+    r(-1), siteJList(latt->getUnitCellNum()) {
     Vec3d coordi, coordr, coordf;
-    for (int rIndex = 0; rIndex < latt->getSiteNum(); ++rIndex) {
-        siteJList.at(rIndex).resize(latt->getSiteNum());
+    for (int rIndex = 0; rIndex < latt->getUnitCellNum(); ++rIndex) {
+        siteJList.at(rIndex).resize(latt->getUnitCellNum());
         coordr = latt->getSiteR(rIndex);
         for (int i = 0; i < latt->getOrbNum(); ++i){
             coordi = latt->getOrbR(i);
@@ -823,7 +823,7 @@ SSOp<T, B>::SSOp(Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg
 
 template <class T, ContainSpin B>
 void SSOp<T, B>::setr(int r_) {
-    assert(r_ < this->latt->getSiteNum());
+    assert(r_ < this->latt->getUnitCellNum());
     r=r_;
 }
 
@@ -845,7 +845,7 @@ void SSOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps){
                 // 1/2 * sp.siteI * sm.siteJ
                 this->smsp(siteI, siteJ, factor/2.0, finalIndList[i], &rowMaps[0]);
             } else {
-                for (int rIndex = 0; rIndex < this->latt->getSiteNum(); ++rIndex){
+                for (int rIndex = 0; rIndex < this->latt->getUnitCellNum(); ++rIndex){
                     int siteJ = siteJList[rIndex][siteI];
                     // sz.siteI * sz.siteJ
                     this->szsz(siteI, siteJ, factor, finalIndList[i], &rowMaps[0]);
@@ -880,7 +880,7 @@ void SSOp<T, B>::project(double s, T* vec){
 }
 
 template <class T, ContainSpin B>
-SzkOp<T, B>::SzkOp(int k_, ORBITAL orb_, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum), k(k_), orb(orb_), expFactor(latt->getSiteNum()) {
+SzkOp<T, B>::SzkOp(int k_, ORBITAL orb_, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum), k(k_), orb(orb_), expFactor(latt->getUnitCellNum()) {
     // assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
     positions = latt->getOrbPos(orb);
     Ki = Bi->getKIdx();
@@ -889,13 +889,13 @@ SzkOp<T, B>::SzkOp(int k_, ORBITAL orb_, Geometry* latt, Basis<B>* Bi, Basis<B>*
     this->Sz.clear();
     //!Fix: this is Szk^\dagger
     if (Ki != -1 && Kf != -1) {
-        for (int i = 0; i < latt->getSiteNum(); ++i) {
-            expFactor[i] = latt->expKR(Ki, i) / latt->expKR(Kf, i) / cdouble(latt->getSiteNum());
+        for (int i = 0; i < latt->getUnitCellNum(); ++i) {
+            expFactor[i] = latt->expKR(Ki, i) / latt->expKR(Kf, i) / cdouble(latt->getUnitCellNum());
             this->Sz.add(Bond<T,1>(expFactor[i], {positions.at(i)}));
         }
     } else {
-        for (int i = 0; i < latt->getSiteNum(); ++i) {
-            expFactor[i] = std::conj(latt->expKR(k, i) / cdouble(latt->getSiteNum()));
+        for (int i = 0; i < latt->getUnitCellNum(); ++i) {
+            expFactor[i] = std::conj(latt->expKR(k, i) / cdouble(latt->getUnitCellNum()));
             this->Sz.add(Bond<T,1>(expFactor[i], {positions.at(i)}));
         }
     }

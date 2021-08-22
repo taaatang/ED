@@ -222,7 +222,7 @@ void compute(System<T, B> &sys, std::string key, int workerID, int workerNum, bo
                 auto ki = sys.B->getkIndex();
                 std::unique_ptr<Basis> Bf;
                 std::unique_ptr<HamiltonianBase<T>> Hf;
-                for (int kf = 0; kf < sys.latt->getSiteNum(); ++kf) {
+                for (int kf = 0; kf < sys.latt->getUnitCellNum(); ++kf) {
                     for (auto spin : std::vector<SPIN> {SPIN::UP, SPIN::DOWN}) {
                         for (auto pm : std::vector<LADDER> {LADDER::PLUS, LADDER::MINUS}) {
                             auto occf = occi;
@@ -295,7 +295,7 @@ void compute(System<T, B> &sys, std::string key, int workerID, int workerNum, bo
                 // SSOp<T> SS(sys.latt.get(), sys.B.get(), sys.B.get(), false, false);
                 std::vector<std::vector<dataType>> ssvals;
                 ssvals.resize(sys.stateNum);
-                for (int i = 0; i < sys.latt->getSiteNum(); ++i) {
+                for (int i = 0; i < sys.latt->getUnitCellNum(); ++i) {
                     timer.tik();
                     Hamiltonian<MODEL::HEISENBERG, cdouble> SS(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
                     Link<cdouble> J(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {sys.latt->getSiteR(i)});
@@ -306,7 +306,7 @@ void compute(System<T, B> &sys, std::string key, int workerID, int workerNum, bo
                     timer.print("S(r=" + tostr(i) + ") construction");
                     for (int n = 0; n < sys.stateNum; ++n) {
                         timer.tik();
-                        auto val = SS.vMv(sys.evecs[n], sys.evecs[n]) / dataType(sys.latt->getSiteNum());
+                        auto val = SS.vMv(sys.evecs[n], sys.evecs[n]) / dataType(sys.latt->getUnitCellNum());
                         timer.print("S(r=" + tostr(i) + ", n=" + tostr(n) + ") = " + tostr(std::real(val)));
                         ssvals[n].push_back(val);
                     }
@@ -318,7 +318,7 @@ void compute(System<T, B> &sys, std::string key, int workerID, int workerNum, bo
                 //TODO: fix PG symm for skw
                 // assert_msg(sys.B->getPGIndex() == -1, "skw only defined for traslation symm!");
                 auto occi = sys.B->getOcc();
-                for (int kf = 0; kf < sys.latt->getSiteNum(); ++kf) {
+                for (int kf = 0; kf < sys.latt->getUnitCellNum(); ++kf) {
                     if (sys.isMaster) printLine(40, '-');
                     std::unique_ptr<Basis> Bf;
                     std::unique_ptr<HamiltonianBase<T>> Hf;

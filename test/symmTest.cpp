@@ -7,7 +7,7 @@ int main() {
 	
 	cout << "Test Gt * Gt = Gt\n";
 	printLine();
-	for (int kidx = 0; kidx < latt.getSiteNum(); kidx++) {
+	for (int kidx = 0; kidx < latt.getUnitCellNum(); kidx++) {
 		auto T1 = latt.getTranslationGenerator(kidx);
 		T1.condense();
 		auto T2 = T1 * T1;
@@ -34,7 +34,7 @@ int main() {
 	
 	cout << "Test Gt * Gp = Gp * Gt\n";
 	printLine();
-	for (int kidx = 0; kidx < latt.getSiteNum(); kidx++) {
+	for (int kidx = 0; kidx < latt.getUnitCellNum(); kidx++) {
 		printLine();
 		auto T = latt.getTranslationGenerator(kidx);
 		for (int pidx = 0; pidx < latt.getPGRepNum(); pidx++) {
