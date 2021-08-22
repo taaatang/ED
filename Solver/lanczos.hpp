@@ -9,8 +9,6 @@
 
 #include <vector>
 #include <cmath>
-
-#include "global/typeAlias.hpp"
 #include "operator/sparseMatrix.hpp"
 #include "algebra/algebra.hpp"
 

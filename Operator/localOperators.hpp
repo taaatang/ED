@@ -4,7 +4,6 @@
 //
 
 #include <optional>
-#include "global/typeAlias.hpp"
 #include "basis/basis.hpp"
 #include "utils/bitop.hpp"
 

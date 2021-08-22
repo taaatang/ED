@@ -13,7 +13,6 @@
 #include <vector>
 #include <array>
 #include <algorithm>
-#include "global/typeAlias.hpp"
 #include "geometry/transform.hpp"
 
 /**
