@@ -54,37 +54,25 @@ inline void save(data_t *d_pt, index_t size, std::string filename, bool is_app =
     }
 }
 
-template <class T>
-inline void read(T *d_pt, int size, std::ifstream *f_pt, std::string filename){
-    f_pt->open(filename, std::ios::binary);
-    if (f_pt->is_open()){
-        f_pt->read(reinterpret_cast<char*>(d_pt), size * sizeof(T));
-        f_pt->close();
-        // std::cout<<"Data loaded from "<<filename<<std::endl;
-    }else{
-        std::cout<<filename<<" failed to open!"<<std::endl;
+template <typename data_t, std::integral index_t>
+inline void read(data_t *d_pt, index_t size, std::string filename){
+    std::ifstream is;
+    is.open(filename, std::ios::binary);
+    if (is.is_open()) {
+        is.read(reinterpret_cast<char*>(d_pt), size * sizeof(data_t));
+        is.close();
+        // std::cout << "Data loaded from " << filename << std::endl;
+    } else {
+        std::cout << filename << " failed to open!" << std::endl;
         exit(1);
     }
 }
 
 template <class T>
-inline void read(T *d_pt, idx_t size, std::ifstream *f_pt, std::string filename){
-    f_pt->open(filename, std::ios::binary);
-    if (f_pt->is_open()){
-        f_pt->read(reinterpret_cast<char*>(d_pt), size * sizeof(T));
-        f_pt->close();
-        // std::cout<<"Data loaded from "<<filename<<std::endl;
-    }else{
-        std::cout<<filename<<" failed to open!"<<std::endl;
-        exit(1);
-    }
-}
-
-template <class T>
-inline void read(std::vector<T> *d_pt, std::string filename){
+inline void read(std::vector<T> *d_pt, std::string filename) {
     std::ifstream infile;
-    infile.open(filename, std::ios::in|std::ios::binary);
-    if (infile.is_open()){
+    infile.open(filename, std::ios::in | std::ios::binary);
+    if (infile.is_open()) {
         infile.seekg(0, infile.end);
         idx_t size = infile.tellg();
         infile.seekg(0, infile.beg);
@@ -93,7 +81,7 @@ inline void read(std::vector<T> *d_pt, std::string filename){
         infile.read(reinterpret_cast<char*>(d_pt->data()), size);
         infile.close();
         // std::cout<<"Data loaded from "<<filename<<std::endl;
-    }else{
+    } else {
         std::cout<<filename<<" failed to open!"<<std::endl;
         exit(1);
     }
@@ -123,22 +111,4 @@ inline void read(std::vector<T> *d_pt, std::string filename, int workerID, int w
         std::cout<<filename<<" failed to open!"<<std::endl;
         exit(1);
     }
-}
-
-template <class T>
-inline void infile(std::vector<T*> para, std::string filename){
-    std::ifstream file(filename);
-    if(file.is_open()){
-        for(auto it = para.begin(); it!= para.end(); it++){
-            if(!file.eof()){
-                file>>*(*it);
-            }else{
-                std::cout<<filename<<" contains parameters less than expected:"<<para.size()<<"\n";
-            }   
-        }
-    }else{
-        std::cout<<filename<<" failed to open!\n";
-        exit(1);
-    }
-    file.close();
 }
