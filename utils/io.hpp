@@ -1,18 +1,45 @@
+/**
+ * @file io.hpp
+ * @author Ta Tang (tatang.physics@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2021-08-22
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 #pragma once
 
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <complex>
 
-std::string tostr(double val, int digit = 2);
+inline std::string tostr(double val, int digit = 2){
+    std::ostringstream strTmp;
+    strTmp << std::fixed << std::setprecision(digit) << val;
+    return strTmp.str();
+}
 
-std::string tostr(int val);
+inline std::string tostr(int val){
+    return std::to_string(val);
+}
 
-void tolower(std::string &str);
+inline void tolower(std::string &str) {
+    for (auto &c : str) {
+        c = tolower(c);
+    }
+}
 
-void toupper(std::string &str);
+inline void toupper(std::string &str) {
+    for (auto &c : str) {
+        c = toupper(c);
+    }
+}
 
-void printLine(int n = 50, char c = '*');
+inline void printLine(int n = 50, char c = '*') {
+    std::cout << std::string(n, c) << '\n';
+}
 
 template<typename T>
 inline std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec) {

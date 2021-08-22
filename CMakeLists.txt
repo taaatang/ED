@@ -61,7 +61,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${BOOSTRO
 link_directories(${ARPACKLIB} ${BOOSTLIB} ${MPIDIR}/lib ${GSLDIR}/lib /opt/intel/lib)
 set(LINKS ${MKL} ${BOOST} parpack ${MPI} ${GSL})
 
-add_library(ed STATIC geometry/geometry.cpp basis/basisState.cpp operator/links.cpp measure/config.cpp algebra/algebra.cpp pulse/pulse.cpp utils/comb.cpp utils/io.cpp utils/paras.cpp utils/path.cpp)
+add_library(ed STATIC geometry/geometry.cpp basis/basisState.cpp operator/links.cpp measure/config.cpp algebra/algebra.cpp pulse/pulse.cpp utils/comb.cpp utils/paras.cpp utils/path.cpp)
 target_link_libraries(ed ${LINKS})
 
 # Excutables

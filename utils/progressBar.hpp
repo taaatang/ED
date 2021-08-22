@@ -38,11 +38,8 @@ public:
 private:
 	void init() {
 		if (allowPrint) {
-			std::cout << "Total Work: ";
-			for (uint32_t i = 0; i < segmentCount; i++) {
-				std::cout << '<';
-			}
-			std::cout << "\nProgress  : "<<std::flush;
+			std::cout << "Total Work: " << std::string(segmentCount, '<') << std::endl;
+			std::cout << "Progress  : "<<std::flush;
 		}
 	}
 
