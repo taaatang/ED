@@ -18,10 +18,6 @@ using uint = unsigned int;
 using cdouble = std::complex<double>;
 using dataType = cdouble;
 
-
-template<typename T>
-using MAP = std::unordered_map<idx_t, T>;
-
 using VecI = std::vector<int>;
 using VecIdx = std::vector<idx_t>;
 using VecD = std::vector<double>;

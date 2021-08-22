@@ -24,6 +24,9 @@ enum MATRIX_PARTITION {ROW_PARTITION, COL_PARTITION};
     inline constexpr MATRIX_PARTITION PARTITION = ROW_PARTITION;
 #endif
 
+template<typename T>
+using MAP = std::unordered_map<idx_t, T>;
+
 template <class T>
 class BaseMatrix{
 public:
