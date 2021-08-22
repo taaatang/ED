@@ -1,10 +1,14 @@
+/**
+ * @file timer.hpp
+ * @author Ta Tang (tatang.physics@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2020-09-02
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
 #pragma once
-//
-// HelperClass.hpp
-// ED
-//
-// Created by tatang on 9/2/20
-//
 
 #include <chrono>
 #include <iostream>
