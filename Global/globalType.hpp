@@ -42,11 +42,3 @@ typedef std::vector<std::vector<int>> BondMap;
 */
 // basis distributed among MPI workers
 // #define DISTRIBUTED_BASIS
-
-/*
-    *******************
-    * LANCZOSIterator *
-    *******************
-*/
-
-enum LANCZOS_OPTION {ALPHA_BETA, ALPHA_BETA_Q};

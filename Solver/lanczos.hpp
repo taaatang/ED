@@ -14,6 +14,8 @@
 #include "operator/sparseMatrix.hpp"
 #include "algebra/algebra.hpp"
 
+enum LANCZOS_OPTION {ALPHA_BETA, ALPHA_BETA_Q};
+
 // // #define USE_MKL
 
 // #ifdef USE_MKL
