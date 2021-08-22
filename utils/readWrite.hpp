@@ -2,33 +2,16 @@
 
 #include <fstream>
 #include <concepts>
+#include <filesystem>
 #include "global/typeAlias.hpp"
 #include "utils/runtimeCheck.hpp"
 
-// for filesystem. if not c++ 17, use boost library
-#define CPP_17_FS
-
-#ifdef CPP_17_FS
-    #include <filesystem>
-#else
-    #include <boost/filesystem.hpp>
-#endif //CPP_17_FS
-
-#ifdef CPP_17_FS
 inline void mkdir_fs(std::string dir){
     std::filesystem::path p(dir);
     std::filesystem::create_directories(p);
     bool succeed = std::filesystem::is_directory(p);
     assert_msg(succeed, dir + " failed to creat!");
 }
-#else
-inline void mkdir_fs(std::string dir){
-    boost::filesystem::path p(dir);
-    boost::filesystem::create_directories(p);
-	bool succeed = boost::filesystem::is_directory(p);
-    assert_msg(succeed, dir + " failed to creat!");
-}
-#endif //CPP_17_FS
 
 template <typename data_t, std::integral index_t>
 inline void save(data_t *d_pt, index_t size, std::string filename, bool is_app = false, bool print = true){

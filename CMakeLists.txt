@@ -46,10 +46,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 else()
     set(MKL MKL_ilp64 MKL_thread MKL_core MKL_ilp64 MKL_thread MKL_core iomp5 pthread m dl)
 endif()
-# Boost
-set(BOOSTROOT $ENV{BOOST_ROOT})
-set(BOOSTLIB $ENV{BOOST_LIB})
-set(BOOST boost_system boost_filesystem)
+
 # gsl
 set(GSLDIR $ENV{GSL_DIR})
 set(GSL gsl gslcblas)
@@ -57,9 +54,9 @@ set(GSL gsl gslcblas)
 # Compiler Flags
 set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall ${OPENMP_FLAG}")
 # Include/Library Path
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${BOOSTROOT} ${MPIDIR}/include ${GSLDIR}/include)
-link_directories(${ARPACKLIB} ${BOOSTLIB} ${MPIDIR}/lib ${GSLDIR}/lib /opt/intel/lib)
-set(LINKS ${MKL} ${BOOST} parpack ${MPI} ${GSL})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${MPIDIR}/include ${GSLDIR}/include)
+link_directories(${ARPACKLIB} ${MPIDIR}/lib ${GSLDIR}/lib /opt/intel/lib)
+set(LINKS ${MKL} parpack ${MPI} ${GSL})
 
 add_library(ed STATIC geometry/geometry.cpp basis/basisState.cpp operator/links.cpp measure/config.cpp algebra/algebra.cpp pulse/pulse.cpp utils/comb.cpp utils/paras.cpp utils/path.cpp)
 target_link_libraries(ed ${LINKS})
