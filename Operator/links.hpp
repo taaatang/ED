@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "global/constant.hpp"
-#include "geometry/vec3.hpp"
 #include "geometry/geometry.hpp"
 
 /**
