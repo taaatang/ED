@@ -9,14 +9,11 @@
 
 #include <vector>
 #include <string>
-#include <cmath>
 #include <iostream>
 #include <complex>
-#include <cassert>
 
 #include "global/constant.hpp"
 #include "geometry/vec3.hpp"
-#include "algebra/algebra.hpp"
 #include "utils/bitop.hpp"
 #include "geometry/generator.hpp"
 
