@@ -5,7 +5,7 @@
 #include <bitset>
 #include "basisState.hpp"
 #include "utils/bitop.hpp"
-#include "utils/io.hpp"
+#include "utils/runtimeCheck.hpp"
 #include "utils/comb.hpp"
 
 bool BasisStateInterface::configured = false;

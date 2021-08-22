@@ -1,3 +1,4 @@
+#include <fstream>
 #include "utils/paras.hpp"
 
 Parameters::Parameters(std::string inputDir, std::vector<std::string> files) {

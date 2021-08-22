@@ -7,7 +7,7 @@
 
 #include "basisState.hpp"
 #include "geometry/geometry.hpp"
-#include "utils/io.hpp"
+#include "utils/runtimeCheck.hpp"
 
 template<typename T>
 concept ElPhConfigEnabled = requires (T, int n, int nu, int nd, int nPho) { T::configure(n, nu, nd, nPho); };

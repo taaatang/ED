@@ -21,8 +21,9 @@
 #define MKL_Complex16 cdouble
 #include "mkl.h"
 
+#include "global/constant.hpp"
 #include "utils/mpiwrap.hpp"
-#include "utils/io.hpp"
+#include "utils/runtimeCheck.hpp"
 
 namespace MKL{
     /*

@@ -1,21 +1,17 @@
 #pragma once
 
 #include <iostream>
+#include <iomanip>
 #include <optional>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <vector>
 #include <map>
-#include <utility>
 #include <type_traits>
 
 #include "global/typeAlias.hpp"
-#include "utils/io.hpp"
+#include "utils/runtimeCheck.hpp"
 
 
 template<typename T>
-using map = std::map<std::string,T>;
+using map = std::map<std::string, T>;
 
 template<typename T>
 bool check(const map<T> &dic, std::string key) {

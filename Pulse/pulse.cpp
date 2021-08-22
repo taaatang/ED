@@ -1,4 +1,5 @@
 #include "pulse.hpp"
+#include "utils/runtimeCheck.hpp"
 
 /**
  * @brief A0 * exp(-t^2 / sigma^2) * sin(fre * t + phase)

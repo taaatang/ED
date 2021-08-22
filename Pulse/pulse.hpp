@@ -7,13 +7,12 @@
 //  Copyright © 2019 tatang. All rights reserved.
 //
 
-#include <gsl/gsl_integration.h>
 #include <cmath>
 #include <iostream>
+#include <gsl/gsl_integration.h>
 
 #include "global/constant.hpp"
 #include "geometry/vec3.hpp"
-#include "utils/io.hpp"
 
 double GaussPulse(double t, void* params);
 
