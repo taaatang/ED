@@ -79,11 +79,11 @@ private:
     bool isGenerated{false};
 };
 
-Link<dataType> HeisenbergLink(std::string name, const Geometry& latt);
+Link<dataType> triangleHeisenbergLink(std::string name, const Geometry& latt);
 
-std::vector<Link<dataType>> HubbardSingleBandLink(const Geometry& latt);
+std::vector<Link<dataType>> squareHubbardSingleBandLink(const Geometry& latt);
 
-std::vector<Link<dataType>> HubbardMultiBandLink(const Geometry& latt);
+std::vector<Link<dataType>> squareHubbardMultiBandLink(const Geometry& latt);
 
 std::vector<Link<dataType>> HubbardLink(const Geometry& latt);
 

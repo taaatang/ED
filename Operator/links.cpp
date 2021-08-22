@@ -71,60 +71,38 @@ Link<dataType> J1Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SI
 Link<dataType> J2Link(LINK_TYPE::SUPER_EXCHANGE_J, {ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {{1.0,1.0,0.0}, {-1.0,2.0,0.0}, {2.0,-1.0,0.0}}, true);
 Link<dataType> JkLink(LINK_TYPE::CHIRAL_K, {ORBITAL::SINGLE, ORBITAL::SINGLE, ORBITAL::SINGLE}, 1.0, {{0.0,1.0,0.0}, {1.0,0.0,0.0}, {1.0,0.0,0.0}, {1.0,-1.0,0.0}},  true);
 
-Link<dataType> HeisenbergLink(std::string name, const Geometry& latt) {
-    switch (latt.getType()) {
-        case LATTICE::TRIANGULAR:
-            if (name == "J1") {
-                return J1Link;
-            } else if (name == "J2") {
-                return J2Link;
-            } else if (name == "Jk") {
-                return JkLink;
-            } else {
-                exit_msg(name + " is not defined for HeisenbergLink.");
-            }
-            break;
-        default:
-           exit_msg("lattice type not defined for HeisenbergLink."); 
-           break;
-    }
+Link<dataType> triangleHeisenbergLink(std::string name, const Geometry& latt) {
+    assert_msg(latt.getType() == LATTICE::TRIANGULAR, "triangleHeisenbergLink is only defined for triangular lattice.");
+    assert_msg(name == "J1" || name == "J2" || name == "Jk", name + "is not defined in triangleHeisenbergLink.");
+    if (name == "J1") {
+        return J1Link;
+    } else if (name == "J2") {
+        return J2Link;
+    } else {
+        return JkLink;
+    } 
 }
 
-std::vector<Link<dataType>> HubbardSingleBandLink(const Geometry& latt) {
-    switch (latt.getType()) {
-        case LATTICE::SQUARE:
-            return std::vector<Link<dataType>>{tnn_px, tnn_py, tnnn_pxpy, tnnn_pxny};
-            break;
-        default:
-            exit_msg("lattice type not defined for HubbardLink.");
-            break;
-    }
-    
+std::vector<Link<dataType>> squareHubbardSingleBandLink(const Geometry& latt) {
+    assert_msg(latt.getType() == LATTICE::SQUARE, "squareHubbardSingleBandLink is only defined for square lattice.");
+    return std::vector<Link<dataType>>{tnn_px, tnn_py, tnnn_pxpy, tnnn_pxny};
 }
 
-std::vector<Link<dataType>> HubbardMultiBandLink(const Geometry& latt) {
-    switch (latt.getType()) {
-        case LATTICE::SQUARE: {
-            std::vector<Link<dataType>> links_3band{tdpx, tdpy, tpxd, tpyd, tpxpy, tpypx, tpxpyp, tpypxp, ndnpx, ndnpy};
-            std::vector<Link<dataType>> links_pz{tpxpz, tpzpx, tpypz, tpzpy, tpxpzp, tpzpxp, tpypzp, tpzpyp, ndnpzu, ndnpzd};
-            std::vector<Link<dataType>> links_dz2{tdzpx, tdzpy, tpxdz, tpydz, tdzpzu, tdzpzd, ndndz, ex_ddz, ph_ddz};
-            std::vector<Link<dataType>> links;
-            links.insert(links.end(), links_3band.begin(), links_3band.end());
-            links.insert(links.end(), links_pz.begin(), links_pz.end());
-            links.insert(links.end(), links_dz2.begin(), links_dz2.end());
-            return links;
-            break;
-        }
-        default:
-            exit_msg("lattice type not defined for HubbardLink.");
-            break;
-
-    }
+std::vector<Link<dataType>> squareHubbardMultiBandLink(const Geometry& latt) {
+    assert_msg(latt.getType() == LATTICE::SQUARE, "squareHubbardMultiBandLink is only defined for square lattice.");
+    std::vector<Link<dataType>> links_3band{tdpx, tdpy, tpxd, tpyd, tpxpy, tpypx, tpxpyp, tpypxp, ndnpx, ndnpy};
+    std::vector<Link<dataType>> links_pz{tpxpz, tpzpx, tpypz, tpzpy, tpxpzp, tpzpxp, tpypzp, tpzpyp, ndnpzu, ndnpzd};
+    std::vector<Link<dataType>> links_dz2{tdzpx, tdzpy, tpxdz, tpydz, tdzpzu, tdzpzd, ndndz, ex_ddz, ph_ddz};
+    std::vector<Link<dataType>> links;
+    links.insert(links.end(), links_3band.begin(), links_3band.end());
+    links.insert(links.end(), links_pz.begin(), links_pz.end());
+    links.insert(links.end(), links_dz2.begin(), links_dz2.end());
+    return links;
 }
 
 std::vector<Link<dataType>> HubbardLink(const Geometry& latt) {
-    auto single = HubbardSingleBandLink(latt);
-    auto multi = HubbardMultiBandLink(latt);
+    auto single = squareHubbardSingleBandLink(latt);
+    auto multi = squareHubbardMultiBandLink(latt);
     std::vector<Link<dataType>> links;
     links.insert(links.end(), single.begin(), single.end());
     links.insert(links.end(), multi.begin(), multi.end());

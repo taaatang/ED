@@ -55,7 +55,7 @@ void setham(const Parameters& para, std::unique_ptr<Hamiltonian<T, B>>& H, Geome
         auto unitcell = latt->getUnitCell();
         if (unitcell.size() == 1) {/* single band */
             H->pushU({ORBITAL::SINGLE}, para.get<double>("Uss").value());
-            auto links = HubbardSingleBandLink(*latt);
+            auto links = squareHubbardSingleBandLink(*latt);
             auto tnn = para.get<double>("tnn").value();
             auto tnnn = para.get<double>("tnnn").value();
             if (std::abs(tnn) > INFINITESIMAL) {/* nearest neighbor hopping */
@@ -79,7 +79,7 @@ void setham(const Parameters& para, std::unique_ptr<Hamiltonian<T, B>>& H, Geome
                 H->pushV({orb.orb}, v);
                 H->pushU({orb.orb}, u);
             }
-            auto links = HubbardMultiBandLink(*latt);
+            auto links = squareHubbardMultiBandLink(*latt);
             for (auto& link : links) {
                 auto orbs = link.getOrbs();
                 bool validLink = true;
@@ -127,19 +127,19 @@ void setham(const Parameters& para, std::unique_ptr<Hamiltonian<T, B>>& H, Geome
 	if constexpr (ContainSpin<B>) {
         auto J1 = para.get<double>("J1");
         if (std::abs(J1.value_or(0.0)) > INFINITESIMAL) {
-            auto link = HeisenbergLink("J1", *latt);
+            auto link = triangleHeisenbergLink("J1", *latt);
             link.setVal(link.getVal() * J1.value_or(0.0));
             H->pushLink(link, 0);
         }
         auto J2 = para.get<double>("J2");
         if (std::abs(J2.value_or(0.0)) > INFINITESIMAL) {
-            auto link = HeisenbergLink("J2", *latt);
+            auto link = triangleHeisenbergLink("J2", *latt);
             link.setVal(link.getVal() * J2.value_or(0.0));
             H->pushLink(link, 0);
         }
         auto Jk = para.get<double>("Jk");
         if (std::abs(Jk.value_or(0.0)) > INFINITESIMAL) {
-            auto link = HeisenbergLink("Jk", *latt);
+            auto link = triangleHeisenbergLink("Jk", *latt);
             link.setVal(link.getVal() * Jk.value_or(0.0));
             H->pushLink(link, 0);
         }

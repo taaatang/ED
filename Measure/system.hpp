@@ -432,12 +432,12 @@ void compute(System<T, B> &sys, std::string key, int workerID, int workerNum, bo
                     for(int j = 0; j < 2; ++j) {
                         RamanOp<dataType> R(sys.latt.get(), sys.B.get(), sys.B.get(), true, false);
                         if (std::abs(J1.value_or(0.0)) > INFINITESIMAL) {
-                            auto link = HeisenbergLink("J1", *sys.latt.get());
+                            auto link = triangleHeisenbergLink("J1", *sys.latt.get());
                             link.setVal(link.getVal() * J1.value_or(0.0));
                             R.pushLink(link, 0);
                         }
                         if (std::abs(J2.value_or(0.0)) > INFINITESIMAL) {
-                            auto link = HeisenbergLink("J2", *sys.latt.get());
+                            auto link = triangleHeisenbergLink("J2", *sys.latt.get());
                             link.setVal(link.getVal() * J2.value_or(0.0));
                             R.pushLink(link, 0);
                         }
