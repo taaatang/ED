@@ -14,9 +14,7 @@ build/
 
 # input
 input/
-phononInput/
-heisInput/
-hubbInput/
+inputs/
 
 # Prerequisites
 *.d
