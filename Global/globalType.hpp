@@ -6,13 +6,6 @@
 #include <unordered_map>
 #include <string>
 
-/**
- * @brief Interaction Type
- * 
- */
-enum class LINK_TYPE {SZ, N, NUND, SUPER_EXCHANGE_J, CHIRAL_K, HOPPING_T, CHARGE_TRANSFER_V, HUBBARD_U, EXCHANGE_J, PAIR_HOPPING_J, PHONON_W0, NCHARGE_SITE_PHONON, NCHARGE_BOND_PHONON, HOPPING_BOND_PHONON};
-
-
 /*
     ***************
     * Type Define *
