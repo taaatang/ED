@@ -38,12 +38,6 @@ public:
 
     double getFluence( ) const { return Fluence; }
 
-    double computeFluence( ) const;
-
-    double getA( ) const;
-
-    double getA(double t_) const;
-
     // return A * a
     double getAa( ) const { return a * getA(); }
 
@@ -73,13 +67,16 @@ public:
 
     bool next( ) { ++count; t += dt; return count <= numSteps;}
 
-    void progressBar(int total_) const;
-
-    void progress( ) const;
-
     void profile(int n = 21) const;
 
     void print(std::ostream& os = std::cout) const;
+
+private:
+    double computeFluence( ) const;
+
+    double getA( ) const;
+
+    double getA(double t_) const;
 
 private:
     bool useA;

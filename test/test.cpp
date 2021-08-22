@@ -9,6 +9,7 @@
 #include "solver/spectra.hpp"
 #include "measure/config.hpp"
 #include "measure/measure.hpp"
+#include "utils/progressBar.hpp"
 
 using Basis_t = ElectronPhononBasis;
 
@@ -26,13 +27,7 @@ int main(int argc, char *argv[]) {
     Parameters para(inputDir, {"lattice.txt", "hamiltonian.txt"});
     Parameters pulsePara(inputDir, {"pulse.txt"});
     Parameters measurePara(inputDir, {"measure.txt"});
-    if (isMaster) {
-        std::cout << "parameters:" << std::endl;
-        pathPara.print(std::cout);
-        para.print(std::cout);
-        measurePara.print(std::cout);
-        pulsePara.print(std::cout);
-    }
+
     Path path(&pathPara, &para, &pulsePara);
     if (isMaster) {
         path.make(measurePara);
@@ -139,7 +134,8 @@ int main(int argc, char *argv[]) {
         H.printTrInteractions();
         H.construct();
         TimeEvolver<dataType> Tevol(H.getEvec(), &H, timeKD);
-        if (isMaster) pulse.progressBar(20);
+        MPI_Barrier(MPI_COMM_WORLD);
+        ProgressBar bar(pulse.getStepNum(), 20, isMaster);
         timer.tik();
         while (H.next()) {
             Tevol.evolve(pulse.getdt());
@@ -147,9 +143,7 @@ int main(int argc, char *argv[]) {
             nph.count(Tevol.getVec());
             time += pulse.getdt();
             timePoints.push_back(time);
-            if (isMaster) {
-                pulse.progress();
-            }
+            bar.progress();
         }
         timer.print("pump time evolution");
         H.turnOffPulse();

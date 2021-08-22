@@ -80,25 +80,6 @@ void Pulse::setFuncPara( ) {
     FuncE2.params = params; 
 }
 
-void Pulse::progressBar(int total_) const {
-    std::cout<<"Total Work:";
-    total = total_;
-    for (int i = 0; i < total; i++) {
-        std::cout<<">";
-    }
-    std::cout<<"\n";
-}
-
-void Pulse::progress( ) const {
-    if (count == 1) {
-        std::cout<<"Progress  :"<<std::flush;
-    }
-    if (count % (numSteps / total) == 0) {
-        std::cout<<">"<<std::flush;
-    }
-    if (count == numSteps) std::cout<<"\nFinished!\n"<<std::flush;
-}
-
 void Pulse::profile(int n) const {
     double step = (tf - ti) / n;
     for (int i = 0; i <= n; ++i) {
