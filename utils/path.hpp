@@ -1,7 +1,16 @@
+/**
+ * @file path.hpp
+ * @author Ta Tang (tatang.physics@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2021-08-22
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 #pragma once
 
 #include "utils/paras.hpp"
-// #include "utils/io.hpp"
 
 class Path {
 public:
