@@ -4,15 +4,6 @@
 
 #include "global/typeAlias.hpp"
 
-/**
- * @brief print option
- * SILENT: don't print
- * BRIEF: print short info
- * VERBOSE: print detailed info
- * 
- */
-enum class PRINT {SILENT, BRIEF, VERBOSE};
-
 std::string tostr(double val, int digit = 2);
 
 std::string tostr(int val);
