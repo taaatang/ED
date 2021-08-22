@@ -4,7 +4,7 @@
 
 #include "basis/basisState.hpp"
 #include "basis/basis.hpp"
-#include "operator/localoperators.hpp"
+#include "operator/localOperators.hpp"
 #include "operator/operators.hpp"
 #include "solver/spectra.hpp"
 #include "measure/config.hpp"
@@ -26,6 +26,13 @@ int main(int argc, char *argv[]) {
     Parameters para(inputDir, {"lattice.txt", "hamiltonian.txt"});
     Parameters pulsePara(inputDir, {"pulse.txt"});
     Parameters measurePara(inputDir, {"measure.txt"});
+    if (isMaster) {
+        std::cout << "parameters:" << std::endl;
+        pathPara.print(std::cout);
+        para.print(std::cout);
+        measurePara.print(std::cout);
+        pulsePara.print(std::cout);
+    }
     Path path(&pathPara, &para, &pulsePara);
     if (isMaster) {
         path.make(measurePara);

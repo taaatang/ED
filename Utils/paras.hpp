@@ -7,6 +7,7 @@
 #include <type_traits>
 
 #include "global/typeAlias.hpp"
+#include "utils/io.hpp"
 #include "utils/runtimeCheck.hpp"
 
 
@@ -109,19 +110,6 @@ std::vector<T> readVec(std::string& s, char sep=','){
         result.push_back(val);
     }
     return result;
-}
-
-template<typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& myvec){
-   if(!std::is_same<T,std::vector<double>>::value)os<<"\n";
-   if(std::is_floating_point<T>::value)os<<std::setprecision(2)<<std::fixed;
-   for(int i = 0; i< (int)myvec.size()-1; ++i){
-       os<<myvec.at(i);
-       if(!std::is_same<T,std::vector<double>>::value)os<<", ";
-   }
-   if(!myvec.empty())os<<myvec.back();
-   if(std::is_floating_point<T>::value)os.unsetf(std::ios::floatfield);
-   return os;
 }
 
 template<typename T>
