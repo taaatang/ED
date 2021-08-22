@@ -10,7 +10,7 @@
 #include <utility>
 #include <type_traits>
 
-#include "global/globalType.hpp"
+#include "global/typeAlias.hpp"
 #include "utils/io.hpp"
 
 

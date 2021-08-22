@@ -1,6 +1,6 @@
 #pragma once
 
-#include "global/globalType.hpp"
+#include "global/typeAlias.hpp"
 
 /*
     ******************

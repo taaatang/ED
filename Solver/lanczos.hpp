@@ -10,7 +10,7 @@
 #include <vector>
 #include <cmath>
 
-#include "global/globalType.hpp"
+#include "global/typeAlias.hpp"
 #include "operator/sparseMatrix.hpp"
 #include "algebra/algebra.hpp"
 

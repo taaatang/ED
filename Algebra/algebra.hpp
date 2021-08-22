@@ -16,7 +16,7 @@
 #include <functional>
 #include "omp.h"
 
-#include "global/globalType.hpp"
+#include "global/typeAlias.hpp"
 #define MKL_INT idx_t
 #define MKL_Complex16 cdouble
 #include "mkl.h"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <mpi.h>
-#include "global/globalType.hpp"
+#include "global/typeAlias.hpp"
 
 /* MPI send */
 inline void MPI_Send(int* buf, int count, int dest){

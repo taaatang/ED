@@ -1,4 +1,4 @@
-#include "global/globalType.hpp"
+#include "global/typeAlias.hpp"
 #include "operator/links.hpp"
 
 /**********************

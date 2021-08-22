@@ -14,7 +14,7 @@
     #include <boost/filesystem.hpp>
 #endif //CPP_17_FS
 
-#include "global/globalType.hpp"
+#include "global/typeAlias.hpp"
 #include "global/constant.hpp"
 #include "utils/mpiwrap.hpp"
 
