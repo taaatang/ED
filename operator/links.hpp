@@ -129,7 +129,7 @@ void Link<T>::genLinkMaps(Geometry* pt_lattice) {
     LinkVecIdList.clear();
     Vec3d coordi, coordf; 
     for (int orbid = 0; orbid < pt_lattice->getOrbNum(); ++orbid) {
-        if(pt_lattice->is_Orbital(orbid,getRepOrb())) {
+        if(pt_lattice->isOrbital(orbid,getRepOrb())) {
             if (orbList.size() > 1) {
                 // bond involve multiple orbitals
                 coordi = pt_lattice->getOrbR(orbid);

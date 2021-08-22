@@ -52,7 +52,7 @@ VecI Geometry::getOrbPos(ORBITAL orb) const {
     return ids;
 }
 
-bool Geometry::is_Orbital(int id, ORBITAL orb_test, int orbid) const {
+bool Geometry::isOrbital(int id, ORBITAL orb_test, int orbid) const {
     return orbs.at(id).orb == orb_test and orbs.at(id).orbid == orbid; 
 }
 

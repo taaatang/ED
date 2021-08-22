@@ -78,9 +78,9 @@ public:
     VecI getOrbPos(ORBITAL orb) const;
 
     // test if the orbital at position id is orb_test
-    bool is_Orbital(int id, ORBITAL orb_test) const { return orbs.at(id).orb == orb_test; }
+    bool isOrbital(int id, ORBITAL orb_test) const { return orbs.at(id).orb == orb_test; }
 
-    bool is_Orbital(int id, ORBITAL orb_test, int orbid) const;
+    bool isOrbital(int id, ORBITAL orb_test, int orbid) const;
     
     // return the orbital at position id
     ORBITAL getOrb(int id) const { return orbs.at(id).orb; }

@@ -634,7 +634,7 @@ void CkOp<T, B>::set(LADDER pm, SPIN spin, Orbital orb) {
     auto Norb = this->latt->getOrbNum();
     posList.clear();
     for (int i = 0; i < Norb; ++i) {
-        if (this->latt->is_Orbital(i, orb.orb, orb.orbid)) posList.push_back(i);
+        if (this->latt->isOrbital(i, orb.orb, orb.orbid)) posList.push_back(i);
     }
     assert((int)posList.size() == this->latt->getUnitCellNum());
 }
