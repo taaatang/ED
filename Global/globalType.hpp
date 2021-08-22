@@ -31,10 +31,6 @@ using ArrD = std::vector<VecD>;
 using Str = std::string;
 using VecStr = std::vector<std::string>;
 
-
-// link bond idx
-typedef std::vector<std::vector<int>> BondMap;
-
 /*
     ***************
     * Basis Class *
