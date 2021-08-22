@@ -1,4 +1,5 @@
-#include "io.hpp"
+#include "utils/io.hpp"
+#include "global/constant.hpp"
 
 /********
  * INFO *
@@ -19,18 +20,6 @@ void mpi_info(int& workerID, int& workerNum){
     MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
     if (workerID==MPI_MASTER) std::cout<<"Total MPI Workers:"<<workerNum<<std::endl;
     OMP_Info(workerID);
-}
-
-void exit_msg(std::string msg){
-    std::cerr<<msg<<std::endl;
-    exit(EXIT_FAILURE);
-}
-
-void assert_msg(bool condition, std::string msg){
-    if(!condition){
-        std::cout<<msg<<std::endl;
-        exit(1);
-    }
 }
 
 

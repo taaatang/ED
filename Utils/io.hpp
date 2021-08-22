@@ -3,8 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <assert.h>
 #include <omp.h>
+
 // for filesystem. if not c++ 17, use boost library
 #define CPP_17_FS
 
@@ -15,10 +15,9 @@
 #endif //CPP_17_FS
 
 #include "global/typeAlias.hpp"
-#include "global/constant.hpp"
+// #include "global/constant.hpp"
 #include "utils/mpiwrap.hpp"
-
-#define LOCATION(cond) if (cond) {std::cout << "line number: "<< __LINE__ << "\nfrom func: " << __func__ << "\nfrom file: "<< __FILE__ << '\n';}
+#include "utils/runtimeCheck.hpp"
 
 /**
  * @brief print option
@@ -43,10 +42,6 @@ inline void init(int &workerID, int &workerNum, bool &isMaster) {
     mpi_info(workerID, workerNum);
     isMaster = (workerID == 0);
 }
-
-void exit_msg(std::string msg);
-
-void assert_msg(bool condition, std::string msg);
 
 std::string tostr(double val, int digit = 2);
 
