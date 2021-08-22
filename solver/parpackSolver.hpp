@@ -15,6 +15,7 @@
 
 #include "operator/sparseMatrix.hpp"
 #include "utils/timer.hpp"
+#include "utils/runtimeCheck.hpp"
 
 // MAX parpack iterations
 constexpr int PARPACK_MAXITERATION = 10000;
