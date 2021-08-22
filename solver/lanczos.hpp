@@ -21,9 +21,7 @@ enum LANCZOS_OPTION {ALPHA_BETA, ALPHA_BETA_Q};
 // template <class T>
 // class LANCZOSIterator{
 // public:
-//     LANCZOSIterator( ) { }
-//     LANCZOSIterator(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt = LANCZOS_DEFAULT_OPTION);
-//     ~LANCZOSIterator( ) { }
+//     LANCZOSIterator(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt = LANCZOS_OPTION::ALPHA_BETA);
     
 //     void init(BaseMatrix<T> *M, int krydim, LANCZOS_OPTION opt);
 //     void run(T* vec);
@@ -37,6 +35,7 @@ enum LANCZOS_OPTION {ALPHA_BETA, ALPHA_BETA_Q};
 //     int krylovDim;
 //     // stores alpha, beta
 //     std::vector<double> alpha, beta;
+//     std::vector<double> othErr;
 //     double vecNorm;
 //     // q_j-1, q_j, r
 //     std::vector<T> q_pre, q, r;
@@ -73,6 +72,7 @@ enum LANCZOS_OPTION {ALPHA_BETA, ALPHA_BETA_Q};
 //     // q = vec/|vec|
 //     MKL::copy(nloc, vec, q.data());
 //     vecNorm = MKL::mpiNorm(nloc, vec);
+//     bool isMaster = (M_->getWorkerID() == MPI_MASTER);
 //     if (vecNorm < INFINITESIMAL){
 //         if (isMaster) std::cout<<"norm(vecIn) = "<<vecNorm<<". Check if the input vec is 0.\n";
 //         return;
@@ -88,7 +88,6 @@ enum LANCZOS_OPTION {ALPHA_BETA, ALPHA_BETA_Q};
 //     MKL::axpy(nloc, -(T)alpha[0], q.data(), r.data());
 //     // beta[1] = |r|
 //     beta.push_back(MKL::mpiNorm(nloc, r.data()));
-//     bool isMaster = (M_->getWorkerID() == MPI_MASTER);
 //     if ( isMaster && beta[0] == 0.0){
 //         std::cout<<"LANZOSIteration stops for beta[0] = 0.\n";
 //         return;
@@ -100,6 +99,7 @@ enum LANCZOS_OPTION {ALPHA_BETA, ALPHA_BETA_Q};
 //         // q = r/beta[i-1]
 //         MKL::scale(nloc, one/beta[i-1], r.data());
 //         MKL::copy(nloc, r.data(), q.data());
+//         othErr.push_back(std::abs(mpiDot(vec, q.data(), nloc)) / vecNorm);
 //         //Qi = [Qi-1,q]
 //         if (option == ALPHA_BETA_Q) MKL::copy(nloc, q.data(), Q.data() + i * nloc);
 //         // r = Aq
