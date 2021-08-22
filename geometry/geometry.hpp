@@ -68,8 +68,6 @@ public:
 
     virtual ~Geometry( ) { }
 
-    bool check( ) const;
-
     // add an Orbital to the unit cell
     Geometry& addOrb(Orbital orb);
 
@@ -136,24 +134,14 @@ public:
     // a1-a2 coord -> orbid
     bool coordToOrbid(ORBITAL orb, const Vec3d &coord, int &orbid) const;
 
-    void printLattice() const;
-    void printKLattice() const;
-    void printOrbs() const;
-    void printTrans() const;
-    void printPG() const;
-    void print() const;
-    
-    // generate translation map for all r. TransList.at(r).at(id) = id->r
-    bool rotate(int orbid, int &orbidf) const;
     Vec3d rotate(const Vec3d &v) const;
-    bool reflect(int orbid, int &orbidf) const;
-    bool mirror(int orbid, int &orbidf) const;
-    void genPGList();
-    void genTransList();
-    bool crossBoundx(const Vec3d &coord) const;
-    bool crossBoundy(const Vec3d &coord) const;
+    
     // construct Lattice, KLattice, orbs, enlg_orbs and TransList
     void construct();
+
+    bool check( ) const;
+
+    void print() const;
 
 private:
     // return the id-th orbital's unit cell id
@@ -174,6 +162,31 @@ private:
 
     // return the id' obtained by transform id by r-th Point Group Element
     int getOrbPG(int r, int id) const { return PGList.at(r).at(id); }
+
+    void printLattice() const;
+
+    void printKLattice() const;
+
+    void printOrbs() const;
+
+    void printTrans() const;
+
+    void printPG() const;
+
+    bool rotate(int orbid, int &orbidf) const;
+
+    bool reflect(int orbid, int &orbidf) const;
+
+    bool mirror(int orbid, int &orbidf) const;
+
+    void genPGList();
+
+    // generate translation map for all r. TransList.at(r).at(id) = id->r
+    void genTransList();
+
+    bool crossBoundx(const Vec3d &coord) const;
+
+    bool crossBoundy(const Vec3d &coord) const;
 
 protected:
     /*
