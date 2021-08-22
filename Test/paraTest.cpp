@@ -9,7 +9,7 @@ using namespace std;
 int main(){
     MPI_Init(NULL, NULL);
     int workerID, workerNum;
-    mpi_info(workerID, workerNum);
+    mpiInfo(workerID, workerNum);
     std::ofstream outfile("para.txt");
     MPI_Barrier(MPI_COMM_WORLD);
     if (workerID == MPI_MASTER) {

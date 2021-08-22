@@ -1,7 +1,32 @@
 #pragma once
 
+#include <iostream>
 #include <mpi.h>
-#include "global/typeAlias.hpp"
+#include <omp.h>
+#include "global/constant.hpp"
+
+inline void ompInfo(int workerID){
+    int ompThreadsNum;
+    #pragma omp parallel
+    {
+        #pragma omp master
+        ompThreadsNum = omp_get_num_threads();
+    }
+    if (workerID == MPI_MASTER) std::cout << "openMP turned on with " << ompThreadsNum << " threads" << std::endl;
+}
+
+inline void mpiInfo(int& workerID, int& workerNum){
+    MPI_Comm_rank(MPI_COMM_WORLD, &workerID);
+    MPI_Comm_size(MPI_COMM_WORLD, &workerNum);
+    if (workerID == MPI_MASTER) std::cout << "Total MPI Workers: " << workerNum << std::endl;
+}
+
+inline void init(int &workerID, int &workerNum, bool &isMaster) {
+    MPI_Init(NULL, NULL);
+    mpiInfo(workerID, workerNum);
+    ompInfo(workerID);
+    isMaster = (workerID == MPI_MASTER);
+}
 
 /* MPI send */
 inline void MPI_Send(int* buf, int count, int dest){

@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <omp.h>
 
 // for filesystem. if not c++ 17, use boost library
 #define CPP_17_FS
@@ -27,21 +26,6 @@
  * 
  */
 enum class PRINT {SILENT, BRIEF, VERBOSE};
-/*
-    ****************
-    * Display Info *
-    ****************
-*/
-
-void OMP_Info(int workerID);
-
-void mpi_info(int& workerID, int& workerNum);
-
-inline void init(int &workerID, int &workerNum, bool &isMaster) {
-    MPI_Init(NULL, NULL);
-    mpi_info(workerID, workerNum);
-    isMaster = (workerID == 0);
-}
 
 std::string tostr(double val, int digit = 2);
 

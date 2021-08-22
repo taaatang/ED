@@ -10,7 +10,7 @@ int main( ) {
     MPI_Init(NULL, NULL);
     int workerID{0}; 
     int workerNum{0};
-    mpi_info(workerID, workerNum);
+    mpiInfo(workerID, workerNum);
     bool isMaster = (workerID == MPI_MASTER);
     Timer timer(isMaster);
 

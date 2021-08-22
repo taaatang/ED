@@ -14,7 +14,7 @@ void print(string name, std::vector<T>& v, bool cond = false) {
 int main ( ) {
     MPI_Init(NULL, NULL);
     int workerID, workerNum;
-    mpi_info(workerID, workerNum);
+    mpiInfo(workerID, workerNum);
     bool isMaster = (workerID == 0);
     Vec x{1.0, 2.0, 3.0};
     auto size = x.size();

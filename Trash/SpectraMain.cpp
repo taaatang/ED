@@ -27,7 +27,7 @@ int main(int argc, const char * argv[]) {
 */
     MPI_Init(NULL, NULL);
     int workerID, workerNum;
-    mpi_info(workerID, workerNum);
+    mpiInfo(workerID, workerNum);
 
     bool COMPUTE_SS = false;
     bool COMPUTE_SQW = false;
