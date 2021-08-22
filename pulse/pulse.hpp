@@ -1,13 +1,15 @@
+/**
+ * @file pulse.hpp
+ * @author Ta Tang (tatang.physics@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2019-10-27
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #pragma once
-//
-//  pulse.hpp
-//  ED
-//
-//  Created by tatang on 10/27/19.
-//  Copyright © 2019 tatang. All rights reserved.
-//
 
-#include <cmath>
 #include <iostream>
 #include <gsl/gsl_integration.h>
 

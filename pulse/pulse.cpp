@@ -1,3 +1,4 @@
+#include <cmath>
 #include "pulse.hpp"
 #include "utils/runtimeCheck.hpp"
 
