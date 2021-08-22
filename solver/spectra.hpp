@@ -30,13 +30,12 @@ public:
     void compute(){this->run(vec.data());}
     void save(std::string dataPath, int stateID = 0){
         mkdir_fs(dataPath);
-        std::ofstream outfile;
         auto stateLabel =tostr(stateID);
-        ::save<cdouble>(&w0, 1, &outfile, dataPath + "/w0_" + stateLabel);
-        ::save<double>(&(LANCZOSIterator<T>::vecNorm), 1, &outfile, dataPath + "/vecNorm_" + stateLabel);
-        ::save<double>((LANCZOSIterator<T>::alpha).data(), (int)((LANCZOSIterator<T>::alpha).size()), &outfile, dataPath + "/alpha_" + stateLabel);
-        ::save<double>((LANCZOSIterator<T>::beta).data(), (int)((LANCZOSIterator<T>::beta).size()), &outfile, dataPath + "/beta_" + stateLabel);
-        ::save<double>((LANCZOSIterator<T>::othErr).data(), (int)((LANCZOSIterator<T>::othErr).size()), &outfile, dataPath + "/othErr_" + stateLabel);
+        ::save<cdouble>(&w0, 1, dataPath + "/w0_" + stateLabel);
+        ::save<double>(&(LANCZOSIterator<T>::vecNorm), 1, dataPath + "/vecNorm_" + stateLabel);
+        ::save<double>((LANCZOSIterator<T>::alpha).data(), (LANCZOSIterator<T>::alpha).size(), dataPath + "/alpha_" + stateLabel);
+        ::save<double>((LANCZOSIterator<T>::beta).data(), (LANCZOSIterator<T>::beta).size(), dataPath + "/beta_" + stateLabel);
+        ::save<double>((LANCZOSIterator<T>::othErr).data(), (LANCZOSIterator<T>::othErr).size(), dataPath + "/othErr_" + stateLabel);
     };
 };
 
