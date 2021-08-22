@@ -14,12 +14,12 @@
 #include "utils/mpiwrap.hpp"
 #include "algebra/algebra.hpp"
 
-enum MATRIX_PARTITION {ROW_PARTITION, COL_PARTITION};
+enum MATRIX_PARTITION {ROW, BLK};
 
 #ifdef DISTRIBUTED_BASIS
-    inline constexpr MATRIX_PARTITION PARTITION = COL_PARTITION;
+    inline constexpr MATRIX_PARTITION PARTITION = BLK;
 #else
-    inline constexpr MATRIX_PARTITION PARTITION = ROW_PARTITION;
+    inline constexpr MATRIX_PARTITION PARTITION = ROW;
 #endif
 
 template<typename T>
@@ -114,11 +114,10 @@ public:
 */
 
 /*
-    Sparse Matrix in CSR form (ROW_PARTITION)
-    can be easily changed to CSC form for symmetric or hermitian matrix (COL_PARTITION)
-    Use the global constant PARTITION in constant.hpp to choose the format
+    Sparse Matrix in CSR form (ROW) or Block form (BLK)
+    Use the global constant PARTITION to choose the format
     The format will affect how MxV is carried out.
-    The buffer vector for MxV in COL_PARTITION setting is scalable with MPI task number.
+    The buffer vector for MxV in BLK setting is scalable with MPI task number.
 */
 template <class T>
 class SparseMatrix: public BaseMatrix<T>{
@@ -191,7 +190,7 @@ public:
     void setVal(int matID, T val) { parameters.at(matID) = val; }
 
 protected:
-    MATRIX_PARTITION partition{ROW_PARTITION};
+    MATRIX_PARTITION partition{ROW};
 
     int dmNum{0}; // number of diagonal matrix
 
@@ -288,9 +287,9 @@ SparseMatrix<T>::SparseMatrix(idx_t rowDim, idx_t colDim, int spmNum_, int dmNum
     setDmNum(dmNum_);
 
     #ifdef DISTRIBUTED_BASIS
-    partition =  MATRIX_PARTITION::COL_PARTITION;
+    partition =  MATRIX_PARTITION::BLK;
     #else
-    partition = MATRIX_PARTITION::ROW_PARTITION;   
+    partition = MATRIX_PARTITION::ROW;   
     #endif 
 }
 
@@ -682,11 +681,11 @@ void SparseMatrix<T>::setMpiBuff(idx_t idx_val){
                         for (auto it = rowMapList[i][j].begin(); it != rowMapList[i][j].end(); it++){
                             colList[j].at(startList[threadID][j]+count_tmp[j]) = it->first;
                             switch(PARTITION){
-                                case ROW_PARTITION:{
+                                case ROW:{
                                     valList[j].at(startList[threadID][j]+count_tmp[j]) = it->second;
                                     break;
                                 }
-                                case COL_PARTITION:{
+                                case BLK:{
                                     valList[j].at(startList[threadID][j]+count_tmp[j]) = it->second;
                                     break;
                                 }

@@ -173,10 +173,10 @@ int main(int argc, const char * argv[]) {
 //         dataType* vecTmp1 = new dataType[PDiag.nlocmax_];
 //         dataType* vecBuf1;
 //         switch(PARTITION){
-//             case ROW_PARTITION:
+//             case ROW:
 //                 vecBuf1 = new dataType[PDiag.ntot_];
 //                 break;
-//             case COL_PARTITION:
+//             case BLK:
 //                 vecBuf1 = new dataType[PDiag.nlocmax_];
 //                 break;
 //             default:break;
@@ -211,10 +211,10 @@ int main(int argc, const char * argv[]) {
 //         cdouble* gstate = new cdouble[PDiag.nlocmax_];
 //         cdouble* vecBuf;
 //         switch(PARTITION){
-//             case ROW_PARTITION:
+//             case ROW:
 //                 vecBuf = new cdouble[PDiag.ntot_];
 //                 break;
-//             case COL_PARTITION:
+//             case BLK:
 //                 vecBuf = new cdouble[PDiag.nlocmax_];
 //                 break;
 //             default:break;
