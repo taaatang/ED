@@ -30,34 +30,28 @@ enum class ORBITAL {SINGLE, Dx2y2, Dz2, Px, Py, Pzu, Pzd};
 std::ostream& operator<<(std::ostream& os, ORBITAL orb);
 
 /*
-   ***************************
-   *   Geometry Base Class   *
-   ***************************
+    Describe an orbital inside a unit site.
 */
 struct Orbital{
-    /*
-        Describe an orbital inside a unit site.
-    */
+    Orbital(ORBITAL orb_=ORBITAL::SINGLE, int orbid_=0, Vec3d coord_ = Vec3d{0.0, 0.0, 0.0}) : orbid(orbid_), orb(orb_), coord(coord_) { }
+
     int id; // 0 ~ Norb - 1
     int orbid; // 0 ~ unit cell size - 1
     int siteid; // 0 ~ Nsite -1
     ORBITAL orb;
     Vec3d coord;
-    Orbital(ORBITAL orb_=ORBITAL::SINGLE, int orbid_=0, Vec3d coord_=Vec3d{0.0, 0.0, 0.0}):orbid(orbid_),orb(orb_){
-        coord = coord_;
-    }
 };
-struct Site{
-    /*
+
+/*
      Describe a single unit site of a Lattice
      id holds the index of this site among all sites
      coord is the coordinate in the Lattice basis
      */
+struct Site{
+    Site(int id_, Vec3d coord_) : id(id_), coord(coord_) { }
+    
     int id; // 0 ~ Nsite-1
     Vec3d coord; // in unit of ax, ay; in x-y coordinates
-    Site(int id_, Vec3d coord_):id(id_){
-        coord = coord_;
-    }
 };
 
 enum LATTICE {CHAIN, SQUARE, TRIANGULAR};
