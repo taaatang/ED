@@ -151,65 +151,6 @@ bool Geometry::coordToOrbid(ORBITAL orb, const Vec3d &coord, int &orbid) const {
     return false;
 }
 
-void Geometry::orbOCC(VecI& vec, VecI& occ) const {
-    occ = VecI(getUnitCellSize(),0); 
-    for(int i = 0; i < getOrbNum(); ++i) {
-        if (vec[i]) occ.at(orbs.at(i).orbid) += 1;
-    }
-}
-
-void Geometry::orbOCC(VecI& vecu, VecI& vecd, VecI& occ) const {
-    occ = VecI(getUnitCellSize(),0);
-    for(int i = 0; i < getOrbNum(); ++i) {
-        if (vecu[i]) occ.at(orbs.at(i).orbid) += 1;
-        if (vecd[i]) occ.at(orbs.at(i).orbid) += 1;
-    }
-}
-
-void Geometry::orbOCC(VecI& vecu, VecI& vecd, VecI& occ, VecI& docc) const {
-    occ = VecI(getUnitCellSize(),0); 
-    docc = VecI(getUnitCellSize(),0);
-    for(int i = 0; i < getOrbNum(); ++i) {
-        if (vecu[i]) {
-            occ.at(orbs.at(i).orbid) += 1;
-            if (vecd[i]) docc.at(orbs.at(i).orbid) += 1;
-        }
-        if (vecd[i]) {
-            occ.at(orbs.at(i).orbid) += 1;
-        }
-    }
-}
-
-void Geometry::orbOCC(idx_t repI, VecI& occ) const {
-    occ = VecI(getUnitCellSize(),0); 
-    for(int i = 0; i < getOrbNum(); ++i) {
-        if(bitTest(repI,i)) {
-            occ.at(orbs.at(i).id) += 1;
-        }
-    }
-}
-void Geometry::orbOCC(pairIdx_t pairRepI, VecI& occ) const {
-    occ = VecI(getUnitCellSize(),0);
-    for(int i = 0; i < getOrbNum(); ++i) {
-        if (bitTest(pairRepI.first,i)) {
-            occ.at(orbs.at(i).orbid) += 1;
-        }
-        if (bitTest(pairRepI.second,i)) {
-            occ.at(orbs.at(i).orbid) += 1;
-        }
-    }
-}
-void Geometry::orbOCC(pairIdx_t pairRepI, VecI& occ, VecI& docc) const {
-    occ = VecI(getUnitCellSize(),0); docc = VecI(getUnitCellSize(),0);
-    for(int i = 0; i < getOrbNum(); ++i) {
-        if(bitTest(pairRepI.first,i)) {
-            occ.at(orbs.at(i).orbid) += 1;
-            if(bitTest(pairRepI.second,i))docc.at(orbs.at(i).orbid) += 1;
-        }
-        if(bitTest(pairRepI.second,i))occ.at(orbs.at(i).orbid) += 1;
-    }
-}
-
 /**
  * @brief check there is no same ORBITAL with same coordinates. 
  * This will ensure the search (ORBITAL, coord) --> id 

@@ -135,15 +135,6 @@ public:
 
     // a1-a2 coord -> orbid
     bool coordToOrbid(ORBITAL orb, const Vec3d &coord, int &orbid) const;
-    
-    // orbital occupancy count
-    void orbOCC(VecI &vec, VecI &occ) const; 
-    void orbOCC(VecI &vecu, VecI &vecd, VecI &occ) const; 
-    void orbOCC(VecI &vecu, VecI &vecd, VecI &occ, VecI &docc) const;
-    // binary rep
-    void orbOCC(idx_t repI, VecI &occ) const;
-    void orbOCC(pairIdx_t pairRepI, VecI &occ) const;
-    void orbOCC(pairIdx_t pairRepI, VecI &occ, VecI &docc) const;
 
     void printLattice() const;
     void printKLattice() const;
