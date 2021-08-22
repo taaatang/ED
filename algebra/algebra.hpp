@@ -1,3 +1,4 @@
+#pragma once
 //
 // algebra.hpp
 // ED
@@ -6,10 +7,6 @@
 //
 //
 
-#pragma once
-
-// #include <Eigen/Dense>
-// #include <Eigen/Eigenvalues>
 #include <vector>
 #include <cmath>
 #include <random>
