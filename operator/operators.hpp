@@ -333,7 +333,7 @@ bool Hamiltonian<T, B>::next( ) {
         auto A = pulse->getAa();
         for (int i = 1; i < (int)PeierlsOverlap.size(); ++i) {
             auto factor = std::exp(CPLX_I * A * PeierlsOverlap[i]);
-            std::cout << "A:" << A << ", overlap:" << PeierlsOverlap[i] << ", factor:" << factor << std::endl;
+            // std::cout << "A:" << A << ", overlap:" << PeierlsOverlap[i] << ", factor:" << factor << std::endl;
             auto idx = 2 * i - 1;
             this->setVal(idx, factor);
             this->setVal(idx + 1, std::conj(factor));
