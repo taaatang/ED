@@ -115,12 +115,6 @@ template<IsBasisType B>
 class NparticleOp: public OperatorBase<double, B> {
 public:
     NparticleOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = true, bool commuteWithPG = true);
-    
-    // template <typename T>
-    // friend void save(T *d_pt, int size, std::string filename, bool is_app);
-
-    // template <typename T>
-    // friend void save(T *d_pt, idx_t size, std::string filename, bool is_app);
 
     virtual void row(idx_t rowID, std::vector<MAP<double>>& rowMaps) = 0;
 
