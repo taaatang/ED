@@ -4,6 +4,7 @@
 #include <string>
 #include <optional>
 #include <algorithm>
+#include <concepts>
 
 #include "basisState.hpp"
 #include "geometry/geometry.hpp"
