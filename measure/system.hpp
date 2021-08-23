@@ -1,20 +1,20 @@
 #pragma once
 
 #include "measure/measure.hpp"
+#include "measure/config.hpp"
 
 /**
- * @brief struct containing lattice, current hilbert space basis and Hamiltonian
+ * @brief contain lattice, basis and Hamiltonian; parameters and data saving path
  * 
- * @tparam T double | cdouble, Hamiltonian matrix element data type
+ * @tparam T operator element type
+ * @tparam B basis type
  */
 template <typename T, IsBasisType B>
-struct System {
+class System {
 public:
     System(std::string inputDir, bool isMaster_);
 
 public:
-    void read(std::string inputDir);
-
     void construct( );
 
     void clear( );
@@ -24,10 +24,13 @@ public:
     bool measure(std::string key) const { return opt(measurePara, key); }
 
     template <typename U>
-    U getMpara(std::string key) const { return measurePara.get<U>(key).value(); }
+    U getMpara(std::string key) const { return measurePara.template get<U>(key).value(); }
 
     template <typename U>
-    U getPara(std::string key) const { return para.get<U>(key).value(); }
+    U getPara(std::string key) const { return para.template get<U>(key).value(); }
+
+private:
+    void read(std::string inputDir);
 
 public:
     bool isMaster;
@@ -40,6 +43,10 @@ public:
 
     std::unique_ptr<Hamiltonian<T, B>> H{nullptr};
 
+    std::unique_ptr<Basis<B>> bf{nullptr};
+
+    std::unique_ptr<Hamiltonian<T, B>> Hf{nullptr};
+
     bool isZeroTmp{true};
 
     int stateNum{0};
@@ -50,7 +57,13 @@ public:
 
     int krylovDim{0};
     
-    Parameters para, pulsePara, measurePara, pathPara;
+    Parameters para;
+
+    Parameters pulsePara;
+
+    Parameters measurePara;
+
+    Parameters pathPara;
 
     Path path;
 
@@ -96,14 +109,14 @@ void System<T, B>::read(std::string inputDir) {
  * 
  * @tparam T 
  */
-template<typename T, B>
+template<typename T, IsBasisType B>
 void System<T, B>::construct() {
     if (isConstructed) {
         return;
     }
     timer.tik();
     setbasis(para, basis, latt.get());
-    basis->construct(opt(para, "basis"), path.getBasisDir(B->getkIndex(), B->getPGIndex()));
+    basis->construct(opt(para, "basis"), path.getBasisDir(B->getKIdx, B->getPIdx()));
     timer.print("Basis construction");
     timer.tik();
     setham(para, H, latt.get(), B.get());
