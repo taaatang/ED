@@ -584,155 +584,151 @@ void Geometry::print() const {
     * Triangular Lattice *
     **********************
 */
-
-//constructor with T x D6 Symm
-TriAngLattice::TriAngLattice(int numSites, bool PBC){
-    type = LATTICE::TRIANGULAR;
-    PG = PointGroup::D6;
-    is_PBC = PBC;
-    Nsite = numSites;
-    name = "TriAng_D6_N"+std::to_string(Nsite);
-    ax = Vec3d {1.0, 0.0, 0.0};
-    ay = Vec3d {0.5, std::sqrt(3.0)/2.0, 0.0};
-    az = Vec3d {0.0, 0.0, 1.0};
-    bx = Vec3d {2*PI, -2*PI/std::sqrt(3.0), 0.0};
-    by = Vec3d {0.0, 4*PI/std::sqrt(3.0), 0.0};
-    bz = Vec3d {0.0, 0.0, 2*PI};
-    // unitSite.push_back(Orbital{0,0,VecD{0.0,0.0,0.0},ORBITAL::SINGLE});
-    switch(numSites){
-        case 9:{
-            R1 = 3.0 * a1 - 3.0 * a2;
-            R2 = 3.0 * a1 + 0.0 * a2;
-            b10 = 1.0/3.0 * b1 + 1.0/3.0 * b2;
-            b20 = 0.0 * b1 + 1.0/3.0 * b2;
-            xlist = VecD {+0, +1, -1, 0, 1, -1, 0, 1, -1};
-            ylist = VecD {-1, -1, +0, 0, 0, +1, 1, 1, +2};
-            kxlist = VecD {0.0, 1.0, -1.0, -1.0, 0.0, 1.0, +0.0, +1.0, +2.0};
-            kylist = VecD {0.0, 0.0, +0.0, +1.0, 1.0, 1.0, -1.0, -1.0, -1.0};
-            break;
-        }
-        case 12:{
-            R1 = 4.0 * a1 - 2.0 * a2;
-            R2 = 2.0 * a1 + 2.0 * a2;
-            b10 = 1.0/6.0 * b1 - 1.0/6.0 * b2;
-            b20 = 1.0/6.0 * b1 + 2.0/6.0 * b2;
-            xlist = VecD {+0, +1, +2, -1, 0, 1, 2, -1, 0, 1, -1, 0};
-            ylist = VecD {-1, -1, -1, +0, 0, 0, 0, +1, 1, 1, +2, 2};
-            kxlist = VecD {0.0, 1.0, -1.0, -1.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, -1.0, +0.0};
-            kylist = VecD {0.0, 0.0, +0.0, +1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, -1.0, -1.0};
-            break;
-        }
-        //TODO:fix 21-sites point group
-        case 21:{
-            R1 = 5.0 * a1 - 4.0 * a2;
-            R2 = 4.0 * a1 + 1.0 * a2;
-            b10 = 1.0/21.0 * b1 - 4.0/21.0 * b2;
-            b20 = 4.0/21.0 * b1 + 5.0/21.0 * b2;
-            xlist = VecD {+0, +1, +2, -1, +0, +1, +2, -2, -1, 0, 1, 2, -2, -1, 0, 1, -2, -1, 0, 1, -2};
-            ylist = VecD {-2, -2, -2, -1, -1, -1, -1, +0, +0, 0, 0, 0, +1, +1, 1, 1, +2, +2, 2, 2, +3};
-            kxlist = VecD {0.0, 1.0, 2.0, -2.0, -1.0, -1.0, 0.0, 1.0, 2.0, -1.0, 0.0, 1.0, 2.0, 2.0, -2.0, -1.0, +0.0, +1.0, -2.0, -1.0, +0.0};
-            kylist = VecD {0.0, 0.0, 0.0, +0.0, +0.0, +1.0, 1.0, 1.0, 1.0, +2.0, 2.0, 2.0, 2.0, 3.0, -1.0, -1.0, -1.0, -1.0, -2.0, -2.0, -2.0};
-            break;
-        }
-        case 27:{
-            R1 = 6.0 * a1 - 3.0 * a2;
-            R2 = 3.0 * a1 + 3.0 * a2;
-            b10 = 1.0/9.0 * b1 - 1.0/9.0 * b2;
-            b20 = 1.0/9.0 * b1 + 2.0/9.0 * b2;
-            xlist = VecD {+0, +1, +2, +3, -1, +0, +1, +2, +3, -2, -1, 0, 1, 2, 3, -2, -1, 0, 1, 2, -2, -1, 0, 1, -2, -1, 0};
-            ylist = VecD {-2, -2, -2, -2, -1, -1, -1, -1, -1, +0, +0, 0, 0, 0, 0, +1, +1, 1, 1, 1, +2, +2, 2, 2, +3, +3, 3};
-            kxlist = VecD {0.0, 1.0, 2.0, -2.0, -1.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, -1.0, 0.0, 1.0, 2.0, 3.0, 0.0, 1.0, 2.0, 3.0, -2.0, -1.0, +0.0, +1.0, -2.0, -1.0, +0.0};
-            kylist = VecD {0.0, 0.0, 0.0, +0.0, +0.0, +1.0, +1.0, 1.0, 1.0, 1.0, 1.0, +2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, -1.0, -1.0, -1.0, -1.0, -2.0, -2.0, -2.0};
-            break;
-        }
-        case 36:{
-            R1 = 6.0 * a1 - 0.0 * a2;
-            R2 = 0.0 * a1 + 6.0 * a2;
-            b10 = 1.0/6.0 * b1 + 0.0 * b2;
-            b20 = 0.0 * b1 + 1.0/6.0 * b2;
-            xlist = VecD {+0, +1, +2, -2, -1, +0, +1, +2, +3, -2, -1, +0, +1, +2, +3, -3, -2, -1, +0, +1, +2, -3, -2, -1, +0, +1, +2, -4, -3, -2, -1, 0, 1, -3, -2, -1};
-            ylist = VecD {-3, -3, -3, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, +0, +0 ,+0 ,+0, +0, +0, +1, +1, +1, +1, +1, +1, +2, +2, +2, +2, 2, 2, +3, +3, +3};
-            kxlist = VecD {0.0, 1.0, 2.0, 3.0, -2.0, -1.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 0.0, 1.0, 2.0, 3.0, 2.0, -3.0, -2.0, -1.0, +0.0, +1.0, +2.0, -3.0, -2.0, -1.0, +0.0, +1.0, -2.0, -1.0};
-            kylist = VecD {0.0, 0.0, 0.0, 0.0, +0.0, +0.0, +1.0, +1.0, 1.0, 1.0, 1.0, 1.0, +2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 4.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0, -2.0, -2.0, -2.0, -2.0, -3.0, -3.0};
-            break;
-        }
-        default: 
-            std::cout<<"N="<<Nsite<<" must be one of the values: 9, 12, 21, 27, 36!"<<std::endl;
-            exit(1);
-            break;
-    }
-    zlist.resize(Nsite,0.0);
-    kzlist.resize(Nsite,0.0);
-    Vec3d vtmp;
-    vtmp.fill(0.0);
-    TranVecs.push_back(vtmp);
-    if(is_PBC) {
-        VecD c1s {1.0, 0.0, -1.0, -1.0,  0.0,  1.0};
-        VecD c2s {0.0, 1.0,  1.0,  0.0, -1.0, -1.0};
-        for (int i = 0; i < (int)c1s.size(); ++i) {
-            vtmp = c1s.at(i) * R1 + c2s.at(i) * R2;
-            TranVecs.push_back(vtmp);
-        }
-    }
-    
-    // construct();
-};
-
-//constructor with T without D6 (possible C6?)
 TriAngLattice::TriAngLattice(int N1, int N2, bool PBC) {
     type = LATTICE::TRIANGULAR;
     // default PBC condition
     is_PBC = PBC;
-    Nsite = N1 * N2;
-    name = "TriAng"+std::to_string(N1)+"x"+std::to_string(N2);
+    //constructor with T x D6 Symm
+    if (N2 <= 0) {
+        type = LATTICE::TRIANGULAR;
+        PG = PointGroup::D6;
+        Nsite = N1;
+        name = "TriAng_D6_N"+std::to_string(Nsite);
+        ax = Vec3d {1.0, 0.0, 0.0};
+        ay = Vec3d {0.5, std::sqrt(3.0)/2.0, 0.0};
+        az = Vec3d {0.0, 0.0, 1.0};
+        bx = Vec3d {2*PI, -2*PI/std::sqrt(3.0), 0.0};
+        by = Vec3d {0.0, 4*PI/std::sqrt(3.0), 0.0};
+        bz = Vec3d {0.0, 0.0, 2*PI};
+        // unitSite.push_back(Orbital{0,0,VecD{0.0,0.0,0.0},ORBITAL::SINGLE});
+        switch (Nsite) {
+            case 9:{
+                R1 = 3.0 * a1 - 3.0 * a2;
+                R2 = 3.0 * a1 + 0.0 * a2;
+                b10 = 1.0/3.0 * b1 + 1.0/3.0 * b2;
+                b20 = 0.0 * b1 + 1.0/3.0 * b2;
+                xlist = VecD {+0, +1, -1, 0, 1, -1, 0, 1, -1};
+                ylist = VecD {-1, -1, +0, 0, 0, +1, 1, 1, +2};
+                kxlist = VecD {0.0, 1.0, -1.0, -1.0, 0.0, 1.0, +0.0, +1.0, +2.0};
+                kylist = VecD {0.0, 0.0, +0.0, +1.0, 1.0, 1.0, -1.0, -1.0, -1.0};
+                break;
+            }
+            case 12:{
+                R1 = 4.0 * a1 - 2.0 * a2;
+                R2 = 2.0 * a1 + 2.0 * a2;
+                b10 = 1.0/6.0 * b1 - 1.0/6.0 * b2;
+                b20 = 1.0/6.0 * b1 + 2.0/6.0 * b2;
+                xlist = VecD {+0, +1, +2, -1, 0, 1, 2, -1, 0, 1, -1, 0};
+                ylist = VecD {-1, -1, -1, +0, 0, 0, 0, +1, 1, 1, +2, 2};
+                kxlist = VecD {0.0, 1.0, -1.0, -1.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, -1.0, +0.0};
+                kylist = VecD {0.0, 0.0, +0.0, +1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, -1.0, -1.0};
+                break;
+            }
+            //TODO:fix 21-sites point group
+            case 21:{
+                R1 = 5.0 * a1 - 4.0 * a2;
+                R2 = 4.0 * a1 + 1.0 * a2;
+                b10 = 1.0/21.0 * b1 - 4.0/21.0 * b2;
+                b20 = 4.0/21.0 * b1 + 5.0/21.0 * b2;
+                xlist = VecD {+0, +1, +2, -1, +0, +1, +2, -2, -1, 0, 1, 2, -2, -1, 0, 1, -2, -1, 0, 1, -2};
+                ylist = VecD {-2, -2, -2, -1, -1, -1, -1, +0, +0, 0, 0, 0, +1, +1, 1, 1, +2, +2, 2, 2, +3};
+                kxlist = VecD {0.0, 1.0, 2.0, -2.0, -1.0, -1.0, 0.0, 1.0, 2.0, -1.0, 0.0, 1.0, 2.0, 2.0, -2.0, -1.0, +0.0, +1.0, -2.0, -1.0, +0.0};
+                kylist = VecD {0.0, 0.0, 0.0, +0.0, +0.0, +1.0, 1.0, 1.0, 1.0, +2.0, 2.0, 2.0, 2.0, 3.0, -1.0, -1.0, -1.0, -1.0, -2.0, -2.0, -2.0};
+                break;
+            }
+            case 27:{
+                R1 = 6.0 * a1 - 3.0 * a2;
+                R2 = 3.0 * a1 + 3.0 * a2;
+                b10 = 1.0/9.0 * b1 - 1.0/9.0 * b2;
+                b20 = 1.0/9.0 * b1 + 2.0/9.0 * b2;
+                xlist = VecD {+0, +1, +2, +3, -1, +0, +1, +2, +3, -2, -1, 0, 1, 2, 3, -2, -1, 0, 1, 2, -2, -1, 0, 1, -2, -1, 0};
+                ylist = VecD {-2, -2, -2, -2, -1, -1, -1, -1, -1, +0, +0, 0, 0, 0, 0, +1, +1, 1, 1, 1, +2, +2, 2, 2, +3, +3, 3};
+                kxlist = VecD {0.0, 1.0, 2.0, -2.0, -1.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, -1.0, 0.0, 1.0, 2.0, 3.0, 0.0, 1.0, 2.0, 3.0, -2.0, -1.0, +0.0, +1.0, -2.0, -1.0, +0.0};
+                kylist = VecD {0.0, 0.0, 0.0, +0.0, +0.0, +1.0, +1.0, 1.0, 1.0, 1.0, 1.0, +2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, -1.0, -1.0, -1.0, -1.0, -2.0, -2.0, -2.0};
+                break;
+            }
+            case 36:{
+                R1 = 6.0 * a1 - 0.0 * a2;
+                R2 = 0.0 * a1 + 6.0 * a2;
+                b10 = 1.0/6.0 * b1 + 0.0 * b2;
+                b20 = 0.0 * b1 + 1.0/6.0 * b2;
+                xlist = VecD {+0, +1, +2, -2, -1, +0, +1, +2, +3, -2, -1, +0, +1, +2, +3, -3, -2, -1, +0, +1, +2, -3, -2, -1, +0, +1, +2, -4, -3, -2, -1, 0, 1, -3, -2, -1};
+                ylist = VecD {-3, -3, -3, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, +0, +0 ,+0 ,+0, +0, +0, +1, +1, +1, +1, +1, +1, +2, +2, +2, +2, 2, 2, +3, +3, +3};
+                kxlist = VecD {0.0, 1.0, 2.0, 3.0, -2.0, -1.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 0.0, 1.0, 2.0, 3.0, 2.0, -3.0, -2.0, -1.0, +0.0, +1.0, +2.0, -3.0, -2.0, -1.0, +0.0, +1.0, -2.0, -1.0};
+                kylist = VecD {0.0, 0.0, 0.0, 0.0, +0.0, +0.0, +1.0, +1.0, 1.0, 1.0, 1.0, 1.0, +2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 4.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0, -2.0, -2.0, -2.0, -2.0, -3.0, -3.0};
+                break;
+            }
+            default: 
+                std::cout<<"N="<<Nsite<<" must be one of the values: 9, 12, 21, 27, 36!"<<std::endl;
+                exit(1);
+                break;
+        }
+        zlist.resize(Nsite,0.0);
+        kzlist.resize(Nsite,0.0);
+        Vec3d vtmp;
+        vtmp.fill(0.0);
+        TranVecs.push_back(vtmp);
+        if(is_PBC) {
+            VecD c1s {1.0, 0.0, -1.0, -1.0,  0.0,  1.0};
+            VecD c2s {0.0, 1.0,  1.0,  0.0, -1.0, -1.0};
+            for (int i = 0; i < (int)c1s.size(); ++i) {
+                vtmp = c1s.at(i) * R1 + c2s.at(i) * R2;
+                TranVecs.push_back(vtmp);
+            }
+        }
+    } else {
+        //constructor with T without D6 (possible C6?)
+        Nsite = N1 * N2;
+        name = "TriAng"+std::to_string(N1)+"x"+std::to_string(N2);
 
-    ax = Vec3d {1.0, 0.0, 0.0};
-    ay = Vec3d {0.5, std::sqrt(3.0)/2.0, 0.0};
-    az = Vec3d {0.0, 0.0, 1.0};
-    bx = Vec3d {2*PI, -2*PI/std::sqrt(3.0), 0.0};
-    by = Vec3d {0.0, 4*PI/std::sqrt(3.0), 0.0};
-    bz = Vec3d {0.0, 0.0, 2*PI};
-    
-    // unitSite.push_back(Orbital{0,0,VecD{0.0,0.0,0.0},ORBITAL::SINGLE});
+        ax = Vec3d {1.0, 0.0, 0.0};
+        ay = Vec3d {0.5, std::sqrt(3.0)/2.0, 0.0};
+        az = Vec3d {0.0, 0.0, 1.0};
+        bx = Vec3d {2*PI, -2*PI/std::sqrt(3.0), 0.0};
+        by = Vec3d {0.0, 4*PI/std::sqrt(3.0), 0.0};
+        bz = Vec3d {0.0, 0.0, 2*PI};
+        
+        // unitSite.push_back(Orbital{0,0,VecD{0.0,0.0,0.0},ORBITAL::SINGLE});
 
-    R1 = (double)N1 * a1;
-    R2 = (double)N2 * a2;
-    b10 = 1.0/(double)N1 * b1;
-    b20 = 1.0/(double)N2 * b2;
-    for (int y = 0; y < N2; ++y) {
-        for (int x = 0; x < N1; ++x) {
-            xlist.push_back(x);
-            ylist.push_back(y);
-            kxlist.push_back(x);
-            kylist.push_back(y);
+        R1 = (double)N1 * a1;
+        R2 = (double)N2 * a2;
+        b10 = 1.0/(double)N1 * b1;
+        b20 = 1.0/(double)N2 * b2;
+        for (int y = 0; y < N2; ++y) {
+            for (int x = 0; x < N1; ++x) {
+                xlist.push_back(x);
+                ylist.push_back(y);
+                kxlist.push_back(x);
+                kylist.push_back(y);
+            }
         }
+        zlist.resize(Nsite,0.0);
+        kzlist.resize(Nsite,0.0);
+        Vec3d vtmp;
+        vtmp.fill(0.0);
+        TranVecs.push_back(vtmp);
+        if(is_PBC){
+            VecD c1s, c2s;
+            if (N1==1 and N2>1){
+                c1s = VecD{0.0,  0.0};
+                c2s = VecD{1.0, -1.0};
+            }
+            else if (N1>1 and N2==1){
+                c1s = VecD{1.0, -1.0};
+                c2s = VecD{0.0,  0.0};
+            }
+            else if (N1>1 and N2>1){
+                c1s = VecD{1.0, 1.0, 0.0, -1.0, -1.0, -1.0,  0.0,  1.0};
+                c2s = VecD{0.0, 1.0, 1.0,  1.0,  0.0, -1.0, -1.0, -1.0};
+            }
+            for (int i = 0; i < (int)c1s.size(); ++i) {
+                vtmp = c1s.at(i) * R1 + c2s.at(i) * R2;
+                TranVecs.push_back(vtmp);
+            }
+        }
+        
+        // construct();
     }
-    zlist.resize(Nsite,0.0);
-    kzlist.resize(Nsite,0.0);
-    Vec3d vtmp;
-    vtmp.fill(0.0);
-    TranVecs.push_back(vtmp);
-    if(is_PBC){
-        VecD c1s, c2s;
-        if (N1==1 and N2>1){
-            c1s = VecD{0.0,  0.0};
-            c2s = VecD{1.0, -1.0};
-        }
-        else if (N1>1 and N2==1){
-            c1s = VecD{1.0, -1.0};
-            c2s = VecD{0.0,  0.0};
-        }
-        else if (N1>1 and N2>1){
-            c1s = VecD{1.0, 1.0, 0.0, -1.0, -1.0, -1.0,  0.0,  1.0};
-            c2s = VecD{0.0, 1.0, 1.0,  1.0,  0.0, -1.0, -1.0, -1.0};
-        }
-        for (int i = 0; i < (int)c1s.size(); ++i) {
-            vtmp = c1s.at(i) * R1 + c2s.at(i) * R2;
-            TranVecs.push_back(vtmp);
-        }
-    }
-    
-    // construct();
 };
 
 
@@ -743,103 +739,101 @@ TriAngLattice::TriAngLattice(int N1, int N2, bool PBC) {
 */
 SquareLattice::SquareLattice(int N1, int N2, bool PBC, bool TBC, double phase_x, double phase_y){
     type = LATTICE::SQUARE;
-    if(N1==N2) {
+    is_PBC = PBC;
+    if (N2 <= 0) {
         PG = PointGroup::D4;
-        center = {double(N1-1)/2.0, double(N2-1)/2.0, 0.0};
-    }
-    is_PBC = PBC;
-    is_TBC = TBC;
-    phase = {phase_x, phase_y, 0.0};
-    dPhase = {phase_x/N1, phase_y/N2, 0.0};
-    Nsite = N1 * N2;
-    name = "Square"+std::to_string(N1)+"x"+std::to_string(N2);
-    ax = {1.0, 0.0, 0.0};
-    ay = {0.0, 1.0, 0.0};
-    az = {0.0, 0.0, 2.429/1.89};
-    bx = {2*PI, 0.0, 0.0};
-    by = {0.0, 2*PI, 0.0};
-    bz = {0.0, 0.0, 2*PI};
+        Nsite = N1;
+        name = "Square"+std::to_string(N1);
+        ax = {1.0, 0.0, 0.0};
+        ay = {0.0, 1.0, 0.0};
+        az = {0.0, 0.0, 2.429/1.89};
+        bx = {2*PI, 0.0, 0.0};
+        by = {0.0, 2*PI, 0.0};
+        bz = {0.0, 0.0, 2*PI};
 
-    R1 = (double)N1 * a1;
-    R2 = (double)N2 * a2;
-    b10 = 1.0/(double)N1 * b1;
-    b20 = 1.0/(double)N2 * b2;
-    for (int y = 0; y < N2; y++){
-        for (int x = 0; x < N1; x++){
-            xlist.push_back(x);
-            ylist.push_back(y);
-            kxlist.push_back(x);
-            kylist.push_back(y);
+        switch(Nsite){
+            case 8:{
+                R1 = 2.0 * a1 - 2.0 * a2;
+                R2 = 2.0 * a1 + 2.0 * a2;
+                b10 = 1.0/4.0 * b1 - 1.0/4.0 * b2;
+                b20 = 1.0/4.0 * b2 + 1.0/4.0 * b2;
+                xlist = VecD {+0, +1, +2, -1, +0, +1, +0, +1};
+                ylist = VecD {+0, +0, +0, +0, +1, +1, -1, -1};
+                kxlist = VecD {0.0, 1.0, -1.0, -1.0, 0.0, 1.0, +0.0, +0.0};
+                kylist = VecD {0.0, 0.0, +0.0, +1.0, 1.0, 1.0, +2.0, -1.0};
+                break;
+            }
+            default: 
+                std::cout << "N = " << Nsite << " must be one of the values: 8!\n";
+                exit(1);
+                break;
         }
-    }
-    zlist.resize(Nsite,0.0);
-    kzlist.resize(Nsite,0.0);
-    Vec3d vtmp;
-    vtmp.fill(0.0);
-    TranVecs.push_back(vtmp);
-    if(is_PBC){
-        VecD c1s, c2s;
-        if (N1==1 and N2>1){
-            c1s = VecD{0.0,  0.0};
-            c2s = VecD{1.0, -1.0};
+        zlist.resize(Nsite,0.0);
+        kzlist.resize(Nsite,0.0);
+        Vec3d vtmp;
+        vtmp.fill(0.0);
+        TranVecs.push_back(vtmp);
+        if(is_PBC){
+            auto c1s = VecD{1.0, 1.0, 0.0, -1.0, -1.0, -1.0,  0.0,  1.0};
+            auto c2s = VecD{0.0, 1.0, 1.0,  1.0,  0.0, -1.0, -1.0, -1.0};
+            for (int i = 0; i < (int)c1s.size(); ++i) {
+                vtmp = c1s.at(i) * R1 + c2s.at(i) * R2;
+                TranVecs.push_back(vtmp);
+            } 
         }
-        else if (N1>1 and N2==1){
-            c1s = VecD{1.0, -1.0};
-            c2s = VecD{0.0,  0.0};
+    } else {
+        if(N1 == N2) {
+            PG = PointGroup::D4;
+            center = {double(N1-1)/2.0, double(N2-1)/2.0, 0.0};
         }
-        else if (N1>1 and N2>1){
-            c1s = VecD{1.0, 1.0, 0.0, -1.0, -1.0, -1.0,  0.0,  1.0};
-            c2s = VecD{0.0, 1.0, 1.0,  1.0,  0.0, -1.0, -1.0, -1.0};
-        }    
-        for (int i = 0; i < (int)c1s.size(); ++i) {
-            vtmp = c1s.at(i) * R1 + c2s.at(i) * R2;
-            TranVecs.push_back(vtmp);
-        }
-    }
-}
+        is_TBC = TBC;
+        phase = {phase_x, phase_y, 0.0};
+        dPhase = {phase_x/N1, phase_y/N2, 0.0};
+        Nsite = N1 * N2;
+        name = "Square" + std::to_string(N1) + "x" + std::to_string(N2);
+        ax = {1.0, 0.0, 0.0};
+        ay = {0.0, 1.0, 0.0};
+        az = {0.0, 0.0, 2.429/1.89};
+        bx = {2*PI, 0.0, 0.0};
+        by = {0.0, 2*PI, 0.0};
+        bz = {0.0, 0.0, 2*PI};
 
-SquareLattice::SquareLattice(int N, bool PBC){
-    type = LATTICE::SQUARE;
-    PG = PointGroup::D4;
-    is_PBC = PBC;
-    Nsite = N;
-    name = "Square"+std::to_string(N);
-    ax = {1.0, 0.0, 0.0};
-    ay = {0.0, 1.0, 0.0};
-    az = {0.0, 0.0, 2.429/1.89};
-    bx = {2*PI, 0.0, 0.0};
-    by = {0.0, 2*PI, 0.0};
-    bz = {0.0, 0.0, 2*PI};
-
-    switch(Nsite){
-        case 8:{
-            R1 = 2.0 * a1 - 2.0 * a2;
-            R2 = 2.0 * a1 + 2.0 * a2;
-            b10 = 1.0/4.0 * b1 - 1.0/4.0 * b2;
-            b20 = 1.0/4.0 * b2 + 1.0/4.0 * b2;
-            xlist = VecD {+0, +1, +2, -1, +0, +1, +0, +1};
-            ylist = VecD {+0, +0, +0, +0, +1, +1, -1, -1};
-            kxlist = VecD {0.0, 1.0, -1.0, -1.0, 0.0, 1.0, +0.0, +0.0};
-            kylist = VecD {0.0, 0.0, +0.0, +1.0, 1.0, 1.0, +2.0, -1.0};
-            break;
+        R1 = (double)N1 * a1;
+        R2 = (double)N2 * a2;
+        b10 = 1.0/(double)N1 * b1;
+        b20 = 1.0/(double)N2 * b2;
+        for (int y = 0; y < N2; y++) {
+            for (int x = 0; x < N1; x++) {
+                xlist.push_back(x);
+                ylist.push_back(y);
+                kxlist.push_back(x);
+                kylist.push_back(y);
+            }
         }
-        default: 
-            std::cout<<"N="<<Nsite<<" must be one of the values: 8!\n";
-            exit(1);
-            break;
-    }
-    zlist.resize(Nsite,0.0);
-    kzlist.resize(Nsite,0.0);
-    Vec3d vtmp;
-    vtmp.fill(0.0);
-    TranVecs.push_back(vtmp);
-    if(is_PBC){
-        auto c1s = VecD{1.0, 1.0, 0.0, -1.0, -1.0, -1.0,  0.0,  1.0};
-        auto c2s = VecD{0.0, 1.0, 1.0,  1.0,  0.0, -1.0, -1.0, -1.0};
-        for (int i = 0; i < (int)c1s.size(); ++i) {
-            vtmp = c1s.at(i) * R1 + c2s.at(i) * R2;
-            TranVecs.push_back(vtmp);
-        } 
+        zlist.resize(Nsite,0.0);
+        kzlist.resize(Nsite,0.0);
+        Vec3d vtmp;
+        vtmp.fill(0.0);
+        TranVecs.push_back(vtmp);
+        if(is_PBC) {
+            VecD c1s, c2s;
+            if (N1==1 and N2>1) {
+                c1s = VecD{0.0,  0.0};
+                c2s = VecD{1.0, -1.0};
+            }
+            else if (N1>1 and N2==1) {
+                c1s = VecD{1.0, -1.0};
+                c2s = VecD{0.0,  0.0};
+            }
+            else if (N1>1 and N2>1) {
+                c1s = VecD{1.0, 1.0, 0.0, -1.0, -1.0, -1.0,  0.0,  1.0};
+                c2s = VecD{0.0, 1.0, 1.0,  1.0,  0.0, -1.0, -1.0, -1.0};
+            }    
+            for (int i = 0; i < (int)c1s.size(); ++i) {
+                vtmp = c1s.at(i) * R1 + c2s.at(i) * R2;
+                TranVecs.push_back(vtmp);
+            }
+        }
     }
 }
 
