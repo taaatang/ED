@@ -73,7 +73,7 @@ System<T, B>::System(std::string inputDir, bool isMaster_): isMaster(isMaster_),
     auto krylovOpt = measurePara.template get<int>("krylovDim", REQUIRED::NO);
     krylovDim = krylovOpt.value_or(400);
     setlatt(para, latt);
-    //!FIXME: Sparse Matrix setDm init diagValist with B->locDim. Error: 1.B not constructed, locDim is totDim; 2. B constructed, locDim is subDim, not H.locDim.
+    //FIXME: Sparse Matrix setDm init diagValist with B->locDim. Error: 1.B not constructed, locDim is totDim; 2. B constructed, locDim is subDim, not H.locDim.
     // setBasics(para, latt, B, H);
 }
 
