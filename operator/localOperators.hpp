@@ -3,6 +3,7 @@
 // Created by tatang on 8/3/21.
 //
 
+#include <concepts>
 #include <optional>
 #include "basis/basis.hpp"
 #include "utils/bitop.hpp"
@@ -21,6 +22,11 @@ struct BasisVal {
 
 template<typename T, IsBasisType B>
 using BVopt = std::optional<BasisVal<T, B>>;
+
+template<typename localOp, typename data_t, typename B>
+concept LocalOp = requires(localOp op, int i) {
+    { op(i) * BVopt<data_t, B>(B()) } -> std::same_as<BVopt<data_t, B>>;
+};
 
 template<SPIN S>
 struct CPlus {
