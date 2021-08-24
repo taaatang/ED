@@ -52,6 +52,7 @@ int main(int argc, char *argv[]) {
     double Upp = *para.template get<double>("Upp");
     double wd = *para.template get<double>("wd");
     double wp = *para.template get<double>("wp");
+    double wdwp = std::sqrt(wd * wp) / 2.0;
     double gd = *para.template get<double>("gd");
     double gp = *para.template get<double>("gp");
     int specKD = *measurePara.template get<int>("spectraKrylovDim");
@@ -65,13 +66,14 @@ int main(int argc, char *argv[]) {
     Basis<Basis_t> b(&latt, nu, nd, maxPhPerSite, kidx, pidx);
     b.construct();
     b.print();
-    
     Hamiltonian<dataType, Basis_t> H(&latt, &b, &b, true, true, 1, 1);
     Link<dataType> tCuPx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px},    -tdp, {{0.5, 0.0, 0.0}});
     Link<dataType> tPxCu(LINK_TYPE::HOPPING_T, {ORBITAL::Px,    ORBITAL::Dx2y2},  tdp, {{0.5, 0.0, 0.0}});
+    Link<dataType> kCuPx(LINK_TYPE::XiXj,      {ORBITAL::Dx2y2, ORBITAL::Px},    wdwp, {{0.5, 0.0, 0.0}});
+    Link<dataType> kPxCu(LINK_TYPE::XiXj,      {ORBITAL::Px,    ORBITAL::Dx2y2}, wdwp, {{0.5, 0.0, 0.0}});
     Link<dataType> gCu(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Dx2y2, ORBITAL::Dx2y2}, gd, {{0.0, 0.0, 0.0}});
     Link<dataType> gPx(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Px, ORBITAL::Px}, gp, {{0.0, 0.0, 0.0}});
-    H.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
+    H.pushLinks({tCuPx, tPxCu, gCu, gPx, kCuPx, kPxCu}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
     // H.printTrInteractions();
     H.print("Hamiltonian info");
     H.diag();
@@ -155,7 +157,7 @@ int main(int argc, char *argv[]) {
         H.construct();
         TimeEvolver<dataType> Tevol(H.getEvec(), &H, timeKD);
         MPI_Barrier(MPI_COMM_WORLD);
-        ProgressBar bar(pulse.getStepNum(), 20, isMaster);
+        ProgressBar bar("pump", pulse.getStepNum(), 20, isMaster);
         timer.tik();
         while (H.next()) {
             Tevol.evolve(pulse.getdt());

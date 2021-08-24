@@ -15,7 +15,7 @@
 
 class ProgressBar {
 public:
-	ProgressBar(uint32_t tot, uint32_t segCount, bool allow = true) : total(tot), segmentCount(segCount), segmentLength(tot / segCount), allowPrint(allow) { 
+	ProgressBar(const std::string& taskName, uint32_t tot, uint32_t segCount, bool allow = true) : task(taskName), total(tot), segmentCount(segCount), segmentLength(tot / segCount), allowPrint(allow) { 
 		init();
 	}
 
@@ -28,7 +28,7 @@ public:
 				}
 			} else {
 				if (!finished) {
-					std::cout << "\nFinished!\n" << std::flush;
+					std::cout << '\n' << task << " finished!\n" << std::flush;
 					finished = true;
 				}
 			}
@@ -38,12 +38,14 @@ public:
 private:
 	void init() {
 		if (allowPrint) {
+			std::cout << "Task Name : " << task << std::endl;
 			std::cout << "Total Work: " << std::string(segmentCount, '<') << std::endl;
 			std::cout << "Progress  : "<<std::flush;
 		}
 	}
 
 private:
+	std::string task;
 	uint32_t total;
 	uint32_t segmentCount;
 	uint32_t segmentLength;
