@@ -114,11 +114,11 @@ protected:
     // Hubbard terms
     std::vector<Link<T>> hoppingT, interBandU, exchangeJ, pairHoppingJ;
 
-    std::vector<Link<T>> nelSitePh, nelBondPh, hopBondPh;
+    std::vector<Link<T>> nelSitePh, nelBondPh, hopBondPh, xixj;
 
     std::vector<TrInteractions<T,2>> trHoppingT, trInterBandU, trExchangeJ, trPairHoppingJ;
 
-    std::vector<TrInteractions<T,2>> trNelSitePh, trNelBondPh, trHopBondPh;
+    std::vector<TrInteractions<T,2>> trNelSitePh, trNelBondPh, trHopBondPh, trXixj;
 };
 
 template<typename T, IsBasisType B>
@@ -151,6 +151,9 @@ OperatorBase<T, B>& OperatorBase<T, B>::pushLink(Link<T> link, int matID){
                 break;
             case LINK_TYPE::PAIR_HOPPING_J:
                 pairHoppingJ.push_back(link);
+                break;
+            case LINK_TYPE::XiXj:
+                xixj.push_back(link);
                 break;
             case LINK_TYPE::NCHARGE_SITE_PHONON:
                 nelSitePh.push_back(link);
@@ -367,6 +370,7 @@ OperatorBase<T, B>& OperatorBase<T, B>::transform() {
     }
     if constexpr (ContainCharge<B> && ContainPhonon<B>) {
         assignTrInteractions<T, 2>(Gi, Gf, allTr, nelSitePh, trNelSitePh, 'n');
+        assignTrInteractions<T, 2>(Gi, Gf, allTr, xixj, trXixj, 'n');
     }
     return *this;
 }
