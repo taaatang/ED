@@ -9,7 +9,24 @@
  * @brief Interaction Type
  * 
  */
-enum class LINK_TYPE {SZ, N, NUND, SUPER_EXCHANGE_J, CHIRAL_K, HOPPING_T, CHARGE_TRANSFER_V, HUBBARD_U, EXCHANGE_J, PAIR_HOPPING_J, PHONON_W0, NCHARGE_SITE_PHONON, NCHARGE_BOND_PHONON, HOPPING_BOND_PHONON};
+enum class LINK_TYPE {
+    NONE, // unspecified
+    SZ, 
+    N, // nu + nd
+    NUND, // nu * nd
+    SUPER_EXCHANGE_J, // J * si * sj 
+    CHIRAL_K, // Jk * si * (sj x sk)
+    HOPPING_T, // t * ci dagger * cj + h.c.
+    CHARGE_TRANSFER_V, // V * (nu + nd)
+    HUBBARD_U, // U * nu * nd
+    EXCHANGE_J, 
+    PAIR_HOPPING_J, 
+    PHONON_W0, // w0 * a dagger * a
+    XiXj, // coupling of phonons
+    NCHARGE_SITE_PHONON, // gij * ni * Xj
+    NCHARGE_BOND_PHONON, // gij * (ni - nj) * Xij
+    HOPPING_BOND_PHONON // gij * ci dagger * cj * Xij
+};
 
 template <class T>
 class Link{
