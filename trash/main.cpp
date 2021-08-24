@@ -118,7 +118,7 @@ int main(int argc, const char * argv[]) {
         std::chrono::duration<double> elapsed_seconds = toc - tic;    
     //     TriAngHeis.saveAll(dataDir);
 
-       std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<TriAngHeis.endRow - TriAngHeis.startRow<<"/"<<TriAngHeis.dim<<". Construction time:"<<elapsed_seconds.count()*1000<<" milliseconds."<<std::endl;
+       std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<TriAngHeis.endRow - TriAngHeis.startRow<<"/"<<TriAngHeis.dim<<". Construction time:"<<elapsed_seconds.count()*1000<<" seconds."<<std::endl;
         
         MPI_Barrier(MPI_COMM_WORLD);
 
@@ -141,7 +141,7 @@ int main(int argc, const char * argv[]) {
 
         toc = std::chrono::system_clock::now();
         elapsed_seconds = toc - tic;
-        if (workerID==MPI_MASTER) std::cout<<"INFO:"<<PDiag.info_<<". Total iteration:"<<PDiag.iparam_[2]<<". Total time:"<<elapsed_seconds.count()*1000<<" milliseconds"<<std::endl;
+        if (workerID==MPI_MASTER) std::cout<<"INFO:"<<PDiag.info_<<". Total iteration:"<<PDiag.iparam_[2]<<". Total time:"<<elapsed_seconds.count()*1000<<" seconds"<<std::endl;
 
         if (workerID==MPI_MASTER) std::cout<<"Begin post processing..."<<std::endl;
 
@@ -149,7 +149,7 @@ int main(int argc, const char * argv[]) {
 
         toc = std::chrono::system_clock::now();
         elapsed_seconds = toc - tic;
-        if (workerID==MPI_MASTER) std::cout<<"INFO:"<<PDiag.info_<<". Total ev found:"<<PDiag.iparam_[4]<<". Total time:"<<elapsed_seconds.count()*1000<<" milliseconds"<<std::endl;
+        if (workerID==MPI_MASTER) std::cout<<"INFO:"<<PDiag.info_<<". Total ev found:"<<PDiag.iparam_[4]<<". Total time:"<<elapsed_seconds.count()*1000<<" seconds"<<std::endl;
         if (workerID==MPI_MASTER) {
             std::cout<<"Eigenvalues: ";
             for (int i = 0; i < nev; ++i) std::cout<<PDiag.d_pt[i]<<", ";
@@ -199,7 +199,7 @@ int main(int argc, const char * argv[]) {
 //         delete [] vecTmp1;
 //         toc = std::chrono::system_clock::now();
 //         elapsed_seconds = toc - tic;    
-//         if (workerID==MPI_MASTER) std::cout<<"SS time:"<<elapsed_seconds.count()*1000<<" milliseconds."<<std::endl;
+//         if (workerID==MPI_MASTER) std::cout<<"SS time:"<<elapsed_seconds.count()*1000<<" seconds."<<std::endl;
 
     /*
         *******************************
@@ -261,7 +261,7 @@ int main(int argc, const char * argv[]) {
 //         delete [] vecTmp;
 //         toc = std::chrono::system_clock::now();
 //         elapsed_seconds = toc - tic;    
-//         if (workerID==MPI_MASTER) std::cout<<"Sqw time:"<<elapsed_seconds.count()*1000<<" milliseconds."<<std::endl;
+//         if (workerID==MPI_MASTER) std::cout<<"Sqw time:"<<elapsed_seconds.count()*1000<<" seconds."<<std::endl;
 //         MPI_Barrier(MPI_COMM_WORLD);
         }
         if (workerID==MPI_MASTER) std::cout<<"Total Dim:"<<B.totDim<<". Sum of subspece dim:"<<totDim<<std::endl;

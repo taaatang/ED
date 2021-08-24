@@ -98,7 +98,7 @@ int main(int argc, const char * argv[]) {
         B.construct();
     }
     timer.tok();
-    if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
+    if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" seconds."<<std::endl;
     fullDim = B.getTotDim(); totDim += B.getSubDim();
     if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kInd ="<<kIndex<<", size="<<B.getLocDim()<<"/"<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl; 
     
@@ -215,7 +215,7 @@ int main(int argc, const char * argv[]) {
         //         spectra.saveData(dataPath);
         //     } 
         //     timer.tok();
-        //     if (workerID==MPI_MASTER) std::cout<<"Spectar time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+        //     if (workerID==MPI_MASTER) std::cout<<"Spectar time:"<<timer.elapse()<<" seconds."<<std::endl<<std::endl;
         // }
     // }
 

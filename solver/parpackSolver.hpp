@@ -196,7 +196,7 @@ void PARPACKSolver<T>::diag( ) {
     run();
     timer.tok();
     if (ismaster) {
-        std::cout << "INFO:" << info_ << ". Total iteration:" << iparam_[2] << ". Total time:" << timer.elapse() << " milliseconds.\n";
+        std::cout << "INFO:" << info_ << ". Total iteration:" << iparam_[2] << ". Total time:" << timer.elapse() << " seconds.\n";
     }
 
     if (ismaster) std::cout<<"Begin post processing...\n";
@@ -204,7 +204,7 @@ void PARPACKSolver<T>::diag( ) {
     postRun();
     timer.tok();
     if (ismaster) {
-        std::cout << "INFO:" << info_ << ". Total ev found:" << iparam_[4] << ". post processing time:" <<timer.elapse() << " milliseconds." << std::endl;
+        std::cout << "INFO:" << info_ << ". Total ev found:" << iparam_[4] << ". post processing time:" <<timer.elapse() << " seconds." << std::endl;
     }
     if (ismaster) {
         printLine(25);
@@ -225,14 +225,14 @@ void PARPACKSolver<T>::diag(double spin, BaseMatrix<T>* P){
     run(spin, P);
     timer.tok();
     if (ismaster) {
-        std::cout<<"INFO:"<<info_<<". Total iteration:"<<iparam_[2]<<". Total time:"<<timer.elapse()<<" milliseconds\n";
+        std::cout<<"INFO:"<<info_<<". Total iteration:"<<iparam_[2]<<". Total time:"<<timer.elapse()<<" seconds\n";
     }
     if (ismaster) std::cout<<"Begin post processing..."<<std::endl;
     timer.tik();
     postRun();
     timer.tok();
     if (ismaster) {
-        std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" milliseconds\n";
+        std::cout<<"INFO:"<<info_<<". Total ev found:"<<iparam_[4]<<". post processing time:"<<timer.elapse()<<" seconds\n";
     }
     // if (ismaster) {
     //     std::cout << "Eigenvalues: ";

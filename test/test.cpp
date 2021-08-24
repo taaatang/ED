@@ -14,12 +14,11 @@
 using Basis_t = ElectronPhononBasis;
 
 int main(int argc, char *argv[]) {
-    std::string dataDir = "/Volumes/Sandisk/ProjectData/dmrg/benchmark/ED";
     int workerID{0};
     int workerNum{1};
     bool isMaster;
     init(workerID, workerNum, isMaster);
-    Timer timer(isMaster);
+    Timer timer(true);
     if (isMaster) {
         mkdir_fs("out");
     }
@@ -65,7 +64,7 @@ int main(int argc, char *argv[]) {
 
     Basis<Basis_t> b(&latt, nu, nd, maxPhPerSite, kidx, pidx);
     b.construct();
-    if (isMaster) b.print();
+    b.print();
     
     Hamiltonian<dataType, Basis_t> H(&latt, &b, &b, true, true, 1, 1);
     Link<dataType> tCuPx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px},    -tdp, {{0.5, 0.0, 0.0}});
@@ -73,22 +72,20 @@ int main(int argc, char *argv[]) {
     Link<dataType> gCu(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Dx2y2, ORBITAL::Dx2y2}, gd, {{0.0, 0.0, 0.0}});
     Link<dataType> gPx(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Px, ORBITAL::Px}, gp, {{0.0, 0.0, 0.0}});
     H.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
-    if (isMaster) {
-        // H.printTrInteractions();
-        H.print("Hamiltonian info");
-    }
+    // H.printTrInteractions();
+    H.print("Hamiltonian info");
     H.diag();
 //    std::cout << "eval: " << H.getEval() << std::endl;
 
     NelOp<Basis_t> nel(&latt, &b, &b);
     nel.construct();
     nel.count(H.getEvec());
-    if (isMaster) std::cout << "charge distribution: " << nel.lastCount() << std::endl;
+    std::cout << "charge distribution: " << nel.lastCount() << std::endl;
 
     NphOp<Basis_t> nph(&latt, &b, &b);
     nph.construct();
     nph.count(H.getEvec());
-    if (isMaster) std::cout << "phonon distribution: " << nph.lastCount() << std::endl;
+    std::cout << "phonon distribution: " << nph.lastCount() << std::endl;
 
     for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
         OpK<NCharge<SPIN::UP>, Basis_t> n(0, orb, &latt, &b, &b);

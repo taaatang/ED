@@ -80,7 +80,7 @@ int main(int argc, const char * argv[]){
         B.construct();
     }
     timer.tok();
-    if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
+    if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" seconds."<<std::endl;
     fullDim = B.getTotDim(); totDim += B.getSubDim();
     if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kInd ="<<kIndex<<", size="<<B.getLocDim()<<"/"<<B.getSubDim()<<"/"<<B.getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl; 
     /*
@@ -127,7 +127,7 @@ int main(int argc, const char * argv[]){
     #endif
     timer.tok();
     if(workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H.getnloc()<<"/"<<H.getDim()<<", Local Hamiltonian non-zero elements count:"<<H.nzCount()\
-        <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+        <<". Construction time:"<<timer.elapse()<<" seconds."<<std::endl;
 
     // std::ofstream outfile;
     // // data directory

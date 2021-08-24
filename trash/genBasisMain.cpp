@@ -75,7 +75,7 @@ int main(int argc, const char * argv[]) {
         Basis B(MODEL::HEISENBERG, &Lattice, occList, kIndex);
         B.construct();
         timer.tok();
-        std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+        std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", size="<<B.getSubDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" seconds."<<std::endl;
         B.save(basisfile, normfile);
 
         //Paralel Construction
@@ -83,7 +83,7 @@ int main(int argc, const char * argv[]) {
         // Basis B(MODEL::HUBBARD, &Lattice, occList, kIndex);
         // B.construct(workerID,workerNum);
         // timer.tok();
-        // std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", local size="<<B.getLocDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+        // std::cout<<"WorkerID:"<<workerID<<", kInd ="<<B.getkIndex()<<", local size="<<B.getLocDim()<<"/"<<B.getTotDim()<<". Basis construction time:"<<timer.elapse()<<" seconds."<<std::endl;
         // int msg = 1;
         // bool is_app = true;
         // if(workerID==0){
@@ -111,7 +111,7 @@ int main(int argc, const char * argv[]) {
         // toc = std::chrono::system_clock::now();
         // elapsed_seconds = toc - tic;
 
-        // std::cout<<"WorkerID:"<<workerID<<", kInd ="<<Bp.kIndex<<", size="<<Bp.subDim<<"/"<<Bp.totDim<<". Basis construction time:"<<elapsed_seconds.count()*1000<<" milliseconds."<<std::endl<<"Bp.kRepList size:"<<Bp.indexList.size()<<", Bp.norm size:"<<Bp.normList.size()<<std::endl;
+        // std::cout<<"WorkerID:"<<workerID<<", kInd ="<<Bp.kIndex<<", size="<<Bp.subDim<<"/"<<Bp.totDim<<". Basis construction time:"<<elapsed_seconds.count()*1000<<" seconds."<<std::endl<<"Bp.kRepList size:"<<Bp.indexList.size()<<", Bp.norm size:"<<Bp.normList.size()<<std::endl;
         // for (idx_t i = 0; i < B.subDim; ++i){
         //     if ((Bp.indexList.at(i)!=B.indexList.at(i)) or (Bp.normList.at(i)!=B.normList.at(i))){
         //         std::cout<<"workerID:"<<workerID<<", inconsistent data at i="<<i<<std::endl;

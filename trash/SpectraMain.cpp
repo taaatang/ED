@@ -87,7 +87,7 @@ int main(int argc, const char * argv[]) {
     else B->construct();
     timer.tok();
     if (workerID==MPI_MASTER) std::cout<<std::endl<<"**********************"<<std::endl<<"Begin subspace kIdx ="<<kIndex<<", PGidx = "<<PGRepIndex<<", size="<<B->getSubDim()<<"/"<<B->getTotDim()<<std::endl<<"*************************"<<std::endl<<std::endl;
-    if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" milliseconds."<<std::endl;
+    if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". k-subspace Basis constructed:"<<timer.elapse()<<" seconds."<<std::endl;
     
     // VecD J2s{0.0, 0.16, 0.3, 0.6};
     // VecD Jks{0.0, 0.2, 0.4, 0.8};
@@ -117,7 +117,7 @@ int main(int argc, const char * argv[]) {
     // delete B; // Bug! after delete B, H.MxV will use B 
     timer.tok();
     std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<H->getnloc()<<"/"<<H->getDim()<<", Local Hamiltonian non-zero elements count:"<<H->nzCount()\
-            <<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+            <<". Construction time:"<<timer.elapse()<<" seconds."<<std::endl;
 
 // for(int J2_num = 0; J2_num<101; J2_num++){
 //     J2 = dJ2 * J2_num;
@@ -187,7 +187,7 @@ int main(int argc, const char * argv[]) {
         // save ss(i)
         if (workerID==MPI_MASTER) save<cdouble>(ssvals.data(), Lattice.getUnitCellNum(), &outfile, dataDir + "/spinspin_k"+std::to_string(kIndex));
         timer.tok();
-        if (workerID==MPI_MASTER) std::cout<<"SS time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+        if (workerID==MPI_MASTER) std::cout<<"SS time:"<<timer.elapse()<<" seconds."<<std::endl;
     }
     
 
@@ -228,7 +228,7 @@ int main(int argc, const char * argv[]) {
 
             // Hp.setVal(1, J2);
             timer.tok();
-            if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.getnloc()<<"/"<<Hp.getDim()<<". Construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+            if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Local Hamiltonian dimension:"<<Hp.getnloc()<<"/"<<Hp.getDim()<<". Construction time:"<<timer.elapse()<<" seconds."<<std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
             for(auto idx : gs_idx){
                 cdouble w0 = ws[idx];
@@ -246,7 +246,7 @@ int main(int argc, const char * argv[]) {
             Hp.clearBuf();
 
             timer.tok();
-            if (workerID==MPI_MASTER) std::cout<<"Sqw time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+            if (workerID==MPI_MASTER) std::cout<<"Sqw time:"<<timer.elapse()<<" seconds."<<std::endl<<std::endl;
         }
     }
 /*
@@ -312,7 +312,7 @@ int main(int argc, const char * argv[]) {
         //     delete B;
 
         //     timer.tok();
-        //     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+        //     if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" seconds."<<std::endl;
         //     for(auto idx : gs_idx){
         //         cdouble w0 = ws[idx];
         //         dataType* state = PDiag.getEigvec(idx);
@@ -349,7 +349,7 @@ int main(int argc, const char * argv[]) {
                 delete B;
                 
                 timer.tok();
-                if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+                if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Raman Operator construction time:"<<timer.elapse()<<" seconds."<<std::endl;
                 for(auto idx : gs_idx){
                     cdouble w0 = ws[idx];
                     dataType* state = PDiag.getEigvec(idx);
@@ -367,7 +367,7 @@ int main(int argc, const char * argv[]) {
         }       
 
         timer.tok();
-        if (workerID==MPI_MASTER) std::cout<<"Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+        if (workerID==MPI_MASTER) std::cout<<"Raman time:"<<timer.elapse()<<" seconds."<<std::endl<<std::endl;
 
         
         // timer.tik();
@@ -376,7 +376,7 @@ int main(int argc, const char * argv[]) {
         // Rc.pushLinks({JkLink});
         // Rc.construct();
         // timer.tok();
-        // if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Chiral Raman Operator construction time:"<<timer.elapse()<<" milliseconds."<<std::endl;
+        // if (workerID==MPI_MASTER) std::cout<<"WorkerID:"<<workerID<<". Chiral Raman Operator construction time:"<<timer.elapse()<<" seconds."<<std::endl;
         // MPI_Barrier(MPI_COMM_WORLD);
         // SPECTRASolver<dataType> spectra(&H, w0[0], &Rc, gstate, H.getDim(), krylovDim);
         // spectra.compute();
@@ -386,7 +386,7 @@ int main(int argc, const char * argv[]) {
         //     spectra.saveData(dataPath);
         // }
         // timer.tok();
-        // if (workerID==MPI_MASTER) std::cout<<"Chiral Raman time:"<<timer.elapse()<<" milliseconds."<<std::endl<<std::endl;
+        // if (workerID==MPI_MASTER) std::cout<<"Chiral Raman time:"<<timer.elapse()<<" seconds."<<std::endl<<std::endl;
     }
     //     }
     // }

@@ -26,14 +26,14 @@ public:
 
     void tik( ) { tik_ = std::chrono::system_clock::now(); is_tok = false; }
     void tok( ) { tok_ = std::chrono::system_clock::now(); is_tok = true; }
-    // return duration in unit of ms
+    // return duration in unit of second
     double elapse( ) {
         if (!is_tok) tok();
         duration_ = tok_ - tik_;
         is_tok = false;
-        return duration_.count()*1000.0;
+        return duration_.count();
     }
     void print(std::string event, std::ostream& os = std::cout) {
-        if (talk) os << event << " time:" << elapse() << "ms." << std::endl;
+        if (talk) os << event << " time:" << elapse() << "s." << std::endl;
     }
 };
