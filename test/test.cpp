@@ -20,6 +20,11 @@ int main(int argc, char *argv[]) {
     bool isMaster;
     init(workerID, workerNum, isMaster);
     Timer timer(isMaster);
+    if (isMaster) {
+        mkdir_fs("out");
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    RedirectStdOut to("out/" + tostr(workerID) + ".out");
 
     assert_msg(argc > 1, "No inputDir!");
     std::string inputDir(argv[1]);
@@ -85,6 +90,24 @@ int main(int argc, char *argv[]) {
     nph.count(H.getEvec());
     if (isMaster) std::cout << "phonon distribution: " << nph.lastCount() << std::endl;
 
+    for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
+        OpK<NCharge<SPIN::UP>, Basis_t> n(0, orb, &latt, &b, &b);
+        n.construct();
+        auto val = n.vMv(H.getEvec(), H.getEvec());
+        if (isMaster) std::cout << orb << " " << SPIN::UP << " has " << val << " charge" << std::endl;
+    }
+    for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
+        OpK<NCharge<SPIN::DOWN>, Basis_t> n(0, orb, &latt, &b, &b);
+        n.construct();
+        auto val = n.vMv(H.getEvec(), H.getEvec());
+        if (isMaster) std::cout << orb << " " << SPIN::DOWN << " has " << val << " charge" << std::endl;
+    }
+    for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
+        OpK<NPhonon, Basis_t> n(0, orb, &latt, &b, &b);
+        n.construct();
+        auto val = n.vMv(H.getEvec(), H.getEvec());
+        if (isMaster) std::cout << orb << " " << " has " << val << " phonon" << std::endl;
+    }
     double time = 0.0;
     VecD timePoints{time};
 
@@ -92,9 +115,9 @@ int main(int argc, char *argv[]) {
         Current<Basis_t> jx("x", &latt, &b, &b);
         jx.pushLinks({tCuPx, tPxCu});
         jx.setDirection();
-        jx.printCurrLink();
+        // jx.printCurrLink();
         jx.transform();
-        jx.printTrInteractions();
+        // jx.printTrInteractions();
         jx.construct();
         // jx.print("x current");
         SPECTRASolver<cdouble> spectra(&H, H.getEval(), &jx, H.getEvec(), specKD);
@@ -130,8 +153,8 @@ int main(int argc, char *argv[]) {
         setpulse(pulsePara, pulse);
         H.setPeierls(&pulse);
         H.transform();
-        H.printPeierls();
-        H.printTrInteractions();
+        // H.printPeierls();
+        // H.printTrInteractions();
         H.construct();
         TimeEvolver<dataType> Tevol(H.getEvec(), &H, timeKD);
         MPI_Barrier(MPI_COMM_WORLD);

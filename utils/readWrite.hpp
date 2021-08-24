@@ -1,17 +1,27 @@
 #pragma once
 
+#include <cstdio>
 #include <fstream>
 #include <concepts>
 #include <filesystem>
 #include "global/typeAlias.hpp"
 #include "utils/runtimeCheck.hpp"
 
-inline void mkdir_fs(std::string dir){
+inline void mkdir_fs(const std::string &dir){
     std::filesystem::path p(dir);
     std::filesystem::create_directories(p);
     bool succeed = std::filesystem::is_directory(p);
     assert_msg(succeed, dir + " failed to creat!");
 }
+
+struct RedirectStdOut {
+    RedirectStdOut(const std::string &fileName) {
+        assert_msg(freopen(fileName.c_str(), "w", stdout) != nullptr, "failed to redirect stdout to " + fileName);
+    }
+    ~RedirectStdOut() { 
+        fclose(stdout);
+    }
+};
 
 template <typename data_t, std::integral index_t>
 inline void save(data_t *d_pt, index_t size, std::string filename, bool is_app = false, bool print = true){
