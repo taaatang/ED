@@ -7,6 +7,7 @@
 //
 
 #include <type_traits>
+#include <map>
 #include <climits>
 #include <omp.h>
 
@@ -22,8 +23,9 @@ enum MATRIX_PARTITION {ROW, BLK};
     inline constexpr MATRIX_PARTITION PARTITION = ROW;
 #endif
 
+//TODO: compare unordered_map vs map performance
 template<typename T>
-using MAP = std::unordered_map<idx_t, T>;
+using MAP = std::map<idx_t, T>;
 
 template <class T>
 class BaseMatrix{
@@ -145,7 +147,7 @@ public:
     // reserve memory for diagonal part
     void reserveDiag( ) { for(int i = 0; i < dmNum; ++i) diagValList.reserve(this->getnloc()); }
 
-    
+    bool checkHermicity(int mi, int mj);
 
     void MxV(T *vecIn, T *vecOut);
 
@@ -817,27 +819,88 @@ void SparseMatrix<T>::print(std::string info, std::ostream& os, bool brief) cons
     os<<info<<":\n";
     os<<"matrix local/tot dim: "<<this->getnloc()<<" / "<<this->getDim()<<".\n";
     os<<"non-zero elements count: "<<this->nzCount()<<".\n";
+    for (int i = 0; i < dmNum; ++i) {
+        os << "diag mat " << i << " elements count: " << diagValList.at(i).size() << std::endl;
+    }
+    for (int i = 0; i < spmNum; ++i) {
+        os << "off-diag mat " << i << " elements count: " << valList.at(i).size() << std::endl;
+    }
     std::cout<<"params: " << parameters << std::endl;
     if (!brief) {
-        for (const auto& val : rowInitList) {
-            std::cout << "rowInit: ";
-            for (auto el : val) {
-                std::cout << el << " ";
-            }
-            std::cout << std::endl;
-        }
-        for (const auto& val : colList) {
-            std::cout << "colidx: ";
-            for (auto el : val) {
-                std::cout << el << " ";
-            }
-            std::cout << std::endl;
-        }
-        for (const auto& val : valList) {
-            std::cout << "matrix element: " << val << std::endl;
-        }
         for (const auto& diag : diagValList) {
             std::cout << "diag element:" << diag << std::endl;
         }
+        // for (const auto& val : rowInitList) {
+        //     std::cout << "rowInit: ";
+        //     for (auto el : val) {
+        //         std::cout << el << " ";
+        //     }
+        //     std::cout << std::endl;
+        // }
+        // for (const auto& val : colList) {
+        //     std::cout << "colidx: ";
+        //     for (auto el : val) {
+        //         std::cout << el << " ";
+        //     }
+        //     std::cout << std::endl;
+        // }
+        // for (const auto& val : valList) {
+        //     std::cout << "matrix element: " << val << std::endl;
+        // }
+        for (int i = 0; i < spmNum; ++i) {
+            std::cout << "mat " << i << ":" << std::endl;
+            if (valList.at(i).empty()) {
+                std::cout << "  empty" << std::endl;
+                continue;
+            }
+            const auto &rowinit = rowInitList.at(i);
+            const auto &colidx = colList.at(i);
+            const auto &vals = valList.at(i);
+            std::cout << std::setprecision(2);
+            for (idx_t row = 0; row + 1 < rowinit.size(); ++row) {
+                std::cout << "row " << row << ": ";
+                idx_t colStart = rowinit.at(row);
+                idx_t colEnd = rowinit.at(row + 1);
+                for (idx_t colPos = colStart; colPos < colEnd; ++colPos) {
+                    idx_t col = colidx.at(colPos);
+                    std::cout << vals.at(colPos) << "@" << col << " ";
+                }
+                std::cout << std::endl;
+            }
+            std::cout << std::endl;
+        }
+
     }
+}
+
+// used to check hermicity when mpi workerNum = 1
+template <class T>
+bool SparseMatrix<T>::checkHermicity(int mi, int mj) {
+    assert_msg(this->workerNum == 1, "checkHermicity only defined for 1 mpi worker!");
+    auto si = valList.at(mi).size();
+    auto sj = valList.at(mj).size();
+    if (si != sj) {
+        std::cout << "non-Hermitian @ size mismatch " << si << " vs " << sj << std::endl;
+        return false;
+    }
+    for (idx_t rowid = 0; rowid + 1 < rowInitList.at(mi).size(); ++rowid) {
+        for (idx_t colpos = rowInitList.at(mi).at(rowid); colpos < rowInitList.at(mi).at(rowid + 1); ++colpos) {
+            idx_t colid = colList.at(mi).at(colpos);
+            T vi = valList.at(mi).at(colpos);
+            idx_t conjRowStart = rowInitList.at(mj).at(colid);
+            idx_t conjRowEnd = rowInitList.at(mj).at(colid + 1);
+            auto low = std::lower_bound(colList.at(mj).begin() + conjRowStart, colList.at(mj).begin() + conjRowEnd, rowid);
+            if (low == (colList.at(mj).begin() + conjRowEnd) || *low != rowid) {
+                std::cout << "non-Hermitian @ idx mismatch " << "[" << rowid << ", " << colid << "]" << " vs [" << colid << ", " << (low == (colList.at(mj).begin() + conjRowEnd) ? -1 : *low ) << "]" << std::endl;
+                return false; 
+            }
+            idx_t conjPos = low -  colList.at(mj).begin();
+            T vj = valList.at(mj).at(conjPos);
+            if (std::abs(std::conj(vi) - vj) > INFINITESIMAL) {
+                std::cout << "non-Hermitian @ value mismatch " << vi << " at [" << rowid << ", " << colid << "]" << " vs " << vj << " at [" << colid << ", " << *low << "]" << std::endl;
+                return false;
+            }
+        }
+    }
+    return true;
 }
