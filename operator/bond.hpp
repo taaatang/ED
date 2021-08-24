@@ -70,20 +70,24 @@ bool operator<(const Bond<T, N>& lhs, const Bond<T, N>& rhs) {
 
 template<typename T, size_t N>
 void normalOrder(Bond<T, N>& b) {
-	std::sort(b.sites.begin(), b.sites.end());
+	if (!b.isOrdered) {
+		std::sort(b.sites.begin(), b.sites.end());
+	}
 }
 
 template<typename T, size_t N>
 void cyclicOrder(Bond<T, N>& b) {
-	size_t i = 0;
-	for (size_t j = 1; j < N; ++j) {
-		if (b[j] < b[i]) {
-			i = j;
+	if (!b.isOrdered) {
+		size_t i = 0;
+		for (size_t j = 1; j < N; ++j) {
+			if (b[j] < b[i]) {
+				i = j;
+			}
 		}
+		std::array<int, N> sorted;
+		for (size_t j = 0; j < N; ++j) {
+			sorted[j] = b[(i + j) % N];
+		}
+		b.sites = sorted;
 	}
-	std::array<int, N> sorted;
-	for (size_t j = 0; j < N; ++j) {
-		sorted[j] = b[(i + j) % N];
-	}
-	b.sites = sorted;
 }

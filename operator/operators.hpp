@@ -409,8 +409,8 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                 cdouble phase_c = std::conj(phase);
                 // cp.siteI * cm.siteJ
                 this->pushElement( phase * val * (CPlus<SPIN::UP>(siteI) * (CMinus<SPIN::UP>(siteJ) * BVopt<T, B>(statei))),  &rowMaps[matID]);
-                this->pushElement( phase_c * val * (CPlus<SPIN::UP>(siteJ) * (CMinus<SPIN::UP>(siteI) * BVopt<T, B>(statei))),  &rowMaps[matIDp]);
                 this->pushElement( phase * val * (CPlus<SPIN::DOWN>(siteI) * (CMinus<SPIN::DOWN>(siteJ) * BVopt<T, B>(statei))),  &rowMaps[matID]);
+                this->pushElement( phase_c * val * (CPlus<SPIN::UP>(siteJ) * (CMinus<SPIN::UP>(siteI) * BVopt<T, B>(statei))),  &rowMaps[matIDp]);
                 this->pushElement( phase_c * val * (CPlus<SPIN::DOWN>(siteJ) * (CMinus<SPIN::DOWN>(siteI) * BVopt<T, B>(statei))),  &rowMaps[matIDp]);
             }
         }
@@ -711,6 +711,7 @@ void Current<B>::setDirection(Vec3d d) {
         dr = this->latt->RtoRxy(dr);
         auto overlap = dot(direction, dr);
         link.setVal(link.getVal() * overlap);
+        link.setOrdered(true);
     }
     std::erase_if(this->hoppingT, [](const auto& link) {
         std::cout << "link overlap: " <<  std::abs(link.getVal()) << std::endl;
