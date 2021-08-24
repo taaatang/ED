@@ -150,23 +150,6 @@ public:
     void row(idx_t rowID, std::vector<MAP<double>>& rowMaps);
 };
 
-template <class T, ContainCharge B>
-class CkOp: public OperatorBase<T, B> {
-public:
-    CkOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = false, bool commuteWithPG = false);
-
-    void set(LADDER pm, SPIN spin, Orbital orb);
-    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
-
-private:
-    LADDER pm;
-    SPIN spin;
-    Orbital orb;
-    int Ki, Kf;
-    std::vector<cdouble> expFactor;
-    VecI posList;
-};
-
 template<class T, IsPureSpin B>
 class RamanOp: public OperatorBase<T, B> {
 public:
@@ -202,6 +185,22 @@ private:
     std::vector<VecI> siteJList;
 };
 
+template<typename Op, IsBasisType B> requires LocalOp<Op, cdouble, B>
+class OpK : public OperatorBase<cdouble, B> {
+public:
+    OpK(int k, ORBITAL orb, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = false, bool commuteWithPG = false, int spmNum = 1, int dmNum = 0);
+    void row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps);
+
+private:
+    int k{-1};
+    int Ki;
+    int Kf;
+    ORBITAL orb;
+    std::vector<TrInteractions<cdouble, 1>> trLocOp;
+    std::vector<int> positions;
+    std::vector<cdouble> expFactor;
+};
+
 template <class T, ContainSpin B>
 class SzkOp: public OperatorBase<T, B> {
 public:
@@ -216,6 +215,23 @@ private:
     ORBITAL orb;
     std::vector<int> positions;
     std::vector<cdouble> expFactor;
+};
+
+template <class T, ContainCharge B>
+class CkOp: public OperatorBase<T, B> {
+public:
+    CkOp(Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = false, bool commuteWithPG = false);
+
+    void set(LADDER pm, SPIN spin, Orbital orb);
+    void row(idx_t rowID, std::vector<MAP<T>>& rowMaps);
+
+private:
+    LADDER pm;
+    SPIN spin;
+    Orbital orb;
+    int Ki, Kf;
+    std::vector<cdouble> expFactor;
+    VecI posList;
 };
 
 /*
@@ -477,24 +493,25 @@ void Hamiltonian<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                 }
             }
         }
-        // int matID = 0;
-        // MAP<T>* mapPtr = &rowMaps[matID];
-        // for (const auto& link : this->nelSitePh) {
-        //     T val = link.getVal() / nf;
-        //     for (const auto& bond : link.bond()) {
-        //         int siteI = bond.at(0);
-        //         int siteJ = bond.at(1);
-        //         // cp.siteI * cm.siteJ
-        //         if (auto statei = APlus(siteJ) * BVopt<T, B>(state); statei) {
-        //             this->pushElement( val * (NCharge<SPIN::UP>(siteI) * statei), mapPtr );
-        //             this->pushElement( val * (NCharge<SPIN::DOWN>(siteI) * statei),  mapPtr);
-        //         }
-        //         if (auto statei = AMinus(siteJ) * BVopt<T, B>(state); statei) {
-        //             this->pushElement( val * (NCharge<SPIN::UP>(siteI) * statei),  mapPtr );
-        //             this->pushElement( val * (NCharge<SPIN::DOWN>(siteI) * statei),  mapPtr );
-        //         }
-        //     }
-        // }
+        
+        for (const auto& trOp : this->trXixj) {
+            auto stateTr = state;
+            auto sgn = stateTr.transform(trOp.g);
+            for (const auto& bond : trOp.Op.bonds) {
+                MAP<T>* mapPtr = &rowMaps[bond.spmIdx];
+                auto val = sgn * bond.val / nf;
+                auto siteI = bond[0];
+                auto siteJ = bond[1];
+                if (auto statei = APlus(siteJ) * BVopt<T, B>(stateTr); statei) {
+                    this->pushElement( val * (APlus(siteI) * statei), mapPtr );
+                    this->pushElement( val * (AMinus(siteI) * statei),  mapPtr);
+                }
+                if (auto statei = AMinus(siteJ) * BVopt<T, B>(stateTr); statei) {
+                    this->pushElement( val * (APlus(siteI) * statei),  mapPtr );
+                    this->pushElement( val * (AMinus(siteI) * statei),  mapPtr );
+                }
+            }
+        }
     }
 }
 
@@ -871,6 +888,48 @@ void SSOp<T, B>::project(double s, T* vec){
             }
         }
     }
+}
+
+template<typename Op, IsBasisType B> requires LocalOp<Op, cdouble, B>
+OpK<Op, B>::OpK(int k_, ORBITAL orb_, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<cdouble, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum), k(k_), orb(orb_), expFactor(latt->getUnitCellNum()) {
+    // assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
+    positions = latt->getOrbPos(orb);
+    Ki = Bi->getKIdx();
+    Kf = Bf->getKIdx();
+    // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
+    Interactions<cdouble, 1> locOp{LINK_TYPE::NONE};
+    //!Fix: this is Szk^\dagger
+    if (Ki != -1 && Kf != -1) {
+        for (int i = 0; i < latt->getUnitCellNum(); ++i) {
+            expFactor[i] = latt->expKR(Ki, i) / latt->expKR(Kf, i) / cdouble(latt->getUnitCellNum());
+            locOp.add(Bond<cdouble,1>(expFactor[i], {positions.at(i)}));
+        }
+    } else {
+        for (int i = 0; i < latt->getUnitCellNum(); ++i) {
+            expFactor[i] = std::conj(latt->expKR(k, i) / cdouble(latt->getUnitCellNum()));
+            locOp.add(Bond<cdouble,1>(expFactor[i], {positions.at(i)}));
+        }
+    }
+    Generator<cdouble> Gi, Gf;
+    std::vector<Transform<cdouble>> allTr;
+    this->getGiGf(Gi, Gf, allTr);
+    assignTrInteractions<cdouble, 1>(Gi, Gf, allTr, {locOp}, trLocOp, 'n');
+}
+template<typename Op, IsBasisType B> requires LocalOp<Op, cdouble, B>
+void OpK<Op, B>::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps) {
+    #ifdef DISTRIBUTED_BASIS
+
+    #else
+        auto state = this->Bf->get(rowID);
+        auto nf = this->Bf->norm(rowID);
+        for (const auto& gLocOp : trLocOp) {
+            auto trState = state;
+            trState.transform(gLocOp.g);
+            for (const auto& bond : gLocOp.Op.bonds) {
+                this->pushElement(bond.val / nf * (Op(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+            }
+        }
+    #endif
 }
 
 template <class T, ContainSpin B>
