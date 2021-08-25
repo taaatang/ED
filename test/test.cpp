@@ -73,11 +73,13 @@ int main(int argc, char *argv[]) {
     Link<dataType> kPxCu(LINK_TYPE::XiXj,      {ORBITAL::Px,    ORBITAL::Dx2y2}, wdwp, {{0.5, 0.0, 0.0}});
     Link<dataType> gCu(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Dx2y2, ORBITAL::Dx2y2}, gd, {{0.0, 0.0, 0.0}});
     Link<dataType> gPx(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Px, ORBITAL::Px}, gp, {{0.0, 0.0, 0.0}});
+    timer.tik();
     H.pushLinks({tCuPx, tPxCu, gCu, gPx, kCuPx, kPxCu}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
+    // H.pushLinks({tCuPx, tPxCu}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).transform().construct();
+    timer.print("H construction");
     // H.printTrInteractions();
     H.print("Hamiltonian info");
     H.diag();
-//    std::cout << "eval: " << H.getEval() << std::endl;
 
     NelOp<Basis_t> nel(&latt, &b, &b);
     nel.construct();
@@ -89,24 +91,24 @@ int main(int argc, char *argv[]) {
     nph.count(H.getEvec());
     std::cout << "phonon distribution: " << nph.lastCount() << std::endl;
 
-    for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
-        OpK<NCharge<SPIN::UP>, Basis_t> n(0, orb, &latt, &b, &b);
-        n.construct();
-        auto val = n.vMv(H.getEvec(), H.getEvec());
-        if (isMaster) std::cout << orb << " " << SPIN::UP << " has " << val << " charge" << std::endl;
-    }
-    for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
-        OpK<NCharge<SPIN::DOWN>, Basis_t> n(0, orb, &latt, &b, &b);
-        n.construct();
-        auto val = n.vMv(H.getEvec(), H.getEvec());
-        if (isMaster) std::cout << orb << " " << SPIN::DOWN << " has " << val << " charge" << std::endl;
-    }
-    for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
-        OpK<NPhonon, Basis_t> n(0, orb, &latt, &b, &b);
-        n.construct();
-        auto val = n.vMv(H.getEvec(), H.getEvec());
-        if (isMaster) std::cout << orb << " " << " has " << val << " phonon" << std::endl;
-    }
+    // for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
+    //     OpK<NCharge<SPIN::UP>, Basis_t> n(0, orb, &latt, &b, &b);
+    //     n.construct();
+    //     auto val = n.vMv(H.getEvec(), H.getEvec());
+    //     if (isMaster) std::cout << orb << " " << SPIN::UP << " has " << val << " charge" << std::endl;
+    // }
+    // for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
+    //     OpK<NCharge<SPIN::DOWN>, Basis_t> n(0, orb, &latt, &b, &b);
+    //     n.construct();
+    //     auto val = n.vMv(H.getEvec(), H.getEvec());
+    //     if (isMaster) std::cout << orb << " " << SPIN::DOWN << " has " << val << " charge" << std::endl;
+    // }
+    // for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
+    //     OpK<NPhonon, Basis_t> n(0, orb, &latt, &b, &b);
+    //     n.construct();
+    //     auto val = n.vMv(H.getEvec(), H.getEvec());
+    //     if (isMaster) std::cout << orb << " " << " has " << val << " phonon" << std::endl;
+    // }
     double time = 0.0;
     VecD timePoints{time};
 
@@ -114,11 +116,9 @@ int main(int argc, char *argv[]) {
         Current<Basis_t> jx("x", &latt, &b, &b);
         jx.pushLinks({tCuPx, tPxCu});
         jx.setDirection();
-        // jx.printCurrLink();
         jx.transform();
-        // jx.printTrInteractions();
         jx.construct();
-        // jx.print("x current");
+        jx.print("x current");
         SPECTRASolver<cdouble> spectra(&H, H.getEval(), &jx, H.getEvec(), specKD);
         spectra.compute();
         if (isMaster) {
@@ -126,41 +126,70 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    ORBITAL orb = (*measurePara.template get<int>("skOrbId") == 0) ? ORBITAL::Dx2y2 : ORBITAL::Px;
-    std::string orbName = (orb == ORBITAL::Dx2y2) ? "Cu" : "Ox";
-    int kDyn = *measurePara.template get<int>("kDynamic");
-    int kf = (kidx == -1) ? -1 : (kidx + kDyn) % nSite;
-    Basis<Basis_t> bf(&latt, nu, nd, maxPhPerSite, kf, pidx);
-    bf.construct();
-    Hamiltonian<dataType, Basis_t> Hf(&latt, &bf, &bf, true, true, 1, 1);
-    Hf.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
-    SzkOp<dataType, Basis_t> szk(kDyn, orb, &latt, &b, &bf);
-    szk.transform();
-    szk.construct();
+    for (int kDyn = 0; kDyn < nSite; ++kDyn) {
+        ORBITAL orb = (*measurePara.template get<int>("skOrbId") == 0) ? ORBITAL::Dx2y2 : ORBITAL::Px;
+        std::string orbName = (orb == ORBITAL::Dx2y2) ? "Cu" : "Ox";
+        // int kDyn = *measurePara.template get<int>("kDynamic");
+        int kf = (kidx == -1) ? -1 : (kidx + kDyn) % nSite;
+        Basis<Basis_t> bf(&latt, nu, nd, maxPhPerSite, kf, pidx);
+        bf.construct();
+        Hamiltonian<dataType, Basis_t> Hf(&latt, &bf, &bf, true, true, 1, 1);
+        Hf.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
+        SzkOp<dataType, Basis_t> szk(kDyn, orb, &latt, &b, &bf);
+        szk.transform();
+        szk.construct();
 
-    double dt2 = *measurePara.template get<double>("dt2");
-    int steps2 = *measurePara.template get<int>("steps2");
-    if (opt(measurePara, "Skw")) {
-        SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &szk, H.getEvec(), 100);
-        spectra.compute();
-        if (isMaster) spectra.save(path.SkwDir + "/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
-        doubleTimeCorrelator(&szk, &H, &Hf, H.getEvec(), timeKD, dt2, steps2, path.SkwDir + "/" + orbName + "/time/k" + tostr(kDyn), isMaster);
+        double dt2 = *measurePara.template get<double>("dt2");
+        int steps2 = *measurePara.template get<int>("steps2");
+        if (opt(measurePara, "Skw")) {
+            SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &szk, H.getEvec(), 100);
+            spectra.compute();
+            if (isMaster) spectra.save(path.SkwDir + "/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
+            doubleTimeCorrelator(&szk, &H, &Hf, H.getEvec(), timeKD, dt2, steps2, path.SkwDir + "/" + orbName + "/time/k" + tostr(kDyn), isMaster);
+        }
     }
     
     if (opt(measurePara, "pump")) {
+        ORBITAL orb = (*measurePara.template get<int>("skOrbId") == 0) ? ORBITAL::Dx2y2 : ORBITAL::Px;
+        std::string orbName = (orb == ORBITAL::Dx2y2) ? "Cu" : "Ox";
+        int kDyn = *measurePara.template get<int>("kDynamic");
+        int kf = (kidx == -1) ? -1 : (kidx + kDyn) % nSite;
+        Basis<Basis_t> bf(&latt, nu, nd, maxPhPerSite, kf, pidx);
+        bf.construct();
+        Hamiltonian<dataType, Basis_t> Hf(&latt, &bf, &bf, true, true, 1, 1);
+        std::cout << "construc Hf" << std::endl;
+        Hf.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
+        SzkOp<dataType, Basis_t> szk(kDyn, orb, &latt, &b, &bf);
+        szk.transform();
+        szk.construct();
+        double dt2 = *measurePara.template get<double>("dt2");
+        int steps2 = *measurePara.template get<int>("steps2");
+
         Pulse pulse;
         setpulse(pulsePara, pulse);
+        pulse.profile();
         H.setPeierls(&pulse);
         H.transform();
         // H.printPeierls();
         // H.printTrInteractions();
         H.construct();
+
+        // if (H.checkHermicity(1, 2)) {
+        //     std::cout << "H is Hermitian!" << std::endl;
+        // } else {
+        //     std::cout << "H is not Hermitian!" << std::endl;
+        // }
+        H.print("H(t) info");
+
         TimeEvolver<dataType> Tevol(H.getEvec(), &H, timeKD);
         MPI_Barrier(MPI_COMM_WORLD);
         ProgressBar bar("pump", pulse.getStepNum(), 20, isMaster);
         timer.tik();
+        VecD waveNorms;
+        waveNorms.push_back(mpiNorm(Tevol.getVec(), H.getnloc()));
         while (H.next()) {
             Tevol.evolve(pulse.getdt());
+            waveNorms.push_back(mpiNorm(Tevol.getVec(), H.getnloc()));
             nel.count(Tevol.getVec());
             nph.count(Tevol.getVec());
             time += pulse.getdt();
@@ -169,25 +198,30 @@ int main(int argc, char *argv[]) {
         }
         timer.print("pump time evolution");
         H.turnOffPulse();
-
-        if (opt(measurePara, "neqSkw")) {
-            double dt1 = *measurePara.template get<double>("dt1");
-            int steps1 = *measurePara.template get<int>("steps1");
-            for (int i = 0; i < steps1; ++i) {
+        double dt1 = *measurePara.template get<double>("dt1");
+        int steps1 = *measurePara.template get<int>("steps1");
+        for (int i = 0; i < steps1; ++i) {
+            if (opt(measurePara, "neqOcc")) {
+                waveNorms.push_back(mpiNorm(Tevol.getVec(), H.getnloc()));
                 nel.count(Tevol.getVec());
                 nph.count(Tevol.getVec());
-                time += dt1;
-                timePoints.push_back(time);
+            }
+            if (opt(measurePara, "neqSkw")) {
                 timer.tik();
                 doubleTimeCorrelator(&szk, &H, &Hf, Tevol.getVec(), timeKD, dt2, steps2, path.NeqSkwDir + "/" + orbName + "/k" + tostr(kDyn) + "/t1_" + tostr(i), isMaster);
-                Tevol.evolve(dt1);
                 timer.print("szk(t1,t2)");
+                std::cout << std::endl;
             }
+            time += dt1;
+            timePoints.push_back(time);
+            Tevol.evolve(dt1);
         }
+    
         if (isMaster) {
             nel.save(path.NeqNelDir);
             nph.save(path.NeqNphDir);
-            save<double>(timePoints.data(), int(timePoints.size()), path.NeqNelDir + "/timePoints");
+            save<double>(timePoints.data(), timePoints.size(), path.NeqNelDir + "/timePoints");
+            save<double>(waveNorms.data(), waveNorms.size(), path.NeqNelDir + "/waveNorms");
         }
     }
     
