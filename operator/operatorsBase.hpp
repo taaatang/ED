@@ -396,8 +396,16 @@ void OperatorBase<T, B>::printTrInteractions() {
         }
     }
     if constexpr (ContainCharge<B> && ContainPhonon<B>) {
-        std::cout << "transformed Holstein term g * ni * ai + h.c. :" << std::endl;
+        std::cout << "transformed Holstein term g * ni * ai :" << std::endl;
         for (const auto& trOp : trNelSitePh) {
+            std::cout << trOp.g.factor << " * " << trOp.g.transformList << std::endl;
+            for (const auto& bond : trOp.Op.bonds) {
+                std::cout << bond.val << " * " << bond.sites[0] << "--" << bond.sites[1] << std::endl;
+            }
+        }
+
+        std::cout << "transformed XiXj term sqrt(wiwj)/2 * Xi * Xj :" << std::endl;
+        for (const auto& trOp : trXixj) {
             std::cout << trOp.g.factor << " * " << trOp.g.transformList << std::endl;
             for (const auto& bond : trOp.Op.bonds) {
                 std::cout << bond.val << " * " << bond.sites[0] << "--" << bond.sites[1] << std::endl;
