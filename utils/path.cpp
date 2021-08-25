@@ -41,6 +41,8 @@ Path::Path(const Parameters* path, const Parameters* model, const Parameters* pu
 
     AkwDir = parameterDir + sep + "Akw";
 
+    BkwDir = parameterDir + sep + "Bkw";
+
     SiSjDir = parameterDir + sep + "sisj";
     SiSjFile = SiSjDir + sep + "sisj";
     SkwDir = parameterDir + sep + "skw";
@@ -90,6 +92,9 @@ void Path::make(const Parameters& mPara) const {
     if (!AkwDir.empty() && opt(mPara, "Akw")) {
 		mkdir_fs(AkwDir);
 	}
+    if (!BkwDir.empty() && opt(mPara, "Bkw")) {
+		mkdir_fs(BkwDir);
+	}
     // heisenberg dirs
     if (!SiSjDir.empty() && opt(mPara, "SiSj")) {
 		mkdir_fs(SiSjDir);
@@ -134,6 +139,9 @@ void Path::print(std::ostream& os, bool brief) const {
         }
         if (!AkwDir.empty()) {
             os << "akw dir: " << AkwDir << '\n';
+        }
+        if (!BkwDir.empty()) {
+            os << "bkw dir: " << BkwDir << '\n';
         }
         if (!pumpDir.empty()) {
             os << "pump dir: " << pumpDir << '\n'; 

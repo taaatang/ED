@@ -55,6 +55,8 @@ public:
     std::string SkwDir;
     std::string RamanDir;
 
+    std::string BkwDir;
+
     std::string NeqNelDir;
     std::string NeqNphDir;
     std::string NeqSkwDir;
