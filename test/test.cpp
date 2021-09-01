@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     double Upp = *para.template get<double>("Upp");
     double wd = *para.template get<double>("wd");
     double wp = *para.template get<double>("wp");
-    double wdwp = std::sqrt(wd * wp) / 2.0;
+    double wdwp = std::sqrt(wd * wp) / 4.0;
     double gd = *para.template get<double>("gd");
     double gp = *para.template get<double>("gp");
     int specKD = *measurePara.template get<int>("spectraKrylovDim");
@@ -86,6 +86,11 @@ int main(int argc, char *argv[]) {
     timer.print("H construction");
     H.printTrInteractions();
     H.print("Hamiltonian info");
+    if (H.checkHermicity(0, 0)) {
+        std::cout << "H is Hermitian!" << std::endl;
+    } else {
+        std::cout << "H is not Hermitian!" << std::endl;
+    }
     H.diag();
 
     NelOp<Basis_t> nel(&latt, &b, &b);
