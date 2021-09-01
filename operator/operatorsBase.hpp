@@ -70,6 +70,8 @@ public:
 
     void printPhW0(std::ostream& os) const;
 
+    void printOnSiteInteraction() const;
+
     OperatorBase& transform();
 
     void printTrInteractions();
@@ -263,6 +265,13 @@ void OperatorBase<T, B>::printPhW0(std::ostream& os) const {
         os<<val<<", ";
     }
     os<<"\n";
+}
+
+template <typename T, IsBasisType B>
+void OperatorBase<T, B>::printOnSiteInteraction() const {
+    printU(std::cout);
+    printV(std::cout);
+    printPhW0(std::cout);
 }
 
 template<typename T, size_t N>
