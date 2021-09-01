@@ -86,11 +86,11 @@ int main(int argc, char *argv[]) {
     timer.print("H construction");
     H.printTrInteractions();
     H.print("Hamiltonian info");
-    if (H.checkHermicity(0, 0)) {
-        std::cout << "H is Hermitian!" << std::endl;
-    } else {
-        std::cout << "H is not Hermitian!" << std::endl;
-    }
+    // if (H.checkHermicity(0, 0)) {
+    //     std::cout << "H is Hermitian!" << std::endl;
+    // } else {
+    //     std::cout << "H is not Hermitian!" << std::endl;
+    // }
     H.diag();
 
     NelOp<Basis_t> nel(&latt, &b, &b);
