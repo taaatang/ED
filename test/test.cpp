@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     double Upp = *para.template get<double>("Upp");
     double wd = *para.template get<double>("wd");
     double wp = *para.template get<double>("wp");
-    double wdwp = 0.0;//std::sqrt(wd * wp) / 4.0;
+    double wdwp = std::sqrt(wd * wp) / 4.0;
     double gd = *para.template get<double>("gd");
     double gp = *para.template get<double>("gp");
     int specKD = *measurePara.template get<int>("spectraKrylovDim");
