@@ -413,7 +413,7 @@ void OperatorBase<T, B>::printTrInteractions() {
             }
         }
 
-        std::cout << "transformed XiXj term sqrt(wiwj)/2 * Xi * Xj :" << std::endl;
+        std::cout << "transformed XiXj term sqrt(wiwj)/4 * Xi * Xj :" << std::endl;
         for (const auto& trOp : trXixj) {
             std::cout << trOp.g.factor << " * " << trOp.g.transformList << std::endl;
             for (const auto& bond : trOp.Op.bonds) {
