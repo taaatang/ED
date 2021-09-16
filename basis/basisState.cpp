@@ -8,8 +8,6 @@
 #include "utils/runtimeCheck.hpp"
 #include "utils/comb.hpp"
 
-bool BasisStateInterface::configured = false;
-
 int BasisStateInterface::nSite = 0;
 
 int BasisStateInterface::nu = 0;
@@ -19,27 +17,20 @@ int BasisStateInterface::nd = 0;
 int BasisStateInterface::maxPhPerSite = 0;
 
 void BasisStateInterface::configureBase(int nSite_, int nu_, int nd_, int maxPhPerSite_) {
-    if (!configured) {
         assert_msg(nSite_ >= 0 && nu_ >= 0 && nd_ >= 0 && maxPhPerSite_ >= 0, "nSite, nu, nd, maxPhPerSite should be non-negative!");
         assert_msg(nu_ <= nSite_ && nd_ <= nSite_, "nu and nd can't be greater than nSite!");
         nSite = nSite_;
         nu = nu_;
         nd = nd_;
         maxPhPerSite = maxPhPerSite_;
-        configured = true;
-    } else {
-        std::cout << "Warning @ Attempt to reconfigure BasisStateInterface: Denied!" << std::endl;
-    }
+        std::cout << "Info @ Configure BasisStateInterface!" << std::endl;
 }
-
-bool SpinBasis::isMinMaxSet = false;
 
 BinaryState SpinBasis::min{};
 
 BinaryState SpinBasis::max{};
 
 SpinBasis::SpinBasis() {
-    assert_msg(isConfigured() && isMinMaxSet, "SpinBasis is not configured!");
     state = min;
 }
 
@@ -61,17 +52,11 @@ bool SpinBasis::next() {
 }
 
 void SpinBasis::configure(int nSite_, int nu_, int nd_, int maxPhPerSite_) {
-    if (!isConfigured()) {
-        BasisStateInterface::configureBase(nSite_, nu_, nSite_ - nu_, 0);
-    }
-    if (!isMinMaxSet) {
-        min = BinaryState::min(getNSite(), getNu());
-        max = BinaryState::max(getNSite(), getNu());
-        isMinMaxSet = true;
-    }
+    assert_msg(nu_ + nd_ == nSite_, "spin state nSite != nu + nd");
+    BasisStateInterface::configureBase(nSite_, nu_, nd_, maxPhPerSite);
+    min = BinaryState::min(getNSite(), getNu());
+    max = BinaryState::max(getNSite(), getNu());
 }
-
-bool ElectronBasis::isMinMaxSet = false;
 
 BinaryState ElectronBasis::upMin{};
 
@@ -88,7 +73,6 @@ ElectronBasis ElectronBasis::max(BinaryState{}, BinaryState{});
 bool ElectronBasis::allowDoubleOcc = true;
 
 ElectronBasis::ElectronBasis() {
-    assert_msg(isConfigured() && isMinMaxSet, "ElectronBasis not configured!");
     *this = min;
     if (!allowDoubleOcc && isDoubleOcc()) {
         assert_msg(next(), "no valid state without double occupancy!");
@@ -99,18 +83,14 @@ void ElectronBasis::configure(int nSite_, int nu_, int nd_, int maxPhPerSite_) {
     if (!allowDoubleOcc) {
         assert_msg(nu_ + nd_ <= nSite_, "nu + nd should not be greater than nSite when double occupancy is not allowed!");
     }
-    if (!isConfigured()) {
-        BasisStateInterface::configureBase(nSite_, nu_, nd_, 0);
-    }
-    if (!isMinMaxSet) {
-        upMin = BinaryState::min(getNSite(), getNu());
-        upMax = BinaryState::max(getNSite(), getNu());
-        dnMin = BinaryState::min(getNSite(), getNd());
-        dnMax = BinaryState::max(getNSite(), getNd());
-        min = ElectronBasis(upMin, dnMin);
-        max = ElectronBasis(upMax, dnMax);
-        isMinMaxSet = true;
-    }
+    //FIXME
+    BasisStateInterface::configureBase(nSite_, nu_, nd_, maxPhPerSite_);
+    upMin = BinaryState::min(getNSite(), getNu());
+    upMax = BinaryState::max(getNSite(), getNu());
+    dnMin = BinaryState::min(getNSite(), getNd());
+    dnMax = BinaryState::max(getNSite(), getNd());
+    min = ElectronBasis(upMin, dnMin);
+    max = ElectronBasis(upMax, dnMax);
 }
 
 bool ElectronBasis::next() {
@@ -148,8 +128,6 @@ idx_t ElectronBasis::getTotDim() {
     }
 }
 
-bool ElectronPhononBasis::isMinMaxSet = false;
-
 PhononState ElectronPhononBasis::phMin = PhononState{};
 
 PhononState ElectronPhononBasis::phMax = PhononState{};
@@ -159,23 +137,17 @@ ElectronPhononBasis ElectronPhononBasis::min = ElectronPhononBasis(ElectronBasis
 ElectronPhononBasis ElectronPhononBasis::max = ElectronPhononBasis(ElectronBasis{BinaryState{}, BinaryState{}}, PhononState{});
 
 ElectronPhononBasis::ElectronPhononBasis() {
-    assert_msg(isConfigured() && isMinMaxSet, "ElectronPhononBasis is not configured!");
     el = ElectronBasis();
     ph = phMin;
 }
 
 void ElectronPhononBasis::configure(int nSite_, int nu_, int nd_, int maxPhPerSite_) {
-    if(!isConfigured()) {
-        configureBase(nSite_, nu_, nd_, maxPhPerSite_);
-    }
+    // configureBase(nSite_, nu_, nd_, maxPhPerSite_);
     ElectronBasis::configure(nSite_, nu_, nd_, maxPhPerSite_);
-    if (!isMinMaxSet) {
-        phMin = PhononState::min(getNSite());
-        phMax = PhononState::max(getNSite(), getMaxPhPerSite());
-        min = ElectronPhononBasis(ElectronBasis::getMin(), phMin);
-        max = ElectronPhononBasis(ElectronBasis::getMax(), phMax);
-        isMinMaxSet = true;
-    }
+    phMin = PhononState::min(getNSite());
+    phMax = PhononState::max(getNSite(), getMaxPhPerSite());
+    min = ElectronPhononBasis(ElectronBasis::getMin(), phMin);
+    max = ElectronPhononBasis(ElectronBasis::getMax(), phMax);
 }
 
 bool ElectronPhononBasis::next() {

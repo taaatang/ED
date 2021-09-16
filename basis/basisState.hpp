@@ -18,8 +18,6 @@ public:
 
     static int getNSite() { return nSite; }
 
-    static bool isConfigured() { return configured; }
-
     static int getNu() { return nu; }
 
     static int getNd() { return nd; }
@@ -27,8 +25,6 @@ public:
     static int getMaxPhPerSite() { return maxPhPerSite; }
 
 protected:
-    static bool configured;
-
 	static int nSite;
 
 	static int nu;
@@ -118,8 +114,6 @@ public:
     BinaryState state;
 
 private:
-    static bool isMinMaxSet;
-
     static BinaryState min;
 
     static BinaryState max;
@@ -157,8 +151,6 @@ public:
 	BinaryState	dn;
 
 private:
-    static bool isMinMaxSet;
-
 	static BinaryState upMin;
 
     static BinaryState upMax;
@@ -239,8 +231,6 @@ public:
     PhononState ph;
 
 private:
-    static bool isMinMaxSet;
-
     static PhononState phMin;
 
     static PhononState phMax;
