@@ -237,7 +237,7 @@ int main(int argc, char *argv[]) {
                         cdouble B = 1.0 - w * w / wd / wd;
                         double na = std::norm(A);
                         double nb = std::norm(B);
-                        double n = std::sqrt(na * na + nb * nb);
+                        double n = std::sqrt(na + nb);
                         if (n > INFINITESIMAL) {
                             A /= n;
                             B /= n;
@@ -245,6 +245,7 @@ int main(int argc, char *argv[]) {
                             A = 1.0;
                             B = 0.0;
                         }
+                        std::cout << "k = " << kDyn << ", w = " << w << ", A = " << A << ", B = " << B << std::endl;
                         Op4K<APlus, AMinus, APlus, AMinus, Basis_t> xk(A, A, B, B, kDyn, ORBITAL::Dx2y2, &latt, &b, &bf);
                         xk.construct();
                         SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
