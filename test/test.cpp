@@ -10,8 +10,19 @@
 #include "measure/config.hpp"
 #include "measure/measure.hpp"
 #include "utils/progressBar.hpp"
+#include "numbers"
 
 using Basis_t = ElectronPhononBasis;
+
+double getAccFreq(double m, double w, double q) {
+    double s = std::sin(0.5 * q);
+    return w * std::sqrt(0.5 * (1.0 + m) * (1 - std::sqrt(1 - 4.0 * m / (1.0 + m) / (1.0 + m) * s * s)));
+}
+
+double getOptFreq(double m, double w, double q) {
+    double s = std::sin(0.5 * q);
+    return w * std::sqrt(0.5 * (1.0 + m) * (1 + std::sqrt(1 - 4.0 * m / (1.0 + m) / (1.0 + m) * s * s)));
+}
 
 int main(int argc, char *argv[]) {
     int workerID{0};
@@ -206,6 +217,7 @@ int main(int argc, char *argv[]) {
             }
 
             if (opt(measurePara, "Bkw")) {
+                // realspace local op
                 {
                     Op2K<APlus, AMinus, Basis_t> xk(kDyn, orb, &latt, &b, &bf);
                     xk.construct();
@@ -213,19 +225,33 @@ int main(int argc, char *argv[]) {
                     spectra.compute();
                     if (isMaster) spectra.save(path.BkwDir + "/x/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
                 }
+                // normal modes
                 {
-                    OpK<APlus, Basis_t> xk(kDyn, orb, &latt, &b, &bf);
-                    xk.construct();
-                    SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
-                    spectra.compute();
-                    if (isMaster) spectra.save(path.BkwDir + "/minus/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
-                }
-                {
-                    OpK<AMinus, Basis_t> xk(kDyn, orb, &latt, &b, &bf);
-                    xk.construct();
-                    SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
-                    spectra.compute();
-                    if (isMaster) spectra.save(path.BkwDir + "/plus/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
+                    double m = 4.0;
+                    double q = double(kDyn) * 2.0 * std::numbers::pi / double(nSite);
+                    VecD ws{getAccFreq(m, wd, q), getOptFreq(m, wd, q)};
+                    std::vector<std::string> branches{"acc", "opt"};
+                    int bidx = 0;
+                    for (double w : ws) {
+                        cdouble A = 0.5 * (1.0 + std::exp(cdouble(0.0, q)));
+                        cdouble B = 1.0 - w * w / wd / wd;
+                        double na = std::norm(A);
+                        double nb = std::norm(B);
+                        double n = std::sqrt(na * na + nb * nb);
+                        if (n > INFINITESIMAL) {
+                            A /= n;
+                            B /= n;
+                        } else {
+                            A = 1.0;
+                            B = 0.0;
+                        }
+                        Op4K<APlus, AMinus, APlus, AMinus, Basis_t> xk(A, A, B, B, kDyn, ORBITAL::Dx2y2, &latt, &b, &bf);
+                        xk.construct();
+                        SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
+                        spectra.compute();
+                        if (isMaster) spectra.save(path.BkwDir + "/xnorm/" + branches[bidx] + "/Lanczos/k" + tostr(kDyn), 0);
+                        bidx++;
+                    }
                 }
             }
         }

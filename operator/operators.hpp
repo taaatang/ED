@@ -217,6 +217,23 @@ private:
     std::vector<cdouble> expFactor;
 };
 
+template<typename Op1, typename Op2, typename Op3, typename Op4, IsBasisType B> requires LocalOp<Op1, cdouble, B> && LocalOp<Op2, cdouble, B> && LocalOp<Op3, cdouble, B> && LocalOp<Op4, cdouble, B>
+class Op4K : public OperatorBase<cdouble, B> {
+public:
+    Op4K(cdouble f1, cdouble f2, cdouble f3, cdouble f4, int k, ORBITAL orb, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool commuteWithTrans = false, bool commuteWithPG = false, int spmNum = 1, int dmNum = 0);
+    void row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps);
+
+private:
+    int k{-1};
+    int Ki;
+    int Kf;
+    ORBITAL orb;
+    cdouble f1{0}, f2{0}, f3{0}, f4{0};
+    std::vector<TrInteractions<cdouble, 1>> trLocOp;
+    std::vector<int> positions;
+    std::vector<cdouble> expFactor;
+};
+
 template <class T, ContainSpin B>
 class SzkOp: public OperatorBase<T, B> {
 public:
@@ -993,6 +1010,52 @@ void Op2K<Op1, Op2, B>::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps) {
             for (const auto& bond : gLocOp.Op.bonds) {
                 this->pushElement(bond.val / nf * (Op1(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
                 this->pushElement(bond.val / nf * (Op2(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+            }
+        }
+    #endif
+}
+
+template<typename Op1, typename Op2, typename Op3, typename Op4, IsBasisType B> requires LocalOp<Op1, cdouble, B> && LocalOp<Op2, cdouble, B> && LocalOp<Op3, cdouble, B> && LocalOp<Op4, cdouble, B>
+Op4K<Op1, Op2, Op3, Op4, B>::Op4K(cdouble f1_, cdouble f2_, cdouble f3_, cdouble f4_, int k_, ORBITAL orb_, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg, int spmNum, int dmNum) : OperatorBase<cdouble, B>(latt, Bi, Bf, trans, pg, spmNum, dmNum), k(k_), orb(orb_), f1(f1_), f2(f2_), f3(f3_), f4(f4_) , expFactor(latt->getUnitCellNum()){
+    // assert(Bi->getPGIndex()==-1 and Bf->getPGIndex()==-1);
+    positions = latt->getOrbPos(orb);
+    Ki = Bi->getKIdx();
+    Kf = Bf->getKIdx();
+    // expFactor[n] =  exp(-i*q*Rn) = exp(i*(Kf-Ki)*Rn)
+    Interactions<cdouble, 1> locOp{LINK_TYPE::NONE};
+    //!Fix: this is Szk^\dagger
+    if (Ki != -1 && Kf != -1) {
+        for (int i = 0; i < latt->getUnitCellNum(); ++i) {
+            expFactor[i] = latt->expKR(Ki, i) / latt->expKR(Kf, i) / cdouble(latt->getUnitCellNum());
+            locOp.add(Bond<cdouble,1>(expFactor[i], {positions.at(i)}));
+        }
+    } else {
+        for (int i = 0; i < latt->getUnitCellNum(); ++i) {
+            expFactor[i] = std::conj(latt->expKR(k, i) / cdouble(latt->getUnitCellNum()));
+            locOp.add(Bond<cdouble,1>(expFactor[i], {positions.at(i)}));
+        }
+    }
+    Generator<cdouble> Gi, Gf;
+    std::vector<Transform<cdouble>> allTr;
+    this->getGiGf(Gi, Gf, allTr);
+    assignTrInteractions<cdouble, 1>(Gi, Gf, allTr, {locOp}, trLocOp, 'n');
+}
+
+template<typename Op1, typename Op2, typename Op3, typename Op4, IsBasisType B> requires LocalOp<Op1, cdouble, B> && LocalOp<Op2, cdouble, B> && LocalOp<Op3, cdouble, B> && LocalOp<Op4, cdouble, B>
+void Op4K<Op1, Op2, Op3, Op4, B>::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps) {
+    #ifdef DISTRIBUTED_BASIS
+
+    #else
+        auto state = this->Bf->get(rowID);
+        auto nf = this->Bf->norm(rowID);
+        for (const auto& gLocOp : trLocOp) {
+            auto trState = state;
+            trState.transform(gLocOp.g);
+            for (const auto& bond : gLocOp.Op.bonds) {
+                this->pushElement(f1 * bond.val / nf * (Op1(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+                this->pushElement(f2 * bond.val / nf * (Op2(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+                this->pushElement(f3 * bond.val / nf * (Op3(bond[0] + 1) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+                this->pushElement(f4 * bond.val / nf * (Op4(bond[0] + 1) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
             }
         }
     #endif
