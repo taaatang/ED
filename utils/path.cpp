@@ -41,6 +41,8 @@ Path::Path(const Parameters* path, const Parameters* model, const Parameters* pu
 
     AkwDir = parameterDir + sep + "Akw";
 
+    NkwDir = parameterDir + sep + "Nkw";
+
     BkwDir = parameterDir + sep + "Bkw";
 
     SiSjDir = parameterDir + sep + "sisj";
@@ -92,6 +94,9 @@ void Path::make(const Parameters& mPara) const {
     if (!AkwDir.empty() && opt(mPara, "Akw")) {
 		mkdir_fs(AkwDir);
 	}
+    if (!NkwDir.empty() && opt(mPara, "Nkw")) {
+        mkdir_fs(NkwDir);
+    }
     if (!BkwDir.empty() && opt(mPara, "Bkw")) {
 		mkdir_fs(BkwDir);
 	}

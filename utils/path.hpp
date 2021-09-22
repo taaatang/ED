@@ -53,6 +53,7 @@ public:
     std::string SiSjDir;
     std::string SiSjFile;
     std::string SkwDir;
+    std::string NkwDir;
     std::string RamanDir;
 
     std::string BkwDir;
