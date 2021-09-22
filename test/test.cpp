@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
             Basis<Basis_t> bf(&latt, nu, nd, maxPhPerSite, kf, pidx);
             bf.construct();
             Hamiltonian<dataType, Basis_t> Hf(&latt, &bf, &bf, true, true, 1, 1);
-            Hf.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
+            Hf.pushLinks({tCuPx, tPxCu, gCu, gPx, kCuPx, kPxCu}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
 
             if (opt(measurePara, "Skw")) {
                 OpK<Sz, Basis_t> szk(kDyn, orb, &latt, &b, &bf);
@@ -161,6 +161,8 @@ int main(int argc, char *argv[]) {
                 SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &szk, H.getEvec(), 100);
                 spectra.compute();
                 if (isMaster) spectra.save(path.SkwDir + "/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
+                double skStatic = getStaticStrucFact(&szk, H.getEvec());
+                if (isMaster) save(&skStatic, 1, path.SkwDir + "/" + orbName + "/k" + tostr(kDyn));
                 // double dt2 = *measurePara.template get<double>("dt2");
                 // int steps2 = *measurePara.template get<int>("steps2");
                 // doubleTimeCorrelator(&szk, &H, &Hf, H.getEvec(), timeKD, dt2, steps2, path.SkwDir + "/" + orbName + "/time/k" + tostr(kDyn), isMaster);
@@ -193,6 +195,16 @@ int main(int argc, char *argv[]) {
                 }
             }
 
+            if (opt(measurePara, "Nkw")) {
+                Op2K<NCharge<SPIN::UP>, NCharge<SPIN::DOWN>, Basis_t> nk(kDyn, orb, &latt, &b, &bf);
+                nk.construct();
+                SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &nk, H.getEvec(), 100);
+                spectra.compute();
+                if (isMaster) spectra.save(path.NkwDir + "/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
+                double nkStatic = getStaticStrucFact(&nk, H.getEvec());
+                if (isMaster) save(&nkStatic, 1, path.NkwDir + "/" + orbName + "/k" + tostr(kDyn));
+            }
+
             if (opt(measurePara, "Bkw")) {
                 {
                     Op2K<APlus, AMinus, Basis_t> xk(kDyn, orb, &latt, &b, &bf);
@@ -200,6 +212,20 @@ int main(int argc, char *argv[]) {
                     SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
                     spectra.compute();
                     if (isMaster) spectra.save(path.BkwDir + "/x/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
+                }
+                {
+                    OpK<APlus, Basis_t> xk(kDyn, orb, &latt, &b, &bf);
+                    xk.construct();
+                    SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
+                    spectra.compute();
+                    if (isMaster) spectra.save(path.BkwDir + "/minus/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
+                }
+                {
+                    OpK<AMinus, Basis_t> xk(kDyn, orb, &latt, &b, &bf);
+                    xk.construct();
+                    SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
+                    spectra.compute();
+                    if (isMaster) spectra.save(path.BkwDir + "/plus/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
                 }
             }
         }
