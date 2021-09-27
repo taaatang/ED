@@ -63,10 +63,10 @@ target_link_libraries(ed ${LINKS})
 
 # Excutables
 set(EXE_SRC progSrc)
-add_executable(main.out ${EXE_SRC}/main.cpp)
-target_link_libraries(main.out ed ${LINKS})
+add_executable(elph.out ${EXE_SRC}/elph.cpp)
+target_link_libraries(elph.out ed ${LINKS})
 
 # Test
-set(TEST_SRC test)
-add_executable(test.out ${TEST_SRC}/test.cpp)
-target_link_libraries(test.out ed ${LINKS})
+# set(TEST_SRC test)
+# add_executable(test.out ${TEST_SRC}/test.cpp)
+# target_link_libraries(test.out ed ${LINKS})
