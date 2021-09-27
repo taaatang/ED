@@ -49,7 +49,7 @@ void doubleTimeCorrelator(OperatorBase<T, B>* op, Hamiltonian<T, B>* Hi, Hamilto
 //FIXME: const T *vi
 template <typename T, IsBasisType B>
 double getStaticStrucFact(OperatorBase<T, B>* op, T* vi) {
-    std::vector<T> vf(op->getColnloc(), 0.0);
+    std::vector<T> vf(op->getnloc(), 0.0);
     op->MxV(vi, vf.data());
     return mpiNorm(vf.data(), vf.size());
 }
