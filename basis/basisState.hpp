@@ -8,8 +8,8 @@ using idx_t = uint64_t;
 class BasisStateInterface {
 public:
 	virtual bool next() = 0;
-
-	virtual double transform(const Transform<cdouble> &u) = 0;
+    
+    virtual double transform(const Transform<cdouble> &u) = 0;
 
 	virtual idx_t getTotDim() = 0;
 
@@ -102,6 +102,7 @@ public:
 
     bool next() override;
 
+    // [[nodiscard("Fermion sign under transformation should not be ignored!")]]
     double transform(const Transform<cdouble> &u) override;
 
     static void configure(int nSite_, int nu_, int nd_, int maxPhPerSite_);
@@ -135,6 +136,7 @@ public:
 
     bool next() override;
 
+    [[nodiscard("Fermion sign under transformation should not be ignored!")]]
     double transform(const Transform<cdouble> &u) override;
 
     idx_t getTotDim() override;
@@ -215,6 +217,7 @@ public:
 
     bool next() override;
 
+    [[nodiscard("Fermion sign under transformation should not be ignored!")]]
     double transform(const Transform<cdouble> &u) override;
 
     idx_t getTotDim() override;
