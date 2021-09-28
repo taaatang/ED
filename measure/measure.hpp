@@ -48,8 +48,16 @@ void doubleTimeCorrelator(OperatorBase<T, B>* op, Hamiltonian<T, B>* Hi, Hamilto
 
 //FIXME: const T *vi
 template <typename T, IsBasisType B>
-double getStaticStrucFact(OperatorBase<T, B>* op, T* vi) {
+double measureStaticStrucFact(OperatorBase<T, B>* op, T* vi) {
     std::vector<T> vf(op->getnloc(), 0.0);
     op->MxV(vi, vf.data());
-    return mpiNorm(vf.data(), vf.size());
+    return std::real(mpiDot(vf.data(), vf.data(), vf.size()));
+}
+
+template <typename T, IsBasisType B>
+T measureExp(OperatorBase<T, B>* op, T * vi) {
+    assert_msg(op->getnloc() == op->getColnloc(), "op should be a square matrix!");
+    std::vector<T> vf(op->getnloc(), 0.0);
+    op->MxV(vi, vf.data());
+    return mpiDot(vi, vf.data(), vf.size());
 }
