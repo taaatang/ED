@@ -207,7 +207,6 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            //FIXME: Akw translation symmetry problem
             if (opt(measurePara, "Akw")) {
                 {
                     Basis<Basis_t> bf(&latt, nu - 1, nd, maxPhPerSite, kf, pidx);
@@ -254,16 +253,7 @@ int main(int argc, char *argv[]) {
         setpulse(pulsePara, pulse);
         pulse.profile();
         H.setPeierls(&pulse);
-        H.transform();
-        // H.printPeierls();
-        // H.printTrInteractions();
-        H.construct();
-
-        // if (H.checkHermicity(1, 2)) {
-        //     std::cout << "H is Hermitian!" << std::endl;
-        // } else {
-        //     std::cout << "H is not Hermitian!" << std::endl;
-        // }
+        H.transform().construct();
         H.print("H(t) info");
 
         TimeEvolver<dataType> Tevol(H.getEvec(), &H, timeKD);
