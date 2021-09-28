@@ -80,23 +80,20 @@ int main(int argc, char *argv[]) {
     std::cout << "nu = " << nu << ", nd = " << nd << ", nPh = " << maxPhPerSite << std::endl;
     std::cout << "nu = " << BasisStateInterface::getNu() << ", nd = " << BasisStateInterface::getNd() << ", nPh = " << BasisStateInterface::getMaxPhPerSite() << std::endl;
     b.print();
-    Hamiltonian<dataType, Basis_t> H(&latt, &b, &b, true, true, 1, 1);
     Link<dataType> tCuPx(LINK_TYPE::HOPPING_T, {ORBITAL::Dx2y2, ORBITAL::Px},     -tdp, {{0.5, 0.0, 0.0}});
     Link<dataType> tPxCu(LINK_TYPE::HOPPING_T, {ORBITAL::Px,    ORBITAL::Dx2y2},   tdp, {{0.5, 0.0, 0.0}});
     Link<dataType> kCuPx(LINK_TYPE::XiXj,      {ORBITAL::Dx2y2, ORBITAL::Px},    -wdwp, {{0.5, 0.0, 0.0}});
     Link<dataType> kPxCu(LINK_TYPE::XiXj,      {ORBITAL::Px,    ORBITAL::Dx2y2}, -wdwp, {{0.5, 0.0, 0.0}});
     Link<dataType> gCu(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Dx2y2, ORBITAL::Dx2y2}, gd, {{0.0, 0.0, 0.0}});
     Link<dataType> gPx(LINK_TYPE::NCHARGE_SITE_PHONON, {ORBITAL::Px, ORBITAL::Px}, gp, {{0.0, 0.0, 0.0}});
+    auto constructHam = [&](Hamiltonian<dataType, Basis_t> &h) {
+        h.pushLinks({tCuPx, tPxCu, gCu, gPx, kCuPx, kPxCu}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp)
+         .pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp)
+         .transform().construct();
+    };
     timer.tik();
-    H.pushLinks({tCuPx, tPxCu, gCu, gPx, kCuPx, kPxCu})
-        .pushV({ORBITAL::Dx2y2}, Vd)
-        .pushV({ORBITAL::Px}, Vp)
-        .pushU({ORBITAL::Dx2y2}, Udd)
-        .pushU({ORBITAL::Px}, Upp)
-        .pushPhW0({ORBITAL::Dx2y2}, wd)
-        .pushPhW0({ORBITAL::Px}, wp)
-        .transform()
-        .construct();
+    Hamiltonian<dataType, Basis_t> H(&latt, &b, &b, true, true, 1, 1);
+    constructHam(H);
     timer.print("H construction");
     H.printTrInteractions();
     H.printOnSiteInteraction();
@@ -120,76 +117,106 @@ int main(int argc, char *argv[]) {
         std::cout << "phonon distribution: " << nph.lastCount() << std::endl;
     }
 
-    // for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
-    //     OpK<NCharge<SPIN::UP>, Basis_t> n(0, orb, &latt, &b, &b);
-    //     n.construct();
-    //     auto val = n.vMv(H.getEvec(), H.getEvec());
-    //     if (isMaster) std::cout << orb << " " << SPIN::UP << " has " << val << " charge" << std::endl;
-    // }
-    // for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
-    //     OpK<NCharge<SPIN::DOWN>, Basis_t> n(0, orb, &latt, &b, &b);
-    //     n.construct();
-    //     auto val = n.vMv(H.getEvec(), H.getEvec());
-    //     if (isMaster) std::cout << orb << " " << SPIN::DOWN << " has " << val << " charge" << std::endl;
-    // }
-    // for (auto orb : std::vector<ORBITAL>{ORBITAL::Dx2y2, ORBITAL::Px}) {
-    //     OpK<NPhonon, Basis_t> n(0, orb, &latt, &b, &b);
-    //     n.construct();
-    //     auto val = n.vMv(H.getEvec(), H.getEvec());
-    //     if (isMaster) std::cout << orb << " " << " has " << val << " phonon" << std::endl;
-    // }
     double time = 0.0;
     VecD timePoints{time};
 
-    if (opt(measurePara, "conductivity")) {
-        Current<Basis_t> jx("x", &latt, &b, &b);
-        jx.pushLinks({tCuPx, tPxCu});
-        jx.setDirection();
-        jx.transform();
-        jx.construct();
-        jx.print("x current");
-        SPECTRASolver<cdouble> spectra(&H, H.getEval(), &jx, H.getEvec(), specKD);
-        spectra.compute();
-        if (isMaster) {
-            spectra.save(path.sigmaDir + "/x", 0);
-        }
-    }
-
     if (opt(measurePara, "eqSpec")) {
+        if (opt(measurePara, "conductivity")) {
+            Current<Basis_t> jx("x", &latt, &b, &b);
+            jx.pushLinks({tCuPx, tPxCu});
+            jx.setDirection();
+            jx.transform();
+            jx.construct();
+            jx.print("x current");
+            SPECTRASolver<cdouble> spectra(&H, H.getEval(), &jx, H.getEvec(), specKD);
+            spectra.compute();
+            if (isMaster) {
+                spectra.save(path.sigmaDir + "/x", 0);
+            }
+        }
         for (int kDyn = 0; kDyn < nSite; ++kDyn) {
             ORBITAL orb = (*measurePara.template get<int>("OrbId") == 0) ? ORBITAL::Dx2y2 : ORBITAL::Px;
             std::string orbName = (orb == ORBITAL::Dx2y2) ? "Cu" : "Ox";
             // int kDyn = *measurePara.template get<int>("kDynamic");
             int kf = (kidx == -1) ? -1 : (kidx + kDyn) % nSite;
-            Basis<Basis_t> bf(&latt, nu, nd, maxPhPerSite, kf, pidx);
-            bf.construct();
-            Hamiltonian<dataType, Basis_t> Hf(&latt, &bf, &bf, true, true, 1, 1);
-            Hf.pushLinks({tCuPx, tPxCu, gCu, gPx, kCuPx, kPxCu}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
+            {
+                Basis<Basis_t> bf(&latt, nu, nd, maxPhPerSite, kf, pidx);
+                bf.construct();
+                Hamiltonian<dataType, Basis_t> Hf(&latt, &bf, &bf, true, true, 1, 1);
+                constructHam(Hf);
 
-            if (opt(measurePara, "Skw")) {
-                OpK<Sz, Basis_t> szk(kDyn, orb, &latt, &b, &bf);
-                szk.construct();
-                SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &szk, H.getEvec(), 100);
-                spectra.compute();
-                if (isMaster) spectra.save(path.SkwDir + "/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
-                double skStatic = getStaticStrucFact(&szk, H.getEvec());
-                if (isMaster) save(&skStatic, 1, path.SkwDir + "/" + orbName + "/k" + tostr(kDyn));
-                // double dt2 = *measurePara.template get<double>("dt2");
-                // int steps2 = *measurePara.template get<int>("steps2");
-                // doubleTimeCorrelator(&szk, &H, &Hf, H.getEvec(), timeKD, dt2, steps2, path.SkwDir + "/" + orbName + "/time/k" + tostr(kDyn), isMaster);
+                if (opt(measurePara, "Skw")) {
+                    OpK<Sz, Basis_t> szk(kDyn, orb, &latt, &b, &bf);
+                    szk.construct();
+                    SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &szk, H.getEvec(), 100);
+                    spectra.compute();
+                    if (isMaster) spectra.save(path.SkwDir + "/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
+                    double skStatic = measureStaticStrucFact(&szk, H.getEvec());
+                    if (isMaster) save(&skStatic, 1, path.SkwDir + "/" + orbName + "/k" + tostr(kDyn));
+                    // double dt2 = *measurePara.template get<double>("dt2");
+                    // int steps2 = *measurePara.template get<int>("steps2");
+                    // doubleTimeCorrelator(&szk, &H, &Hf, H.getEvec(), timeKD, dt2, steps2, path.SkwDir + "/" + orbName + "/time/k" + tostr(kDyn), isMaster);
+                }
+                if (opt(measurePara, "Nkw")) {
+                    Op2K<NCharge<SPIN::UP>, NCharge<SPIN::DOWN>, Basis_t> nk(kDyn, orb, &latt, &b, &bf);
+                    nk.construct();
+                    SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &nk, H.getEvec(), 100);
+                    spectra.compute();
+                    if (isMaster) spectra.save(path.NkwDir + "/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
+                    dataType nkStatic = measureStaticStrucFact(&nk, H.getEvec());
+                    if (isMaster) save(&nkStatic, 1, path.NkwDir + "/" + orbName + "/k" + tostr(kDyn));
+                }
+
+                if (opt(measurePara, "Bkw")) {
+                    // realspace local op
+                    {
+                        Op2K<APlus, AMinus, Basis_t> xk(kDyn, orb, &latt, &b, &bf);
+                        xk.construct();
+                        SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
+                        spectra.compute();
+                        if (isMaster) spectra.save(path.BkwDir + "/x/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
+                    }
+                    // normal modes
+                    {
+                        double m = 4.0;
+                        double q = double(kDyn) * 2.0 * std::numbers::pi / double(nSite);
+                        VecD ws{getAccFreq(m, wd, q), getOptFreq(m, wd, q)};
+                        std::vector<std::string> branches{"acc", "opt"};
+                        int bidx = *measurePara.template get<int>("OrbId");
+                        double w = ws[bidx];
+                        cdouble A = std::sqrt(m) * 0.5 * (1.0 + std::exp(cdouble(0.0, q)));
+                        cdouble B = 1.0 - w * w / wd / wd;
+                        double na = std::norm(A);
+                        double nb = std::norm(B);
+                        double n = std::sqrt(na + nb);
+                        if (n > INFINITESIMAL) {
+                            A /= n;
+                            B /= n;
+                        } else {
+                            A = 1.0;
+                            B = 0.0;
+                        }
+                        A *= std::sqrt(m);
+                        std::cout << "k = " << kDyn << ", w = " << w << ", A = " << A << ", B = " << B << std::endl;
+                        Op4K<APlus, AMinus, APlus, AMinus, Basis_t> xk(A, A, B, B, kDyn, ORBITAL::Dx2y2, &latt, &b, &bf);
+                        xk.construct();
+                        SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
+                        spectra.compute();
+                        if (isMaster) spectra.save(path.BkwDir + "/xnorm/" + branches[bidx] + "/Lanczos/k" + tostr(kDyn), 0);
+                    }
+                }
             }
 
             //FIXME: Akw translation symmetry problem
             if (opt(measurePara, "Akw")) {
                 {
-                    Basis<Basis_t> bfi(&latt, nu - 1, nd, maxPhPerSite, kf, pidx);
-                    bfi.construct();
-                    Hamiltonian<dataType, Basis_t> Hfi(&latt, &bfi, &bfi, true, true, 1, 1);
-                    Hfi.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
-                    Hfi.print("Hfi info");
-                    OpK<CPlus<SPIN::UP>, Basis_t> cpupk(kDyn, orb, &latt, &b, &bfi);
+                    Basis<Basis_t> bf(&latt, nu - 1, nd, maxPhPerSite, kf, pidx);
+                    bf.construct();
+                    Hamiltonian<dataType, Basis_t> Hf(&latt, &bf, &bf, true, true, 1, 1);
+                    constructHam(Hf);
+                    OpK<CPlus<SPIN::UP>, Basis_t> cpupk(kDyn, orb, &latt, &b, &bf);
                     cpupk.construct();
-                    SPECTRASolver<dataType> spectra(&Hfi, H.getEval(), &cpupk, H.getEvec(), 100);
+                    SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &cpupk, H.getEvec(), 100);
                     spectra.compute();
                     if (isMaster) spectra.save(path.AkwDir + "/up/minus/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
                 }
@@ -197,63 +224,14 @@ int main(int argc, char *argv[]) {
                     Basis<Basis_t> bf(&latt, nu + 1, nd, maxPhPerSite, kf, pidx);
                     bf.construct();
                     Hamiltonian<dataType, Basis_t> Hf(&latt, &bf, &bf, true, true, 1, 1);
-                    Hf.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
+                    constructHam(Hf);
                     OpK<CMinus<SPIN::UP>, Basis_t> cmupk(kDyn, orb, &latt, &b, &bf);
                     cmupk.construct();
                     SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &cmupk, H.getEvec(), 100);
                     spectra.compute();
                     if (isMaster) spectra.save(path.AkwDir + "/up/plus/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
                 }
-            }
-
-            if (opt(measurePara, "Nkw")) {
-                Op2K<NCharge<SPIN::UP>, NCharge<SPIN::DOWN>, Basis_t> nk(kDyn, orb, &latt, &b, &bf);
-                nk.construct();
-                SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &nk, H.getEvec(), 100);
-                spectra.compute();
-                if (isMaster) spectra.save(path.NkwDir + "/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
-                double nkStatic = getStaticStrucFact(&nk, H.getEvec());
-                if (isMaster) save(&nkStatic, 1, path.NkwDir + "/" + orbName + "/k" + tostr(kDyn));
-            }
-
-            if (opt(measurePara, "Bkw")) {
-                // realspace local op
-                {
-                    Op2K<APlus, AMinus, Basis_t> xk(kDyn, orb, &latt, &b, &bf);
-                    xk.construct();
-                    SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
-                    spectra.compute();
-                    if (isMaster) spectra.save(path.BkwDir + "/x/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
-                }
-                // normal modes
-                {
-                    double m = 4.0;
-                    double q = double(kDyn) * 2.0 * std::numbers::pi / double(nSite);
-                    VecD ws{getAccFreq(m, wd, q), getOptFreq(m, wd, q)};
-                    std::vector<std::string> branches{"acc", "opt"};
-                    int bidx = *measurePara.template get<int>("OrbId");
-                    double w = ws[bidx];
-                    cdouble A = std::sqrt(m) * 0.5 * (1.0 + std::exp(cdouble(0.0, q)));
-                    cdouble B = 1.0 - w * w / wd / wd;
-                    double na = std::norm(A);
-                    double nb = std::norm(B);
-                    double n = std::sqrt(na + nb);
-                    if (n > INFINITESIMAL) {
-                        A /= n;
-                        B /= n;
-                    } else {
-                        A = 1.0;
-                        B = 0.0;
-                    }
-                    A *= std::sqrt(m);
-                    std::cout << "k = " << kDyn << ", w = " << w << ", A = " << A << ", B = " << B << std::endl;
-                    Op4K<APlus, AMinus, APlus, AMinus, Basis_t> xk(A, A, B, B, kDyn, ORBITAL::Dx2y2, &latt, &b, &bf);
-                    xk.construct();
-                    SPECTRASolver<dataType> spectra(&Hf, H.getEval(), &xk, H.getEvec(), 100);
-                    spectra.compute();
-                    if (isMaster) spectra.save(path.BkwDir + "/xnorm/" + branches[bidx] + "/Lanczos/k" + tostr(kDyn), 0);
-                }
-            }
+            }  
         }
     }
     
@@ -265,8 +243,7 @@ int main(int argc, char *argv[]) {
         Basis<Basis_t> bf(&latt, nu, nd, maxPhPerSite, kf, pidx);
         bf.construct();
         Hamiltonian<dataType, Basis_t> Hf(&latt, &bf, &bf, true, true, 1, 1);
-        std::cout << "construc Hf" << std::endl;
-        Hf.pushLinks({tCuPx, tPxCu, gCu, gPx}).pushV({ORBITAL::Dx2y2}, Vd).pushV({ORBITAL::Px}, Vp).pushU({ORBITAL::Dx2y2}, Udd).pushU({ORBITAL::Px}, Upp).pushPhW0({ORBITAL::Dx2y2}, wd).pushPhW0({ORBITAL::Px}, wp).transform().construct();
+        constructHam(Hf);
         SzkOp<dataType, Basis_t> szk(kDyn, orb, &latt, &b, &bf);
         szk.transform();
         szk.construct();
