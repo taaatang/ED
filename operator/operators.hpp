@@ -964,9 +964,9 @@ void OpK<Op, B>::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps) {
         auto nf = this->Bf->norm(rowID);
         for (const auto& gLocOp : trLocOp) {
             auto trState = state;
-            trState.transform(gLocOp.g);
+            auto sign = trState.transform(gLocOp.g);
             for (const auto& bond : gLocOp.Op.bonds) {
-                this->pushElement(bond.val / nf * (Op(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+                this->pushElement(sign * bond.val / nf * (Op(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
             }
         }
     #endif
@@ -1006,10 +1006,10 @@ void Op2K<Op1, Op2, B>::row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps) {
         auto nf = this->Bf->norm(rowID);
         for (const auto& gLocOp : trLocOp) {
             auto trState = state;
-            trState.transform(gLocOp.g);
+            auto sign = trState.transform(gLocOp.g);
             for (const auto& bond : gLocOp.Op.bonds) {
-                this->pushElement(bond.val / nf * (Op1(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
-                this->pushElement(bond.val / nf * (Op2(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+                this->pushElement(sign * bond.val / nf * (Op1(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+                this->pushElement(sign * bond.val / nf * (Op2(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
             }
         }
     #endif
@@ -1050,12 +1050,12 @@ void Op4K<Op1, Op2, Op3, Op4, B>::row(idx_t rowID, std::vector<MAP<cdouble>>& ro
         auto nf = this->Bf->norm(rowID);
         for (const auto& gLocOp : trLocOp) {
             auto trState = state;
-            trState.transform(gLocOp.g);
+            auto sign = trState.transform(gLocOp.g);
             for (const auto& bond : gLocOp.Op.bonds) {
-                this->pushElement(f1 * bond.val / nf * (Op1(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
-                this->pushElement(f2 * bond.val / nf * (Op2(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
-                this->pushElement(f3 * bond.val / nf * (Op3(bond[0] + 1) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
-                this->pushElement(f4 * bond.val / nf * (Op4(bond[0] + 1) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+                this->pushElement(f1 * sign * bond.val / nf * (Op1(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+                this->pushElement(f2 * sign * bond.val / nf * (Op2(bond[0]) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+                this->pushElement(f3 * sign * bond.val / nf * (Op3(bond[0] + 1) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
+                this->pushElement(f4 * sign * bond.val / nf * (Op4(bond[0] + 1) * BVopt<cdouble, B>(trState)), &rowMaps.at(bond.spmIdx));
             }
         }
     #endif
@@ -1103,7 +1103,7 @@ void SzkOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
         auto nf = this->Bf->norm(rowID);
         for (const auto& gSz : this->trSz) {
             auto repIf = repI;
-            repIf.transform(gSz.g);
+            auto sign = repIf.transform(gSz.g);
             auto colID = this->Bi->search(repIf);
             if (colID) {
                 T val = 0.0;
@@ -1113,6 +1113,7 @@ void SzkOp<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
                         val += bv->val;
                     }
                 }
+                val *= sign;
                 val /= (nf * this->Bi->norm(*colID));
                 MapPush(&rowMaps.at(0), *colID, val);
             }
