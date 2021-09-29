@@ -153,9 +153,9 @@ int main(int argc, char *argv[]) {
                     if (isMaster) spectra.save(path.SkwDir + "/" + orbName + "/Lanczos/k" + tostr(kDyn), 0);
                     double skStatic = measureStaticStrucFact(&szk, H.getEvec());
                     if (isMaster) save(&skStatic, 1, path.SkwDir + "/" + orbName + "/k" + tostr(kDyn));
-                    // double dt2 = *measurePara.template get<double>("dt2");
-                    // int steps2 = *measurePara.template get<int>("steps2");
-                    // doubleTimeCorrelator(&szk, &H, &Hf, H.getEvec(), timeKD, dt2, steps2, path.SkwDir + "/" + orbName + "/time/k" + tostr(kDyn), isMaster);
+                    double dt2 = *measurePara.template get<double>("dt2");
+                    int steps2 = *measurePara.template get<int>("steps2");
+                    doubleTimeCorrelator(&szk, &H, &Hf, H.getEvec(), timeKD, dt2, steps2, path.SkwDir + "/" + orbName + "/time/k" + tostr(kDyn), isMaster);
                 }
                 if (opt(measurePara, "Nkw")) {
                     Op2K<NCharge<SPIN::UP>, NCharge<SPIN::DOWN>, Basis_t> nk(kDyn, orb, &latt, &b, &bf);
