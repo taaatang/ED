@@ -183,12 +183,13 @@ int main(int argc, char *argv[]) {
                         VecD ws{getAccFreq(m, wd, q), getOptFreq(m, wd, q)};
                         std::vector<std::string> branches{"acc", "opt"};
                         int bidx = *measurePara.template get<int>("OrbId");
-                        double w = ws[bidx];
+                        double w = ws.at(bidx);
                         cdouble A = std::sqrt(m) * 0.5 * (1.0 + std::exp(cdouble(0.0, q)));
                         cdouble B = 1.0 - w * w / wd / wd;
                         double na = std::norm(A);
                         double nb = std::norm(B);
                         double n = std::sqrt(na + nb);
+                        std::cout << "A = " << A << ", B = " << B << ", norm = " << n << std::endl;
                         if (n > INFINITESIMAL) {
                             A /= n;
                             B /= n;
@@ -196,7 +197,8 @@ int main(int argc, char *argv[]) {
                             A = 1.0;
                             B = 0.0;
                         }
-                        A *= std::sqrt(m);
+                        A /= std::sqrt(2.0 * wd);
+                        B /= std::sqrt(2.0 * wp);
                         std::cout << "k = " << kDyn << ", w = " << w << ", A = " << A << ", B = " << B << std::endl;
                         Op4K<APlus, AMinus, APlus, AMinus, Basis_t> xk(A, A, B, B, kDyn, ORBITAL::Dx2y2, &latt, &b, &bf);
                         xk.construct();
