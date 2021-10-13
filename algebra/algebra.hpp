@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <cmath>
+#include <chrono>
 #include <random>
 #include <functional>
 #include "omp.h"
@@ -107,11 +108,16 @@ inline void init(T *vec, U size, T val){
 }
 
 template <class T>
-inline void randInit(std::vector<T>& vec){
-    std::mt19937 generatorD;
-    std::uniform_real_distribution<double> distributionD(0.0,1.0);
-    auto diceD = std::bind(distributionD,generatorD);
-    for (auto& val : vec) val = diceD();
+void randInit(std::vector<T>& vec){
+    static unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    static std::mt19937 generatorD(seed);
+    static std::uniform_real_distribution<double> distributionD(-1.0, 1.0);
+    // auto diceD = std::bind(distributionD, generatorD);
+    if constexpr (std::is_same_v<T, double>) {
+        for (auto& val : vec) val = distributionD(generatorD);
+    } else if constexpr (std::is_same_v<T, cdouble>) {
+        for (auto& val : vec) val = cdouble(distributionD(generatorD), distributionD(generatorD));
+    }
 }
 
 template <class T>
