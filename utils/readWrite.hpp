@@ -24,7 +24,7 @@ struct RedirectStdOut {
 };
 
 template <typename data_t, std::integral index_t>
-inline void save(data_t *d_pt, index_t size, std::string filename, bool is_app = false, bool print = true){
+inline void save(const data_t *d_pt, index_t size, std::string filename, bool is_app = false, bool print = true){
     std::ofstream os;
     if (is_app) {
         os.open(filename, std::ios::binary | std::ios::app);
@@ -32,7 +32,7 @@ inline void save(data_t *d_pt, index_t size, std::string filename, bool is_app =
         os.open(filename, std::ios::binary);
     }
     if (os.is_open()){
-        os.write(reinterpret_cast<char*>(d_pt), size * sizeof(data_t));
+        os.write(reinterpret_cast<const char*>(d_pt), size * sizeof(data_t));
         os.close();
         if (print) {
             if (is_app) {
