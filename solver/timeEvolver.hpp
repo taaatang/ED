@@ -44,7 +44,7 @@ vec(initVec), tmp1(krydim), tmp2(krydim), U(krydim * krydim) {
 
 }
 
-// vec = exp(i*expFac*H)*vec
+// vec = exp(-i*expFac*H)*vec
 template <class T>
 void TimeEvolver<T>::evolve(double expFac){
     LANCZOSIterator<T>::run(vec);
