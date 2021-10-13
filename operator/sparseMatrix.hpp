@@ -13,6 +13,7 @@
 
 #include "global/constant.hpp"
 #include "utils/mpiwrap.hpp"
+#include "utils/readWrite.hpp"
 #include "algebra/algebra.hpp"
 
 enum MATRIX_PARTITION {ROW, BLK};
@@ -161,6 +162,8 @@ public:
 
     // create one row. store sparse matrixes data in corresponding rowMaps. (repI, val) for distributed basis. (idx,val) otherwise
     virtual void row(idx_t rowID, std::vector<MAP<T>>& rowMaps) { };
+
+    void toDisk(const std::string& dir) const;
 
 public:
 // reserve memory for off diagonal part
@@ -870,6 +873,18 @@ void SparseMatrix<T>::print(std::string info, std::ostream& os, bool brief) cons
             std::cout << std::endl;
         }
 
+    }
+}
+
+template <class T>
+void SparseMatrix<T>::toDisk(const std::string &dir) const {
+    for (int i = 0; i < dmNum; ++i) {
+        save(diagValList.at(i).data(), diagValList.at(i).size(), dir + "/diag_" + tostr(i));
+    }
+    for (int i = 0; i < spmNum; ++i) {
+        save(rowInitList.at(i).data(), rowInitList.at(i).size(), dir + "/rowInit_" + tostr(i));
+        save(colList.at(i).data(), colList.at(i).size(), dir + "/colIdx_" + tostr(i));
+        save(valList.at(i).data(), valList.at(i).size(), dir + "/val_" + tostr(i));
     }
 }
 
