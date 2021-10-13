@@ -18,6 +18,15 @@
 
 enum class MODEL {HUBBARD, tJ, HEISENBERG, ElPh};
 
+template <typename T, IsBasisType B>
+class Projector : public OperatorBase<T, B> {
+public:
+    Projector(int k, Geometry *latt, Basis<B> *Bi, Basis<B> *Bf, bool commuteWithTrans = false, bool commuteWithPG = false);
+    void row(idx_t rowidx, std::vector<MAP<T>>& rowMaps);
+private:
+    Generator<T> gs;
+};
+
 /***************
  * HAMILTONIAN *
  ***************/
@@ -927,6 +936,23 @@ void SSOp<T, B>::project(double s, T* vec){
                 vec[i] = (tmp[i] - stoti * vec[i]) / (stot - stoti);
             }
         }
+    }
+}
+
+template <typename T, IsBasisType B>
+Projector<T, B>::Projector(int k, Geometry* latt, Basis<B>* Bi, Basis<B>* Bf, bool trans, bool pg) : OperatorBase<T, B>(latt, Bi, Bf, trans, pg, 1, 0) {
+    gs = latt->getTranslationGenerator(k);
+}
+
+template <typename T, IsBasisType B>
+void Projector<T, B>::row(idx_t rowID, std::vector<MAP<T>>& rowMaps) {
+    auto state = this->Bf->get(rowID);
+    auto nf = this->Bf->norm(rowID);
+    MAP<cdouble> *mapPtr = &rowMaps[0];
+    for (const auto& g : gs.U) {
+        auto statef = state;
+        auto sgn = statef.transform(g);
+        this->pushElement(sgn * std::conj(g.factor) / nf * BVopt<cdouble, B>(statef), mapPtr);
     }
 }
 
