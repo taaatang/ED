@@ -137,6 +137,8 @@ public:
 
     void print() const;
 
+    Vec3d getKxy(int kid) const;
+
 private:
     // return the id-th orbital's unit cell id
     int getSiteid(int id) const {return orbs.at(id).siteid;}
@@ -146,8 +148,6 @@ private:
     Vec3d getSiteRxy(int siteid) const;
 
     Vec3d getOrbRxy(int orbid) const;
-
-    Vec3d getKxy(int kid) const;
 
     // return the id' obtained by translate id by r
     int getOrbTran(int r, int orbIdx) const { return TransList.at(r).at(orbIdx); }
