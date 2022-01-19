@@ -188,6 +188,8 @@ void LANCZOSIterator<T>::run(T* vec){
     vecNorm = mpiNorm(vec, nloc);
     if (vecNorm < INFINITESIMAL){
         if (isMaster) std::cout<<"norm(vecIn) = "<<vecNorm<<". Check if the input vec is 0.\n";
+        alpha = std::vector<double>(krylovDim, 0.0);
+        beta = std::vector<double>(krylovDim - 1, 0.0);
         return;
     }
     scale(q, 1.0/(T)vecNorm,nloc);
