@@ -66,6 +66,9 @@ set(EXE_SRC progSrc)
 add_executable(elph.out ${EXE_SRC}/elph.cpp)
 target_link_libraries(elph.out ed ${LINKS})
 
+add_executable(heis.out ${EXE_SRC}/heis.cpp)
+target_link_libraries(heis.out ed ${LINKS})
+
 # Test
 # set(TEST_SRC test)
 # add_executable(test.out ${TEST_SRC}/test.cpp)
