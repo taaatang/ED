@@ -55,7 +55,7 @@ set(GSL gsl gslcblas)
 set(CMAKE_CXX_FLAGS "-O3 ${MKL_FLAGS} -Wall ${OPENMP_FLAG}")
 # Include/Library Path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ARPACKINC} ${MKLINC} ${MPIDIR}/include ${GSLDIR}/include)
-link_directories(${ARPACKLIB} ${MPIDIR}/lib ${GSLDIR}/lib /opt/intel/lib)
+link_directories(${ARPACKLIB} ${MPIDIR}/lib ${GSLDIR}/lib /opt/intel/oneapi/compiler/latest/mac/compiler/lib)
 set(LINKS ${MKL} parpack ${MPI} ${GSL})
 
 add_library(ed STATIC geometry/geometry.cpp basis/basisState.cpp operator/links.cpp measure/config.cpp algebra/algebra.cpp pulse/pulse.cpp utils/comb.cpp utils/paras.cpp utils/path.cpp)
