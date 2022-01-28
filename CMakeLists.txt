@@ -2,12 +2,14 @@ cmake_minimum_required(VERSION 3.10)
 
 project(ED VERSION 2.0.0 LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(STATUS "build on Linux ...")
     set(CMAKE_CXX_COMPILER g++)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     message(STATUS "build on macOS ...")
-    set(CMAKE_CXX_COMPILER /usr/local/bin/g++-11)
+    set(CMAKE_CXX_COMPILER g++-11)
 endif()
 set(OPENMP_FLAG -fopenmp)
 
