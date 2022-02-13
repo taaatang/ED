@@ -68,6 +68,9 @@ set(EXE_SRC progSrc)
 add_executable(elph.out ${EXE_SRC}/elph.cpp)
 target_link_libraries(elph.out ed ${LINKS})
 
+add_executable(hubb1bTime.out ${EXE_SRC}/hubb1bTime.cpp)
+target_link_libraries(hubb1bTime.out ed ${LINKS})
+
 add_executable(heis.out ${EXE_SRC}/heis.cpp)
 target_link_libraries(heis.out ed ${LINKS})
 
