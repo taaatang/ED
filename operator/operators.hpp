@@ -194,6 +194,27 @@ private:
     std::vector<VecI> siteJList;
 };
 
+template<typename T, typename Op, IsBasisType B> requires LocalOp<Op, T, B>
+class OpR: public OperatorBase<T, B> {
+public:
+    OpR(int r, Geometry *latt, Basis<B> *Bi, Basis<B> *Bf): OperatorBase<T, B>(latt, Bi, Bf, false, false, 1, 0), op(r) {
+        assert_msg(Bi->getKIdx()==-1 && Bi->getPIdx()==-1 && Bf->getKIdx()==-1 && Bi->getPIdx()==-1, "Local operator will change translation/pointgroup symmetry!");
+        std::cout << "op position = " << op.pos << std::endl;
+    }
+
+    void row(idx_t rowID, std::vector<MAP<cdouble>>& rowMaps);
+
+private:
+    Op op;
+};
+
+template<typename T, typename Op, IsBasisType B> requires LocalOp<Op, T, B>
+void OpR<T, Op, B>::row(idx_t rowID, std::vector<MAP<cdouble>> &rowMaps) {
+    auto state = this->Bf->get(rowID);
+    auto nf = this->Bf->norm(rowID);
+    this->pushElement(T(1.0/nf) * (op * BVopt<T, B>(state)), &rowMaps.at(0));
+}
+
 template<typename Op, IsBasisType B> requires LocalOp<Op, cdouble, B>
 class OpK : public OperatorBase<cdouble, B> {
 public:
